@@ -297,3 +297,32 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Document scroll lock for app-shell routes
+ *
+ * The shell is exactly one viewport tall and clips its own overflow, so
+ * `<main>` owns the only scrollbar in the app. Anything that adds height to
+ * the document *outside* the shell — a browser extension appending to <body>,
+ * an overlay library, a scroll lock a dialog failed to unwind — therefore
+ * shows up as a second, page-level scrollbar sitting beside the real one, and
+ * scrolls the header and sidebar off the top.
+ *
+ * Locking the document while a shell route is mounted makes that impossible.
+ * `overflow` on <body> propagates to the viewport (the <html> box stays
+ * `visible`), so nothing is visually clipped — the page simply cannot scroll.
+ * Fixed-position layers are unaffected: toasts, dialogs and sheets all still
+ * render over the shell.
+ *
+ * Scoped with :has() rather than applied globally, because the auth screens
+ * and the AccountInactive / AccessDenied surfaces are `min-h-svh` pages that
+ * must still scroll on a short viewport. They carry no data-app-shell.
+ *
+ * Kept at the end of the file with the brand layer, so a `shadcn` regeneration
+ * cannot silently revert it.
+ * ------------------------------------------------------------------------- */
+@layer base {
+  body:has([data-app-shell]) {
+    overflow: hidden;
+  }
+}

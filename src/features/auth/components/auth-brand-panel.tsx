@@ -66,7 +66,7 @@ export function AuthBrandPanel() {
       />
       <RouteMotif />
 
-      <BrandLockup inverted descriptor className="relative" />
+      <BrandLockup inverted descriptor size="lg" className="relative" />
 
       <div className="relative max-w-md">
         <h2 className="text-[2rem] leading-[1.15] font-semibold tracking-tight text-balance xl:text-4xl">

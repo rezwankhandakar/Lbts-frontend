@@ -19,9 +19,9 @@ function FullPageLoader() {
           className="absolute inset-0 animate-spin rounded-full border-2 border-primary/15 border-t-primary"
           aria-hidden
         />
-        <div className="flex size-16 items-center justify-center rounded-full p-2 dark:bg-white">
-          <BrandLogo className="h-6" />
-        </div>
+        {/* Sized to fill the ring: the logo is the loader, not a small mark
+            floating inside one. It follows the theme, so no plate is needed. */}
+        <BrandLogo className="h-12" />
       </div>
 
       <p className="animate-pulse text-xs font-medium tracking-wide text-muted-foreground">

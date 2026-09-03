@@ -26,7 +26,10 @@ export function AppLayout() {
 
   return (
     <TooltipProvider>
-      <div className="flex h-svh overflow-hidden bg-background text-foreground">
+      {/* data-app-shell is what the base layer in index.css keys the document
+          scroll lock off. This layout is exactly one viewport tall and <main>
+          owns the only scrollbar, so the page behind it must never scroll. */}
+      <div data-app-shell className="flex h-svh overflow-hidden bg-background text-foreground">
         <aside
           id="app-sidebar"
           className={cn(
