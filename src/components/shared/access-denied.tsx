@@ -7,6 +7,12 @@ import { roleMeta } from '@/lib/roles'
 interface AccessDeniedProps {
   /** What was being reached, phrased for a person: "Administration". */
   area: string
+  /**
+   * Who the area *is* for, phrased as a sentence. Every module decides its own
+   * roles — CLAUDE.md deliberately has no central permission matrix — so the
+   * default only fits Administration, and any other area says its own rule.
+   */
+  reason?: string
 }
 
 /**
@@ -17,7 +23,7 @@ interface AccessDeniedProps {
  * This is a courtesy, not a control: the API refuses the same request
  * independently, so nothing here is load-bearing for security.
  */
-export function AccessDenied({ area }: AccessDeniedProps) {
+export function AccessDenied({ area, reason }: AccessDeniedProps) {
   const profile = useAuthStore((state) => state.profile)
   const meta = profile ? roleMeta(profile.role) : null
 
@@ -31,7 +37,8 @@ export function AccessDenied({ area }: AccessDeniedProps) {
         You don't have access to {area}
       </h1>
       <p className="mt-2.5 text-sm leading-relaxed text-pretty text-muted-foreground">
-        {area} is restricted to administrators. Ask an Admin if you believe you should have access.
+        {reason ?? `${area} is restricted to administrators.`} Ask an Admin if you believe you
+        should have access.
       </p>
 
       {meta && (

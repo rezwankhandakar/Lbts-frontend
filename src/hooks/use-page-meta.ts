@@ -14,6 +14,12 @@ export interface PageMeta {
  */
 const STANDALONE_PAGES: Record<string, PageMeta> = {
   '/profile': { title: 'Profile', section: 'Account' },
+  /**
+   * A sub-route of a sidebar destination. Without this the nav match below
+   * would announce it as plain "Gate Pass", which is true of the list and not
+   * of the workspace you are filling in.
+   */
+  '/gate-pass/new': { title: 'New gate pass', section: 'Main' },
 }
 
 export function usePageMeta(): PageMeta {

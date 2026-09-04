@@ -326,3 +326,150 @@
     overflow: hidden;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Print
+ *
+ * The app shell is a fixed-height, overflow-clipped layout with a sidebar, a
+ * header and a scrolling main region. Printing it puts navigation on paper and
+ * cuts the content off at one viewport, so printing does not use it at all.
+ *
+ * Instead, `GatePassPrintSheet` portals a plain document to <body> that is
+ * invisible on screen. Here the shell is hidden and that sheet becomes the
+ * whole page. Nothing else needs print rules, and no component has to know
+ * about them.
+ *
+ * Kept at the end of the file with the brand layer, so a `shadcn`
+ * regeneration cannot silently revert it.
+ * ------------------------------------------------------------------------- */
+[data-print-sheet] {
+  display: none;
+}
+
+@media print {
+  /* The screen lock from the app-shell rules would clip the printed page. */
+  body:has([data-app-shell]) {
+    overflow: visible;
+  }
+
+  [data-app-shell],
+  [data-slot='toaster'],
+  [data-slot='dialog-portal'] {
+    display: none !important;
+  }
+
+  [data-print-sheet] {
+    display: block;
+    /* Print is monochrome and paper is white, whatever the viewer's theme. */
+    color: #000;
+    background: #fff;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 11pt;
+    line-height: 1.45;
+    padding: 0;
+  }
+
+  [data-print-sheet] h1 {
+    font-size: 16pt;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  [data-print-sheet] .print-subtitle {
+    margin: 0.15rem 0 0;
+    font-size: 9.5pt;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  [data-print-sheet] .print-id {
+    margin: 0.9rem 0 0.6rem;
+    font-size: 14pt;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border-top: 1.5pt solid #000;
+    border-bottom: 1.5pt solid #000;
+    padding: 0.35rem 0;
+  }
+
+  [data-print-sheet] table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  [data-print-sheet] th,
+  [data-print-sheet] td {
+    border-bottom: 0.5pt solid #999;
+    padding: 0.32rem 0.25rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  [data-print-sheet] th {
+    width: 12rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  [data-print-sheet] .print-section {
+    margin: 1.4rem 0 0.4rem;
+    font-size: 11pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* The goods table: its own columns, so several product lines print as
+     several lines rather than being squashed into the summary above. */
+  [data-print-sheet] .print-items th {
+    width: auto;
+    border-bottom: 1pt solid #000;
+    font-size: 9.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  [data-print-sheet] .print-items .print-narrow {
+    width: 3.5rem;
+  }
+
+  [data-print-sheet] .print-items .print-right {
+    text-align: right;
+  }
+
+  [data-print-sheet] .print-items tfoot td {
+    border-bottom: 0;
+    border-top: 1pt solid #000;
+    font-weight: 700;
+  }
+
+  [data-print-sheet] .print-signatures {
+    display: flex;
+    gap: 3rem;
+    margin-top: 3.5rem;
+  }
+
+  [data-print-sheet] .print-signatures > div {
+    flex: 1;
+  }
+
+  [data-print-sheet] .print-signatures span {
+    display: block;
+    border-top: 0.75pt solid #000;
+  }
+
+  [data-print-sheet] .print-signatures p {
+    margin: 0.3rem 0 0;
+    font-size: 9pt;
+  }
+
+  [data-print-sheet] .print-footer {
+    margin-top: 2rem;
+    font-size: 8.5pt;
+    color: #444;
+  }
+
+  @page {
+    margin: 16mm;
+  }
+}

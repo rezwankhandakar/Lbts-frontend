@@ -4,6 +4,7 @@ import { AccessDenied } from '@/components/shared/access-denied'
 import { AccountInactive } from '@/components/shared/account-inactive'
 import { BrandLogo } from '@/components/shared/brand'
 import { ADMIN_ROLE } from '@/lib/roles'
+import type { UserRole } from '@/lib/roles'
 import { useAuthStore } from '@/stores/use-auth-store'
 
 function FullPageLoader() {
@@ -108,4 +109,35 @@ export function AdminRoute() {
   }
 
   return <Outlet />
+}
+
+/**
+ * Gate for routes a specific set of roles may reach.
+ *
+ * The same courtesy AdminRoute provides, generalised: each module names its
+ * own roles, because CLAUDE.md deliberately has no central permission matrix.
+ * It is still only presentation — every endpoint behind it re-checks the role
+ * server-side, and that is the check that counts.
+ */
+export function RoleRoute({ roles, area, reason }: RoleRouteProps) {
+  const status = useAuthStore((state) => state.status)
+  const profile = useAuthStore((state) => state.profile)
+
+  if (status === 'loading' || (status === 'authenticated' && profile === null)) {
+    return <FullPageLoader />
+  }
+
+  if (!profile || !roles.includes(profile.role)) {
+    return <AccessDenied area={area} reason={reason} />
+  }
+
+  return <Outlet />
+}
+
+interface RoleRouteProps {
+  roles: readonly UserRole[]
+  /** What was being reached, phrased for a person: "Gate Pass". */
+  area: string
+  /** Who the area is for, phrased as a sentence. */
+  reason?: string
 }

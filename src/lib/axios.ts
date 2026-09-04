@@ -8,6 +8,16 @@ export interface ApiError {
   message: string
   statusCode: number
   errorSources: ApiErrorSource[]
+  /**
+   * The raw response body, for the rare endpoint whose failure carries data.
+   * A possible-duplicate gate pass is answered with a 409 and the matching
+   * records, because it is a question rather than a fault — and the feature
+   * that asked it needs the records to render the question.
+   *
+   * Nothing should read this speculatively. Narrow it in the feature that owns
+   * the endpoint, as `gate-pass-api.ts` does.
+   */
+  body: unknown
 }
 
 export interface ApiErrorSource {
@@ -42,6 +52,7 @@ api.interceptors.response.use(
       message: error.response?.data?.message ?? fallbackMessage(error),
       statusCode: error.response?.status ?? 0,
       errorSources: error.response?.data?.errorSources ?? [],
+      body: error.response?.data,
     }
 
     return Promise.reject(apiError)

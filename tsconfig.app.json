@@ -28,5 +28,8 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  /* Tests run on Node, not in the browser: they are typechecked by
+     tsconfig.node.json, which has node types instead of vite/client. */
+  "exclude": ["src/**/*.test.ts"]
 }

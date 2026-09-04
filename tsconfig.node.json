@@ -14,10 +14,12 @@
     "noEmit": true,
 
     /* Linting */
+    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts"]
+  /* The build config, and the tests - both run on Node. */
+  "include": ["vite.config.ts", "src/**/*.test.ts"]
 }

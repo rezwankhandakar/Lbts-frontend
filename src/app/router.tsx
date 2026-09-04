@@ -1,7 +1,13 @@
 import { lazy } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/app-layout'
-import { AdminRoute, ProtectedRoute, PublicOnlyRoute } from '@/components/shared/route-guards'
+import {
+  AdminRoute,
+  ProtectedRoute,
+  PublicOnlyRoute,
+  RoleRoute,
+} from '@/components/shared/route-guards'
+import { GATE_PASS_READ_ROLES, GATE_PASS_WRITE_ROLES } from '@/features/gate-pass/types'
 import { DashboardPage } from '@/pages/dashboard'
 
 /**
@@ -13,6 +19,18 @@ import { DashboardPage } from '@/pages/dashboard'
 const ModuleAPage = lazy(() => import('@/pages/module-a').then((m) => ({ default: m.ModuleAPage })))
 const ModuleBPage = lazy(() => import('@/pages/module-b').then((m) => ({ default: m.ModuleBPage })))
 const ModuleCPage = lazy(() => import('@/pages/module-c').then((m) => ({ default: m.ModuleCPage })))
+const GatePassPage = lazy(() =>
+  import('@/pages/gate-pass').then((m) => ({ default: m.GatePassPage })),
+)
+const GatePassNewPage = lazy(() =>
+  import('@/pages/gate-pass-new').then((m) => ({ default: m.GatePassNewPage })),
+)
+const GatePassEditPage = lazy(() =>
+  import('@/pages/gate-pass-edit').then((m) => ({ default: m.GatePassEditPage })),
+)
+const GatePassDetailsPage = lazy(() =>
+  import('@/pages/gate-pass-details').then((m) => ({ default: m.GatePassDetailsPage })),
+)
 const AdministrationPage = lazy(() =>
   import('@/pages/administration').then((m) => ({ default: m.AdministrationPage })),
 )
@@ -29,6 +47,15 @@ const ForgotPasswordPage = lazy(() =>
   import('@/pages/forgot-password').then((m) => ({ default: m.ForgotPasswordPage })),
 )
 
+/**
+ * Wording for the two Gate Pass boundaries. Kept beside the routes that use
+ * them so the sentence and the role list cannot drift apart.
+ */
+const GATE_PASS_ACCESS_REASON =
+  'Gate Pass records the transport operation, and is open to Admin, Manager, CEO and Operation Executive accounts.'
+const GATE_PASS_WRITE_REASON =
+  'Filing a gate pass is done by Admin, Manager and Operation Executive accounts.'
+
 export function AppRouter() {
   return (
     <Routes>
@@ -41,6 +68,21 @@ export function AppRouter() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
+
+          {/* Gate Pass is the operation's own paperwork: every role except
+              Vendor reads it, and CEO reads without writing. The roles come
+              from the module rather than a central matrix, and the API
+              re-checks every one of them. */}
+          <Route element={<RoleRoute roles={GATE_PASS_READ_ROLES} area="Gate Pass" reason={GATE_PASS_ACCESS_REASON} />}>
+            <Route path="/gate-pass" element={<GatePassPage />} />
+            <Route path="/gate-pass/:id" element={<GatePassDetailsPage />} />
+
+            <Route element={<RoleRoute roles={GATE_PASS_WRITE_ROLES} area="Gate Pass" reason={GATE_PASS_WRITE_REASON} />}>
+              <Route path="/gate-pass/new" element={<GatePassNewPage />} />
+              <Route path="/gate-pass/:id/edit" element={<GatePassEditPage />} />
+            </Route>
+          </Route>
+
           <Route path="/module-a" element={<ModuleAPage />} />
           <Route path="/module-b" element={<ModuleBPage />} />
           <Route path="/module-c" element={<ModuleCPage />} />

@@ -1,4 +1,12 @@
-import { Boxes, LayoutDashboard, Settings, ShieldCheck, Users, Wallet } from 'lucide-react'
+import {
+  Boxes,
+  LayoutDashboard,
+  ScanLine,
+  Settings,
+  ShieldCheck,
+  Users,
+  Wallet,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { UserRole } from '@/lib/roles'
 
@@ -34,7 +42,20 @@ export const navSections: NavSection[] = [
     label: 'Main',
     items: [
       { label: 'Dashboard', path: '/', icon: LayoutDashboard, accent: 'indigo' },
-      { label: 'Module A', path: '/module-a', icon: Boxes, accent: 'cyan' },
+      /**
+       * Gate Pass is hidden from Vendor accounts: it is the transport
+       * service's own operating record, not something an external supplier
+       * files or reads. This is presentation — `RoleRoute` guards the URL and
+       * the API refuses the request either way.
+       */
+      {
+        label: 'Gate Pass',
+        path: '/gate-pass',
+        icon: ScanLine,
+        accent: 'cyan',
+        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+      },
+      { label: 'Module A', path: '/module-a', icon: Boxes, accent: 'amber' },
       { label: 'Module B', path: '/module-b', icon: Users, accent: 'violet' },
       { label: 'Module C', path: '/module-c', icon: Wallet, accent: 'emerald' },
     ],
