@@ -128,14 +128,17 @@ export function GatePassDocumentViewer({
 
     if (isPdf) {
       return (
-        <iframe
-          src={url}
-          title="Scanned gate pass"
-          className="size-full border-0 bg-white"
-          // The document is already in this browser as a blob; nothing in it
-          // may reach out or navigate this page.
-          sandbox=""
-        />
+        // Deliberately not sandboxed. Chrome renders a PDF through its own
+        // viewer extension, which needs scripting to start: under `sandbox=""`
+        // it refuses and shows "This page has been blocked by Chrome" where
+        // the scan should be. The combination that would work — allow-scripts
+        // plus allow-same-origin, the latter because a blob: URL cannot
+        // resolve without it — removes every protection a sandbox would have
+        // given, so the attribute is theatre either way. What contains this is
+        // the content: bytes this app fetched from its own authenticated API,
+        // typed application/pdf, which the browser hands to the PDF viewer
+        // rather than parsing as a document.
+        <iframe src={url} title="Scanned gate pass" className="size-full border-0 bg-white" />
       )
     }
 
@@ -181,7 +184,6 @@ export function GatePassDocumentViewer({
                 src={url}
                 title="Scanned gate pass"
                 className="size-full border-0 bg-white"
-                sandbox=""
               />
             )}
             {url && !isPdf && (

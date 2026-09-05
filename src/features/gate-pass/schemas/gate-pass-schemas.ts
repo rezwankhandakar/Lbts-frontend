@@ -129,7 +129,7 @@ export const EMPTY_GATE_PASS_FORM: GatePassFormValues = {
   po: '',
 }
 
-/** The reviewer's decision, when they are rejecting or cancelling a record. */
+/** The reviewer's decision, when they are sending a record back. */
 export const reviewNoteSchema = z.object({
   note: z.string().trim().max(400, 'Note must be 400 characters or fewer'),
 })

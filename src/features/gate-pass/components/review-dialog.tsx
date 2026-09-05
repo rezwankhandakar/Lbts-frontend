@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BadgeCheck, CircleSlash, Undo2 } from 'lucide-react'
+import { BadgeCheck, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import type { GatePassRecord } from '../types'
 
-export type ReviewDecision = 'Verified' | 'Rejected' | 'Cancelled'
+export type ReviewDecision = 'Verified' | 'Rejected'
 
 interface DecisionCopy {
   title: string
@@ -51,17 +51,6 @@ const DECISIONS: Record<ReviewDecision, DecisionCopy> = {
     noteLabel: 'What needs correcting',
     notePlaceholder: 'Vehicle number does not match the challan',
   },
-  Cancelled: {
-    title: 'Cancel this gate pass',
-    description: (record) =>
-      `${record.gatePassId} stays on record but no longer counts. This cannot be undone.`,
-    confirm: 'Cancel gate pass',
-    icon: CircleSlash,
-    iconClass: 'text-tone-orange',
-    noteRequired: false,
-    noteLabel: 'Reason (optional)',
-    notePlaceholder: 'Why this gate pass is being withdrawn',
-  },
 }
 
 interface ReviewDialogProps {
@@ -78,7 +67,10 @@ interface ReviewDialogProps {
  *
  * A rejection has to say what is wrong — the server refuses one without a
  * note, and this stops the operator from finding that out after typing
- * nothing. Verification and cancellation take a note but do not need one.
+ * nothing. A verification takes a note but does not need one.
+ *
+ * Withdrawing a record is not a decision here: a gate pass that should not
+ * exist is deleted, which DeleteGatePassDialog confirms.
  */
 export function ReviewDialog({
   record,

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ListFilter, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Boxes, FileSpreadsheet, ListFilter, Search, SlidersHorizontal, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,9 +16,12 @@ import { cn } from '@/lib/utils'
 import { QUICK_RANGE_LABELS, quickRangeFor, rangeFor } from '../lib/date-ranges'
 import { GATE_PASS_STATUS_META, gatePassStatusMeta } from '../lib/gate-pass-meta'
 import { GATE_PASS_REFERENCE_TYPES, GATE_PASS_STATUSES } from '../types'
-import type { GatePassListParams, ReferenceTypeFilter, StatusFilter } from '../types'
-
-export type FilterPatch = Partial<Omit<GatePassListParams, 'page' | 'limit'>>
+import type {
+  FilterPatch,
+  GatePassListParams,
+  ReferenceTypeFilter,
+  StatusFilter,
+} from '../types'
 
 interface GatePassFiltersProps {
   params: GatePassListParams
@@ -26,6 +29,16 @@ interface GatePassFiltersProps {
   onReset: () => void
   /** Result count, kept on the toolbar line rather than floating above it. */
   summary?: string
+  /**
+   * Quantity carried by every record these filters match — the whole set, not
+   * the ten rows on screen. Undefined until the first page has landed.
+   */
+  totalQty?: number
+  /** Asks to download what these filters describe; the dialog runs it. */
+  onExport: () => void
+  /** False while the list is loading, and for a filter that matches nothing. */
+  canExport: boolean
+  isExporting: boolean
   /** Hidden for a role that can only ever see its own records anyway. */
   canFilterByOwner: boolean
   currentUserId: string | null
@@ -51,6 +64,10 @@ export function GatePassFilters({
   onChange,
   onReset,
   summary,
+  totalQty,
+  onExport,
+  canExport,
+  isExporting,
   canFilterByOwner,
   currentUserId,
 }: GatePassFiltersProps) {
@@ -128,6 +145,21 @@ export function GatePassFilters({
               )}
             </Button>
 
+            {/* Exports what the filters describe rather than the page on
+                screen, which is why it sits with them rather than beside the
+                New gate pass button. It opens a confirmation that reads the
+                figures back, because the filters defining the file are several
+                clicks away and some of them are behind More filters. */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExport}
+              disabled={!canExport || isExporting}
+            >
+              <FileSpreadsheet data-icon="inline-start" aria-hidden />
+              Export
+            </Button>
+
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
                 <X data-icon="inline-start" aria-hidden />
@@ -141,7 +173,7 @@ export function GatePassFilters({
             shortcuts sit on the toolbar even though the dates themselves are
             in the advanced panel. */}
         <div className="flex flex-wrap items-center gap-1.5">
-          {(['all', 'today', 'week', 'month'] as const).map((option) => (
+          {(['all', 'today', 'month', 'lastMonth'] as const).map((option) => (
             <Button
               key={option}
               variant={quick === option ? 'secondary' : 'ghost'}
@@ -161,9 +193,21 @@ export function GatePassFilters({
         </div>
 
         {summary && (
-          <p className="text-xs text-muted-foreground" aria-live="polite">
-            {summary}
-          </p>
+          <div
+            className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground"
+            aria-live="polite"
+          >
+            <span>{summary}</span>
+            {/* The quantity these filters add up to. A count of records answers
+                how many challans; this answers how much was moved, which is
+                the figure a reconciliation is actually after. */}
+            {totalQty !== undefined && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 font-medium text-primary tabular-nums">
+                <Boxes className="size-3" aria-hidden />
+                Total qty {totalQty}
+              </span>
+            )}
+          </div>
         )}
       </div>
 

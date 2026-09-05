@@ -7,9 +7,10 @@ import { useGatePassDocument } from '../hooks/use-gate-pass-document'
 import { useGatePassWorkspace } from '../hooks/use-gate-pass-workspace'
 import type { StagedDocument } from '../hooks/use-gate-pass-workspace'
 import { useScanBatch } from '../hooks/use-scan-batch'
-import { useUnsavedChanges } from '../hooks/use-unsaved-changes'
+import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
 import { EMPTY_GATE_PASS_FORM } from '../schemas/gate-pass-schemas'
+import { isFiledStatus, needsReverificationAfterEdit } from '../types'
 import type { GatePassRecord } from '../types'
 import { BatchComplete } from './batch-complete'
 import { DuplicateDialog } from './duplicate-dialog'
@@ -192,6 +193,22 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
     [workspace, batch.isBatch, finishEntry],
   )
 
+  /**
+   * Correcting a record that has already been filed. Submitting it again is
+   * not a legal move — it is already submitted, or already verified — so the
+   * primary action saves and the entry ends on the record's own page, exactly
+   * as a submission does.
+   */
+  const handleSaveChanges = useCallback(
+    async (values: GatePassFormValues) => {
+      const saved = await workspace.saveChanges(values)
+      if (saved) {
+        finishEntry(values, saved, false)
+      }
+    },
+    [workspace, finishEntry],
+  )
+
   const startNextStack = useCallback(() => {
     batch.clear()
     workspace.startNewEntry()
@@ -201,6 +218,27 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
   }, [batch, workspace])
 
   const showComplete = batch.isComplete && batch.isBatch
+
+  /**
+   * What the primary button does, and what it costs.
+   *
+   * A record still open is filed by submitting it. One already filed is
+   * corrected by saving — and where a reviewer has already signed it off,
+   * saying so on the button matters, because the save is what sends it back
+   * to be checked again.
+   */
+  const isFiled = record !== null && isFiledStatus(record.status)
+  const willReverify = record !== null && needsReverificationAfterEdit(record.status)
+
+  const primaryLabel = !initialRecord
+    ? batch.isBatch
+      ? `Submit sheet ${batch.activePosition} of ${batch.total}`
+      : 'Submit gate pass'
+    : willReverify
+      ? 'Save and re-verify'
+      : isFiled
+        ? 'Save changes'
+        : 'Resubmit'
 
   return (
     <div className="relative mx-auto flex w-full max-w-[100rem] flex-col">
@@ -214,9 +252,19 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
           </div>
           <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
             {initialRecord
-              ? `${initialRecord.gatePassId} · check every field against the scan, then submit.`
+              ? `${initialRecord.gatePassId} · check every field against the scan, then ${
+                  isFiled ? 'save the correction' : 'submit'
+                }.`
               : 'Scan the whole stack in one pass, then enter each sheet against the image beside it.'}
           </p>
+
+          {willReverify && (
+            <p className="mt-2 max-w-2xl rounded-lg border border-tone-amber/25 bg-tone-amber/5 px-3 py-2 text-xs leading-relaxed text-pretty">
+              <span className="font-semibold">This gate pass has been verified.</span> That
+              verification was against what it says now, so saving a correction — to the values or
+              to the scan — returns it to a reviewer to be checked again.
+            </p>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -257,16 +305,13 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
             hasDocument={hasDocument}
             isBusy={workspace.isBusy}
             canSaveDraft={!record || record.status === 'Draft'}
-            submitLabel={
-              initialRecord
-                ? 'Resubmit'
-                : batch.isBatch
-                  ? `Submit sheet ${batch.activePosition} of ${batch.total}`
-                  : 'Submit gate pass'
-            }
+            primaryAction={isFiled ? 'save' : 'submit'}
+            submitLabel={primaryLabel}
             carriedFrom={carriedFrom}
             onSaveDraft={(values) => void handleSaveDraft(values)}
-            onSubmit={(values) => void handleSubmit(values)}
+            onSubmit={(values) =>
+              void (isFiled ? handleSaveChanges(values) : handleSubmit(values))
+            }
             onDirtyChange={setIsFormDirty}
           />
         </section>

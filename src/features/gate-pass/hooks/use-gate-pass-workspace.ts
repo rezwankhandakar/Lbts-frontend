@@ -53,6 +53,13 @@ export interface WorkspaceController {
    * keeps the decision about what happens next out of this hook.
    */
   saveDraft: (values: GatePassFormValues) => Promise<GatePassRecord | null>
+  /**
+   * A correction to a record that has already been filed. Submitting one of
+   * those is not a legal move — it is already submitted, or already verified —
+   * so this writes the values and stops there. The server decides whether the
+   * correction cost the record its verification.
+   */
+  saveChanges: (values: GatePassFormValues) => Promise<GatePassRecord | null>
   submit: (
     values: GatePassFormValues,
     options?: { acknowledgeDuplicate?: boolean },
@@ -165,19 +172,32 @@ export function useGatePassWorkspace({
     [upload, remember, onDocumentStored],
   )
 
+  /**
+   * The values, and the scan if one is waiting, onto the record — and nothing
+   * else. Both save paths and the submission run through here, so there is one
+   * account of what "saved" means and the upload cannot be forgotten on one of
+   * them.
+   */
+  const write = useCallback(
+    async (values: GatePassFormValues): Promise<GatePassRecord> => {
+      const saved = await persist(values)
+
+      const staged = getStagedDocument()
+      if (!staged) {
+        return saved
+      }
+
+      setStage('uploading')
+      return storeDocument(saved.id, staged)
+    },
+    [persist, getStagedDocument, storeDocument],
+  )
+
   const saveDraft = useCallback(
     async (values: GatePassFormValues): Promise<GatePassRecord | null> => {
       setStage('saving')
       try {
-        const saved = await persist(values)
-
-        const staged = getStagedDocument()
-        let current = saved
-
-        if (staged) {
-          setStage('uploading')
-          current = await storeDocument(saved.id, staged)
-        }
+        const current = await write(values)
 
         toast.success('Draft saved', {
           description: `${current.gatePassId} is saved. You can finish it later.`,
@@ -191,7 +211,41 @@ export function useGatePassWorkspace({
         setStage('idle')
       }
     },
-    [persist, getStagedDocument, storeDocument],
+    [write],
+  )
+
+  /**
+   * Correcting a gate pass that has already been filed.
+   *
+   * Whether it cost the record its verification is read back off the saved
+   * record rather than predicted from the one on screen — the server owns that
+   * move, and telling the operator what actually happened is the only version
+   * that cannot be wrong.
+   */
+  const saveChanges = useCallback(
+    async (values: GatePassFormValues): Promise<GatePassRecord | null> => {
+      const before = recordRef.current?.status ?? null
+      setStage('saving')
+
+      try {
+        const current = await write(values)
+        const returned = before === 'Verified' && current.status === 'Submitted'
+
+        toast.success(returned ? 'Sent back for verification' : 'Changes saved', {
+          description: returned
+            ? `${current.gatePassId} returns to a reviewer, because what was verified has changed.`
+            : `${current.gatePassId} is up to date.`,
+        })
+
+        return current
+      } catch (error) {
+        reportGatePassError(error as ApiError)
+        return null
+      } finally {
+        setStage('idle')
+      }
+    },
+    [write],
   )
 
   const submit = useCallback(
@@ -203,15 +257,7 @@ export function useGatePassWorkspace({
       setStage('saving')
 
       try {
-        const saved = await persist(values)
-
-        const staged = getStagedDocument()
-        let current = saved
-
-        if (staged) {
-          setStage('uploading')
-          current = await storeDocument(saved.id, staged)
-        }
+        const current = await write(values)
 
         if (!current.document) {
           // The server refuses this too; saying it here saves a round trip and
@@ -243,7 +289,7 @@ export function useGatePassWorkspace({
         setStage('idle')
       }
     },
-    [persist, getStagedDocument, storeDocument, send, remember],
+    [write, send, remember],
   )
 
   /**
@@ -264,6 +310,7 @@ export function useGatePassWorkspace({
     duplicates,
     dismissDuplicates: () => setDuplicates([]),
     saveDraft,
+    saveChanges,
     submit,
     startNewEntry,
     lastSavedAt,

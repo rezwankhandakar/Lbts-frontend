@@ -1,5 +1,5 @@
 import { api } from '@/lib/axios'
-import type { ApiError } from '@/lib/axios'
+import type { ApiError, ApiErrorSource } from '@/lib/axios'
 import type {
   DuplicateCandidate,
   GatePassInput,
@@ -26,29 +26,119 @@ interface ApiListEnvelope<T> extends ApiEnvelope<T> {
 const BASE = '/gate-passes'
 
 /**
- * Filtering and pagination are server-side. Empty values and `all` are dropped
- * rather than sent, so the request URL — and therefore the query cache key —
- * stays minimal.
+ * What narrows the list, as query parameters. Shared by the list and the
+ * export so a downloaded file can never describe a different set of records
+ * from the one on screen. Empty values and `all` are dropped rather than sent,
+ * so the request URL — and therefore the query cache key — stays minimal.
  */
+function filterParams(params: GatePassListParams): Record<string, string> {
+  return {
+    ...(params.search ? { search: params.search } : {}),
+    ...(params.status !== 'all' ? { status: params.status } : {}),
+    ...(params.csd ? { csd: params.csd } : {}),
+    ...(params.unit ? { unit: params.unit } : {}),
+    ...(params.product ? { product: params.product } : {}),
+    ...(params.referenceType !== 'all' ? { referenceType: params.referenceType } : {}),
+    ...(params.reference ? { reference: params.reference } : {}),
+    ...(params.createdBy ? { createdBy: params.createdBy } : {}),
+    ...(params.from ? { from: params.from } : {}),
+    ...(params.to ? { to: params.to } : {}),
+  }
+}
+
+/** Filtering and pagination are server-side; see `filterParams`. */
 export async function fetchGatePasses(params: GatePassListParams): Promise<GatePassListResult> {
   const { data } = await api.get<ApiListEnvelope<GatePassRecord[]>>(BASE, {
     params: {
       page: params.page,
       limit: params.limit,
-      ...(params.search ? { search: params.search } : {}),
-      ...(params.status !== 'all' ? { status: params.status } : {}),
-      ...(params.csd ? { csd: params.csd } : {}),
-      ...(params.unit ? { unit: params.unit } : {}),
-      ...(params.product ? { product: params.product } : {}),
-      ...(params.referenceType !== 'all' ? { referenceType: params.referenceType } : {}),
-      ...(params.reference ? { reference: params.reference } : {}),
-      ...(params.createdBy ? { createdBy: params.createdBy } : {}),
-      ...(params.from ? { from: params.from } : {}),
-      ...(params.to ? { to: params.to } : {}),
+      ...filterParams(params),
     },
   })
 
   return { records: data.data, meta: data.meta }
+}
+
+export interface GatePassExportFile {
+  blob: Blob
+  filename: string
+}
+
+/**
+ * A cold instance has to wake, read every matching record and build a
+ * workbook before the first byte arrives, which is longer than the shared
+ * 60-second timeout allows for.
+ */
+const EXPORT_TIMEOUT = 120_000
+
+/**
+ * The current filters, as a spreadsheet.
+ *
+ * Bytes rather than JSON, so this goes through axios for the same reason the
+ * scanned document does: the endpoint is authenticated and only the request
+ * interceptor attaches the Firebase token. The page number is deliberately not
+ * sent — an export of page one of four would be a trap.
+ */
+export async function exportGatePasses(params: GatePassListParams): Promise<GatePassExportFile> {
+  try {
+    const response = await api.get<Blob>(`${BASE}/export`, {
+      params: filterParams(params),
+      responseType: 'blob',
+      timeout: EXPORT_TIMEOUT,
+    })
+
+    return {
+      blob: response.data,
+      filename: filenameFrom(response.headers['content-disposition']),
+    }
+  } catch (error) {
+    throw await withBlobMessage(error)
+  }
+}
+
+/** The name the server chose, or a plain one if the header is unreadable. */
+function filenameFrom(disposition: unknown): string {
+  const match =
+    typeof disposition === 'string' ? /filename="?([^"';]+)"?/.exec(disposition) : null
+  return match?.[1]?.trim() || 'gate-passes.xlsx'
+}
+
+/**
+ * Recovers the message from a failed download.
+ *
+ * A request that asked for a blob gets a blob back even when the server
+ * answered with an error, so the interceptor — which reads `data.message` —
+ * finds nothing and falls back to "Request failed with status code 400". The
+ * body really is JSON; it just arrived in the wrong wrapper, and the operator
+ * needs to read "that is 8,000 gate passes, narrow the filters" rather than a
+ * status code.
+ */
+async function withBlobMessage(error: unknown): Promise<unknown> {
+  if (typeof error !== 'object' || error === null) {
+    return error
+  }
+
+  const apiError = error as ApiError
+  if (!(apiError.body instanceof Blob)) {
+    return error
+  }
+
+  try {
+    const parsed = JSON.parse(await apiError.body.text()) as {
+      message?: string
+      errorSources?: ApiErrorSource[]
+    }
+
+    return {
+      ...apiError,
+      message: parsed.message ?? apiError.message,
+      errorSources: parsed.errorSources ?? [],
+      body: parsed,
+    } satisfies ApiError
+  } catch {
+    // Not JSON after all — an empty body, or a proxy's own error page.
+    return error
+  }
 }
 
 export async function fetchGatePass(id: string): Promise<GatePassRecord> {
@@ -171,7 +261,7 @@ function duplicatesFrom(error: unknown): DuplicateCandidate[] | null {
 
 export interface ReviewGatePassArgs {
   id: string
-  status: Extract<GatePassStatus, 'Verified' | 'Rejected' | 'Cancelled'>
+  status: Extract<GatePassStatus, 'Verified' | 'Rejected'>
   note?: string
 }
 

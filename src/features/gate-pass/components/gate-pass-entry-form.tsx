@@ -16,6 +16,12 @@ interface GatePassEntryFormProps {
   isBusy: boolean
   /** Hidden when the record can no longer be a draft. */
   canSaveDraft: boolean
+  /**
+   * Whether the primary button files the record or saves a correction to one
+   * already filed. It changes the icon and what the footer says a scan is for
+   * — a form that shows Send on an action that submits nothing is a small lie.
+   */
+  primaryAction: 'submit' | 'save'
   submitLabel: string
   /**
    * The gate pass whose trip date, CSD and unit were kept for this entry, when
@@ -44,6 +50,7 @@ export function GatePassEntryForm({
   hasDocument,
   isBusy,
   canSaveDraft,
+  primaryAction,
   submitLabel,
   carriedFrom,
   onSaveDraft,
@@ -174,6 +181,8 @@ export function GatePassEntryForm({
           <Button type="submit" size="lg" disabled={isBusy || !hasDocument}>
             {isBusy ? (
               <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
+            ) : primaryAction === 'save' ? (
+              <Save data-icon="inline-start" aria-hidden />
             ) : (
               <Send data-icon="inline-start" aria-hidden />
             )}

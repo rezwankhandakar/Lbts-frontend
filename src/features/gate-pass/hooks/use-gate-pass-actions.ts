@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
 import { fetchGatePassDocument } from '../api/gate-pass-api'
+import { saveBlob } from '@/lib/save-blob'
 import type { ReviewDecision } from '../components/review-dialog'
 import type { GatePassRecord } from '../types'
 import {
@@ -28,6 +29,15 @@ export interface GatePassActionsController {
   open: (record: GatePassRecord) => void
 }
 
+export interface GatePassActionsOptions {
+  /**
+   * Run after a delete succeeds. The records list needs nothing — the query
+   * invalidation refills it — but the details page is now showing a record
+   * that no longer exists, and has to leave.
+   */
+  onDeleted?: () => void
+}
+
 /**
  * Owns which dialog is open, for which record, and runs the write behind it.
  *
@@ -36,7 +46,9 @@ export interface GatePassActionsController {
  * actually succeeded, so a failed action leaves the operator looking at the
  * error rather than at a list that silently did nothing.
  */
-export function useGatePassActions(): GatePassActionsController {
+export function useGatePassActions({
+  onDeleted,
+}: GatePassActionsOptions = {}): GatePassActionsController {
   const navigate = useNavigate()
 
   const [target, setTarget] = useState<GatePassRecord | null>(null)
@@ -77,16 +89,23 @@ export function useGatePassActions(): GatePassActionsController {
     if (!target) {
       return
     }
-    remove.mutate({ id: target.id, gatePassId: target.gatePassId }, { onSuccess: close })
-  }, [target, remove, close])
+    remove.mutate(
+      { id: target.id, gatePassId: target.gatePassId },
+      {
+        onSuccess: () => {
+          close()
+          onDeleted?.()
+        },
+      },
+    )
+  }, [target, remove, close, onDeleted])
 
   /**
    * Saving the document.
    *
    * The endpoint is authenticated, so a plain link would fetch it with no
-   * token and land on a 401. The bytes come through axios, become an object
-   * URL, and the URL is revoked as soon as the browser has taken the download
-   * — a leaked one here would pin a 25 MB PDF in memory for the session.
+   * token and land on a 401. The bytes come through axios and are handed to
+   * the browser by `saveBlob`, which owns the object URL and revokes it.
    */
   const download = useCallback(async (record: GatePassRecord) => {
     if (!record.document) {
@@ -98,17 +117,8 @@ export function useGatePassActions(): GatePassActionsController {
     try {
       const blob = await fetchGatePassDocument(record.id)
       const extension = record.document.originalName.split('.').pop()?.toLowerCase() ?? 'pdf'
-      const url = URL.createObjectURL(blob)
 
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `${record.gatePassId}.${extension}`
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-
-      // A revoke on the same tick can cancel the download in some browsers.
-      window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
+      saveBlob(blob, `${record.gatePassId}.${extension}`)
       toast.success('Document downloaded', { id: toastId })
     } catch (error) {
       toast.dismiss(toastId)

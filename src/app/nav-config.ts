@@ -1,6 +1,7 @@
 import {
   Boxes,
   LayoutDashboard,
+  ReceiptText,
   ScanLine,
   Settings,
   ShieldCheck,
@@ -53,6 +54,20 @@ export const navSections: NavSection[] = [
         path: '/gate-pass',
         icon: ScanLine,
         accent: 'cyan',
+        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+      },
+      /**
+       * Challan is hidden from Vendor accounts for a sharper reason than Gate
+       * Pass: a challan carries a customer's home address and phone number,
+       * and an external supplier has no business reading one. This is
+       * presentation — `RoleRoute` guards the URL and the API refuses the
+       * request either way.
+       */
+      {
+        label: 'Challan',
+        path: '/challan',
+        icon: ReceiptText,
+        accent: 'violet',
         roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
       },
       { label: 'Module A', path: '/module-a', icon: Boxes, accent: 'amber' },

@@ -1,0 +1,225 @@
+import type { LucideIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Boxes, FileStack, MapPin, Phone, ScanBarcode, ShieldCheck } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { formatDateTime } from '@/lib/format'
+import { formatBytes, formatRange } from '../lib/challan-meta'
+import type { ChallanRecord } from '../types'
+
+interface ChallanDetailsProps {
+  record: ChallanRecord
+}
+
+/**
+ * Everything on record for one challan.
+ *
+ * Grouped the way somebody checks it: the two identifiers first, because they
+ * are what a phone call is about, then who and where, then what was in the
+ * box, then where it came from and who filed it. The barcode is not redrawn
+ * here — it lives on the stored document's back page, which is the copy that
+ * matters, and a second rendering of it on screen would be a second thing to
+ * keep in step.
+ */
+export function ChallanDetails({ record }: ChallanDetailsProps) {
+  return (
+    <div className="space-y-4">
+      <Section icon={ScanBarcode} title="Identifiers" description="Allocated by LBTS when this challan was filed.">
+        <dl className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              SL number
+            </dt>
+            <dd className="mt-0.5 text-2xl leading-tight font-semibold tabular-nums">
+              {record.slNumber}
+            </dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              Challan number
+            </dt>
+            <dd className="mt-0.5 truncate text-2xl leading-tight font-semibold">
+              {record.challanNumber}
+            </dd>
+          </div>
+        </dl>
+
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          The challan number is what the barcode on the back page encodes, so a scanner and a
+          person reading the page get the same value.
+        </p>
+      </Section>
+
+      <Section icon={MapPin} title="Customer and delivery" description="As transcribed from the challan.">
+        <Rows
+          rows={[
+            ['Customer', record.customerName],
+            ['Delivery address', record.deliveryAddress],
+            ['Thana', record.thana],
+            ['District', record.district],
+          ]}
+        />
+      </Section>
+
+      <Section icon={Phone} title="Contact and reference" description="Who to call, and what it is filed against.">
+        <Rows
+          rows={[
+            ['Receiver mobile', record.receiverMobile],
+            ['Sender mobile', record.senderMobile ?? '—'],
+            ['Zone / PO', record.zonePo ?? '—'],
+          ]}
+        />
+      </Section>
+
+      <Section
+        icon={Boxes}
+        title="Goods"
+        description={
+          record.items.length === 1
+            ? 'What this challan carries.'
+            : `${record.items.length} product lines on this challan.`
+        }
+      >
+        {/* A table rather than labelled rows, because several products are
+            lines to be compared — somebody checking a delivery reads down the
+            quantity column, and that only works if the quantities are in a
+            column. The same shape the generated back page prints. */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="pb-2 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                  Product
+                </th>
+                <th className="pb-2 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                  Model
+                </th>
+                <th className="pb-2 text-right text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                  Qty
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {record.items.map((item, index) => (
+                <tr key={`${item.model}-${index}`}>
+                  <td className="py-2 pr-3 wrap-break-word">{item.productName}</td>
+                  <td className="py-2 pr-3 wrap-break-word">{item.model}</td>
+                  <td className="py-2 text-right tabular-nums">{item.qty}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t">
+                <td
+                  colSpan={2}
+                  className="pt-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase"
+                >
+                  Total quantity
+                </td>
+                <td className="pt-2 text-right font-semibold tabular-nums">{record.totalQty}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </Section>
+
+      <Section
+        icon={FileStack}
+        title="Source and document"
+        description="Where these pages came from, and what is stored."
+      >
+        <Rows
+          rows={[
+            ['Source file', record.sourceFileName],
+            [
+              'Pages taken',
+              formatRange({
+                startPage: record.sourcePageStart,
+                endPage: record.sourcePageEnd,
+              }),
+            ],
+            [
+              'Stored document',
+              `${record.document.pageCount} pages · ${formatBytes(record.document.size)}`,
+            ],
+            ['Generated', formatDateTime(record.document.generatedAt)],
+          ]}
+        />
+
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          The stored PDF is the original challan pages exactly as they arrived, followed by the
+          generated LBTS back page. The source file itself was never uploaded.
+        </p>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-3"
+          render={<Link to={`/challan/batch/${record.batchId}`} />}
+        >
+          Open the source batch
+        </Button>
+      </Section>
+
+      <Section icon={ShieldCheck} title="Filing" description="Who filed it, and when.">
+        <Rows
+          rows={[
+            ['Filed by', record.submittedBy?.name ?? record.createdBy?.name ?? '—'],
+            ['Filed at', formatDateTime(record.submittedAt)],
+            ...(record.amendedAt
+              ? ([
+                  ['Corrected at', formatDateTime(record.amendedAt)],
+                  ['Corrected by', record.updatedBy?.name ?? '—'],
+                ] as [string, string][])
+              : []),
+          ]}
+        />
+
+        {record.amendedAt && (
+          <p className="mt-3 rounded-lg border border-tone-amber/25 bg-tone-amber/5 px-3 py-2 text-xs leading-relaxed">
+            This challan was corrected after filing, and its document was regenerated to match. Any
+            copy printed before that date shows the old details.
+          </p>
+        )}
+      </Section>
+    </div>
+  )
+}
+
+function Section({
+  icon: Icon,
+  title,
+  description,
+  children,
+}: {
+  icon: LucideIcon
+  title: string
+  description: string
+  children: ReactNode
+}) {
+  return (
+    <section className="rounded-xl border bg-card p-4 shadow-sm sm:p-5">
+      <header className="mb-3.5 flex items-start gap-2.5">
+        <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <h2 className="text-[13px] font-semibold tracking-tight">{title}</h2>
+          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{description}</p>
+        </div>
+      </header>
+      {children}
+    </section>
+  )
+}
+
+function Rows({ rows }: { rows: [label: string, value: string][] }) {
+  return (
+    <dl className="divide-y">
+      {rows.map(([label, value]) => (
+        <div key={label} className="flex flex-col gap-0.5 py-2 sm:flex-row sm:gap-4 sm:py-2.5">
+          <dt className="shrink-0 text-xs text-muted-foreground sm:w-40">{label}</dt>
+          <dd className="min-w-0 flex-1 text-sm wrap-break-word">{value || '—'}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}

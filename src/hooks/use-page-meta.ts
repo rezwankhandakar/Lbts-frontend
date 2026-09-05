@@ -20,6 +20,11 @@ const STANDALONE_PAGES: Record<string, PageMeta> = {
    * of the workspace you are filling in.
    */
   '/gate-pass/new': { title: 'New gate pass', section: 'Main' },
+  /**
+   * The same reasoning for Challan: "Challan" is true of the records list and
+   * says nothing about the workspace you are transcribing into.
+   */
+  '/challan/new': { title: 'Challan entry', section: 'Main' },
 }
 
 export function usePageMeta(): PageMeta {

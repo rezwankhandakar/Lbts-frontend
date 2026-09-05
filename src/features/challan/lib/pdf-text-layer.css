@@ -1,0 +1,111 @@
+/* ---------------------------------------------------------------------------
+ * pdf.js text layer
+ *
+ * A canvas is a picture. Rendering a challan onto one and stopping there gives
+ * an operator nothing to select, and this module's entire workflow is copy a
+ * value off the PDF, paste it into the field beside it — so the page also gets
+ * pdf.js's text layer: invisible, correctly positioned spans laid over the
+ * canvas, which the browser then selects and copies like any other text.
+ *
+ * These rules are the minimum that layer needs, lifted from
+ * `pdfjs-dist/web/pdf_viewer.css`. The full file is 160 KB of viewer chrome —
+ * toolbars, annotation editors, sidebars, thumbnails — none of which this app
+ * has or wants. Imported by `pdf-page-view.tsx`, so it is bundled into the
+ * lazy Challan entry chunk and no other route pays for it.
+ *
+ * The class name is upstream's, unchanged, so anything pdf.js does to its own
+ * container keeps working.
+ * ------------------------------------------------------------------------- */
+
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  z-index: 1;
+
+  /* The spans carry no ink of their own; the canvas underneath is the page. */
+  color: transparent;
+  text-align: initial;
+  line-height: 1;
+  letter-spacing: normal;
+  word-spacing: normal;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+
+  /* A browser or OS that scales text would pull every span off its glyph. */
+  -webkit-text-size-adjust: none;
+  -moz-text-size-adjust: none;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+
+  /* Set per render from the CSS scale; pdf.js sizes every span against it. */
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+
+.textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+}
+
+.textLayer > :not(.markedContent),
+.textLayer .markedContent span:not(.markedContent) {
+  z-index: 1;
+
+  --font-height: 0;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+
+.textLayer .markedContent {
+  display: contents;
+}
+
+/* An image run is not text and must not be draggable into a selection. */
+.textLayer span[role='img'] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+/* The highlight has to be visible over a white scan without hiding the glyph
+   underneath it, which is why it is a translucent wash rather than a fill. */
+.textLayer ::-moz-selection {
+  background: rgb(0 0 255 / 0.25);
+  background: color-mix(in srgb, AccentColor, transparent 55%);
+  color: transparent;
+}
+
+.textLayer ::selection {
+  background: rgb(0 0 255 / 0.25);
+  background: color-mix(in srgb, AccentColor, transparent 55%);
+  color: transparent;
+}
+
+/* pdf.js appends this so a drag that runs off the bottom of the page still
+   ends the selection somewhere sensible. */
+.textLayer .endOfContent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: 0;
+  cursor: default;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+.textLayer.selecting .endOfContent {
+  top: 0;
+}

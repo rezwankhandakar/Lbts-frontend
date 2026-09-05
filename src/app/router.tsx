@@ -7,6 +7,7 @@ import {
   PublicOnlyRoute,
   RoleRoute,
 } from '@/components/shared/route-guards'
+import { CHALLAN_READ_ROLES, CHALLAN_WRITE_ROLES } from '@/features/challan/types'
 import { GATE_PASS_READ_ROLES, GATE_PASS_WRITE_ROLES } from '@/features/gate-pass/types'
 import { DashboardPage } from '@/pages/dashboard'
 
@@ -30,6 +31,25 @@ const GatePassEditPage = lazy(() =>
 )
 const GatePassDetailsPage = lazy(() =>
   import('@/pages/gate-pass-details').then((m) => ({ default: m.GatePassDetailsPage })),
+)
+const ChallanPage = lazy(() => import('@/pages/challan').then((m) => ({ default: m.ChallanPage })))
+/**
+ * The entry workspace is the one route in the app that carries a PDF renderer,
+ * so it gets a chunk of its own. Nothing else in Challan — the list, the
+ * details page, the batch page — loads pdf.js, because reading a finished
+ * challan only needs the browser's own viewer.
+ */
+const ChallanNewPage = lazy(() =>
+  import('@/pages/challan-new').then((m) => ({ default: m.ChallanNewPage })),
+)
+const ChallanDetailsPage = lazy(() =>
+  import('@/pages/challan-details').then((m) => ({ default: m.ChallanDetailsPage })),
+)
+const ChallanEditPage = lazy(() =>
+  import('@/pages/challan-edit').then((m) => ({ default: m.ChallanEditPage })),
+)
+const ChallanBatchPage = lazy(() =>
+  import('@/pages/challan-batch').then((m) => ({ default: m.ChallanBatchPage })),
 )
 const AdministrationPage = lazy(() =>
   import('@/pages/administration').then((m) => ({ default: m.AdministrationPage })),
@@ -56,6 +76,15 @@ const GATE_PASS_ACCESS_REASON =
 const GATE_PASS_WRITE_REASON =
   'Filing a gate pass is done by Admin, Manager and Operation Executive accounts.'
 
+/**
+ * Wording for the two Challan boundaries. Kept beside the routes that use them
+ * so the sentence and the role list cannot drift apart.
+ */
+const CHALLAN_ACCESS_REASON =
+  'Challan records deliveries from the corporate office, and is open to Admin, Manager, CEO and Operation Executive accounts.'
+const CHALLAN_WRITE_REASON =
+  'Filing a challan is done by Admin, Manager and Operation Executive accounts.'
+
 export function AppRouter() {
   return (
     <Routes>
@@ -80,6 +109,38 @@ export function AppRouter() {
             <Route element={<RoleRoute roles={GATE_PASS_WRITE_ROLES} area="Gate Pass" reason={GATE_PASS_WRITE_REASON} />}>
               <Route path="/gate-pass/new" element={<GatePassNewPage />} />
               <Route path="/gate-pass/:id/edit" element={<GatePassEditPage />} />
+            </Route>
+          </Route>
+
+          {/* Challan is the corporate office's paperwork: every role except
+              Vendor reads it, and CEO reads without writing. A challan carries
+              a customer's home address, which is why Vendor is out entirely.
+              The roles come from the module rather than a central matrix, and
+              the API re-checks every one of them. */}
+          <Route
+            element={
+              <RoleRoute
+                roles={CHALLAN_READ_ROLES}
+                area="Challan"
+                reason={CHALLAN_ACCESS_REASON}
+              />
+            }
+          >
+            <Route path="/challan" element={<ChallanPage />} />
+            <Route path="/challan/:id" element={<ChallanDetailsPage />} />
+            <Route path="/challan/batch/:batchId" element={<ChallanBatchPage />} />
+
+            <Route
+              element={
+                <RoleRoute
+                  roles={CHALLAN_WRITE_ROLES}
+                  area="Challan"
+                  reason={CHALLAN_WRITE_REASON}
+                />
+              }
+            >
+              <Route path="/challan/new" element={<ChallanNewPage />} />
+              <Route path="/challan/:id/edit" element={<ChallanEditPage />} />
             </Route>
           </Route>
 

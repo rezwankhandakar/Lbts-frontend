@@ -6,13 +6,7 @@ import type { UserRole } from '@/lib/roles'
  * the source of truth. Change one, change both.
  */
 
-export const GATE_PASS_STATUSES = [
-  'Draft',
-  'Submitted',
-  'Verified',
-  'Rejected',
-  'Cancelled',
-] as const
+export const GATE_PASS_STATUSES = ['Draft', 'Submitted', 'Verified', 'Rejected'] as const
 export type GatePassStatus = (typeof GATE_PASS_STATUSES)[number]
 
 export const GATE_PASS_REFERENCE_TYPES = ['None', 'Zone', 'PO'] as const
@@ -44,11 +38,47 @@ export function canManageAnyGatePass(role: UserRole | null): boolean {
   return role !== null && GATE_PASS_MANAGE_ANY_ROLES.includes(role)
 }
 
-/** Content may only be changed while the record is still open. */
-export const EDITABLE_GATE_PASS_STATUSES: readonly GatePassStatus[] = ['Draft', 'Rejected']
+/**
+ * Whether this user may change this record at all — correct it, replace its
+ * scan, or delete it. One rule, because the server applies one rule:
+ * `assertCanEdit` and `assertCanDelete` in `gate-pass.access.ts` ask exactly
+ * this, and they are the checks that actually decide.
+ *
+ * Status is deliberately absent. An operator corrects or removes their own
+ * work whatever state it has reached, and Admin and Manager do the same for
+ * anybody's. What a late correction costs is
+ * `needsReverificationAfterEdit`'s business, not a reason to hide the button.
+ */
+export function canChangeGatePass(
+  role: UserRole | null,
+  record: { createdBy: ActorRef | null },
+  currentUserId: string | null,
+): boolean {
+  if (!canWriteGatePasses(role)) {
+    return false
+  }
+  return canManageAnyGatePass(role) || record.createdBy?.id === currentUserId
+}
 
-export function isEditableStatus(status: GatePassStatus): boolean {
-  return EDITABLE_GATE_PASS_STATUSES.includes(status)
+/**
+ * Statuses carrying a reviewer's verdict about specific content. Correcting
+ * one returns it to `Submitted` to be checked again — the server does that on
+ * save; this is here so the form can say so before the operator commits.
+ * Mirrors `REVERIFY_ON_EDIT_STATUSES` in `gate-pass.constants.ts`.
+ */
+export const REVERIFY_ON_EDIT_STATUSES: readonly GatePassStatus[] = ['Verified']
+
+export function needsReverificationAfterEdit(status: GatePassStatus): boolean {
+  return REVERIFY_ON_EDIT_STATUSES.includes(status)
+}
+
+/**
+ * Whether the primary action on the entry form files the record or merely
+ * saves a correction to one already filed. Submitting a record that has
+ * already been submitted is not a legal move, so a correction there is a save.
+ */
+export function isFiledStatus(status: GatePassStatus): boolean {
+  return status === 'Submitted' || status === 'Verified'
 }
 
 export interface ActorRef {
@@ -167,11 +197,25 @@ export interface GatePassListParams {
   to: string
 }
 
+/**
+ * A change to the filters. Never the page or the page size: narrowing a
+ * result set always returns to page one, so the two are set together and
+ * cannot be patched apart.
+ */
+export type FilterPatch = Partial<Omit<GatePassListParams, 'page' | 'limit'>>
+
 export interface PageMeta {
   page: number
   limit: number
   total: number
   totalPages: number
+  /**
+   * Every quantity on every matching record, not just the page on screen.
+   * The figure is about the filters rather than the scroll position, so it is
+   * summed server-side alongside the count and never added up in the browser
+   * from ten rows that are all it ever holds.
+   */
+  totalQty: number
 }
 
 export interface GatePassListResult {

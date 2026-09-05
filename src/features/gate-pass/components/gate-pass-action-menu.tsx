@@ -1,6 +1,5 @@
 import {
   BadgeCheck,
-  CircleSlash,
   Download,
   EllipsisVertical,
   Eye,
@@ -17,20 +16,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { isEditableStatus } from '../types'
 import type { GatePassRecord } from '../types'
 
 export interface GatePassActions {
   /** True when the signed-in user may edit or submit their own open records. */
   canWrite: boolean
-  /** True for Admin and Manager: the roles that verify and cancel. */
+  /** True for Admin and Manager: the roles that verify and manage anyone's work. */
   canReview: boolean
   currentUserId: string | null
   onOpen: (record: GatePassRecord) => void
   onEdit: (record: GatePassRecord) => void
   onDownload: (record: GatePassRecord) => void
   onPrint: (record: GatePassRecord) => void
-  onReview: (record: GatePassRecord, status: 'Verified' | 'Rejected' | 'Cancelled') => void
+  onReview: (record: GatePassRecord, status: 'Verified' | 'Rejected') => void
   onDelete: (record: GatePassRecord) => void
 }
 
@@ -39,9 +37,9 @@ export interface GatePassActions {
  * colour sits on the icon rather than on a filled button.
  *
  * Items an operator cannot use are dropped rather than disabled. A row for
- * somebody else's verified gate pass simply offers viewing, downloading and
- * printing — showing a greyed-out Delete would only invite the question of how
- * to enable it, and the API refuses it regardless.
+ * somebody else's gate pass simply offers viewing, downloading and printing —
+ * showing a greyed-out Delete would only invite the question of how to enable
+ * it, and the API refuses it regardless.
  */
 export function GatePassActionMenu({
   record,
@@ -51,12 +49,16 @@ export function GatePassActionMenu({
   actions: GatePassActions
 }) {
   const isOwner = record.createdBy?.id === actions.currentUserId
-  const isOpen = isEditableStatus(record.status)
 
-  const canEdit = actions.canWrite && isOpen && (isOwner || actions.canReview)
-  const canDelete = actions.canWrite && record.status === 'Draft' && isOwner
+  /**
+   * Correcting and deleting run on the same rule, in every status: the person
+   * who filed the record, and the roles that manage anybody's work. Neither is
+   * gated on status — a wrong gate pass is worth fixing whenever it is
+   * noticed, and deleting is the only way to withdraw one. The API applies
+   * exactly this.
+   */
+  const canChange = actions.canWrite && (isOwner || actions.canReview)
   const canVerify = actions.canReview && record.status === 'Submitted'
-  const canCancel = actions.canReview && record.status !== 'Cancelled'
 
   return (
     <DropdownMenu>
@@ -91,7 +93,7 @@ export function GatePassActionMenu({
           View details
         </DropdownMenuItem>
 
-        {canEdit && (
+        {canChange && (
           <DropdownMenuItem
             className="h-8 gap-2.5 rounded-lg text-[13px]"
             onClick={() => actions.onEdit(record)}
@@ -120,7 +122,7 @@ export function GatePassActionMenu({
           </>
         )}
 
-        {(canVerify || canCancel || canDelete) && <DropdownMenuSeparator />}
+        {(canVerify || canChange) && <DropdownMenuSeparator />}
 
         {canVerify && (
           <>
@@ -141,23 +143,13 @@ export function GatePassActionMenu({
           </>
         )}
 
-        {canCancel && (
-          <DropdownMenuItem
-            className="h-8 gap-2.5 rounded-lg text-[13px] text-tone-orange"
-            onClick={() => actions.onReview(record, 'Cancelled')}
-          >
-            <CircleSlash aria-hidden />
-            Cancel gate pass
-          </DropdownMenuItem>
-        )}
-
-        {canDelete && (
+        {canChange && (
           <DropdownMenuItem
             className="h-8 gap-2.5 rounded-lg text-[13px] text-destructive"
             onClick={() => actions.onDelete(record)}
           >
             <Trash2 aria-hidden />
-            Delete draft
+            {record.status === 'Draft' ? 'Delete draft' : 'Delete gate pass'}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

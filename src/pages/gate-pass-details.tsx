@@ -1,27 +1,28 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import {
   ArrowLeft,
   BadgeCheck,
-  CircleSlash,
   Download,
   Pencil,
   Printer,
+  Trash2,
   TriangleAlert,
   Undo2,
 } from 'lucide-react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { DeleteDraftDialog } from '@/features/gate-pass/components/delete-draft-dialog'
+import { DeleteGatePassDialog } from '@/features/gate-pass/components/delete-gate-pass-dialog'
 import { GatePassDetails } from '@/features/gate-pass/components/gate-pass-details'
 import { GatePassDetailsSkeleton } from '@/features/gate-pass/components/gate-pass-details-skeleton'
 import { GatePassDocumentViewer } from '@/features/gate-pass/components/gate-pass-document-viewer'
-import { GatePassPrintSheet } from '@/features/gate-pass/components/gate-pass-print-sheet'
 import { GatePassStatusBadge } from '@/features/gate-pass/components/gate-pass-status-badge'
 import { ReviewDialog } from '@/features/gate-pass/components/review-dialog'
 import { useGatePassActions } from '@/features/gate-pass/hooks/use-gate-pass-actions'
 import { useGatePassDocument } from '@/features/gate-pass/hooks/use-gate-pass-document'
 import { useGatePass } from '@/features/gate-pass/hooks/use-gate-passes'
-import { canReviewGatePasses, canWriteGatePasses, isEditableStatus } from '@/features/gate-pass/types'
+import { printDocument } from '@/lib/print-document'
+import { canChangeGatePass, canReviewGatePasses } from '@/features/gate-pass/types'
 import { formatDateTime } from '@/lib/format'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { useAuthStore } from '@/stores/use-auth-store'
@@ -43,28 +44,65 @@ export function GatePassDetailsPage() {
 
   const query = useGatePass(id)
   const record = query.data ?? null
-  const actions = useGatePassActions()
+  /**
+   * A deleted record cannot be shown, so this page leaves for the list rather
+   * than sitting on a 404 the operator has to navigate out of themselves.
+   */
+  const actions = useGatePassActions({ onDeleted: () => navigate('/gate-pass') })
 
   // Not named `document`: that would shadow the global one this file needs.
   const scan = useGatePassDocument(record?.id ?? null, Boolean(record?.document))
 
   /**
-   * `?print=1` is how the records list asks this page to print — the print
-   * sheet lives here, so there is one print path rather than two. The flag is
-   * cleared as soon as it fires, or a refresh would print again.
+   * Printing means printing the scan, and the scan is fetched through axios
+   * because the endpoint is authenticated — so it is this page, holding the
+   * blob for the viewer beside it, that can print. Nothing else needs a copy.
+   */
+  const print = useCallback(() => {
+    if (!record?.document || !scan.url) {
+      return
+    }
+    printDocument(scan.url, record.document.mimeType)
+  }, [record, scan.url])
+
+  /**
+   * `?print=1` is how the records list asks this page to print, so there is
+   * one print path rather than two. It has to wait for the scan rather than
+   * for the record: the bytes are what gets printed. The flag is cleared as
+   * soon as it is acted on, or a refresh would print again.
    */
   const wantsPrint = searchParams.get('print') === '1'
+  const scanUrl = scan.url
+  const scanError = scan.error
 
   useEffect(() => {
     if (!wantsPrint || !record) {
       return
     }
 
+    const scanned = record.document
+
+    if (!scanned) {
+      setSearchParams({}, { replace: true })
+      toast.error('This gate pass has no scanned document to print.')
+      return
+    }
+
+    if (scanError) {
+      setSearchParams({}, { replace: true })
+      toast.error('The scan could not be loaded, so there is nothing to print.')
+      return
+    }
+
+    // Still fetching. The effect runs again when the object URL arrives.
+    if (!scanUrl) {
+      return
+    }
+
     setSearchParams({}, { replace: true })
-    // One frame, so the print sheet is in the DOM before the dialog opens.
-    const timer = window.setTimeout(() => window.print(), 50)
+    const timer = window.setTimeout(() => printDocument(scanUrl, scanned.mimeType), 50)
     return () => window.clearTimeout(timer)
-  }, [wantsPrint, record, setSearchParams])
+  }, [wantsPrint, record, scanUrl, scanError, setSearchParams])
 
   if (query.isPending) {
     return <GatePassDetailsSkeleton />
@@ -92,9 +130,13 @@ export function GatePassDetailsPage() {
     )
   }
 
-  const isOwner = record.createdBy?.id === currentUserId
   const canReview = canReviewGatePasses(role)
-  const canEdit = canWriteGatePasses(role) && isEditableStatus(record.status) && (isOwner || canReview)
+  /**
+   * Correcting and deleting run on one rule in every status — see
+   * `canChangeGatePass`. A verified record can still be corrected; the
+   * workspace says what that costs before anything is saved.
+   */
+  const canChange = canChangeGatePass(role, record, currentUserId)
 
   return (
     <div className="mx-auto w-full max-w-7xl">
@@ -136,14 +178,22 @@ export function GatePassDetailsPage() {
                 <Download data-icon="inline-start" aria-hidden />
                 Download
               </Button>
-              <Button variant="outline" size="sm" onClick={() => window.print()}>
+              {/* Disabled until the bytes are here: there is nothing to send
+                  to a printer while the scan is still being fetched. */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={print}
+                disabled={!scan.url}
+                title={scan.url ? undefined : 'Waiting for the scan'}
+              >
                 <Printer data-icon="inline-start" aria-hidden />
                 Print
               </Button>
             </>
           )}
 
-          {canEdit && (
+          {canChange && (
             <Button variant="outline" size="sm" onClick={() => actions.edit(record)}>
               <Pencil data-icon="inline-start" aria-hidden />
               Edit
@@ -167,15 +217,15 @@ export function GatePassDetailsPage() {
             </>
           )}
 
-          {canReview && record.status !== 'Cancelled' && record.status !== 'Submitted' && (
+          {canChange && (
             <Button
               variant="outline"
               size="sm"
-              className="text-tone-orange"
-              onClick={() => actions.openReview(record, 'Cancelled')}
+              className="text-destructive"
+              onClick={() => actions.openDelete(record)}
             >
-              <CircleSlash data-icon="inline-start" aria-hidden />
-              Cancel
+              <Trash2 data-icon="inline-start" aria-hidden />
+              Delete
             </Button>
           )}
         </div>
@@ -204,7 +254,7 @@ export function GatePassDetailsPage() {
             onRetry={scan.retry}
             emptyMessage="This gate pass has no scanned document."
             emptyAction={
-              canEdit ? (
+              canChange ? (
                 <Button size="sm" onClick={() => actions.edit(record)}>
                   Scan it now
                 </Button>
@@ -215,8 +265,6 @@ export function GatePassDetailsPage() {
         </section>
       </div>
 
-      <GatePassPrintSheet record={record} />
-
       <ReviewDialog
         record={actions.target}
         decision={actions.decision}
@@ -225,7 +273,7 @@ export function GatePassDetailsPage() {
         onConfirm={actions.confirmReview}
       />
 
-      <DeleteDraftDialog
+      <DeleteGatePassDialog
         record={actions.target}
         open={actions.isConfirmingDelete}
         isPending={actions.isPending}

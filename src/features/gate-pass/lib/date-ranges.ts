@@ -7,7 +7,7 @@
  * morning.
  */
 
-export type QuickRange = 'today' | 'week' | 'month' | 'custom' | 'all'
+export type QuickRange = 'today' | 'month' | 'lastMonth' | 'custom' | 'all'
 
 export interface DateRange {
   from: string
@@ -27,12 +27,16 @@ export function rangeFor(quick: Exclude<QuickRange, 'custom' | 'all'>): DateRang
     return { from: today, to: today }
   }
 
-  if (quick === 'week') {
-    // Monday-first, which is how the depot week runs.
-    const start = new Date(now)
-    const offset = (start.getDay() + 6) % 7
-    start.setDate(start.getDate() - offset)
-    return { from: toIso(start), to: today }
+  /**
+   * A whole calendar month that has already closed, which is the range every
+   * month-end reconciliation is run over. It ends on the last day of that
+   * month rather than today: day 0 of this month is the last day of the one
+   * before it, whatever length that month happened to be.
+   */
+  if (quick === 'lastMonth') {
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const end = new Date(now.getFullYear(), now.getMonth(), 0)
+    return { from: toIso(start), to: toIso(end) }
   }
 
   const start = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -42,8 +46,8 @@ export function rangeFor(quick: Exclude<QuickRange, 'custom' | 'all'>): DateRang
 export const QUICK_RANGE_LABELS: Record<Exclude<QuickRange, 'custom'>, string> = {
   all: 'Any date',
   today: 'Today',
-  week: 'This week',
   month: 'This month',
+  lastMonth: 'Last month',
 }
 
 /** Which quick range a from/to pair corresponds to, if any. */
@@ -52,7 +56,7 @@ export function quickRangeFor(range: DateRange): QuickRange {
     return 'all'
   }
 
-  for (const quick of ['today', 'week', 'month'] as const) {
+  for (const quick of ['today', 'month', 'lastMonth'] as const) {
     const candidate = rangeFor(quick)
     if (candidate.from === range.from && candidate.to === range.to) {
       return quick

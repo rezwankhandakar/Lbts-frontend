@@ -67,14 +67,6 @@ export const GATE_PASS_STATUS_META: Record<GatePassStatus, GatePassStatusMeta> =
     dot: 'bg-tone-rose',
     chip: 'bg-tone-rose/10 text-tone-rose ring-tone-rose/20',
   },
-  Cancelled: {
-    label: 'Cancelled',
-    description: 'Withdrawn. Kept for the record, but no longer counts.',
-    icon: CircleSlash,
-    badge: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
-    dot: 'bg-tone-orange',
-    chip: 'bg-tone-orange/10 text-tone-orange ring-tone-orange/20',
-  },
 }
 
 /** Neutral presentation for a value this client does not recognise. */

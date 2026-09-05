@@ -4,16 +4,17 @@ import { Button } from '@/components/ui/button'
 import { GatePassWorkspace } from '@/features/gate-pass/components/gate-pass-workspace'
 import { GatePassDetailsSkeleton } from '@/features/gate-pass/components/gate-pass-details-skeleton'
 import { useGatePass } from '@/features/gate-pass/hooks/use-gate-passes'
-import { isEditableStatus } from '@/features/gate-pass/types'
 
 /**
- * Correcting a gate pass that is still open — a draft being finished, or one a
- * reviewer sent back.
+ * Correcting a gate pass, in whatever state it has reached — a draft being
+ * finished, one a reviewer sent back, or a filed record with a vehicle number
+ * transcribed wrongly.
  *
  * The same workspace as a new gate pass, loaded with what is already on
- * record. Anything that has been submitted or verified is not editable, and
- * the server refuses the write regardless; this page says so rather than
- * offering a form whose Save could only fail.
+ * record. Status decides what the correction costs rather than whether it is
+ * allowed: a verified record goes back for verification when it is changed,
+ * which the workspace says out loud before anything is saved. Who may correct
+ * it is the server's decision, and it refuses a record that is not theirs.
  */
 export function GatePassEditPage() {
   const { id } = useParams<{ id: string }>()
@@ -36,28 +37,6 @@ export function GatePassEditPage() {
         </p>
         <Button variant="outline" size="sm" className="mt-5" onClick={() => navigate('/gate-pass')}>
           Back to gate passes
-        </Button>
-      </div>
-    )
-  }
-
-  if (!isEditableStatus(query.data.status)) {
-    return (
-      <div className="mx-auto flex min-h-[50vh] w-full max-w-md flex-col items-center justify-center text-center">
-        <h1 className="text-lg font-semibold tracking-tight">
-          {query.data.gatePassId} can no longer be edited
-        </h1>
-        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-          A {query.data.status.toLowerCase()} gate pass is part of the record. Cancel it and file a
-          new one if it is wrong.
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-5"
-          onClick={() => navigate(`/gate-pass/${query.data.id}`)}
-        >
-          View the gate pass
         </Button>
       </div>
     )

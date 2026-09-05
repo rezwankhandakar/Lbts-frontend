@@ -107,7 +107,6 @@ export function useSubmitGatePass(): UseMutationResult<
 const REVIEW_MESSAGES: Record<ReviewGatePassArgs['status'], string> = {
   Verified: 'Gate pass verified',
   Rejected: 'Gate pass sent back for correction',
-  Cancelled: 'Gate pass cancelled',
 }
 
 export function useReviewGatePass(): UseMutationResult<
