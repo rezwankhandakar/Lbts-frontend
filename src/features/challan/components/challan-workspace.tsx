@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { useCurrentRole } from '@/hooks/use-current-role'
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import { cn } from '@/lib/utils'
 import { useChallanActions } from '../hooks/use-challan-actions'
@@ -11,7 +12,9 @@ import { useChallanSubmission } from '../hooks/use-challan-submission'
 import { usePdfSource } from '../hooks/use-pdf-source'
 import type { SourcePdf } from '../lib/pdf-source'
 import { fromChallanValues } from '../schemas/challan-schemas'
+import { canWriteChallans } from '../types'
 import type { ChallanValues } from '../types'
+import { BatchCompletePanel } from './batch-complete-panel'
 import { ChallanEntryForm } from './challan-entry-form'
 import { ChallanFiledPanel } from './challan-filed-panel'
 import { ChallanQueue } from './challan-queue'
@@ -84,6 +87,8 @@ function ChallanWorkspaceSession({ source, onClose }: SessionProps) {
     sourcePageCount: source.pageCount,
   })
   const actions = useChallanActions()
+  /** `CEO` may print and may not mark; every other role here does both. */
+  const canMark = canWriteChallans(useCurrentRole())
 
   const [pane, setPane] = useState<WorkspacePane>('pdf')
   /**
@@ -203,16 +208,24 @@ function ChallanWorkspaceSession({ source, onClose }: SessionProps) {
         )}
       </div>
 
+      {/* The end of the file, without leaving the workspace.
+          Filing the last challan out of a WhatsApp PDF is the moment the whole
+          session was for: the set now has to be printed and handed over. The
+          batch page offers exactly this, but reaching it means navigating away
+          from a workspace still holding the source PDF — so the same two
+          actions are offered here, where the job actually ends. */}
+      {batchId && progress.isComplete && (
+        <div className="mb-4">
+          <BatchCompletePanel batchId={batchId} canChange={canMark} />
+        </div>
+      )}
+
       <div className="mb-3 lg:hidden">
-        <WorkspaceTabs
-          value={pane}
-          onChange={setPane}
-          hasEntry={Boolean(active?.values)}
-        />
+        <WorkspaceTabs value={pane} onChange={setPane} hasEntry={Boolean(active?.values)} />
       </div>
 
       <div className="grid min-h-0 gap-4 lg:grid-cols-2 lg:items-start xl:gap-6">
-        <div className={cn(pane === 'pdf' ? 'block' : 'hidden', 'lg:block lg:sticky lg:top-0')}>
+        <div className={cn(pane === 'pdf' ? 'block' : 'hidden', 'lg:sticky lg:top-0 lg:block')}>
           <SourcePdfPanel
             source={source}
             entry={active}

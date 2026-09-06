@@ -91,8 +91,8 @@ export function SubmissionOverlay({ stage, uploadProgress }: SubmissionOverlayPr
         )}
 
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-          The server may take a moment to wake up. Nothing is lost if this is slow, and pressing
-          the button again cannot file this challan twice.
+          The server may take a moment to wake up. Nothing is lost if this is slow, and pressing the
+          button again cannot file this challan twice.
         </p>
       </div>
     </div>

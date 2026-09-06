@@ -126,10 +126,7 @@ export function ChallanEntryForm({
     const write = (field: 'items.0.productName' | 'items.0.model' | 'items.0.qty', value: string) =>
       setValue(field, value, { shouldDirty: true, shouldValidate: true })
 
-    for (const [field, value] of Object.entries(fields) as [
-      keyof ParsedChallanFields,
-      string,
-    ][]) {
+    for (const [field, value] of Object.entries(fields) as [keyof ParsedChallanFields, string][]) {
       if (field === 'product') {
         write('items.0.productName', value)
       } else if (field === 'model') {
@@ -214,9 +211,7 @@ export function ChallanEntryForm({
         <p className="text-xs text-muted-foreground">
           {blockedReason ?? (
             <>
-              <kbd className="rounded border bg-muted px-1 py-0.5 font-mono text-[10px]">
-                Ctrl
-              </kbd>
+              <kbd className="rounded border bg-muted px-1 py-0.5 font-mono text-[10px]">Ctrl</kbd>
               {' + '}
               <kbd className="rounded border bg-muted px-1 py-0.5 font-mono text-[10px]">
                 Enter

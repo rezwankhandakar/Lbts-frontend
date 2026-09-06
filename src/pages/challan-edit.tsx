@@ -67,7 +67,7 @@ export function ChallanEditPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="-ml-2 mb-1 text-muted-foreground"
+            className="mb-1 -ml-2 text-muted-foreground"
             onClick={() => navigate(`/challan/${record.id}`)}
           >
             <ArrowLeft data-icon="inline-start" aria-hidden />
@@ -88,9 +88,9 @@ export function ChallanEditPage() {
             <Info className="mt-0.5 size-3.5 shrink-0 text-tone-amber" aria-hidden />
             <span>
               <span className="font-semibold">Saving regenerates the document.</span> The back page
-              is redrawn from what you save, and the stored PDF is replaced — the SL number,
-              challan number and barcode stay the same. Any copy printed before now shows the old
-              details, so reprint it if it is already in circulation. The page range (
+              is redrawn from what you save, and the stored PDF is replaced — the SL number, challan
+              number and barcode stay the same. Any copy printed before now shows the old details,
+              so reprint it if it is already in circulation. The page range (
               {formatRange({
                 startPage: record.sourcePageStart,
                 endPage: record.sourcePageEnd,

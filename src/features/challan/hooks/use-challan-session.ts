@@ -84,10 +84,7 @@ export function useChallanSession(sourcePageCount: number): ChallanSessionContro
    * a check that could not reach the network must never block somebody from
    * typing.
    */
-  const settled = useDebouncedValue(
-    `${active?.startPage ?? 0}:${active?.endPage ?? 0}`,
-    400,
-  )
+  const settled = useDebouncedValue(`${active?.startPage ?? 0}:${active?.endPage ?? 0}`, 400)
   const [settledStart, settledEnd] = settled.split(':').map(Number)
 
   const rangeQuery = useQuery({
@@ -120,14 +117,11 @@ export function useChallanSession(sourcePageCount: number): ChallanSessionContro
   const add = useCallback(() => setSession((current) => addEntry(current)), [])
   const remove = useCallback((id: string) => setSession((current) => removeEntry(current, id)), [])
 
-  const setActiveRange = useCallback(
-    (range: PageRange) => {
-      setSession((current) =>
-        current.activeId ? setRange(current, current.activeId, range) : current,
-      )
-    },
-    [],
-  )
+  const setActiveRange = useCallback((range: PageRange) => {
+    setSession((current) =>
+      current.activeId ? setRange(current, current.activeId, range) : current,
+    )
+  }, [])
 
   const rememberValues = useCallback((values: ChallanValues | null) => {
     setSession((current) =>

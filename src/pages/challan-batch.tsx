@@ -4,8 +4,15 @@ import { Button } from '@/components/ui/button'
 import { BatchSummary } from '@/features/challan/components/batch-summary'
 import { ChallanDirectory } from '@/features/challan/components/challan-directory'
 import { DeleteChallanDialog } from '@/features/challan/components/delete-challan-dialog'
-import { useBatchDownload, useChallanActions } from '@/features/challan/hooks/use-challan-actions'
-import { useBatchSkippedPages } from '@/features/challan/hooks/use-challan-mutations'
+import {
+  useBatchDownload,
+  useBatchPrint,
+  useChallanActions,
+} from '@/features/challan/hooks/use-challan-actions'
+import {
+  useBatchPrinted,
+  useBatchSkippedPages,
+} from '@/features/challan/hooks/use-challan-mutations'
 import { useChallanBatch } from '@/features/challan/hooks/use-challans'
 import { canManageAnyChallan, canWriteChallans } from '@/features/challan/types'
 import type { PageRange } from '@/features/challan/types'
@@ -51,7 +58,9 @@ export function ChallanBatchPage() {
   const batch = query.data ?? null
   const actions = useChallanActions()
   const download = useBatchDownload()
+  const print = useBatchPrint()
   const skipped = useBatchSkippedPages()
+  const printed = useBatchPrinted()
 
   if (query.isPending) {
     return (
@@ -86,7 +95,7 @@ export function ChallanBatchPage() {
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-2 mb-3 text-muted-foreground"
+        className="mb-3 -ml-2 text-muted-foreground"
         onClick={() => navigate('/challan')}
       >
         <ArrowLeft data-icon="inline-start" aria-hidden />
@@ -98,6 +107,15 @@ export function ChallanBatchPage() {
         isDownloading={download.isDownloading}
         onDownload={() => download.download(batch.id)}
         /**
+         * Printing assembles the same document Download hands over and sends
+         * it to the printer, then marks the batch — because the reason
+         * fifteen challans were filed out of one file is that fifteen sheets
+         * have to end up on the counter, and doing that a record at a time is
+         * fifteen dialogs with nothing afterwards to say which was missed.
+         */
+        isPrinting={print.isPrinting}
+        onPrint={() => print.print(batch.id)}
+        /**
          * The same rule the API applies: the operator who worked through this
          * file, and the two roles that manage anybody's work. A statement that
          * page 7 is blank is about a file only one person ever had, so
@@ -107,7 +125,7 @@ export function ChallanBatchPage() {
           canWriteChallans(role) &&
           (canManageAnyChallan(role) || batch.createdBy?.id === currentUserId)
         }
-        isSaving={skipped.isPending}
+        isSaving={skipped.isPending || printed.isPending}
         onMarkBlank={(range) =>
           skipped.mutate({
             batchId: batch.id,
@@ -117,6 +135,13 @@ export function ChallanBatchPage() {
           })
         }
         onClearBlank={() => skipped.mutate({ batchId: batch.id, pages: [] })}
+        /**
+         * A print mark is a claim about what came out of a printer, not a
+         * measurement — the browser never learns whether the dialog ended in
+         * Print or Cancel. Somebody whose printer jammed on the third challan
+         * has to be able to say so.
+         */
+        onClearPrinted={() => printed.mutate({ batchId: batch.id, printed: false })}
       />
 
       <section
@@ -150,6 +175,8 @@ export function ChallanBatchPage() {
             onEdit: actions.edit,
             onDownload: actions.download,
             onPrint: actions.print,
+            onSetPrinted: actions.setPrinted,
+            canMarkPrinted: actions.canMarkPrinted,
             onOpenBatch: actions.openBatch,
             onDelete: actions.openDelete,
           }}

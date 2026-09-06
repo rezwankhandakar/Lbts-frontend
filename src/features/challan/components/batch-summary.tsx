@@ -1,60 +1,61 @@
-import {
-  CircleCheck,
-  Download,
-  FileStack,
-  FileX2,
-  Loader2,
-  TriangleAlert,
-  Undo2,
-} from 'lucide-react'
+import { CircleCheck, Download, FileStack, Loader2, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import { formatBytes, formatRange, formatRanges } from '../lib/challan-meta'
+import { formatBytes } from '../lib/challan-meta'
 import type { ChallanBatchDetail, PageRange } from '../types'
+import { BatchAccounting } from './batch-accounting'
+import { BatchPrintStatus } from './batch-print-status'
 import { ChallanBatchStatusBadge } from './challan-status-badge'
 
 interface BatchSummaryProps {
   batch: ChallanBatchDetail
   isDownloading: boolean
   onDownload: () => void
+  isPrinting: boolean
+  onPrint: () => void
   /** False for a viewer who may not change this batch — CEO, or a colleague. */
   canChange: boolean
   isSaving: boolean
   onMarkBlank: (range: PageRange) => void
   onClearBlank: () => void
+  onClearPrinted: () => void
 }
 
 /**
- * One source PDF, and how much of it has been turned into challans.
+ * One source PDF: what came out of it, and what can now be done with the lot.
  *
- * The figure that decides everything on this page is the page count, not the
- * challan count: a batch is finished when every page of the file is accounted
- * for, and until then the assembled batch document would be missing whatever
- * nobody got round to. So the download is refused rather than offered with a
- * caveat — a "complete batch" PDF with two challans missing is worse than
- * none, because somebody would print it, file it, and never learn what was not
- * in it.
+ * This page exists because the source file does not survive the session, so
+ * this header is the only durable description of a document that was
+ * deliberately never stored — its name, its size, and how far through it
+ * somebody got.
  *
- * "Accounted for" is deliberately wider than "filed". A WhatsApp file
- * occasionally carries a blank sheet or a cover page, and there is no honest
- * challan to make out of one — so those pages are *marked* rather than filed,
- * and the batch can finish without a junk record carrying a serial and a
- * barcode for a blank page. The marking is listed and reversible, because it
- * is a decision about the source file rather than a way of hiding pages.
+ * The two actions are the reason an operator comes back here. **Print batch**
+ * is the job: fifteen challans cut out of one WhatsApp file have to end up as
+ * fifteen sheets on the counter, and printing them one record at a time is
+ * fifteen dialogs and no way to know afterwards which one was missed.
+ * **Download** is the same document saved instead of printed. Both are refused
+ * while the batch is unfinished — see `BatchAccounting` for why that matters
+ * more than it looks.
  *
- * The source PDF itself is not here to download. It was never stored; what
- * exists is what came out of it.
+ * The print state sits under them rather than beside the status badge,
+ * because it is a fact about paper and `Completed` is a fact about pages. They
+ * are two different questions and reading as one badge would blur both.
  */
 export function BatchSummary({
   batch,
   isDownloading,
   onDownload,
+  isPrinting,
+  onPrint,
   canChange,
   isSaving,
   onMarkBlank,
   onClearBlank,
+  onClearPrinted,
 }: BatchSummaryProps) {
+  const busy = isDownloading || isPrinting
+
   return (
     <section
       aria-label="Batch summary"
@@ -79,7 +80,10 @@ export function BatchSummary({
 
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-lg font-semibold tracking-tight" title={batch.sourceFileName}>
+              <h1
+                className="truncate text-lg font-semibold tracking-tight"
+                title={batch.sourceFileName}
+              >
                 {batch.sourceFileName}
               </h1>
               <ChallanBatchStatusBadge status={batch.status} />
@@ -99,8 +103,19 @@ export function BatchSummary({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <Button onClick={onDownload} disabled={!batch.isComplete || isDownloading}>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {/* The primary action, because printing is what the paperwork is
+              for. Downloading it is the same document kept rather than used. */}
+          <Button onClick={onPrint} disabled={!batch.isComplete || busy}>
+            {isPrinting ? (
+              <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
+            ) : (
+              <Printer data-icon="inline-start" aria-hidden />
+            )}
+            {isPrinting ? 'Assembling…' : 'Print all challans'}
+          </Button>
+
+          <Button variant="outline" onClick={onDownload} disabled={!batch.isComplete || busy}>
             {isDownloading ? (
               <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
             ) : (
@@ -112,102 +127,24 @@ export function BatchSummary({
       </div>
 
       <div className="border-t px-4 py-4 sm:px-5">
-        <div className="flex items-center justify-between gap-3 text-xs">
-          <span className="text-muted-foreground">
-            {batch.assignedPages} of {batch.sourcePageCount} pages accounted for
-          </span>
-          <span className="font-semibold tabular-nums">{batch.percent}%</span>
-        </div>
+        <BatchAccounting
+          batch={batch}
+          canChange={canChange}
+          isSaving={isSaving}
+          onMarkBlank={onMarkBlank}
+          onClearBlank={onClearBlank}
+        />
 
-        <div
-          className="mt-2 h-2 overflow-hidden rounded-full bg-muted"
-          role="progressbar"
-          aria-valuenow={batch.percent}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label="Pages filed as challans"
-        >
-          <div
-            className={cn(
-              'h-full rounded-full transition-[width] duration-300',
-              batch.isComplete ? 'bg-tone-emerald' : 'bg-primary',
-            )}
-            style={{ width: `${batch.percent}%` }}
+        {batch.challanCount > 0 && (
+          <BatchPrintStatus
+            className="mt-2.5"
+            challanCount={batch.challanCount}
+            printedChallanCount={batch.printedChallanCount}
+            isPrinted={batch.isPrinted}
+            canChange={canChange}
+            isSaving={isSaving}
+            onClear={onClearPrinted}
           />
-        </div>
-
-        {batch.isComplete ? (
-          <p className="mt-2.5 flex items-start gap-1.5 text-xs leading-snug text-muted-foreground">
-            <CircleCheck className="mt-px size-3.5 shrink-0 text-tone-emerald" aria-hidden />
-            <span>
-              Every page of this PDF is accounted for. The batch document is each challan's pages
-              followed by its LBTS back page, in the order the source file had them.
-            </span>
-          </p>
-        ) : (
-          <div className="mt-2.5 rounded-lg border border-tone-amber/25 bg-tone-amber/5 px-2.5 py-2">
-            <p className="flex items-start gap-1.5 text-xs leading-snug">
-              <TriangleAlert className="mt-px size-3.5 shrink-0 text-tone-amber" aria-hidden />
-              <span className="text-muted-foreground">
-                <span className="font-medium text-foreground">
-                  {batch.unassignedPages} {batch.unassignedPages === 1 ? 'page is' : 'pages are'}{' '}
-                  not accounted for
-                </span>{' '}
-                — {formatRanges(batch.unassignedRanges)}. The batch cannot be downloaded as one
-                document until every page is either filed as a challan or marked as blank, because
-                the file would be missing them without saying so. The source PDF was never stored,
-                so filing them means opening it again in the workspace.
-              </span>
-            </p>
-
-            {/* The way out for a page that is not a challan and never will be:
-                a blank sheet, a cover page, a duplicate. Without it the batch
-                could never be completed, and the operator's only option would
-                be to file a junk challan — a permanent record with a serial
-                and a barcode for a blank page. */}
-            {canChange && (
-              <div className="mt-2.5 flex flex-wrap items-center gap-2 border-t border-tone-amber/20 pt-2.5">
-                <p className="text-[11px] text-muted-foreground">Not challans at all?</p>
-                {batch.unassignedRanges.map((range) => (
-                  <Button
-                    key={`${range.startPage}-${range.endPage}`}
-                    variant="outline"
-                    size="xs"
-                    disabled={isSaving}
-                    onClick={() => onMarkBlank(range)}
-                  >
-                    <FileX2 data-icon="inline-start" aria-hidden />
-                    Mark {formatRange(range)} blank
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Always visible once anything is marked, complete or not: a page
-            declared blank is a decision somebody made about the source file,
-            and it has to be reviewable and undoable rather than invisible. */}
-        {batch.skippedPages.length > 0 && (
-          <div className="mt-2.5 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-2.5 py-2">
-            <p className="text-[11px] text-muted-foreground">
-              <span className="font-medium text-foreground">Marked blank:</span>{' '}
-              {formatRanges(batch.skippedRanges)} — not filed as challans, and not in the batch
-              document.
-            </p>
-            {canChange && (
-              <Button
-                variant="ghost"
-                size="xs"
-                className="ml-auto text-muted-foreground"
-                disabled={isSaving}
-                onClick={onClearBlank}
-              >
-                <Undo2 data-icon="inline-start" aria-hidden />
-                Undo
-              </Button>
-            )}
-          </div>
         )}
       </div>
     </section>

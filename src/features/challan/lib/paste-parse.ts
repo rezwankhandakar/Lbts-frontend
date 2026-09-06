@@ -130,7 +130,11 @@ function fieldFor(label: string): keyof ParsedChallanFields | null {
   let best: [string, keyof ParsedChallanFields] | null = null
 
   for (const [candidate, field] of LABELS) {
-    if (cleaned === candidate || cleaned.endsWith(' ' + candidate) || cleaned.startsWith(candidate + ' ')) {
+    if (
+      cleaned === candidate ||
+      cleaned.endsWith(' ' + candidate) ||
+      cleaned.startsWith(candidate + ' ')
+    ) {
       if (!best || candidate.length > best[0].length) {
         best = [candidate, field]
       }

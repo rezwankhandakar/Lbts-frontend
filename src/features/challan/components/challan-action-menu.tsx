@@ -1,4 +1,13 @@
-import { Download, EllipsisVertical, Eye, Layers, Pencil, Printer, Trash2 } from 'lucide-react'
+import {
+  Download,
+  EllipsisVertical,
+  Eye,
+  Layers,
+  Pencil,
+  Printer,
+  PrinterCheck,
+  Trash2,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -18,6 +27,14 @@ export interface ChallanActions {
   onEdit: (record: ChallanRecord) => void
   onDownload: (record: ChallanRecord) => void
   onPrint: (record: ChallanRecord) => void
+  /**
+   * Records that a challan was printed, or takes the mark back — for the copy
+   * that came off somebody else's printer, and for the print that was
+   * cancelled at the dialog.
+   */
+  onSetPrinted: (record: ChallanRecord, printed: boolean) => void
+  /** False for a role that may print but not write — CEO. */
+  canMarkPrinted: boolean
   onOpenBatch: (record: ChallanRecord) => void
   onDelete: (record: ChallanRecord) => void
 }
@@ -59,9 +76,7 @@ export function ChallanActionMenu({
         {/* A plain heading, not DropdownMenuLabel: that maps to Base UI's
             Menu.GroupLabel, which throws unless it sits inside a Menu.Group. */}
         <div className="px-1.5 pt-1 pb-2">
-          <p className="truncate text-[13px] leading-tight font-semibold">
-            {record.challanNumber}
-          </p>
+          <p className="truncate text-[13px] leading-tight font-semibold">{record.challanNumber}</p>
           <p className="mt-0.5 truncate text-[11px] leading-tight text-muted-foreground">
             SL {record.slNumber} · {record.customerName}
           </p>
@@ -100,6 +115,23 @@ export function ChallanActionMenu({
           <Printer className="text-muted-foreground" aria-hidden />
           Print challan
         </DropdownMenuItem>
+
+        {/* Printing already marks the record, so this is for the two cases it
+            cannot see: a copy printed from somewhere else, and a print dialog
+            that was cancelled. The mark is a claim about paper, so it has to be
+            correctable in both directions. */}
+        {actions.canMarkPrinted && (
+          <DropdownMenuItem
+            className="h-8 gap-2.5 rounded-lg text-[13px]"
+            onClick={() => actions.onSetPrinted(record, !record.printedAt)}
+          >
+            <PrinterCheck
+              className={record.printedAt ? 'text-muted-foreground' : 'text-tone-violet'}
+              aria-hidden
+            />
+            {record.printedAt ? 'Mark as not printed' : 'Mark as printed'}
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuItem
           className="h-8 gap-2.5 rounded-lg text-[13px]"

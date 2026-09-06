@@ -4,9 +4,16 @@ import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
 import { printDocument } from '@/lib/print-document'
 import { saveBlob } from '@/lib/save-blob'
+import { useCurrentRole } from '@/hooks/use-current-role'
 import { downloadChallanBatch, fetchChallanDocument } from '../api/challan-api'
+import { canWriteChallans } from '../types'
 import type { ChallanRecord } from '../types'
-import { reportChallanError, useDeleteChallan } from './use-challan-mutations'
+import {
+  reportChallanError,
+  useBatchPrinted,
+  useChallanPrinted,
+  useDeleteChallan,
+} from './use-challan-mutations'
 
 export interface ChallanActionsController {
   /** The record the delete confirmation is open for. */
@@ -20,6 +27,14 @@ export interface ChallanActionsController {
   print: (record: ChallanRecord) => void
   /** Prints without leaving the page — for the workspace, mid-stack. */
   printNow: (record: ChallanRecord) => void
+  /**
+   * Records that a challan was printed, or takes the mark back. Called for the
+   * operator by every print path here, and directly by the row menu for the
+   * copy that came off somebody else's printer.
+   */
+  setPrinted: (record: ChallanRecord, printed: boolean) => void
+  /** False for a role that may read and print but not write — CEO. */
+  canMarkPrinted: boolean
   edit: (record: ChallanRecord) => void
   open: (record: ChallanRecord) => void
   openBatch: (record: ChallanRecord) => void
@@ -54,6 +69,34 @@ export function useChallanActions({
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
 
   const remove = useDeleteChallan()
+  /**
+   * Destructured rather than held whole: TanStack Query guarantees `mutate`
+   * is referentially stable while the result object around it is not, and the
+   * details page puts `setPrinted` in an effect's dependency list — an
+   * unstable one there would re-run the effect and cancel the print it was
+   * about to start.
+   */
+  const { mutate: markPrinted } = useChallanPrinted()
+
+  /**
+   * Whether this viewer's print should leave a mark on the record.
+   *
+   * Printing is a read, so every role the module is open to may do it; the
+   * mark is a write, and `CEO` writes nothing here. Asking the role rather
+   * than sending the request and swallowing a 403 is what keeps a print by a
+   * CEO from ending in an error toast about something they did not ask for.
+   */
+  const canMarkPrinted = canWriteChallans(useCurrentRole())
+
+  const setPrinted = useCallback(
+    (record: ChallanRecord, next: boolean) => {
+      if (!canMarkPrinted) {
+        return
+      }
+      markPrinted({ id: record.id, printed: next })
+    },
+    [canMarkPrinted, markPrinted],
+  )
 
   const close = useCallback(() => setIsConfirmingDelete(false), [])
 
@@ -120,21 +163,32 @@ export function useChallanActions({
    * print dialog has had time to take a copy — the same delay `saveBlob` uses,
    * and for the same reason.
    */
-  const printNow = useCallback(async (record: ChallanRecord) => {
-    const toastId = toast.loading('Preparing to print…')
+  const printNow = useCallback(
+    async (record: ChallanRecord) => {
+      const toastId = toast.loading('Preparing to print…')
 
-    try {
-      const blob = await fetchChallanDocument(record.id)
-      const url = URL.createObjectURL(blob)
+      try {
+        const blob = await fetchChallanDocument(record.id)
+        const url = URL.createObjectURL(blob)
 
-      toast.dismiss(toastId)
-      printDocument(url, 'application/pdf')
-      window.setTimeout(() => URL.revokeObjectURL(url), PRINT_REVOKE_DELAY)
-    } catch (error) {
-      toast.dismiss(toastId)
-      reportChallanError(error as ApiError)
-    }
-  }, [])
+        toast.dismiss(toastId)
+        printDocument(url, 'application/pdf')
+        window.setTimeout(() => URL.revokeObjectURL(url), PRINT_REVOKE_DELAY)
+
+        /**
+         * Marked once the document has been handed to the print dialog, and
+         * not before: a fetch that failed printed nothing. It cannot be marked
+         * *after* the paper comes out either — no browser reports that — so
+         * this is the last honest moment, and the mark stays correctable.
+         */
+        setPrinted(record, true)
+      } catch (error) {
+        toast.dismiss(toastId)
+        reportChallanError(error as ApiError)
+      }
+    },
+    [setPrinted],
+  )
 
   return {
     target,
@@ -146,6 +200,8 @@ export function useChallanActions({
     download: (record) => void download(record),
     print,
     printNow: (record) => void printNow(record),
+    setPrinted,
+    canMarkPrinted,
     edit: (record) => navigate(`/challan/${record.id}/edit`),
     open: (record) => navigate(`/challan/${record.id}`),
     openBatch: (record) => navigate(`/challan/batch/${record.batchId}`),
@@ -196,4 +252,69 @@ export function useBatchDownload(): BatchDownloadController {
   )
 
   return { isDownloading, download }
+}
+
+export interface BatchPrintController {
+  isPrinting: boolean
+  print: (batchId: string) => void
+}
+
+/**
+ * Printing a whole source file: every challan it produced, as one document,
+ * in the order the pages arrived.
+ *
+ * This is the shape of the actual job. The corporate office sends a PDF of
+ * fifteen challans; the operator files them one at a time, and then has to put
+ * fifteen printed challans on the counter. Printing them one record at a time
+ * means fifteen dialogs, fifteen chances to miss one, and no way afterwards to
+ * say which were missed — so the batch is assembled server-side and sent to
+ * the printer once.
+ *
+ * The bytes are the same ones Download hands over, from the same endpoint: a
+ * separate assembly path for printing could quietly come to disagree with the
+ * saved file about what a batch contains, and the printed copy is the one that
+ * goes out with the goods.
+ *
+ * Marking follows the dispatch, not the paper. The browser cannot learn
+ * whether the dialog ended in Print or Cancel, so the batch is marked when the
+ * document reaches the dialog and the mark can be cleared again on the batch
+ * page — the same bargain `printNow` makes for one record, and the same one
+ * marking a page blank makes.
+ */
+export function useBatchPrint(): BatchPrintController {
+  const [isPrinting, setIsPrinting] = useState(false)
+  const { mutate: markBatchPrinted } = useBatchPrinted()
+  const canMarkPrinted = canWriteChallans(useCurrentRole())
+
+  const print = useCallback(
+    (batchId: string) => {
+      if (isPrinting) {
+        return
+      }
+
+      setIsPrinting(true)
+      const toastId = toast.loading('Assembling the batch PDF to print…')
+
+      void downloadChallanBatch(batchId)
+        .then(({ blob }) => {
+          const url = URL.createObjectURL(blob)
+
+          toast.dismiss(toastId)
+          printDocument(url, 'application/pdf')
+          window.setTimeout(() => URL.revokeObjectURL(url), PRINT_REVOKE_DELAY)
+
+          if (canMarkPrinted) {
+            markBatchPrinted({ batchId, printed: true })
+          }
+        })
+        .catch((error: ApiError) => {
+          toast.dismiss(toastId)
+          reportChallanError(error)
+        })
+        .finally(() => setIsPrinting(false))
+    },
+    [isPrinting, canMarkPrinted, markBatchPrinted],
+  )
+
+  return { isPrinting, print }
 }

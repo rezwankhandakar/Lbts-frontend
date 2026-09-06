@@ -4,11 +4,17 @@ import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
 import {
   deleteChallan,
+  setBatchPrinted,
   setBatchSkippedPages,
+  setChallanLocation,
+  setChallanPrinted,
   submitChallan,
   updateChallan,
 } from '../api/challan-api'
 import type {
+  BatchPrintedArgs,
+  PrintedArgs,
+  SetChallanLocationArgs,
   SkippedPagesArgs,
   SubmitChallanArgs,
   UpdateChallanArgs,
@@ -115,6 +121,85 @@ export function useBatchSkippedPages(): UseMutationResult<
             : `${batch.unassignedPages} page${batch.unassignedPages === 1 ? '' : 's'} still to account for.`,
         },
       )
+      void invalidate()
+    },
+    onError: reportChallanError,
+  })
+}
+
+/**
+ * Recording that one challan was printed, or taking that back.
+ *
+ * Quiet on success by design. This runs immediately after a print dialog has
+ * opened, and a toast saying "Marked as printed" on top of the browser's own
+ * print window is noise about the bookkeeping rather than about the job. What
+ * the operator needs to see is the mark on the record, which the invalidation
+ * puts there. A *failure* is worth a toast: the paper came out and the record
+ * does not know it.
+ */
+export function useChallanPrinted(): UseMutationResult<ChallanRecord, ApiError, PrintedArgs> {
+  const invalidate = useInvalidateChallans()
+
+  return useMutation({
+    mutationFn: setChallanPrinted,
+    onSuccess: () => void invalidate(),
+    onError: reportChallanError,
+  })
+}
+
+/**
+ * The same for a whole batch.
+ *
+ * This one does speak up, because it is an explicit action on a page rather
+ * than a side effect of pressing Print — and because "all fifteen are now
+ * marked printed" is a bigger claim than one record, worth confirming.
+ */
+export function useBatchPrinted(): UseMutationResult<
+  ChallanBatchDetail,
+  ApiError,
+  BatchPrintedArgs
+> {
+  const invalidate = useInvalidateChallans()
+
+  return useMutation({
+    mutationFn: setBatchPrinted,
+    onSuccess: (batch) => {
+      toast.success(batch.isPrinted ? 'Batch marked as printed' : 'Print marks cleared', {
+        description: batch.isPrinted
+          ? `All ${batch.challanCount} challan${batch.challanCount === 1 ? '' : 's'} from ${batch.sourceFileName} are marked as printed.`
+          : 'None of this batch is marked as printed any more.',
+      })
+      void invalidate()
+    },
+    onError: reportChallanError,
+  })
+}
+
+/**
+ * Setting a filed challan's district and thana by hand.
+ *
+ * The toast names what it resolved to rather than saying "Saved", because the
+ * whole point of the action is the classification: an operator setting a
+ * location wants to see that the record now reads Dhaka / Savar / OSD-Thana,
+ * and clearing one wants to see that it is back to being unset.
+ */
+export function useSetChallanLocation(): UseMutationResult<
+  ChallanRecord,
+  ApiError,
+  SetChallanLocationArgs
+> {
+  const invalidate = useInvalidateChallans()
+
+  return useMutation({
+    mutationFn: setChallanLocation,
+    onSuccess: (record) => {
+      const location = record.resolvedLocation
+
+      toast.success(location ? 'Location set' : 'Location cleared', {
+        description: location
+          ? `${record.challanNumber} is ${location.district} / ${location.thana} · ${location.locationType}.`
+          : `${record.challanNumber} has no location again. It can be set at any time.`,
+      })
       void invalidate()
     },
     onError: reportChallanError,

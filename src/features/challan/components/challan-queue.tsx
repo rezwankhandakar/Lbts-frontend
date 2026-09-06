@@ -38,10 +38,7 @@ export function ChallanQueue({
   disabled,
 }: ChallanQueueProps) {
   return (
-    <section
-      aria-label="Challans in this PDF"
-      className="rounded-xl border bg-card p-3 shadow-sm"
-    >
+    <section aria-label="Challans in this PDF" className="rounded-xl border bg-card p-3 shadow-sm">
       <div className="mb-2.5 flex items-center justify-between gap-3">
         <h2 className="text-[13px] font-semibold tracking-tight">
           Challan queue
@@ -123,7 +120,7 @@ export function ChallanQueue({
                     onClick={() => onRemove(entry.id)}
                     disabled={disabled}
                     aria-label={`Remove challan ${index + 1} from the queue`}
-                    className="absolute top-1.5 right-1.5 rounded-md p-0.5 text-muted-foreground opacity-0 transition-opacity outline-none group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring hover:text-destructive"
+                    className="absolute top-1.5 right-1.5 rounded-md p-0.5 text-muted-foreground opacity-0 transition-opacity outline-none group-hover:opacity-100 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <X className="size-3.5" aria-hidden />
                   </button>

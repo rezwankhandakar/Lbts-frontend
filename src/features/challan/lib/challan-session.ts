@@ -35,8 +35,23 @@ export interface ChallanItem {
 export interface ChallanValues {
   customerName: string
   deliveryAddress: string
+  /**
+   * The thana and district as transcribed, and both optional.
+   *
+   * A Walton challan does not always print them. They are stored exactly as
+   * typed and the server separately matches them against the Location Master;
+   * neither this text nor the absence of it stops a challan being filed.
+   */
   thana: string
   district: string
+  /**
+   * The Location Master row the operator picked, if they picked one.
+   *
+   * An override rather than a value: the server validates the id against the
+   * collection and reads the district, thana and location type off the row it
+   * points at. Empty means "you work it out", which is the usual case.
+   */
+  locationId: string
   receiverMobile: string
   senderMobile: string
   zonePo: string
@@ -361,9 +376,7 @@ export function progressOf(session: ChallanSession): SessionProgress {
     unassignedPages,
     unassigned,
     percent:
-      session.sourcePageCount > 0
-        ? Math.round((assignedPages / session.sourcePageCount) * 100)
-        : 0,
+      session.sourcePageCount > 0 ? Math.round((assignedPages / session.sourcePageCount) * 100) : 0,
     isComplete: session.sourcePageCount > 0 && unassignedPages === 0,
     isBatch: session.entries.length > 1,
   }

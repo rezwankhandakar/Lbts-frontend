@@ -95,9 +95,7 @@ export function ChallanDocumentViewer({
             panel has no height of its own to share — it is as tall as what is
             inside it. Deliberately not `bg-card`: a challan page is nearly
             white and needs a darker ground behind it to read as paper. */}
-        <div className="h-96 shrink-0 overflow-hidden bg-muted/60 sm:h-128 lg:h-152">
-          {body}
-        </div>
+        <div className="h-96 shrink-0 overflow-hidden bg-muted/60 sm:h-128 lg:h-152">{body}</div>
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t bg-card px-2.5 py-2">
           <p className="px-1 text-xs text-muted-foreground">
@@ -143,11 +141,7 @@ export function ChallanDocumentViewer({
           <DialogTitle className="sr-only">Challan document</DialogTitle>
           <div className="min-h-0 flex-1 pt-8">
             {url && (
-              <iframe
-                src={url}
-                title="Challan document"
-                className="size-full border-0 bg-white"
-              />
+              <iframe src={url} title="Challan document" className="size-full border-0 bg-white" />
             )}
           </div>
         </DialogContent>

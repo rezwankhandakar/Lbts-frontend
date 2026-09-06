@@ -34,6 +34,7 @@ const VALUES = {
   deliveryAddress: 'House 12, Road 4',
   thana: 'Mirpur',
   district: 'Dhaka',
+  locationId: '',
   receiverMobile: '01712345678',
   senderMobile: '',
   zonePo: '',
@@ -322,7 +323,10 @@ describe('a page that is not a challan', () => {
     // No entry, no values, nothing that could ever be submitted — just a page
     // the operator has said is blank.
     assert.deepEqual(session.skippedPages, [1])
-    assert.equal(session.entries.some((entry) => entry.startPage === 1), false)
+    assert.equal(
+      session.entries.some((entry) => entry.startPage === 1),
+      false,
+    )
   })
 
   it('lets a batch finish that would otherwise be stuck forever', () => {

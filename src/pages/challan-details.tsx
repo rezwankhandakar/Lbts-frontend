@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft, Download, Layers, Pencil, Printer, Trash2, TriangleAlert } from 'lucide-react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/button'
 import { ChallanDetails } from '@/features/challan/components/challan-details'
 import { ChallanDetailsSkeleton } from '@/features/challan/components/challan-details-skeleton'
 import { ChallanDocumentViewer } from '@/features/challan/components/challan-document-viewer'
+import { ChallanPrintMark } from '@/features/challan/components/challan-print-mark'
 import { ChallanStatusBadge } from '@/features/challan/components/challan-status-badge'
 import { DeleteChallanDialog } from '@/features/challan/components/delete-challan-dialog'
+import { SetChallanLocationDialog } from '@/features/challan/components/set-challan-location-dialog'
 import { useChallanActions } from '@/features/challan/hooks/use-challan-actions'
 import { useChallanDocument } from '@/features/challan/hooks/use-challan-document'
+import { useSetChallanLocation } from '@/features/challan/hooks/use-challan-mutations'
 import { useChallan } from '@/features/challan/hooks/use-challans'
 import { canChangeChallan } from '@/features/challan/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
@@ -44,16 +47,31 @@ export function ChallanDetailsPage() {
 
   const document = useChallanDocument(record?.id ?? null)
 
+  /** The location picker, which is the only overlay this page owns itself. */
+  const [locationOpen, setLocationOpen] = useState(false)
+  const setLocation = useSetChallanLocation()
+
+  /** Stable, so the `?print=1` effect below does not re-run and cancel itself. */
+  const { setPrinted } = actions
+
   /**
    * Printing means printing the stored document, and it is fetched through
    * axios because the endpoint is authenticated — so it is this page, already
    * holding the blob for the viewer beside it, that can print.
    */
   const print = useCallback(() => {
-    if (document.url) {
-      printDocument(document.url, 'application/pdf')
+    if (!document.url || !record) {
+      return
     }
-  }, [document.url])
+
+    printDocument(document.url, 'application/pdf')
+    /**
+     * Marked once the document has reached the print dialog, which is the last
+     * honest moment: no browser reports whether the paper came out. So this is
+     * a claim rather than a measurement, and the row menu can take it back.
+     */
+    setPrinted(record, true)
+  }, [document.url, record, setPrinted])
 
   /**
    * `?print=1` is how the records list asks this page to print, so there is
@@ -82,9 +100,12 @@ export function ChallanDetailsPage() {
     }
 
     setSearchParams({}, { replace: true })
-    const timer = window.setTimeout(() => printDocument(documentUrl, 'application/pdf'), 50)
+    const timer = window.setTimeout(() => {
+      printDocument(documentUrl, 'application/pdf')
+      setPrinted(record, true)
+    }, 50)
     return () => window.clearTimeout(timer)
-  }, [wantsPrint, record, documentUrl, documentError, setSearchParams])
+  }, [wantsPrint, record, documentUrl, documentError, setSearchParams, setPrinted])
 
   if (query.isPending) {
     return <ChallanDetailsSkeleton />
@@ -121,7 +142,7 @@ export function ChallanDetailsPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="-ml-2 mb-1 text-muted-foreground"
+            className="mb-1 -ml-2 text-muted-foreground"
             onClick={() => navigate('/challan')}
           >
             <ArrowLeft data-icon="inline-start" aria-hidden />
@@ -133,6 +154,7 @@ export function ChallanDetailsPage() {
               {record.challanNumber}
             </h1>
             <ChallanStatusBadge status={record.status} />
+            <ChallanPrintMark record={record} />
           </div>
 
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -187,7 +209,14 @@ export function ChallanDetailsPage() {
       </header>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:items-start">
-        <ChallanDetails record={record} />
+        {/* The picker is offered to whoever may correct this challan — the
+            same rule as every other change here. A viewer who may not still
+            sees what the location is, without a button that would only be
+            refused. */}
+        <ChallanDetails
+          record={record}
+          onSetLocation={canChange ? () => setLocationOpen(true) : undefined}
+        />
 
         <section
           aria-label="Challan document"
@@ -218,6 +247,22 @@ export function ChallanDetailsPage() {
         isPending={actions.isPending}
         onOpenChange={(open) => !open && actions.close()}
         onConfirm={actions.confirmDelete}
+      />
+
+      <SetChallanLocationDialog
+        record={record}
+        open={locationOpen}
+        isPending={setLocation.isPending}
+        onOpenChange={setLocationOpen}
+        onConfirm={(locationId) =>
+          setLocation.mutate(
+            { id: record.id, locationId },
+            // Closed only once the write actually succeeded, so a refused
+            // request leaves the operator looking at the dialog and the error
+            // rather than at a record that silently did nothing.
+            { onSuccess: () => setLocationOpen(false) },
+          )
+        }
       />
     </div>
   )

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { ChallanDirectory } from '@/features/challan/components/challan-directory'
 import { ChallanFilters } from '@/features/challan/components/challan-filters'
-import { ChallanPagination } from '@/features/challan/components/challan-pagination'
+import { ListPagination } from '@/components/shared/list-pagination'
 import { ChallanStats } from '@/features/challan/components/challan-stats'
 import { DeleteChallanDialog } from '@/features/challan/components/delete-challan-dialog'
 import { RecentBatches } from '@/features/challan/components/recent-batches'
@@ -107,13 +107,15 @@ export function ChallanPage() {
             onEdit: actions.edit,
             onDownload: actions.download,
             onPrint: actions.print,
+            onSetPrinted: actions.setPrinted,
+            canMarkPrinted: actions.canMarkPrinted,
             onOpenBatch: actions.openBatch,
             onDelete: actions.openDelete,
           }}
         />
 
         {meta && !query.isError && (
-          <ChallanPagination
+          <ListPagination
             meta={meta}
             onPageChange={list.setPage}
             isFetching={query.isFetching}

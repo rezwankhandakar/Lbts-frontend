@@ -23,10 +23,7 @@ export interface Suggestions {
   isLoading: boolean
 }
 
-export function useChallanSuggestions(
-  field: ChallanSuggestionField,
-  input: string,
-): Suggestions {
+export function useChallanSuggestions(field: ChallanSuggestionField, input: string): Suggestions {
   const query = useDebouncedValue(input.trim(), DEBOUNCE_MS)
   const enabled = query.length >= MIN_QUERY_LENGTH
 

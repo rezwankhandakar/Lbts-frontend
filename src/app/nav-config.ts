@@ -1,6 +1,7 @@
 import {
   Boxes,
   LayoutDashboard,
+  MapPinned,
   ReceiptText,
   ScanLine,
   Settings,
@@ -84,6 +85,23 @@ export const navSections: NavSection[] = [
         icon: ShieldCheck,
         accent: 'violet',
         roles: ['Admin'],
+      },
+      /**
+       * The district and thana master list. Reference data rather than a
+       * records module, which is why it sits under System beside
+       * Administration and not beside Challan.
+       *
+       * Visible to everyone Challan is: the classification a delivery carries
+       * is something an operator looks up, and only the Add, Edit and Remove
+       * controls are Admin-only. Vendor is out for the same reason it is out
+       * of Challan.
+       */
+      {
+        label: 'Locations',
+        path: '/locations',
+        icon: MapPinned,
+        accent: 'cyan',
+        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
       },
       { label: 'Settings', path: '/settings', icon: Settings, accent: 'amber' },
     ],

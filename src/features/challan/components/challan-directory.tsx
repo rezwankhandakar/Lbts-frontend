@@ -46,7 +46,9 @@ export function ChallanDirectory({
   }
 
   if (isError) {
-    return <ChallanDirectoryError message={errorMessage} onRetry={onRetry} isRetrying={isFetching} />
+    return (
+      <ChallanDirectoryError message={errorMessage} onRetry={onRetry} isRetrying={isFetching} />
+    )
   }
 
   if (records.length === 0) {

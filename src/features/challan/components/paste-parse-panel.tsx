@@ -46,9 +46,7 @@ export function PasteParsePanel({ current, onFill, disabled }: PasteParsePanelPr
 
   const inspect = () => setFound(fieldsToFill(parseChallanText(text), current))
 
-  const entries = found
-    ? (Object.entries(found) as [keyof ParsedChallanFields, string][])
-    : []
+  const entries = found ? (Object.entries(found) as [keyof ParsedChallanFields, string][]) : []
 
   if (!isOpen) {
     return (
@@ -139,9 +137,7 @@ export function PasteParsePanel({ current, onFill, disabled }: PasteParsePanelPr
             <ul className="space-y-1 rounded-lg border bg-card p-2.5">
               {entries.map(([field, value]) => (
                 <li key={field} className="flex gap-2 text-xs">
-                  <span className="w-28 shrink-0 text-muted-foreground">
-                    {FIELD_LABELS[field]}
-                  </span>
+                  <span className="w-28 shrink-0 text-muted-foreground">{FIELD_LABELS[field]}</span>
                   <span className="min-w-0 flex-1 truncate font-medium">{value}</span>
                 </li>
               ))}

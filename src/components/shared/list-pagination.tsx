@@ -1,13 +1,20 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { PageMeta } from '../types'
 
-interface ChallanPaginationProps {
-  meta: PageMeta
+/** The paging half of any list response envelope. */
+export interface ListPageMeta {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
+interface ListPaginationProps {
+  meta: ListPageMeta
   onPageChange: (page: number) => void
   /** True while the next page is in flight, so the controls cannot stack requests. */
   isFetching: boolean
-  /** "challan" / "challans", or "batch" / "batches" — the same control serves both. */
+  /** "challan" / "challans", "location" / "locations" — one control serves both. */
   noun?: [singular: string, plural: string]
 }
 
@@ -15,13 +22,19 @@ interface ChallanPaginationProps {
  * Server-side paging. The browser never holds more than one page of records —
  * on an M0 cluster, shipping a year of challans to the client to filter them
  * is exactly the query the free tier cannot afford.
+ *
+ * This lived in `features/challan/components/challan-pagination.tsx` until the
+ * Location master list needed the same control. CLAUDE.md asks for a move
+ * rather than a copy when a second feature wants a piece, and a second copy of
+ * "showing 1–10 of 43" is exactly the kind of thing that quietly comes to
+ * disagree with the first about what a page boundary is.
  */
-export function ChallanPagination({
+export function ListPagination({
   meta,
   onPageChange,
   isFetching,
-  noun = ['challan', 'challans'],
-}: ChallanPaginationProps) {
+  noun = ['record', 'records'],
+}: ListPaginationProps) {
   if (meta.total === 0) {
     return null
   }

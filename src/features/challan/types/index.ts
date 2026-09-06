@@ -1,4 +1,5 @@
 import type { UserRole } from '@/lib/roles'
+import type { LocationStatus, ResolvedLocationRef } from '@/features/location/types'
 
 /**
  * The Challan API as the client sees it. Mirrors
@@ -128,11 +129,30 @@ export interface ChallanRecord {
 
   customerName: string
   deliveryAddress: string
+  /**
+   * The thana and district **as they were transcribed**, and possibly blank.
+   *
+   * Never rewritten by resolution: what the paper said is a fact about the
+   * paper, and the generated back page prints it. Where the system decided
+   * that actually is, once it could tell, is `resolvedLocation`.
+   */
   thana: string
   district: string
   receiverMobile: string
   senderMobile: string | null
   zonePo: string | null
+
+  /**
+   * Where this went, matched against the Location Master — or null because
+   * nobody has determined it yet.
+   *
+   * Null is an ordinary state. It never stopped the challan being filed, it
+   * never stops it being printed, and an administrator can set it at any
+   * point afterwards.
+   */
+  resolvedLocation: ResolvedLocationRef | null
+  /** `Verified` exactly when `resolvedLocation` is set. */
+  locationStatus: LocationStatus
 
   /** One line per product on the challan; always at least one. */
   items: ChallanItem[]
@@ -148,6 +168,17 @@ export interface ChallanRecord {
   updatedAt: string
   submittedAt: string
   amendedAt: string | null
+
+  /**
+   * When this challan was last sent to a printer, or null if nobody has.
+   *
+   * It records a dispatch rather than a sheet of paper: the browser hands the
+   * document to a print dialog and never learns whether Print or Cancel was
+   * pressed. So it is a claim, which is why the UI always offers a way to
+   * clear it and why nothing is ever refused because of it.
+   */
+  printedAt: string | null
+  printedBy: ActorRef | null
 }
 
 export interface PageRange {
@@ -170,6 +201,10 @@ export interface ChallanBatchRecord {
   percent: number
   isComplete: boolean
   completedAt: string | null
+  /** How many of this batch's challans have been sent to a printer. */
+  printedChallanCount: number
+  /** True once every challan in it has. A batch with none is never printed. */
+  isPrinted: boolean
   createdBy: ActorRef | null
   createdAt: string
   updatedAt: string
@@ -227,11 +262,21 @@ export type ChallanSuggestionField = (typeof CHALLAN_SUGGESTION_FIELDS)[number]
 
 export type ChallanStatusFilter = ChallanStatus | 'all'
 
+/**
+ * Whether the location is settled.
+ *
+ * `pending` is the working list — the challans somebody has to look at — and
+ * it is the reason leaving a location blank is a workable outcome rather than
+ * a record quietly lost.
+ */
+export type ChallanLocationFilter = 'all' | 'verified' | 'pending'
+
 export interface ChallanListParams {
   page: number
   limit: number
   search: string
   status: ChallanStatusFilter
+  location: ChallanLocationFilter
   district: string
   customer: string
   product: string

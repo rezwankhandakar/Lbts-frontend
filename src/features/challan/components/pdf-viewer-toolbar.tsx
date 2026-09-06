@@ -106,7 +106,7 @@ export function PdfViewerToolbar({
           <ZoomOut aria-hidden />
         </Button>
 
-        <span className="min-w-11 text-center text-xs tabular-nums text-muted-foreground">
+        <span className="min-w-11 text-center text-xs text-muted-foreground tabular-nums">
           {zoomLabel}
         </span>
 

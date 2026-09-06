@@ -40,6 +40,7 @@ function filterParams(params: ChallanListParams): Record<string, string> {
   return {
     ...(params.search ? { search: params.search } : {}),
     ...(params.status !== 'all' ? { status: params.status } : {}),
+    ...(params.location !== 'all' ? { location: params.location } : {}),
     ...(params.district ? { district: params.district } : {}),
     ...(params.customer ? { customer: params.customer } : {}),
     ...(params.product ? { product: params.product } : {}),
@@ -277,6 +278,56 @@ export async function updateChallan({ id, values }: UpdateChallanArgs): Promise<
   return data.data
 }
 
+export interface PrintedArgs {
+  id: string
+  /** False takes the mark back: it is a claim about a printer, not a fact. */
+  printed: boolean
+}
+
+/**
+ * Records that a challan was sent to a printer, or that it was not after all.
+ *
+ * Nothing else on a record says whether the paper exists. An operator working
+ * through a filed stack, or coming back to a batch the next morning, has no
+ * other way to tell which sheets are already on the counter — `Submitted`
+ * means filed, not printed.
+ */
+export async function setChallanPrinted({ id, printed }: PrintedArgs): Promise<ChallanRecord> {
+  const { data } = await api.patch<ApiEnvelope<ChallanRecord>>(`${BASE}/${id}/printed`, {
+    printed,
+  })
+  return data.data
+}
+
+export interface SetChallanLocationArgs {
+  id: string
+  /** A Location Master id, or null to clear it back to pending. */
+  locationId: string | null
+}
+
+/**
+ * Sets or clears a filed challan's district and thana.
+ *
+ * The end of the line for every challan the resolver could not settle. It
+ * sends an id and nothing else: the district, thana and location type are all
+ * read from the row it points at, server-side, so this request cannot describe
+ * a location the master list does not contain.
+ *
+ * Deliberately cheap, unlike a correction — it does not regenerate the stored
+ * PDF. The back page prints the delivery address and the thana and district as
+ * transcribed, which a location correction does not touch, so there is nothing
+ * on the printed sheet this could make untrue.
+ */
+export async function setChallanLocation({
+  id,
+  locationId,
+}: SetChallanLocationArgs): Promise<ChallanRecord> {
+  const { data } = await api.patch<ApiEnvelope<ChallanRecord>>(`${BASE}/${id}/location`, {
+    locationId,
+  })
+  return data.data
+}
+
 export async function deleteChallan(id: string): Promise<{ id: string }> {
   const { data } = await api.delete<ApiEnvelope<{ id: string }>>(`${BASE}/${id}`)
   return data.data
@@ -352,13 +403,38 @@ export async function setBatchSkippedPages({
   return data.data
 }
 
+export interface BatchPrintedArgs {
+  batchId: string
+  printed: boolean
+}
+
+/**
+ * The same for every challan in one batch, which is what follows a batch
+ * print: they came out of the printer together because they were printed
+ * together, so they are marked in one statement rather than fifteen.
+ */
+export async function setBatchPrinted({
+  batchId,
+  printed,
+}: BatchPrintedArgs): Promise<ChallanBatchDetail> {
+  const { data } = await api.patch<ApiEnvelope<ChallanBatchDetail>>(
+    `${BATCHES}/${batchId}/printed`,
+    { printed },
+  )
+  return data.data
+}
+
 export interface BatchDownload {
   blob: Blob
   filename: string
 }
 
 /**
- * A completed batch as one PDF.
+ * A completed batch as one PDF — the bytes behind both Download and Print.
+ *
+ * One endpoint for both, because printing a batch and saving one are the same
+ * document: the alternative would be a second assembly path that could quietly
+ * come to disagree with the first about what a batch contains.
  *
  * The server merges every challan document in source order, which means
  * reading each of them out of R2 first — so this is the slowest request in the

@@ -93,7 +93,10 @@ export function SourcePdfPanel({
           <div className="flex min-w-0 items-start gap-2.5">
             <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
             <div className="min-w-0">
-              <h2 className="truncate text-[13px] font-semibold tracking-tight" title={source.fileName}>
+              <h2
+                className="truncate text-[13px] font-semibold tracking-tight"
+                title={source.fileName}
+              >
                 {source.fileName}
               </h2>
               <p className="mt-0.5 text-xs text-muted-foreground">

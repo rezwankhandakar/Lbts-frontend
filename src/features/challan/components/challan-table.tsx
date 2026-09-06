@@ -12,6 +12,8 @@ import { formatRangeShort, itemSummary } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
 import { ChallanActionMenu } from './challan-action-menu'
 import type { ChallanActions } from './challan-action-menu'
+import { ChallanPrintMark } from './challan-print-mark'
+import { LocationStatusBadge } from '@/features/location/components/location-badges'
 import { ChallanStatusBadge } from './challan-status-badge'
 
 interface ChallanTableProps {
@@ -41,7 +43,7 @@ export function ChallanTable({ records, actions, onOpen }: ChallanTableProps) {
           <TableHead className={HEAD}>Customer</TableHead>
           <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>District</TableHead>
           <TableHead className={cn(HEAD, 'hidden xl:table-cell')}>Product</TableHead>
-          <TableHead className={cn(HEAD, 'hidden lg:table-cell text-right')}>Qty</TableHead>
+          <TableHead className={cn(HEAD, 'hidden text-right lg:table-cell')}>Qty</TableHead>
           <TableHead className={HEAD}>Status</TableHead>
           <TableHead className={cn(HEAD, 'hidden xl:table-cell')}>Filed</TableHead>
           <TableHead className={cn(HEAD, 'text-right')}>
@@ -89,13 +91,17 @@ export function ChallanTable({ records, actions, onOpen }: ChallanTableProps) {
             <TableCell className="max-w-[15rem] px-4 py-3 text-[13px]">
               <span className="block truncate">{record.customerName}</span>
               <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                {record.thana}
+                {record.resolvedLocation?.thana || record.thana || '—'}
                 {record.receiverMobile ? ` · ${record.receiverMobile}` : ''}
               </span>
             </TableCell>
 
+            {/* The resolved district where there is one, the transcribed text
+                otherwise. They are usually the same string; where they are not,
+                the resolved one is what a report groups by, so it is the one a
+                list should show. */}
             <TableCell className="hidden max-w-[10rem] truncate px-4 py-3 text-[13px] text-muted-foreground lg:table-cell">
-              {record.district}
+              {record.resolvedLocation?.district || record.district || '—'}
             </TableCell>
 
             <TableCell className="hidden max-w-[14rem] px-4 py-3 text-[13px] xl:table-cell">
@@ -110,8 +116,20 @@ export function ChallanTable({ records, actions, onOpen }: ChallanTableProps) {
               {record.totalQty}
             </TableCell>
 
+            {/* Two chips, because they answer two questions: the badge is what
+                the record is, the mark is what happened to a piece of paper.
+                Somebody assembling a delivery reads the second one. */}
             <TableCell className="px-4 py-3">
-              <ChallanStatusBadge status={record.status} />
+              <div className="flex flex-col items-start gap-1">
+                <ChallanStatusBadge status={record.status} />
+                <ChallanPrintMark record={record} />
+                {/* Only the pending state. The district column beside it
+                    already says the location is set when it is, and a second
+                    chip repeating that would be noise on every row. */}
+                {record.locationStatus === 'Pending' && (
+                  <LocationStatusBadge value="Pending" />
+                )}
+              </div>
             </TableCell>
 
             <TableCell className="hidden px-4 py-3 text-[13px] whitespace-nowrap text-muted-foreground xl:table-cell">

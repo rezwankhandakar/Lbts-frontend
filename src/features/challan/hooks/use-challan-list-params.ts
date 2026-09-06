@@ -10,6 +10,7 @@ const INITIAL_PARAMS: ChallanListParams = {
   limit: PAGE_SIZE,
   search: '',
   status: 'all',
+  location: 'all',
   district: '',
   customer: '',
   product: '',
@@ -53,10 +54,7 @@ export function useChallanListParams(
   // reaches the query key, so the cache holds settled searches only.
   const debouncedSearch = useDebouncedValue(params.search, 350)
 
-  const applied = useMemo(
-    () => ({ ...params, search: debouncedSearch }),
-    [params, debouncedSearch],
-  )
+  const applied = useMemo(() => ({ ...params, search: debouncedSearch }), [params, debouncedSearch])
 
   /**
    * Any narrowing of the result set invalidates the current page number —
@@ -86,6 +84,7 @@ export function useChallanListParams(
   const isFiltered =
     params.search !== '' ||
     params.status !== 'all' ||
+    params.location !== 'all' ||
     params.district !== '' ||
     params.customer !== '' ||
     params.product !== '' ||

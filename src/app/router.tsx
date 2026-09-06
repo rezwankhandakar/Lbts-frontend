@@ -9,6 +9,7 @@ import {
 } from '@/components/shared/route-guards'
 import { CHALLAN_READ_ROLES, CHALLAN_WRITE_ROLES } from '@/features/challan/types'
 import { GATE_PASS_READ_ROLES, GATE_PASS_WRITE_ROLES } from '@/features/gate-pass/types'
+import { LOCATION_READ_ROLES } from '@/features/location/types'
 import { DashboardPage } from '@/pages/dashboard'
 
 /**
@@ -51,6 +52,9 @@ const ChallanEditPage = lazy(() =>
 const ChallanBatchPage = lazy(() =>
   import('@/pages/challan-batch').then((m) => ({ default: m.ChallanBatchPage })),
 )
+const LocationsPage = lazy(() =>
+  import('@/pages/locations').then((m) => ({ default: m.LocationsPage })),
+)
 const AdministrationPage = lazy(() =>
   import('@/pages/administration').then((m) => ({ default: m.AdministrationPage })),
 )
@@ -84,6 +88,15 @@ const CHALLAN_ACCESS_REASON =
   'Challan records deliveries from the corporate office, and is open to Admin, Manager, CEO and Operation Executive accounts.'
 const CHALLAN_WRITE_REASON =
   'Filing a challan is done by Admin, Manager and Operation Executive accounts.'
+
+/**
+ * The Location master list has one boundary here rather than two: reading it
+ * is open to everyone Challan is, and changing it is Admin-only — enforced per
+ * endpoint by the API rather than per route, because the same page serves both
+ * audiences with the write controls simply absent.
+ */
+const LOCATION_ACCESS_REASON =
+  'The location master list is the reference every challan is classified against, and is open to Admin, Manager, CEO and Operation Executive accounts.'
 
 export function AppRouter() {
   return (
@@ -142,6 +155,22 @@ export function AppRouter() {
               <Route path="/challan/new" element={<ChallanNewPage />} />
               <Route path="/challan/:id/edit" element={<ChallanEditPage />} />
             </Route>
+          </Route>
+
+          {/* The district and thana master list. Open to read for everyone
+              Challan is open to — an operator looks up what a delivery is
+              classified as — and Admin-only to change, which the API enforces
+              per endpoint rather than per route. */}
+          <Route
+            element={
+              <RoleRoute
+                roles={LOCATION_READ_ROLES}
+                area="Locations"
+                reason={LOCATION_ACCESS_REASON}
+              />
+            }
+          >
+            <Route path="/locations" element={<LocationsPage />} />
           </Route>
 
           <Route path="/module-a" element={<ModuleAPage />} />

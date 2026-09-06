@@ -64,8 +64,28 @@ export function RecentBatches() {
                     {batch.sourceFileName}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {batch.challanCount} filed · {batch.assignedPages}/{batch.sourcePageCount}{' '}
-                    pages · {formatRelative(batch.createdAt)}
+                    {batch.challanCount} filed · {batch.assignedPages}/{batch.sourcePageCount} pages
+                    · {formatRelative(batch.createdAt)}
+                    {/* Only once the file can actually be printed as one
+                        document. A batch still being worked through has no
+                        print state worth reporting, and saying "not printed"
+                        about it would read as something to act on. */}
+                    {batch.isComplete && (
+                      <>
+                        {' · '}
+                        <span
+                          className={cn(
+                            batch.isPrinted ? 'font-medium text-tone-violet' : 'text-foreground',
+                          )}
+                        >
+                          {batch.isPrinted
+                            ? 'printed'
+                            : batch.printedChallanCount > 0
+                              ? `${batch.printedChallanCount}/${batch.challanCount} printed`
+                              : 'not printed'}
+                        </span>
+                      </>
+                    )}
                   </p>
                 </div>
 

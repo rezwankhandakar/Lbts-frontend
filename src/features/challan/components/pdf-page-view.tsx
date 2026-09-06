@@ -217,7 +217,10 @@ export function PdfPageView({
       )}
 
       {error && (
-        <p role="alert" className="flex h-full items-center justify-center text-sm text-destructive">
+        <p
+          role="alert"
+          className="flex h-full items-center justify-center text-sm text-destructive"
+        >
           {error}
         </p>
       )}

@@ -37,7 +37,9 @@ const LIST_STALE_TIME = 30_000
 /** A cold Render instance can take most of a minute to answer the first call. */
 const COLD_START_RETRIES = 2
 
-export function useChallans(params: ChallanListParams): UseQueryResult<ChallanListResult, ApiError> {
+export function useChallans(
+  params: ChallanListParams,
+): UseQueryResult<ChallanListResult, ApiError> {
   return useQuery({
     queryKey: challanKeys.list(params),
     queryFn: () => fetchChallans(params),

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Boxes, ListFilter, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Boxes, ListFilter, MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,9 +13,15 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { LOCATION_STATUS_META } from '@/features/location/lib/location-meta'
 import { CHALLAN_STATUS_META, challanStatusMeta } from '../lib/challan-meta'
 import { CHALLAN_STATUSES } from '../types'
-import type { ChallanFilterPatch, ChallanListParams, ChallanStatusFilter } from '../types'
+import type {
+  ChallanFilterPatch,
+  ChallanListParams,
+  ChallanLocationFilter,
+  ChallanStatusFilter,
+} from '../types'
 
 interface ChallanFiltersProps {
   params: ChallanListParams
@@ -36,6 +42,12 @@ interface ChallanFiltersProps {
 }
 
 const TRIGGER = 'h-8 w-full sm:w-[10rem]'
+
+function locationLabel(value: unknown): string {
+  if (value === 'verified') return 'Location set'
+  if (value === 'pending') return 'Location pending'
+  return 'Any location'
+}
 
 function statusLabel(value: unknown): string {
   return typeof value === 'string' && value !== 'all'
@@ -79,7 +91,11 @@ export function ChallanFilters({
     (params.from || params.to ? 1 : 0) +
     (!hideBatchFilter && params.batchId ? 1 : 0)
 
-  const isFiltered = advancedCount > 0 || params.search !== '' || params.status !== 'all'
+  const isFiltered =
+    advancedCount > 0 ||
+    params.search !== '' ||
+    params.status !== 'all' ||
+    params.location !== 'all'
 
   return (
     <div className="border-b">
@@ -124,6 +140,39 @@ export function ChallanFilters({
                       {CHALLAN_STATUS_META[status].label}
                     </SelectItem>
                   ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            {/* On the toolbar rather than behind "More filters", because
+                "which challans still need a location?" is the question an
+                administrator sits down to answer — and one behind two clicks
+                is one nobody asks. */}
+            <Select
+              value={params.location}
+              onValueChange={(value) => onChange({ location: value as ChallanLocationFilter })}
+            >
+              <SelectTrigger className={TRIGGER} aria-label="Filter by location">
+                <MapPin className="size-3.5 text-muted-foreground" aria-hidden />
+                <SelectValue>{locationLabel}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">Any location</SelectItem>
+                  <SelectItem value="verified">
+                    <span
+                      className={cn('size-1.5 shrink-0 rounded-full', LOCATION_STATUS_META.Verified.dot)}
+                      aria-hidden
+                    />
+                    Location set
+                  </SelectItem>
+                  <SelectItem value="pending">
+                    <span
+                      className={cn('size-1.5 shrink-0 rounded-full', LOCATION_STATUS_META.Pending.dot)}
+                      aria-hidden
+                    />
+                    Location pending
+                  </SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

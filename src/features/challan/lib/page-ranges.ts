@@ -161,7 +161,11 @@ export function unassignedRanges(claimed: PageRange[], sourcePageCount: number):
 
   const taken = new Set<number>()
   for (const range of claimed) {
-    for (let page = Math.max(1, range.startPage); page <= Math.min(sourcePageCount, range.endPage); page += 1) {
+    for (
+      let page = Math.max(1, range.startPage);
+      page <= Math.min(sourcePageCount, range.endPage);
+      page += 1
+    ) {
       taken.add(page)
     }
   }
@@ -196,7 +200,11 @@ export function unassignedRanges(claimed: PageRange[], sourcePageCount: number):
 export function assignedPageCount(claimed: PageRange[], sourcePageCount: number): number {
   const taken = new Set<number>()
   for (const range of claimed) {
-    for (let page = Math.max(1, range.startPage); page <= Math.min(sourcePageCount, range.endPage); page += 1) {
+    for (
+      let page = Math.max(1, range.startPage);
+      page <= Math.min(sourcePageCount, range.endPage);
+      page += 1
+    ) {
       taken.add(page)
     }
   }

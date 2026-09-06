@@ -84,9 +84,7 @@ export interface ChallanSubmissionController {
  * rather than a second one: the server recognises the key and answers with
  * what the first attempt produced.
  */
-export function useChallanSubmission(
-  context: SubmissionContext,
-): ChallanSubmissionController {
+export function useChallanSubmission(context: SubmissionContext): ChallanSubmissionController {
   const [stage, setStage] = useState<SubmissionStage>('idle')
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [duplicates, setDuplicates] = useState<DuplicateChallanCandidate[]>([])
@@ -174,7 +172,13 @@ export function useChallanSubmission(
         setUploadProgress(null)
       }
     },
-    [context.sessionKey, context.sourceBytes, context.sourceFileName, context.sourcePageCount, send],
+    [
+      context.sessionKey,
+      context.sourceBytes,
+      context.sourceFileName,
+      context.sourcePageCount,
+      send,
+    ],
   )
 
   return {

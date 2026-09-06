@@ -109,7 +109,13 @@ describe('what is left of the source PDF', () => {
 
   it('collapses the gaps rather than listing loose pages', () => {
     assert.deepEqual(
-      unassignedRanges([{ startPage: 1, endPage: 2 }, { startPage: 7, endPage: 9 }], 12),
+      unassignedRanges(
+        [
+          { startPage: 1, endPage: 2 },
+          { startPage: 7, endPage: 9 },
+        ],
+        12,
+      ),
       [
         { startPage: 3, endPage: 6 },
         { startPage: 10, endPage: 12 },

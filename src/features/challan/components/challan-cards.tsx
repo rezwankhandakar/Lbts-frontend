@@ -4,6 +4,7 @@ import { formatRange, itemSummary } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
 import { ChallanActionMenu } from './challan-action-menu'
 import type { ChallanActions } from './challan-action-menu'
+import { ChallanPrintMark } from './challan-print-mark'
 import { ChallanStatusBadge } from './challan-status-badge'
 
 interface ChallanCardsProps {
@@ -34,10 +35,9 @@ export function ChallanCards({ records, actions, onOpen }: ChallanCardsProps) {
               <span className="flex flex-wrap items-center gap-2">
                 <span className="text-[13px] font-semibold">{record.challanNumber}</span>
                 <ChallanStatusBadge status={record.status} />
+                <ChallanPrintMark record={record} />
               </span>
-              <span className="mt-1 block truncate text-sm font-medium">
-                {record.customerName}
-              </span>
+              <span className="mt-1 block truncate text-sm font-medium">{record.customerName}</span>
               <span className="mt-0.5 block text-xs text-muted-foreground">
                 SL {record.slNumber} · {formatDate(record.submittedAt)}
               </span>
@@ -51,8 +51,17 @@ export function ChallanCards({ records, actions, onOpen }: ChallanCardsProps) {
           <dl className="mt-3 grid gap-1.5 text-xs text-muted-foreground">
             <div className="flex items-start gap-2">
               <MapPin className="mt-px size-3.5 shrink-0" aria-hidden />
+              {/* Joined rather than interpolated, because the thana and the
+                  district are optional: a blank one would otherwise leave a
+                  stray comma reading as a missing value nobody can act on. */}
               <dd className="min-w-0 flex-1 truncate">
-                {record.deliveryAddress}, {record.thana}, {record.district}
+                {[
+                  record.deliveryAddress,
+                  record.resolvedLocation?.thana || record.thana,
+                  record.resolvedLocation?.district || record.district,
+                ]
+                  .filter(Boolean)
+                  .join(', ')}
               </dd>
             </div>
             <div className="flex items-center gap-2">

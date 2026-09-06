@@ -74,8 +74,23 @@ export const EMPTY_ITEM: ChallanItemFormValues = { productName: '', model: '', q
 export const challanFormSchema = z.object({
   customerName: text(2, 200, 'Customer name'),
   deliveryAddress: text(3, 500, 'Delivery address'),
-  thana: text(1, 120, 'Thana'),
-  district: text(1, 120, 'District'),
+  /**
+   * The thana and district as transcribed — **optional**.
+   *
+   * A Walton challan does not always print them, and a required field would
+   * mean an operator inventing one to get past the form. An invented district
+   * is a worse record than a blank: it is wrong, and nothing downstream can
+   * tell. The server matches whatever is here against the Location Master and
+   * leaves the result blank rather than guessing.
+   */
+  thana: z.string().trim().max(120, 'Thana must be 120 characters or fewer'),
+  district: z.string().trim().max(120, 'District must be 120 characters or fewer'),
+  /**
+   * The Location Master row the operator picked, if they picked one. An id or
+   * nothing — every value written to the record is read from the row it points
+   * at, server-side.
+   */
+  locationId: z.string().trim().max(40),
   receiverMobile: mobile('Receiver mobile'),
   /** Optional: many challans carry only the receiver's number. */
   senderMobile: z
@@ -114,6 +129,7 @@ export const EMPTY_CHALLAN_FORM: ChallanFormValues = {
   deliveryAddress: '',
   thana: '',
   district: '',
+  locationId: '',
   receiverMobile: '',
   senderMobile: '',
   zonePo: '',
@@ -129,6 +145,7 @@ export function toChallanValues(values: ChallanFormValues): ChallanValues {
     deliveryAddress: values.deliveryAddress,
     thana: values.thana,
     district: values.district,
+    locationId: values.locationId,
     receiverMobile: values.receiverMobile,
     senderMobile: values.senderMobile,
     zonePo: values.zonePo,
@@ -142,22 +159,35 @@ export function toChallanValues(values: ChallanFormValues): ChallanValues {
   }
 }
 
-/** A saved record, back in the shape the form holds it. */
-export function toFormValues(record: {
-  customerName: string
-  deliveryAddress: string
-  thana: string
-  district: string
-  receiverMobile: string
-  senderMobile: string | null
-  zonePo: string | null
-  items: ChallanItem[]
-}): ChallanFormValues {
+/**
+ * A saved record, back in the shape the form holds it.
+ *
+ * `locationId` defaults to empty rather than being seeded from the record's
+ * existing resolution, and that is deliberate. Sending an id tells the server
+ * "a person chose this", which is the one resolution nothing may overwrite —
+ * so seeding it would quietly convert every automatically matched location
+ * into a manual one the first time somebody fixed a typo in a customer name.
+ * The operator picking a location in the panel is what sets it.
+ */
+export function toFormValues(
+  record: {
+    customerName: string
+    deliveryAddress: string
+    thana: string
+    district: string
+    receiverMobile: string
+    senderMobile: string | null
+    zonePo: string | null
+    items: ChallanItem[]
+  },
+  locationId = '',
+): ChallanFormValues {
   return {
     customerName: record.customerName,
     deliveryAddress: record.deliveryAddress,
     thana: record.thana,
     district: record.district,
+    locationId,
     receiverMobile: record.receiverMobile,
     senderMobile: record.senderMobile ?? '',
     zonePo: record.zonePo ?? '',
@@ -172,7 +202,12 @@ export function toFormValues(record: {
   }
 }
 
-/** Values kept in the session queue, back in the shape the form holds them. */
+/**
+ * Values kept in the session queue, back in the shape the form holds them.
+ *
+ * The chosen location comes back with them: switching to another sheet in the
+ * tray and back must not lose a selection the operator has already made.
+ */
 export function fromChallanValues(values: ChallanValues): ChallanFormValues {
-  return toFormValues(values)
+  return toFormValues(values, values.locationId)
 }

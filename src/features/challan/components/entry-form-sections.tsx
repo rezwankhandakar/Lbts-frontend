@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { ChallanFormValues } from '../schemas/challan-schemas'
+import { ChallanLocationPanel } from './challan-location-panel'
 import { ChallanTextField } from './entry-field'
 
 /**
@@ -108,31 +109,46 @@ export function CustomerFields({ register, errors, watch, setValue, disabled }: 
         disabled={disabled}
       />
 
+      {/* Optional, and deliberately so. A Walton challan does not always print
+          a thana or a district, and a required field would have somebody
+          inventing one to get past the form — an invented district is a worse
+          record than a blank, because nothing downstream can tell. */}
       <ChallanTextField
         id="thana"
         label="Thana"
-        required
         bangla
         suggest="thana"
         registration={register('thana')}
         value={watch('thana')}
         onSetValue={setter(setValue, 'thana')}
         error={errors.thana?.message}
+        hint="Exactly as printed, if the challan gives one."
         disabled={disabled}
       />
 
       <ChallanTextField
         id="district"
         label="District"
-        required
         bangla
         suggest="district"
         registration={register('district')}
         value={watch('district')}
         onSetValue={setter(setValue, 'district')}
         error={errors.district?.message}
+        hint="Leave blank if the challan does not say."
         disabled={disabled}
       />
+
+      <div className="sm:col-span-2">
+        <ChallanLocationPanel
+          thana={watch('thana')}
+          district={watch('district')}
+          deliveryAddress={watch('deliveryAddress')}
+          locationId={watch('locationId')}
+          onPickLocation={setter(setValue, 'locationId')}
+          disabled={disabled}
+        />
+      </div>
     </FieldGrid>
   )
 }
