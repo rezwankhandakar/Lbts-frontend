@@ -1,14 +1,16 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Loader2, MapPin } from 'lucide-react'
-import { Label } from '@/components/ui/label'
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+  ComboboxValue,
+} from '@/components/ui/combobox'
+import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { useDistricts, useThanas } from '../hooks/use-locations'
 import type { LocationType } from '../types'
@@ -18,6 +20,20 @@ export interface LocationSelection {
   id: string
   district: string
   thana: string
+  locationType: LocationType
+}
+
+/**
+ * One row of the master list as the combobox carries it.
+ *
+ * `value` and `label` are the shape Base UI reads without being told how:
+ * `label` is what it filters and displays, `value` is what identifies the row.
+ * The type rides along, so choosing a thana produces a whole selection rather
+ * than an id somebody then has to look up again.
+ */
+interface ThanaChoice {
+  value: string
+  label: string
   locationType: LocationType
 }
 
@@ -43,6 +59,13 @@ interface LocationSelectProps {
  * meaningful inside a district — Kaliganj is in Gazipur, Satkhira and
  * Jhenaidah — so carrying one across would be how the wrong one gets filed.
  *
+ * Both halves search rather than only scroll. There are sixty-four districts
+ * and a district can carry fifty thanas, and finding Sirajganj by scrolling
+ * past everything alphabetically before it is slower than typing three
+ * letters — on a form filled from a stack of paper, several times a minute.
+ * Typing filters the list and nothing else: a value can still only come from
+ * the master list, so nothing typed can become a selection on its own.
+ *
  * Only active rows are offered, because that is all the API returns.
  */
 export function LocationSelect({
@@ -55,17 +78,25 @@ export function LocationSelect({
   const [district, setDistrict] = useState(value?.district ?? '')
 
   /**
-   * Follows the value when a caller replaces it wholesale — reopening a dialog
-   * on a different challan, say.
+   * Follows the value when a caller fills one in on the subject already on
+   * screen — a resolver answering, say.
    *
-   * Adjusted during render rather than in an effect. React's own guidance for
-   * "reset state when a prop changes" is exactly this shape, and an effect
-   * here would paint the previous district for a frame before correcting it —
-   * on a control whose second dropdown depends on the first, that frame is a
+   * Adjusted during render rather than in an effect: an effect here would
+   * paint the previous district for a frame before correcting it, and on a
+   * control whose second dropdown depends on the first, that frame is a
    * request for the wrong district's thanas.
    *
    * `seen` is what makes it fire once per incoming value rather than fighting
-   * the operator every time they pick a different district themselves.
+   * the operator every time they pick a different district themselves — which
+   * is also why it deliberately ignores a value going *back* to null. The
+   * operator changing district clears the selection, and a reset there would
+   * undo the district they just chose.
+   *
+   * **So switching to a different challan is the caller's job, with a `key`.**
+   * There is no way to tell "the subject changed and has no location" from
+   * "the operator is midway through choosing" by watching props, and guessing
+   * wrong in either direction files the wrong location. Remounting is React's
+   * own answer and the only one that resets every piece of this at once.
    */
   const [seen, setSeen] = useState(value?.district ?? '')
 
@@ -77,6 +108,25 @@ export function LocationSelect({
   const districts = useDistricts(!disabled)
   const thanas = useThanas(district)
 
+  const districtItems = useMemo(() => districts.data ?? [], [districts.data])
+
+  const thanaItems = useMemo<ThanaChoice[]>(
+    () =>
+      (thanas.data ?? []).map((option) => ({
+        value: option.id,
+        label: option.thana,
+        locationType: option.locationType,
+      })),
+    [thanas.data],
+  )
+
+  /**
+   * The caller holds the selection as an id and the combobox wants the row
+   * itself. Reading it back out of the list rather than keeping a second copy
+   * is what stops the two disagreeing when the district changes underneath.
+   */
+  const selectedThana = value ? (thanaItems.find((item) => item.value === value.id) ?? null) : null
+
   const pickDistrict = (next: string | null) => {
     if (next === null) {
       return
@@ -87,15 +137,19 @@ export function LocationSelect({
     onChange(null)
   }
 
-  const pickThana = (id: string | null) => {
+  const pickThana = (choice: ThanaChoice | null) => {
     // The row has to be one this control actually offered. Anything else — a
-    // cleared value, a stale id from a district that has since changed — is
+    // cleared value, a stale row from a district that has since changed — is
     // not a selection, and a selection is the only thing that may be reported.
-    const option = id ? thanas.data?.find((thana) => thana.id === id) : undefined
-    if (!option || !id) {
+    if (!choice) {
       return
     }
-    onChange({ id, district, thana: option.thana, locationType: option.locationType })
+    onChange({
+      id: choice.value,
+      district,
+      thana: choice.label,
+      locationType: choice.locationType,
+    })
   }
 
   return (
@@ -105,54 +159,59 @@ export function LocationSelect({
           <Label htmlFor={`${idPrefix}-district`} className="text-[13px] font-medium">
             District
           </Label>
-          <Select
-            value={district}
+          <Combobox
+            items={districtItems}
+            value={district || null}
             onValueChange={pickDistrict}
             disabled={disabled || districts.isPending}
           >
-            <SelectTrigger id={`${idPrefix}-district`} className="w-full">
+            <ComboboxTrigger id={`${idPrefix}-district`} className="w-full">
               <MapPin className="size-3.5 text-muted-foreground" aria-hidden />
-              <SelectValue placeholder={districts.isPending ? 'Loading…' : 'Choose a district'} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {(districts.data ?? []).map((name) => (
-                  <SelectItem key={name} value={name}>
+              <ComboboxValue placeholder={districts.isPending ? 'Loading…' : 'Choose a district'} />
+            </ComboboxTrigger>
+            <ComboboxContent>
+              <ComboboxInput placeholder="Search districts…" />
+              <ComboboxEmpty>No district matches that.</ComboboxEmpty>
+              <ComboboxList>
+                {(name: string) => (
+                  <ComboboxItem key={name} value={name}>
                     {name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor={`${idPrefix}-thana`} className="text-[13px] font-medium">
             Thana
           </Label>
-          <Select
-            value={value?.id ?? ''}
+          <Combobox
+            items={thanaItems}
+            value={selectedThana}
             onValueChange={pickThana}
+            isItemEqualToValue={(item, current) => item.value === current.value}
             disabled={disabled || !district || thanas.isPending}
           >
-            <SelectTrigger id={`${idPrefix}-thana`} className="w-full">
+            <ComboboxTrigger id={`${idPrefix}-thana`} className="w-full">
               {thanas.isFetching && district ? (
                 <Loader2 className="size-3.5 animate-spin text-muted-foreground" aria-hidden />
               ) : null}
-              <SelectValue
-                placeholder={district ? 'Choose a thana' : 'Choose a district first'}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {(thanas.data ?? []).map((option) => (
-                  <SelectItem key={option.id} value={option.id}>
-                    {option.thana}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+              <ComboboxValue placeholder={district ? 'Choose a thana' : 'Choose a district first'} />
+            </ComboboxTrigger>
+            <ComboboxContent>
+              <ComboboxInput placeholder="Search thanas…" />
+              <ComboboxEmpty>No thana matches that.</ComboboxEmpty>
+              <ComboboxList>
+                {(option: ThanaChoice) => (
+                  <ComboboxItem key={option.value} value={option}>
+                    {option.label}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
         </div>
       </div>
 
@@ -173,7 +232,7 @@ export function LocationSelect({
         </p>
       )}
 
-      {district && !thanas.isPending && (thanas.data ?? []).length === 0 && (
+      {district && !thanas.isPending && thanaItems.length === 0 && (
         <p className="text-xs text-muted-foreground">
           {district} has no active thanas in the location master list.
         </p>

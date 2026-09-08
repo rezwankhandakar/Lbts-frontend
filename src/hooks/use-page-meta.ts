@@ -25,6 +25,13 @@ const STANDALONE_PAGES: Record<string, PageMeta> = {
    * says nothing about the workspace you are transcribing into.
    */
   '/challan/new': { title: 'Challan entry', section: 'Main' },
+  /**
+   * The source PDF list. The nav match below would call it "Challan", which is
+   * true of the records and says nothing about the file-by-file view — and
+   * those are the two things somebody navigating between them needs told
+   * apart.
+   */
+  '/challan/batches': { title: 'Source PDFs', section: 'Main' },
 }
 
 export function usePageMeta(): PageMeta {

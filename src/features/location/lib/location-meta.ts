@@ -1,4 +1,4 @@
-import { Building2, CircleHelp, MapPinCheck, Route, Warehouse } from 'lucide-react'
+import { Building2, CircleHelp, MapPinCheck, Route, ScanSearch, Warehouse } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { LOCATION_TYPES } from '../types'
 import type { LocationSource, LocationStatus, LocationType } from '../types'
@@ -107,6 +107,26 @@ export const LOCATION_STATUS_META: Record<LocationStatus, LocationStatusMeta> = 
 
 export function locationStatusMeta(value: string): LocationStatusMeta {
   return LOCATION_STATUS_META[value as LocationStatus] ?? LOCATION_STATUS_META.Pending
+}
+
+/**
+ * A location the system inferred and nobody has read.
+ *
+ * A third mark rather than a shade of the other two, because it answers a
+ * different question. `Pending` says nothing is known; `Location set` says
+ * something is. This says something is known *on a machine's word* — which is
+ * the state an administrator reviews, and the one a wrong district hides in.
+ *
+ * Orange rather than amber so it cannot be mistaken for `Pending` at a glance
+ * on a list where both appear, and not destructive-toned: an inferred match is
+ * usually right, and colouring it as an error would teach people to ignore it.
+ */
+export const LOCATION_REVIEW_META: ToneClasses & { label: string; icon: LucideIcon } = {
+  label: 'Unconfirmed',
+  icon: ScanSearch,
+  badge: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
+  dot: 'bg-tone-orange',
+  chip: 'bg-tone-orange/10 text-tone-orange ring-tone-orange/20',
 }
 
 /**

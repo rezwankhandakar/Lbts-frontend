@@ -84,7 +84,9 @@ export function BatchAccounting({
               — {formatRanges(batch.unassignedRanges)}. The batch cannot be printed or downloaded as
               one document until every page is either filed as a challan or marked as blank, because
               the file would be missing them without saying so. The source PDF was never stored, so
-              filing them means opening it again in the workspace.
+              filing them means opening it again:{' '}
+              <span className="font-medium text-foreground">Continue entering</span> asks for that
+              file and carries on in this batch.
             </span>
           </p>
 

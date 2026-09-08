@@ -1,4 +1,4 @@
-import { CircleCheck, Download, FileStack, Loader2, Printer } from 'lucide-react'
+import { CircleCheck, Download, FileStack, Loader2, PenLine, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -20,6 +20,8 @@ interface BatchSummaryProps {
   onMarkBlank: (range: PageRange) => void
   onClearBlank: () => void
   onClearPrinted: () => void
+  /** Back to the workspace to file the pages nobody has taken yet. */
+  onContinue: () => void
 }
 
 /**
@@ -53,8 +55,14 @@ export function BatchSummary({
   onMarkBlank,
   onClearBlank,
   onClearPrinted,
+  onContinue,
 }: BatchSummaryProps) {
   const busy = isDownloading || isPrinting
+  /**
+   * Only while there is something left to file. A finished batch offers the
+   * two actions it exists for and nothing that would reopen it.
+   */
+  const canContinue = canChange && !batch.isComplete
 
   return (
     <section
@@ -104,9 +112,25 @@ export function BatchSummary({
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {/* The primary action, because printing is what the paperwork is
-              for. Downloading it is the same document kept rather than used. */}
-          <Button onClick={onPrint} disabled={!batch.isComplete || busy}>
+          {/* While pages are outstanding this is the only action that can
+              actually be taken here — printing and downloading are both
+              refused until the file is accounted for, so it leads. It cannot
+              reopen the source PDF, which was never stored; what it does is
+              take the operator to the workspace with this batch already
+              attached, so the file they open there carries on rather than
+              starting a second batch for the same document. */}
+          {canContinue && (
+            <Button onClick={onContinue}>
+              <PenLine data-icon="inline-start" aria-hidden />
+              Continue entering
+            </Button>
+          )}
+
+          <Button
+            variant={canContinue ? 'outline' : 'default'}
+            onClick={onPrint}
+            disabled={!batch.isComplete || busy}
+          >
             {isPrinting ? (
               <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
             ) : (

@@ -10,6 +10,7 @@ import {
 import { CHALLAN_READ_ROLES, CHALLAN_WRITE_ROLES } from '@/features/challan/types'
 import { GATE_PASS_READ_ROLES, GATE_PASS_WRITE_ROLES } from '@/features/gate-pass/types'
 import { LOCATION_READ_ROLES } from '@/features/location/types'
+import { PRODUCT_RATE_READ_ROLES } from '@/features/product-rate/types'
 import { DashboardPage } from '@/pages/dashboard'
 
 /**
@@ -52,8 +53,17 @@ const ChallanEditPage = lazy(() =>
 const ChallanBatchPage = lazy(() =>
   import('@/pages/challan-batch').then((m) => ({ default: m.ChallanBatchPage })),
 )
+const ChallanBatchesPage = lazy(() =>
+  import('@/pages/challan-batches').then((m) => ({ default: m.ChallanBatchesPage })),
+)
+const ChallanLocationPage = lazy(() =>
+  import('@/pages/challan-location').then((m) => ({ default: m.ChallanLocationPage })),
+)
 const LocationsPage = lazy(() =>
   import('@/pages/locations').then((m) => ({ default: m.LocationsPage })),
+)
+const ProductRatesPage = lazy(() =>
+  import('@/pages/product-rates').then((m) => ({ default: m.ProductRatesPage })),
 )
 const AdministrationPage = lazy(() =>
   import('@/pages/administration').then((m) => ({ default: m.AdministrationPage })),
@@ -98,6 +108,14 @@ const CHALLAN_WRITE_REASON =
 const LOCATION_ACCESS_REASON =
   'The location master list is the reference every challan is classified against, and is open to Admin, Manager, CEO and Operation Executive accounts.'
 
+/**
+ * The rate card has the same single boundary as the location master, and for
+ * the same reason: the entry form reads it, so everyone who files a challan
+ * needs it, and only the write endpoints are Admin-only.
+ */
+const PRODUCT_RATE_ACCESS_REASON =
+  'The product rate card is what every challan line is charged from, and is open to Admin, Manager, CEO and Operation Executive accounts.'
+
 export function AppRouter() {
   return (
     <Routes>
@@ -140,6 +158,11 @@ export function AppRouter() {
             }
           >
             <Route path="/challan" element={<ChallanPage />} />
+            {/* Declared beside `/challan/:id` rather than before it: React
+                Router ranks a static segment above a dynamic one, so
+                `/challan/batches` cannot be swallowed as a challan id — the
+                same arrangement `/challan/new` already relies on. */}
+            <Route path="/challan/batches" element={<ChallanBatchesPage />} />
             <Route path="/challan/:id" element={<ChallanDetailsPage />} />
             <Route path="/challan/batch/:batchId" element={<ChallanBatchPage />} />
 
@@ -154,6 +177,10 @@ export function AppRouter() {
             >
               <Route path="/challan/new" element={<ChallanNewPage />} />
               <Route path="/challan/:id/edit" element={<ChallanEditPage />} />
+              {/* Settling a location is a write, so it sits behind the write
+                  roles rather than the read ones: a CEO reads every challan
+                  here and decides none of them. */}
+              <Route path="/challan/:id/location" element={<ChallanLocationPage />} />
             </Route>
           </Route>
 
@@ -171,6 +198,24 @@ export function AppRouter() {
             }
           >
             <Route path="/locations" element={<LocationsPage />} />
+          </Route>
+
+          {/* The product rate card. The same boundary the location master has,
+              and for the same reason: reading it is open to everyone Challan
+              is open to, because the entry form offers product names off it,
+              and changing it is Admin-only — enforced per endpoint by the API
+              rather than per route, because the same page serves both
+              audiences with the write controls simply absent. */}
+          <Route
+            element={
+              <RoleRoute
+                roles={PRODUCT_RATE_READ_ROLES}
+                area="Product Rates"
+                reason={PRODUCT_RATE_ACCESS_REASON}
+              />
+            }
+          >
+            <Route path="/product-rates" element={<ProductRatesPage />} />
           </Route>
 
           <Route path="/module-a" element={<ModuleAPage />} />

@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import type { ChallanFormValues } from '../schemas/challan-schemas'
 import { MAX_CHALLAN_ITEMS } from '../types'
 import { BanglaConvertControl } from './bangla-convert'
+import { ProductSuggestInput } from './product-suggest-input'
 import { SuggestInput } from './suggest-input'
 
 interface ChallanItemRowsProps {
@@ -107,11 +108,13 @@ export function ChallanItemRows({
                   <Label htmlFor={productId} className={LABEL}>
                     Product<span className="text-destructive"> *</span>
                   </Label>
-                  <SuggestInput
+                  {/* Told what the model on this row is, so pasting a model
+                      offers the rate card's own name for it. */}
+                  <ProductSuggestInput
                     id={productId}
-                    field="product"
                     registration={register(`items.${index}.productName`)}
                     value={productValue}
+                    model={items?.[index]?.model ?? ''}
                     invalid={Boolean(rowErrors?.productName)}
                     onPick={(value) =>
                       setValue(`items.${index}.productName`, value, {

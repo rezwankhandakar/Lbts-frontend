@@ -7,13 +7,17 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import { formatDate } from '@/lib/format'
+import { formatAmount, formatDate } from '@/lib/format'
 import { formatRangeShort, itemSummary } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
 import { ChallanActionMenu } from './challan-action-menu'
 import type { ChallanActions } from './challan-action-menu'
 import { ChallanPrintMark } from './challan-print-mark'
-import { LocationStatusBadge } from '@/features/location/components/location-badges'
+import {
+  LocationReviewBadge,
+  LocationStatusBadge,
+} from '@/features/location/components/location-badges'
+import { isReviewableLocation } from '@/features/location/types'
 import { ChallanStatusBadge } from './challan-status-badge'
 
 interface ChallanTableProps {
@@ -44,6 +48,7 @@ export function ChallanTable({ records, actions, onOpen }: ChallanTableProps) {
           <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>District</TableHead>
           <TableHead className={cn(HEAD, 'hidden xl:table-cell')}>Product</TableHead>
           <TableHead className={cn(HEAD, 'hidden text-right lg:table-cell')}>Qty</TableHead>
+          <TableHead className={cn(HEAD, 'hidden text-right lg:table-cell')}>Amount</TableHead>
           <TableHead className={HEAD}>Status</TableHead>
           <TableHead className={cn(HEAD, 'hidden xl:table-cell')}>Filed</TableHead>
           <TableHead className={cn(HEAD, 'text-right')}>
@@ -116,6 +121,31 @@ export function ChallanTable({ records, actions, onOpen }: ChallanTableProps) {
               {record.totalQty}
             </TableCell>
 
+            {/* A charge that does not cover every line is marked rather than
+                shown as a plain figure: a partial total looks exactly like a
+                complete one, and this is the column somebody would add up. */}
+            <TableCell
+              className="hidden px-4 py-3 text-right text-[13px] tabular-nums lg:table-cell"
+              title={
+                record.unpricedItems > 0
+                  ? `${record.unpricedItems} of ${record.items.length} lines are not on the rate card for this location.`
+                  : undefined
+              }
+            >
+              {record.totalAmount === null ? (
+                <span className="text-muted-foreground">—</span>
+              ) : (
+                <>
+                  {formatAmount(record.totalAmount)}
+                  {record.unpricedItems > 0 && (
+                    <span className="ml-0.5 text-tone-amber" aria-hidden>
+                      *
+                    </span>
+                  )}
+                </>
+              )}
+            </TableCell>
+
             {/* Two chips, because they answer two questions: the badge is what
                 the record is, the mark is what happened to a piece of paper.
                 Somebody assembling a delivery reads the second one. */}
@@ -123,11 +153,18 @@ export function ChallanTable({ records, actions, onOpen }: ChallanTableProps) {
               <div className="flex flex-col items-start gap-1">
                 <ChallanStatusBadge status={record.status} />
                 <ChallanPrintMark record={record} />
-                {/* Only the pending state. The district column beside it
-                    already says the location is set when it is, and a second
-                    chip repeating that would be noise on every row. */}
-                {record.locationStatus === 'Pending' && (
+                {/* Never "Location set": the district column beside it
+                    already says that, and a chip repeating it would be noise
+                    on every row. The two drawn here are the two that are not
+                    visible from the district — that there is none, and that
+                    the one shown is a machine's inference nobody has read. */}
+                {record.locationStatus === 'Pending' ? (
                   <LocationStatusBadge value="Pending" />
+                ) : (
+                  isReviewableLocation(record.resolvedLocation) &&
+                  record.resolvedLocation && (
+                    <LocationReviewBadge source={record.resolvedLocation.source} />
+                  )
                 )}
               </div>
             </TableCell>

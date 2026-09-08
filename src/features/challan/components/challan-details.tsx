@@ -19,6 +19,7 @@ import { locationSourceLabel } from '@/features/location/lib/location-meta'
 import { formatDateTime } from '@/lib/format'
 import { formatBytes, formatRange } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
+import { ChallanGoodsTable } from './challan-goods-table'
 
 interface ChallanDetailsProps {
   record: ChallanRecord
@@ -171,47 +172,10 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
             : `${record.items.length} product lines on this challan.`
         }
       >
-        {/* A table rather than labelled rows, because several products are
-            lines to be compared — somebody checking a delivery reads down the
-            quantity column, and that only works if the quantities are in a
-            column. The same shape the generated back page prints. */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="pb-2 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                  Product
-                </th>
-                <th className="pb-2 text-left text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                  Model
-                </th>
-                <th className="pb-2 text-right text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                  Qty
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {record.items.map((item, index) => (
-                <tr key={`${item.model}-${index}`}>
-                  <td className="py-2 pr-3 wrap-break-word">{item.productName}</td>
-                  <td className="py-2 pr-3 wrap-break-word">{item.model}</td>
-                  <td className="py-2 text-right tabular-nums">{item.qty}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t">
-                <td
-                  colSpan={2}
-                  className="pt-2 text-[11px] font-medium tracking-wide text-muted-foreground uppercase"
-                >
-                  Total quantity
-                </td>
-                <td className="pt-2 text-right font-semibold tabular-nums">{record.totalQty}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        {/* Extracted rather than inline: the goods table now carries the rate
+            and the line amount as well as the quantity, and it is the one part
+            of this page with arithmetic of its own to explain. */}
+        <ChallanGoodsTable record={record} />
       </Section>
 
       <Section

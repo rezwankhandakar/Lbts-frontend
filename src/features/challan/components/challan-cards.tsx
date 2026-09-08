@@ -1,5 +1,5 @@
 import { MapPin, Package, Phone } from 'lucide-react'
-import { formatDate } from '@/lib/format'
+import { formatDate, formatTaka } from '@/lib/format'
 import { formatRange, itemSummary } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
 import { ChallanActionMenu } from './challan-action-menu'
@@ -72,6 +72,22 @@ export function ChallanCards({ records, actions, onOpen }: ChallanCardsProps) {
               <Package className="mt-px size-3.5 shrink-0" aria-hidden />
               <dd className="min-w-0 flex-1 truncate">
                 {itemSummary(record)} × {record.totalQty}
+                {/* The same figure the desktop table shows, marked the same
+                    way when it does not cover every line — the list must not
+                    say different things on different screens. */}
+                {record.totalAmount !== null && (
+                  <>
+                    {' · '}
+                    <span className="font-medium text-foreground tabular-nums">
+                      {formatTaka(record.totalAmount)}
+                      {record.unpricedItems > 0 && (
+                        <span className="text-tone-amber" aria-hidden>
+                          *
+                        </span>
+                      )}
+                    </span>
+                  </>
+                )}
               </dd>
             </div>
           </dl>

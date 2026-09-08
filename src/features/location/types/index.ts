@@ -29,6 +29,27 @@ export const LOCATION_SOURCES = [
 export type LocationSource = (typeof LOCATION_SOURCES)[number]
 
 /**
+ * The sources that were a machine's *inexact* decision. Mirrors
+ * `REVIEWABLE_LOCATION_SOURCES` in `location.constants.ts`, which is what the
+ * `review` list filter actually queries on — change one, change both.
+ *
+ * `master_exact` is out because there is nothing to compare: the text was the
+ * master row, character for character. `admin_manual` is out because it is
+ * what a review produces, and a queue that keeps handing back decisions
+ * somebody already made is a queue nobody finishes.
+ */
+export const REVIEWABLE_LOCATION_SOURCES: readonly LocationSource[] = [
+  'master_normalized',
+  'master_fuzzy',
+  'gemini_assisted',
+]
+
+/** Whether this location was inferred rather than read or chosen. */
+export function isReviewableLocation(location: { source: LocationSource } | null): boolean {
+  return location !== null && REVIEWABLE_LOCATION_SOURCES.includes(location.source)
+}
+
+/**
  * Whether a challan's location is settled.
  *
  * Two values and no third. "The machine had a guess it was not sure about" is

@@ -31,14 +31,29 @@ export const SUBMISSION_STAGES: Exclude<SubmissionStage, 'idle'>[] = [
   'finalizing',
 ]
 
+/**
+ * `finalizing` used to read "Numbering, barcode, back page and document",
+ * which named the last quarter of what it covers. That stage is the whole
+ * server round trip: the page range check, the duplicate question, the
+ * location lookup, the two identifiers, the back page, the merge, the upload
+ * to R2 and the write. The barcode and the back page are about ten
+ * milliseconds of it, so a label naming only those sends somebody looking for
+ * a slow PDF writer when the wait is a database and an external lookup.
+ */
 export const STAGE_LABELS: Record<Exclude<SubmissionStage, 'idle'>, string> = {
   extracting: 'Cutting the challan pages out of the PDF',
   uploading: 'Uploading the challan pages',
-  finalizing: 'Numbering, barcode, back page and document',
+  finalizing: 'Checking, numbering and filing the challan',
 }
 
 export interface SubmissionContext {
   sessionKey: string
+  /**
+   * The batch being resumed, when this workspace joined one rather than
+   * starting it. Sent so the challan lands in the batch its file already has
+   * instead of opening a second one for the same document.
+   */
+  batchId?: string | null
   sourceBytes: Uint8Array
   sourceFileName: string
   sourcePageCount: number
@@ -118,6 +133,9 @@ export function useChallanSubmission(context: SubmissionContext): ChallanSubmiss
           payload: {
             ...values,
             sessionKey: context.sessionKey,
+            // Omitted rather than sent empty: the multipart body is built from
+            // whatever keys the payload has, and an absent batch is a new one.
+            ...(context.batchId ? { batchId: context.batchId } : {}),
             sourceFileName: context.sourceFileName,
             sourcePageCount: context.sourcePageCount,
             sourcePageStart: entry.startPage,
@@ -174,6 +192,7 @@ export function useChallanSubmission(context: SubmissionContext): ChallanSubmiss
     },
     [
       context.sessionKey,
+      context.batchId,
       context.sourceBytes,
       context.sourceFileName,
       context.sourcePageCount,

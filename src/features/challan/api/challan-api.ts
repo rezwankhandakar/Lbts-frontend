@@ -41,6 +41,7 @@ function filterParams(params: ChallanListParams): Record<string, string> {
     ...(params.search ? { search: params.search } : {}),
     ...(params.status !== 'all' ? { status: params.status } : {}),
     ...(params.location !== 'all' ? { location: params.location } : {}),
+    ...(params.amount !== 'all' ? { amount: params.amount } : {}),
     ...(params.district ? { district: params.district } : {}),
     ...(params.customer ? { customer: params.customer } : {}),
     ...(params.product ? { product: params.product } : {}),
@@ -87,7 +88,16 @@ export async function fetchChallanSuggestions(
 
 export interface DuplicateProbe {
   sessionKey: string
+  /** Set instead of a session key when the workspace resumed a batch. */
+  batchId?: string
   customerName: string
+  /**
+   * Part of the question, not context beside it. A duplicate is the same
+   * customer, address, receiver and model — without all four this asks about
+   * the organisation rather than the delivery, and fires on every branch of a
+   * customer taking one product to twenty of them.
+   */
+  deliveryAddress: string
   receiverMobile: string
   model: string
   excludeId?: string
@@ -99,7 +109,9 @@ export async function fetchChallanDuplicates(
   const { data } = await api.get<ApiEnvelope<DuplicateChallanCandidate[]>>(`${BASE}/duplicates`, {
     params: {
       ...(probe.sessionKey ? { sessionKey: probe.sessionKey } : {}),
+      ...(probe.batchId ? { batchId: probe.batchId } : {}),
       ...(probe.customerName ? { customerName: probe.customerName } : {}),
+      ...(probe.deliveryAddress ? { deliveryAddress: probe.deliveryAddress } : {}),
       ...(probe.receiverMobile ? { receiverMobile: probe.receiverMobile } : {}),
       ...(probe.model ? { model: probe.model } : {}),
       ...(probe.excludeId ? { excludeId: probe.excludeId } : {}),
@@ -110,6 +122,11 @@ export async function fetchChallanDuplicates(
 
 export interface PageRangeProbe {
   sessionKey: string
+  /**
+   * The resumed batch, when there is one. A new session key names no batch, so
+   * without it every range in a half-finished file would come back free.
+   */
+  batchId?: string
   sourcePageCount: number
   sourcePageStart: number
   sourcePageEnd: number
@@ -125,6 +142,7 @@ export interface PageRangeProbe {
  */
 export async function checkPageRange(probe: PageRangeProbe): Promise<PageRangeAvailability> {
   const { data } = await api.get<ApiEnvelope<PageRangeAvailability>>(`${BASE}/page-range`, {
+    // Axios drops an undefined parameter, so an unresumed session sends none.
     params: probe,
     timeout: 20_000,
   })

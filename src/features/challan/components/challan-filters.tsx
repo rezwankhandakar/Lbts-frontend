@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Boxes, ListFilter, MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Boxes, ListFilter, MapPin, Search, SlidersHorizontal, Wallet, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,14 +13,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { LOCATION_STATUS_META } from '@/features/location/lib/location-meta'
+import { formatTaka } from '@/lib/format'
+import { LOCATION_REVIEW_META, LOCATION_STATUS_META } from '@/features/location/lib/location-meta'
 import { CHALLAN_STATUS_META, challanStatusMeta } from '../lib/challan-meta'
+import { BacklogChips } from './backlog-chips'
 import { CHALLAN_STATUSES } from '../types'
 import type {
+  ChallanAmountFilter,
   ChallanFilterPatch,
   ChallanListParams,
   ChallanLocationFilter,
   ChallanStatusFilter,
+  PageMeta,
 } from '../types'
 
 interface ChallanFiltersProps {
@@ -30,10 +34,15 @@ interface ChallanFiltersProps {
   /** Result count, kept on the toolbar line rather than floating above it. */
   summary?: string
   /**
-   * Quantity carried by every record these filters match — the whole set, not
+   * The response envelope for the set these filters match — the whole set, not
    * the ten rows on screen. Undefined until the first page has landed.
+   *
+   * Passed whole rather than as four unpacked totals, because everything the
+   * summary row draws comes out of it: the quantity, the charge, the caveat
+   * that the charge leaves some records out, and the backlog chips. Four props
+   * that always arrive together are one prop.
    */
-  totalQty?: number
+  meta?: PageMeta
   /** Hidden for a role that can only ever see its own records anyway. */
   canFilterByOwner: boolean
   currentUserId: string | null
@@ -46,7 +55,14 @@ const TRIGGER = 'h-8 w-full sm:w-[10rem]'
 function locationLabel(value: unknown): string {
   if (value === 'verified') return 'Location set'
   if (value === 'pending') return 'Location pending'
+  if (value === 'review') return 'Unconfirmed match'
   return 'Any location'
+}
+
+const AMOUNT_LABELS: Record<ChallanAmountFilter, string> = {
+  all: 'Any amount',
+  unpriced: 'Blank amount',
+  partial: 'Partly charged',
 }
 
 function statusLabel(value: unknown): string {
@@ -74,7 +90,7 @@ export function ChallanFilters({
   onChange,
   onReset,
   summary,
-  totalQty,
+  meta,
   canFilterByOwner,
   currentUserId,
   hideBatchFilter,
@@ -95,7 +111,8 @@ export function ChallanFilters({
     advancedCount > 0 ||
     params.search !== '' ||
     params.status !== 'all' ||
-    params.location !== 'all'
+    params.location !== 'all' ||
+    params.amount !== 'all'
 
   return (
     <div className="border-b">
@@ -147,7 +164,13 @@ export function ChallanFilters({
             {/* On the toolbar rather than behind "More filters", because
                 "which challans still need a location?" is the question an
                 administrator sits down to answer — and one behind two clicks
-                is one nobody asks. */}
+                is one nobody asks.
+
+                Two of the four options are that sitting-down: nothing was
+                determined, and something was determined by inference that
+                nobody has read. The second is the easier one to miss, because
+                a row carrying a wrong district looks exactly like a row
+                carrying a right one. */}
             <Select
               value={params.location}
               onValueChange={(value) => onChange({ location: value as ChallanLocationFilter })}
@@ -172,6 +195,13 @@ export function ChallanFilters({
                       aria-hidden
                     />
                     Location pending
+                  </SelectItem>
+                  <SelectItem value="review">
+                    <span
+                      className={cn('size-1.5 shrink-0 rounded-full', LOCATION_REVIEW_META.dot)}
+                      aria-hidden
+                    />
+                    Unconfirmed match
                   </SelectItem>
                 </SelectGroup>
               </SelectContent>
@@ -211,12 +241,38 @@ export function ChallanFilters({
             {/* A count of records answers how many challans; this answers how
                 many units were moved, which is the figure a reconciliation is
                 actually after. */}
-            {totalQty !== undefined && (
+            {meta?.totalQty !== undefined && (
               <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 font-medium text-primary tabular-nums">
                 <Boxes className="size-3" aria-hidden />
-                Total qty {totalQty.toLocaleString()}
+                Total qty {meta.totalQty.toLocaleString()}
               </span>
             )}
+            {/* And what those units were charged. Zero is not shown: a filtered
+                set that nothing could price has no total, and printing "৳0"
+                would be a figure rather than the absence of one. */}
+            {meta?.totalAmount !== undefined && meta.totalAmount > 0 && (
+              <span
+                className="inline-flex items-center gap-1 rounded-md bg-tone-emerald/10 px-1.5 py-0.5 font-medium text-tone-emerald tabular-nums"
+                title={
+                  meta.unpricedChallans
+                    ? `${meta.unpricedChallans} of these challans carry a line that is not on the rate card, so this total does not include them.`
+                    : undefined
+                }
+              >
+                <Wallet className="size-3" aria-hidden />
+                {formatTaka(meta.totalAmount)}
+                {Boolean(meta.unpricedChallans) && <span aria-hidden>*</span>}
+              </span>
+            )}
+
+            {/* What still wants attention, and how much of it there is. Each
+                one is a filter rather than a figure, because a count nobody
+                can act on is a number to scroll past — the same reasoning
+                CLAUDE.md gives for the location backlog wanting to be
+                clickable. This replaces the sentence that used to spell out
+                the uncharged count in words: the chip says the same thing and
+                does something about it. */}
+            <BacklogChips meta={meta} params={params} onChange={onChange} />
           </div>
         )}
       </div>
@@ -226,6 +282,33 @@ export function ChallanFilters({
           id="challan-advanced-filters"
           className="grid gap-3 border-t bg-muted/20 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-4"
         >
+          {/* Also reachable from the chips above, which is where somebody
+              clearing a backlog will actually press it. This is here so the
+              filter is discoverable beside the others, and so `partial` — the
+              one whose chip is absent whenever the count is zero — has a
+              permanent home. Both write the same state, so they cannot drift. */}
+          <FilterField id="filter-amount" label="Amount">
+            <Select
+              value={params.amount}
+              onValueChange={(value) => onChange({ amount: value as ChallanAmountFilter })}
+            >
+              <SelectTrigger id="filter-amount" className="w-full">
+                <SelectValue>
+                  {(value) => AMOUNT_LABELS[(value as ChallanAmountFilter) ?? 'all']}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {(Object.keys(AMOUNT_LABELS) as ChallanAmountFilter[]).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {AMOUNT_LABELS[value]}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </FilterField>
+
           <FilterField id="filter-from" label="Filed from">
             <Input
               id="filter-from"

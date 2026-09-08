@@ -13,15 +13,30 @@ import {
   markSubmitted,
   progressOf,
   removeEntry,
+  resumeSession,
   selectEntry,
   setRange,
   setValues,
   skipEntry,
   startSession,
 } from '../lib/challan-session'
-import type { ChallanEntry, ChallanSession } from '../lib/challan-session'
+import type { ChallanEntry, ChallanSession, FiledChallanPages } from '../lib/challan-session'
 import type { RangeProblem } from '../lib/page-ranges'
 import type { ChallanRecord, ChallanValues, PageRange } from '../types'
+
+/**
+ * An unfinished batch this workspace is picking up.
+ *
+ * The source PDF is not stored, so resuming is the operator opening the same
+ * file again — and everything the earlier session knew has to come back from
+ * the collection instead: which pages became challans, and which were declared
+ * blank.
+ */
+export interface ResumedBatch {
+  batchId: string
+  filed: FiledChallanPages[]
+  skippedPages: number[]
+}
 
 export interface ChallanSessionController {
   /** Identifies this workspace session to the server, so the second challan
@@ -60,14 +75,31 @@ export interface ChallanSessionController {
  * that this session has never heard of. So the range check is asked of the
  * server too, and the two answers are merged.
  */
-export function useChallanSession(sourcePageCount: number): ChallanSessionController {
+export function useChallanSession(
+  sourcePageCount: number,
+  resume?: ResumedBatch | null,
+): ChallanSessionController {
   /**
    * Generated once per workspace and never reused. It is what ties fifteen
    * separate submissions to one batch, and scoping it to the operator
    * server-side is what stops it tying them to somebody else's.
+   *
+   * A resumed workspace still has one and it still names nothing — which is
+   * precisely why resuming carries the batch id instead. The key is left in
+   * place rather than made conditional, so there is one shape of session.
    */
   const [sessionKey] = useState(() => makeId('session'))
-  const [session, setSession] = useState<ChallanSession>(() => startSession(sourcePageCount))
+  /**
+   * Read once. Which challans exist is a fact about the moment the file was
+   * reopened; anything filed after that is this session's own doing, and a
+   * refetch rebuilding the queue underneath somebody mid-entry would lose what
+   * they had typed.
+   */
+  const [session, setSession] = useState<ChallanSession>(() =>
+    resume
+      ? resumeSession(sourcePageCount, resume.filed, resume.skippedPages)
+      : startSession(sourcePageCount),
+  )
 
   const active = activeEntry(session)
 
@@ -87,11 +119,20 @@ export function useChallanSession(sourcePageCount: number): ChallanSessionContro
   const settled = useDebouncedValue(`${active?.startPage ?? 0}:${active?.endPage ?? 0}`, 400)
   const [settledStart, settledEnd] = settled.split(':').map(Number)
 
+  const batchId = resume?.batchId
   const rangeQuery = useQuery({
-    queryKey: ['challans', 'page-range', sessionKey, settledStart, settledEnd, sourcePageCount],
+    queryKey: [
+      'challans',
+      'page-range',
+      batchId ?? sessionKey,
+      settledStart,
+      settledEnd,
+      sourcePageCount,
+    ],
     queryFn: () =>
       checkPageRange({
         sessionKey,
+        batchId,
         sourcePageCount,
         sourcePageStart: settledStart,
         sourcePageEnd: settledEnd,

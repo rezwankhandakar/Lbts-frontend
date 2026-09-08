@@ -1,16 +1,17 @@
-import { Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Layers, Plus } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { ChallanDirectory } from '@/features/challan/components/challan-directory'
 import { ChallanFilters } from '@/features/challan/components/challan-filters'
 import { ListPagination } from '@/components/shared/list-pagination'
 import { ChallanStats } from '@/features/challan/components/challan-stats'
 import { DeleteChallanDialog } from '@/features/challan/components/delete-challan-dialog'
-import { RecentBatches } from '@/features/challan/components/recent-batches'
 import { useChallanActions } from '@/features/challan/hooks/use-challan-actions'
+import { useChallanLocationReview } from '@/features/challan/hooks/use-challan-location-review'
 import { useChallanListParams } from '@/features/challan/hooks/use-challan-list-params'
 import { useChallanStats, useChallans } from '@/features/challan/hooks/use-challans'
 import { canManageAnyChallan, canWriteChallans } from '@/features/challan/types'
+import type { ChallanListParams } from '@/features/challan/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { useAuthStore } from '@/stores/use-auth-store'
 
@@ -27,7 +28,17 @@ export function ChallanPage() {
   const role = useCurrentRole()
   const currentUserId = useAuthStore((state) => state.profile?.id ?? null)
 
-  const list = useChallanListParams()
+  /**
+   * Settling a run of locations happens on its own page, and this is how the
+   * filtered list somebody left survives the trip. Router state rather than
+   * the URL, because these filters have never been in the URL — carrying them
+   * back is a convenience for one journey, not a promise that a link
+   * reproduces a view.
+   */
+  const { state } = useLocation()
+  const restored = (state as { challanFilters?: ChallanListParams } | null)?.challanFilters
+
+  const list = useChallanListParams(undefined, restored)
 
   const query = useChallans(list.applied)
   const statsQuery = useChallanStats()
@@ -35,6 +46,17 @@ export function ChallanPage() {
 
   const records = query.data?.records ?? []
   const meta = query.data?.meta
+
+  /**
+   * Settling a location starts here and finishes on its own page.
+   *
+   * The two working filters — nothing determined, and determined by inference
+   * and unread — describe a backlog, and a backlog is cleared in a run. This
+   * is what turns the row somebody clicked into that run: the rest of the
+   * filtered page travels with them, so they come back once at the end rather
+   * than after every record.
+   */
+  const locationReview = useChallanLocationReview(records, list.params)
 
   if (meta && list.params.page > meta.totalPages) {
     list.clampToPages(meta.totalPages)
@@ -53,12 +75,26 @@ export function ChallanPage() {
           </p>
         </div>
 
-        {canWrite && (
-          <Button render={<Link to="/challan/new" />} className="shrink-0">
-            <Plus data-icon="inline-start" aria-hidden />
-            Open a challan PDF
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {/* Where the "Recent source PDFs" panel used to be, as a way in
+              rather than a preview of it. Four rows could only ever show the
+              four most recent files, which are the ones least likely to be the
+              unfinished ones; the page they lead to can be filtered to
+              Processing and paged through, which is what actually answers
+              "which file have I not finished". Visible to every role that can
+              read a challan — following a file's progress is not a write. */}
+          <Button variant="outline" render={<Link to="/challan/batches" />}>
+            <Layers data-icon="inline-start" aria-hidden />
+            Source PDFs
           </Button>
-        )}
+
+          {canWrite && (
+            <Button render={<Link to="/challan/new" />}>
+              <Plus data-icon="inline-start" aria-hidden />
+              Open a challan PDF
+            </Button>
+          )}
+        </div>
       </div>
 
       <ChallanStats
@@ -68,8 +104,6 @@ export function ChallanPage() {
         onRetry={() => void statsQuery.refetch()}
       />
 
-      <RecentBatches />
-
       <section
         aria-label="Challan records"
         className="overflow-hidden rounded-xl border bg-card shadow-sm"
@@ -78,7 +112,7 @@ export function ChallanPage() {
           params={list.params}
           onChange={list.applyFilters}
           onReset={list.reset}
-          totalQty={meta?.totalQty}
+          meta={meta}
           canFilterByOwner={canManageAnyChallan(role)}
           currentUserId={currentUserId}
           summary={
@@ -110,6 +144,7 @@ export function ChallanPage() {
             onSetPrinted: actions.setPrinted,
             canMarkPrinted: actions.canMarkPrinted,
             onOpenBatch: actions.openBatch,
+            onSetLocation: locationReview.openFor,
             onDelete: actions.openDelete,
           }}
         />

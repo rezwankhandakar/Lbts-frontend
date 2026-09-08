@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { ArrowLeft, Download, Layers, Pencil, Printer, Trash2, TriangleAlert } from 'lucide-react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -9,10 +9,8 @@ import { ChallanDocumentViewer } from '@/features/challan/components/challan-doc
 import { ChallanPrintMark } from '@/features/challan/components/challan-print-mark'
 import { ChallanStatusBadge } from '@/features/challan/components/challan-status-badge'
 import { DeleteChallanDialog } from '@/features/challan/components/delete-challan-dialog'
-import { SetChallanLocationDialog } from '@/features/challan/components/set-challan-location-dialog'
 import { useChallanActions } from '@/features/challan/hooks/use-challan-actions'
 import { useChallanDocument } from '@/features/challan/hooks/use-challan-document'
-import { useSetChallanLocation } from '@/features/challan/hooks/use-challan-mutations'
 import { useChallan } from '@/features/challan/hooks/use-challans'
 import { canChangeChallan } from '@/features/challan/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
@@ -47,9 +45,6 @@ export function ChallanDetailsPage() {
 
   const document = useChallanDocument(record?.id ?? null)
 
-  /** The location picker, which is the only overlay this page owns itself. */
-  const [locationOpen, setLocationOpen] = useState(false)
-  const setLocation = useSetChallanLocation()
 
   /** Stable, so the `?print=1` effect below does not re-run and cancel itself. */
   const { setPrinted } = actions
@@ -215,7 +210,14 @@ export function ChallanDetailsPage() {
             refused. */}
         <ChallanDetails
           record={record}
-          onSetLocation={canChange ? () => setLocationOpen(true) : undefined}
+          onSetLocation={
+            canChange
+              ? () =>
+                  navigate(`/challan/${record.id}/location`, {
+                    state: { queue: [record.id], returnTo: `/challan/${record.id}` },
+                  })
+              : undefined
+          }
         />
 
         <section
@@ -249,21 +251,6 @@ export function ChallanDetailsPage() {
         onConfirm={actions.confirmDelete}
       />
 
-      <SetChallanLocationDialog
-        record={record}
-        open={locationOpen}
-        isPending={setLocation.isPending}
-        onOpenChange={setLocationOpen}
-        onConfirm={(locationId) =>
-          setLocation.mutate(
-            { id: record.id, locationId },
-            // Closed only once the write actually succeeded, so a refused
-            // request leaves the operator looking at the dialog and the error
-            // rather than at a record that silently did nothing.
-            { onSuccess: () => setLocationOpen(false) },
-          )
-        }
-      />
     </div>
   )
 }

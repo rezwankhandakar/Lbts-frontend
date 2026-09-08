@@ -9,13 +9,14 @@ import {
   useBatchPrint,
   useChallanActions,
 } from '@/features/challan/hooks/use-challan-actions'
+import { useChallanLocationReview } from '@/features/challan/hooks/use-challan-location-review'
 import {
   useBatchPrinted,
   useBatchSkippedPages,
 } from '@/features/challan/hooks/use-challan-mutations'
 import { useChallanBatch } from '@/features/challan/hooks/use-challans'
 import { canManageAnyChallan, canWriteChallans } from '@/features/challan/types'
-import type { PageRange } from '@/features/challan/types'
+import type { ChallanRecord, PageRange } from '@/features/challan/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/stores/use-auth-store'
@@ -39,6 +40,12 @@ import { useAuthStore } from '@/stores/use-auth-store'
  * serial and a barcode, for a blank page.
  */
 
+/**
+ * One array rather than a fresh `[]` per render, so the location review hook's
+ * lookup map is not rebuilt on every paint while the batch is still loading.
+ */
+const EMPTY_CHALLANS: ChallanRecord[] = []
+
 /** Every page number a range covers, which is what the API stores. */
 function pagesIn(range: PageRange): number[] {
   return Array.from(
@@ -57,6 +64,7 @@ export function ChallanBatchPage() {
   const query = useChallanBatch(batchId)
   const batch = query.data ?? null
   const actions = useChallanActions()
+  const locationReview = useChallanLocationReview(batch?.challans ?? EMPTY_CHALLANS)
   const download = useBatchDownload()
   const print = useBatchPrint()
   const skipped = useBatchSkippedPages()
@@ -142,6 +150,14 @@ export function ChallanBatchPage() {
          * has to be able to say so.
          */
         onClearPrinted={() => printed.mutate({ batchId: batch.id, printed: false })}
+        /**
+         * The way back into the job. The source PDF is not stored, so this
+         * cannot reopen it — what it does is take the operator to the
+         * workspace carrying this batch, so the file they open there is
+         * checked against it and the challans they file join it rather than
+         * starting a second batch for the same document.
+         */
+        onContinue={() => navigate(`/challan/new?batch=${batch.id}`)}
       />
 
       <section
@@ -178,6 +194,11 @@ export function ChallanBatchPage() {
             onSetPrinted: actions.setPrinted,
             canMarkPrinted: actions.canMarkPrinted,
             onOpenBatch: actions.openBatch,
+            /* A source file's challans are the natural run to settle
+               locations in — they arrived together and usually went to the
+               same handful of places — and a row menu that offered this on
+               the records list and not here would read as a bug. */
+            onSetLocation: locationReview.openFor,
             onDelete: actions.openDelete,
           }}
         />

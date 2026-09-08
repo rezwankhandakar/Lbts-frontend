@@ -1,5 +1,11 @@
 import { cn } from '@/lib/utils'
-import { locationStatusMeta, locationTypeMeta } from '../lib/location-meta'
+import {
+  LOCATION_REVIEW_META,
+  locationSourceLabel,
+  locationStatusMeta,
+  locationTypeMeta,
+} from '../lib/location-meta'
+import type { LocationSource } from '../types'
 
 interface BadgeProps {
   value: string
@@ -41,6 +47,38 @@ export function LocationStatusBadge({ value, className }: BadgeProps) {
     <span className={cn(BASE, meta.badge, className)} title={meta.description}>
       <span className={cn('size-1.5 shrink-0 rounded-full', meta.dot)} aria-hidden />
       {meta.label}
+    </span>
+  )
+}
+
+/**
+ * A location that was inferred and not yet read by anybody.
+ *
+ * Carries the source in its title rather than on its face: a list needs to
+ * know *that* this one wants checking, and only somebody who has opened it
+ * needs to know whether a spelling was normalised or Gemini chose. The badge
+ * is drawn only on records where that is true, so unlike the status pair there
+ * is no "everything is fine" variant of it — an absent one here means the
+ * location was read off the master list exactly or set by a person, and both
+ * of those the district column already reports.
+ */
+export function LocationReviewBadge({
+  source,
+  className,
+}: {
+  source: LocationSource
+  className?: string
+}) {
+  return (
+    <span
+      className={cn(BASE, LOCATION_REVIEW_META.badge, className)}
+      title={`${locationSourceLabel(source)}. Nobody has confirmed it yet.`}
+    >
+      <span
+        className={cn('size-1.5 shrink-0 rounded-full', LOCATION_REVIEW_META.dot)}
+        aria-hidden
+      />
+      {LOCATION_REVIEW_META.label}
     </span>
   )
 }

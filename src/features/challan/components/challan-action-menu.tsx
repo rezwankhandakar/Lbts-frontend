@@ -3,6 +3,7 @@ import {
   EllipsisVertical,
   Eye,
   Layers,
+  MapPin,
   Pencil,
   Printer,
   PrinterCheck,
@@ -16,7 +17,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { canChangeChallan } from '../types'
+import { isReviewableLocation } from '@/features/location/types'
+import { canChangeChallan, needsLocationAttention } from '../types'
 import type { ChallanRecord } from '../types'
 import type { UserRole } from '@/lib/roles'
 
@@ -36,6 +38,13 @@ export interface ChallanActions {
   /** False for a role that may print but not write — CEO. */
   canMarkPrinted: boolean
   onOpenBatch: (record: ChallanRecord) => void
+  /**
+   * Opens the location picker over the list. Optional, because there is one
+   * place it makes no sense: the details page already carries the picker on
+   * the page itself, and a second route to it from the row menu there would
+   * be two buttons for one job.
+   */
+  onSetLocation?: (record: ChallanRecord) => void
   onDelete: (record: ChallanRecord) => void
 }
 
@@ -97,6 +106,35 @@ export function ChallanActionMenu({
           >
             <Pencil className="text-tone-indigo" aria-hidden />
             Correct
+          </DropdownMenuItem>
+        )}
+
+        {/* Setting the location is separated from Correct because it is not
+            one: it writes two fields, regenerates nothing, and is the one
+            correction that can be finished from this list without opening the
+            record. Whoever is clearing a location backlog is going through
+            rows, not challans.
+
+            The wording follows what the record actually needs — choosing one,
+            agreeing with one, or changing a settled one — so the queue an
+            administrator filtered to reads as a list of jobs rather than a
+            list of identical menu items. */}
+        {canChange && actions.onSetLocation && (
+          <DropdownMenuItem
+            className="h-8 gap-2.5 rounded-lg text-[13px]"
+            onClick={() => actions.onSetLocation?.(record)}
+          >
+            <MapPin
+              className={
+                needsLocationAttention(record) ? 'text-tone-orange' : 'text-muted-foreground'
+              }
+              aria-hidden
+            />
+            {record.locationStatus === 'Pending'
+              ? 'Set location'
+              : isReviewableLocation(record.resolvedLocation)
+                ? 'Check location'
+                : 'Change location'}
           </DropdownMenuItem>
         )}
 

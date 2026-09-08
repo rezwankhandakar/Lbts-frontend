@@ -6,6 +6,15 @@ import { MAX_SOURCE_FILE_BYTES, MAX_SOURCE_PAGES } from '../types'
 
 interface SourcePdfDropzoneProps {
   onOpen: (file: File) => void
+  /**
+   * The file this workspace is waiting for, when it is continuing a batch.
+   *
+   * It changes what is being asked for: not "a WhatsApp PDF" but *that* one,
+   * the one whose pages are half filed. A file with a different number of
+   * pages is refused rather than opened, so saying which is wanted here is
+   * what stops the refusal being a surprise.
+   */
+  expecting?: { fileName: string; pageCount: number } | null
   isOpening: boolean
   error: string | null
   onDismissError: () => void
@@ -21,6 +30,7 @@ interface SourcePdfDropzoneProps {
  */
 export function SourcePdfDropzone({
   onOpen,
+  expecting = null,
   isOpening,
   error,
   onDismissError,
@@ -73,12 +83,23 @@ export function SourcePdfDropzone({
           </div>
 
           <h2 className="mt-5 text-lg font-semibold tracking-tight text-balance">
-            {isOpening ? 'Opening the PDF…' : 'Open the challan PDF'}
+            {isOpening
+              ? 'Opening the PDF…'
+              : expecting
+                ? 'Open the same PDF again'
+                : 'Open the challan PDF'}
           </h2>
 
           <p className="mt-2 max-w-md text-sm leading-relaxed text-pretty text-muted-foreground">
-            The file Walton sent over WhatsApp, however many challans it holds. Drop it here or
-            choose it from this computer.
+            {expecting ? (
+              <>
+                <span className="font-medium text-foreground">{expecting.fileName}</span> — the{' '}
+                {expecting.pageCount}-page file this batch was started from. Drop it here or choose
+                it from this computer.
+              </>
+            ) : (
+              'The file Walton sent over WhatsApp, however many challans it holds. Drop it here or choose it from this computer.'
+            )}
           </p>
 
           <input

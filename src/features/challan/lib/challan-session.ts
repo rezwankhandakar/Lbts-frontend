@@ -192,6 +192,58 @@ export function startSession(sourcePageCount: number): ChallanSession {
   return { entries: [first], activeId: first.id, sourcePageCount, skippedPages: [] }
 }
 
+/** A challan already filed out of this source PDF, with the pages it took. */
+export interface FiledChallanPages extends FiledChallanRef {
+  startPage: number
+  endPage: number
+}
+
+/**
+ * A session over a source PDF that has been worked on before.
+ *
+ * The file itself was never stored, so coming back to an unfinished batch
+ * means opening the same PDF again — and the moment it is open this session
+ * has to know what the *collection* already holds for it, or it would offer
+ * page 1 to an operator whose page 1 was filed yesterday.
+ *
+ * Challans that already exist are seeded as submitted entries rather than
+ * held in a list beside them. That is the whole trick: every transition here
+ * already understands a submitted entry, so progress, the unassigned ranges,
+ * the overlap check, "add the next challan" and the queue all behave as though
+ * this session had filed them itself, with no second notion of a claimed page
+ * to keep in step. They are ordered by page, because that is the order the
+ * source file had them and the order somebody works through it.
+ *
+ * `openNextIfIdle` then opens a challan on the first page nobody has spoken
+ * for, which is exactly where the operator left off.
+ */
+export function resumeSession(
+  sourcePageCount: number,
+  filed: FiledChallanPages[],
+  skippedPages: number[],
+): ChallanSession {
+  const entries: ChallanEntry[] = [...filed]
+    .sort((a, b) => a.startPage - b.startPage)
+    .map((challan) => ({
+      ...newEntry(challan.startPage, challan.endPage),
+      status: 'submitted' as const,
+      challanId: challan.id,
+      challanNumber: challan.challanNumber,
+      slNumber: challan.slNumber,
+    }))
+
+  const skipped = [...new Set(skippedPages)]
+    .filter((page) => page >= 1 && page <= sourcePageCount)
+    .sort((a, b) => a - b)
+
+  return openNextIfIdle({
+    entries,
+    activeId: null,
+    sourcePageCount,
+    skippedPages: skipped,
+  })
+}
+
 export function activeEntry(session: ChallanSession): ChallanEntry | null {
   return session.entries.find((entry) => entry.id === session.activeId) ?? null
 }
@@ -470,14 +522,20 @@ export function checkEntryRange(
       challanNumber: other.challanNumber ?? labelFor(session, other.id),
     }))
 
-  // A challan filed from this session is in both lists; keeping the server's
-  // copy means the message names it by its real challan number.
-  const filedHere = new Set(
-    session.entries.map((other) => other.challanNumber).filter((value): value is string => !!value),
-  )
+  /**
+   * A filed challan is usually in both lists — this session's own entry and
+   * the server's record of it — and it must be counted once. The server's copy
+   * is the one kept, because it names the conflict by its real challan number.
+   *
+   * Matched against what the server actually returned rather than against
+   * every entry carrying a number: a resumed session starts holding challans
+   * filed days ago, and dropping those before the check has been answered
+   * would leave their pages looking free until the submission was refused.
+   */
+  const claimedOnServerNumbers = new Set(claimedOnServer.map((range) => range.challanNumber))
 
   const claimed = [
-    ...others.filter((other) => !filedHere.has(other.challanNumber)),
+    ...others.filter((other) => !claimedOnServerNumbers.has(other.challanNumber)),
     ...claimedOnServer,
   ]
 

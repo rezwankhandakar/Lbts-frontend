@@ -12,6 +12,7 @@ import {
   nextPendingAfter,
   progressOf,
   removeEntry,
+  resumeSession,
   selectEntry,
   setRange,
   setValues,
@@ -400,5 +401,87 @@ describe('naming an entry before it has a number', () => {
     const session = addEntry(addEntry(startSession(24)))
     assert.equal(labelFor(session, session.entries[0].id), 'Challan 01')
     assert.equal(labelFor(session, session.entries[2].id), 'Challan 03')
+  })
+})
+
+/**
+ * Coming back to a file that was left half-processed.
+ *
+ * The source PDF is gone by then, so everything the operator is owed has to be
+ * rebuilt out of what the collection kept: which pages became challans, which
+ * were marked blank, and therefore where the work actually resumes.
+ */
+describe('resuming an unfinished source PDF', () => {
+  const filed = (challanNumber: string, startPage: number, endPage: number, slNumber = 10001) => ({
+    id: `id-${challanNumber}`,
+    challanNumber,
+    slNumber,
+    startPage,
+    endPage,
+  })
+
+  it('opens the next challan on the first page nobody has taken', () => {
+    const session = resumeSession(53, [filed('LBTS-CH-2026-000017', 11, 11)], [])
+
+    const active = activeEntry(session)
+    assert.equal(active?.startPage, 1, 'page 1 is still free, so that is where it starts')
+    assert.equal(active?.status, 'pending')
+    assert.equal(session.entries.filter((entry) => entry.status === 'submitted').length, 1)
+  })
+
+  it('starts after the filed pages when the file was worked front to back', () => {
+    const session = resumeSession(10, [filed('LBTS-CH-2026-000001', 1, 2)], [3, 4])
+
+    assert.equal(activeEntry(session)?.startPage, 5)
+  })
+
+  it('counts filed and marked pages as accounted for, exactly as the batch does', () => {
+    const session = resumeSession(10, [filed('LBTS-CH-2026-000001', 1, 4)], [5])
+    const progress = progressOf(session)
+
+    assert.equal(progress.submitted, 1)
+    assert.equal(progress.assignedPages, 5)
+    assert.deepEqual(progress.unassigned, [{ startPage: 6, endPage: 10 }])
+    assert.equal(progress.isComplete, false)
+  })
+
+  it('refuses a range that overlaps a challan filed earlier', () => {
+    const session = resumeSession(10, [filed('LBTS-CH-2026-000001', 1, 4)], [])
+    const moved = setRange(session, session.activeId as string, { startPage: 3, endPage: 6 })
+
+    const problem = checkEntryRange(moved, moved.activeId as string)
+    assert.equal(problem?.code, 'overlap')
+    // Named by what it really is, not by a queue position: this one exists.
+    assert.equal(problem?.conflicts?.[0].challanNumber, 'LBTS-CH-2026-000001')
+  })
+
+  it('will not let an already filed challan be dropped or moved', () => {
+    const session = resumeSession(10, [filed('LBTS-CH-2026-000001', 1, 4)], [])
+    const target = session.entries[0].id
+
+    assert.equal(removeEntry(session, target).entries.length, session.entries.length)
+    const moved = setRange(session, target, { startPage: 1, endPage: 8 })
+    assert.equal(moved.entries[0].endPage, 4)
+  })
+
+  it('leaves nothing to do when every page is already accounted for', () => {
+    const session = resumeSession(4, [filed('LBTS-CH-2026-000001', 1, 3)], [4])
+
+    assert.equal(activeEntry(session), null)
+    assert.equal(progressOf(session).isComplete, true)
+    assert.equal(hasUnsavedWork(session), false)
+  })
+
+  it('orders the filed challans by page, not by when they were filed', () => {
+    const session = resumeSession(
+      12,
+      [filed('LBTS-CH-2026-000009', 7, 8), filed('LBTS-CH-2026-000004', 1, 2)],
+      [],
+    )
+
+    assert.deepEqual(
+      session.entries.filter((entry) => entry.challanNumber).map((entry) => entry.challanNumber),
+      ['LBTS-CH-2026-000004', 'LBTS-CH-2026-000009'],
+    )
   })
 })

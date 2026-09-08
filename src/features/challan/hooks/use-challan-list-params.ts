@@ -11,6 +11,7 @@ const INITIAL_PARAMS: ChallanListParams = {
   search: '',
   status: 'all',
   location: 'all',
+  amount: 'all',
   district: '',
   customer: '',
   product: '',
@@ -46,9 +47,21 @@ export interface ChallanListParamsController {
  */
 export function useChallanListParams(
   overrides: Partial<ChallanListParams> = {},
+  restored?: ChallanListParams,
 ): ChallanListParamsController {
   const initial = useMemo(() => ({ ...INITIAL_PARAMS, ...overrides }), [overrides])
-  const [params, setParams] = useState<ChallanListParams>(initial)
+
+  /**
+   * `restored` seeds the first render and nothing else — it is what somebody
+   * returning from settling a run of locations was looking at before they
+   * left, handed back so they do not have to re-select "Location pending" to
+   * see the ones still waiting.
+   *
+   * Deliberately not folded into `initial`: **Clear** must return to no
+   * filters at all, not to the ones that happened to be restored, or the one
+   * control whose entire job is emptying the list would quietly refuse to.
+   */
+  const [params, setParams] = useState<ChallanListParams>(restored ?? initial)
 
   // Typing must not fire a request per keystroke; the debounced value is what
   // reaches the query key, so the cache holds settled searches only.
@@ -85,6 +98,7 @@ export function useChallanListParams(
     params.search !== '' ||
     params.status !== 'all' ||
     params.location !== 'all' ||
+    params.amount !== 'all' ||
     params.district !== '' ||
     params.customer !== '' ||
     params.product !== '' ||

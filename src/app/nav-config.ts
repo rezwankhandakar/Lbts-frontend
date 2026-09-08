@@ -6,6 +6,7 @@ import {
   ScanLine,
   Settings,
   ShieldCheck,
+  Tags,
   Users,
   Wallet,
 } from 'lucide-react'
@@ -101,6 +102,21 @@ export const navSections: NavSection[] = [
         path: '/locations',
         icon: MapPinned,
         accent: 'cyan',
+        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+      },
+      /**
+       * The product rate card. Reference data, so it sits beside Locations
+       * under System rather than beside Challan, and it carries the same
+       * visibility: everyone Challan is open to can read it, because the entry
+       * form offers product names off it, and only the Add, Edit and Remove
+       * controls are Admin-only. Vendor is out for the same reason it is out
+       * of Challan.
+       */
+      {
+        label: 'Product Rates',
+        path: '/product-rates',
+        icon: Tags,
+        accent: 'emerald',
         roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
       },
       { label: 'Settings', path: '/settings', icon: Settings, accent: 'amber' },

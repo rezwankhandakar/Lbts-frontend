@@ -98,3 +98,36 @@ export function formatSmartDateTime(iso: string | null): string {
 
   return DATE_TIME_FORMAT.format(value)
 }
+
+/**
+ * Money, in taka.
+ *
+ * Here rather than inside a feature because two of them render the same
+ * figures: the Product Rate card shows what a delivery will be charged and
+ * Challan shows what one was. Two copies would eventually disagree about
+ * whether to print the decimals, which on a page showing both a rate and a
+ * total is immediately visible.
+ *
+ * Grouped in the Bangladeshi convention — 1,50,000 rather than 150,000 — and
+ * with decimals only where a figure has them. Every rate on the supplied card
+ * is a whole number, and "৳650.00" on a page of them is noise; a tiered line
+ * that works out fractional still has to be readable, so the places appear
+ * when they mean something.
+ */
+const TAKA_FORMAT = new Intl.NumberFormat('en-BD', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+})
+
+export function formatTaka(amount: number | null | undefined): string {
+  return typeof amount === 'number' && Number.isFinite(amount)
+    ? '\u09F3' + TAKA_FORMAT.format(amount)
+    : '\u2014'
+}
+
+/** The same figure without the sign, for a cell that already has one. */
+export function formatAmount(amount: number | null | undefined): string {
+  return typeof amount === 'number' && Number.isFinite(amount)
+    ? TAKA_FORMAT.format(amount)
+    : '\u2014'
+}

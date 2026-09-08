@@ -1,10 +1,26 @@
 import { useId, useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { useChallanSuggestions } from '../hooks/use-challan-suggestions'
 import type { ChallanSuggestionField } from '../types'
+
+/**
+ * An option offered ahead of the type-ahead, from a source that knows more
+ * than history does.
+ *
+ * The rate card is that source: what has been filed before is a record of what
+ * people typed, right and wrong alike, whereas the card is the business's own
+ * spelling of a product. So these sit above the historical suggestions rather
+ * than being mixed into them, and the group says where they came from.
+ */
+export interface PriorityOption {
+  value: string
+  /** A second line — a capacity band, a model — that tells two apart. */
+  hint?: string
+}
 
 interface SuggestInputProps {
   id: string
@@ -16,6 +32,9 @@ interface SuggestInputProps {
   invalid?: boolean
   describedBy?: string
   className?: string
+  /** Offered first, under `priorityLabel`. Empty by default. */
+  priorityOptions?: PriorityOption[]
+  priorityLabel?: string
 }
 
 /**
@@ -40,6 +59,8 @@ export function SuggestInput({
   invalid,
   describedBy,
   className,
+  priorityOptions,
+  priorityLabel,
 }: SuggestInputProps) {
   const listId = useId()
   const [isOpen, setIsOpen] = useState(false)
@@ -54,9 +75,26 @@ export function SuggestInput({
 
   const { values, isLoading } = useChallanSuggestions(field, value)
 
-  // A list showing only what is already typed is noise.
-  const options = values.filter((option) => option.toLowerCase() !== value.trim().toLowerCase())
-  const showList = isOpen && options.length > 0
+  const priority = priorityOptions ?? []
+  const priorityValues = new Set(priority.map((option) => option.value.toLowerCase()))
+
+  /**
+   * A list showing only what is already typed is noise — and so is a
+   * historical suggestion that repeats one the rate card has already offered
+   * above it, which is the common case once a model is recognised.
+   */
+  const options = values.filter(
+    (option) =>
+      option.toLowerCase() !== value.trim().toLowerCase() &&
+      !priorityValues.has(option.toLowerCase()),
+  )
+
+  /**
+   * The two groups share one keyboard index, so Arrow keys walk the whole list
+   * rather than getting stuck at the boundary between them.
+   */
+  const allOptions = [...priority.map((option) => option.value), ...options]
+  const showList = isOpen && allOptions.length > 0
 
   const choose = (option: string) => {
     onPick(option)
@@ -103,8 +141,8 @@ export function SuggestInput({
             const step = event.key === 'ArrowDown' ? 1 : -1
             setHighlighted((current) => {
               const next = current + step
-              if (next < 0) return options.length - 1
-              if (next >= options.length) return 0
+              if (next < 0) return allOptions.length - 1
+              if (next >= allOptions.length) return 0
               return next
             })
             return
@@ -114,7 +152,7 @@ export function SuggestInput({
           // guard it would submit the form from the middle of a field.
           if (event.key === 'Enter' && highlighted >= 0) {
             event.preventDefault()
-            choose(options[highlighted])
+            choose(allOptions[highlighted])
             return
           }
 
@@ -139,33 +177,93 @@ export function SuggestInput({
           role="listbox"
           className="absolute z-30 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border bg-popover p-1 shadow-lg"
         >
+          {priority.length > 0 && (
+            <>
+              {priorityLabel && (
+                <li
+                  aria-hidden
+                  className="px-2 pt-1 pb-1 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase"
+                >
+                  {priorityLabel}
+                </li>
+              )}
+              {priority.map((option, index) => (
+                <li key={`priority-${option.value}`}>
+                  <Option
+                    label={option.value}
+                    hint={option.hint}
+                    isHighlighted={index === highlighted}
+                    onHighlight={() => setHighlighted(index)}
+                    onChoose={() => choose(option.value)}
+                    pickingRef={pickingRef}
+                  />
+                </li>
+              ))}
+              {options.length > 0 && <li aria-hidden className="my-1 border-t" />}
+            </>
+          )}
+
           {options.map((option, index) => (
             <li key={option}>
-              <button
-                type="button"
-                role="option"
-                aria-selected={index === highlighted}
-                // Fires before blur, which is what keeps the list alive long
-                // enough for the click to land.
-                onMouseDown={() => {
-                  pickingRef.current = true
-                }}
-                onMouseUp={() => {
-                  pickingRef.current = false
-                }}
-                onMouseEnter={() => setHighlighted(index)}
-                onClick={() => choose(option)}
-                className={cn(
-                  'block w-full truncate rounded-md px-2 py-1.5 text-left text-[13px] outline-none',
-                  index === highlighted ? 'bg-primary/10 text-primary' : 'hover:bg-muted',
-                )}
-              >
-                {option}
-              </button>
+              <Option
+                label={option}
+                isHighlighted={priority.length + index === highlighted}
+                onHighlight={() => setHighlighted(priority.length + index)}
+                onChoose={() => choose(option)}
+                pickingRef={pickingRef}
+              />
             </li>
           ))}
         </ul>
       )}
     </div>
+  )
+}
+
+interface OptionProps {
+  label: string
+  hint?: string
+  isHighlighted: boolean
+  onHighlight: () => void
+  onChoose: () => void
+  pickingRef: RefObject<boolean>
+}
+
+/**
+ * One row of the list, shared by both groups so they cannot drift apart in
+ * how they highlight, how they read to a screen reader, or how they survive
+ * the blur-before-click race.
+ */
+function Option({
+  label,
+  hint,
+  isHighlighted,
+  onHighlight,
+  onChoose,
+  pickingRef,
+}: OptionProps) {
+  return (
+    <button
+      type="button"
+      role="option"
+      aria-selected={isHighlighted}
+      // Fires before blur, which is what keeps the list alive long enough for
+      // the click to land.
+      onMouseDown={() => {
+        pickingRef.current = true
+      }}
+      onMouseUp={() => {
+        pickingRef.current = false
+      }}
+      onMouseEnter={onHighlight}
+      onClick={onChoose}
+      className={cn(
+        'block w-full rounded-md px-2 py-1.5 text-left text-[13px] outline-none',
+        isHighlighted ? 'bg-primary/10 text-primary' : 'hover:bg-muted',
+      )}
+    >
+      <span className="block truncate">{label}</span>
+      {hint && <span className="block truncate text-[11px] text-muted-foreground">{hint}</span>}
+    </button>
   )
 }

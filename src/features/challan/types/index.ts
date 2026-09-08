@@ -1,5 +1,11 @@
 import type { UserRole } from '@/lib/roles'
-import type { LocationStatus, ResolvedLocationRef } from '@/features/location/types'
+import { isReviewableLocation } from '@/features/location/types'
+import type {
+  LocationStatus,
+  LocationType,
+  ResolvedLocationRef,
+} from '@/features/location/types'
+import type { Rate } from '@/features/product-rate/types'
 
 /**
  * The Challan API as the client sees it. Mirrors
@@ -65,6 +71,22 @@ export function canChangeChallan(
 }
 
 /**
+ * Whether this challan's location is waiting on a person.
+ *
+ * The union of the two working lists: nothing determined, or something
+ * determined by inference that nobody has read. It is what decides whether a
+ * row is drawn with a mark and whether it joins the review queue in the
+ * dialog, so both answer the same question the `pending` and `review` filters
+ * do — one predicate rather than three that could come to disagree.
+ */
+export function needsLocationAttention(record: {
+  locationStatus: LocationStatus
+  resolvedLocation: ResolvedLocationRef | null
+}): boolean {
+  return record.locationStatus === 'Pending' || isReviewableLocation(record.resolvedLocation)
+}
+
+/**
  * The two page limits live in `../lib/page-ranges`, which is import-free so
  * that `node --test` can load it, and are re-exported here so the rest of the
  * feature has one place to import module constants from.
@@ -82,6 +104,44 @@ export const MAX_CHALLAN_ITEMS = 30
 export type { ChallanItem, ChallanValues } from '../lib/challan-session'
 import type { ChallanValues } from '../lib/challan-session'
 import type { ChallanItem } from '../lib/challan-session'
+
+/**
+ * What one filed product line was charged, and on whose authority.
+ *
+ * Mirrors `ChallanItemRate` in `challan.serializer.ts`. A reference plus a
+ * copy: `masterId` says which row of the rate card answered, and the figures
+ * beside it are what that row said at the time — so correcting the card
+ * changes what is charged next and never rewrites this.
+ */
+export interface ChallanItemRate {
+  masterId: string
+  /** Which column of the card was used, which is the challan's location type. */
+  locationType: LocationType
+  rate: Rate
+  /** This line's charge, tiered arithmetic already done. */
+  amount: number
+  appliedAt: string
+}
+
+/**
+ * A product line as it comes back on a filed record.
+ *
+ * Deliberately a different type from the `ChallanItem` the entry form edits,
+ * rather than two optional fields bolted onto one. A form line is three things
+ * somebody types; a filed line also carries what the system worked out about
+ * it, and neither of those two extra values is ever entered by hand. Keeping
+ * them apart is what stops a rate becoming something a form could send.
+ */
+export interface ChallanRecordItem extends ChallanItem {
+  /** The rate card's capacity band, or blank when no row answered. */
+  capacity: string
+  /**
+   * What this line was charged, or null because nothing costed it — a product
+   * the rate card does not carry, or a challan whose location is still
+   * Pending. Null is ordinary and never blocks anything.
+   */
+  rate: ChallanItemRate | null
+}
 
 /** Mirrors MAX_CHALLAN_UPLOAD_BYTES: what one extracted range may weigh. */
 export const MAX_CHALLAN_UPLOAD_BYTES = 15 * 1024 * 1024
@@ -155,9 +215,19 @@ export interface ChallanRecord {
   locationStatus: LocationStatus
 
   /** One line per product on the challan; always at least one. */
-  items: ChallanItem[]
+  items: ChallanRecordItem[]
   /** Every quantity added up, so a list can show one number. */
   totalQty: number
+  /**
+   * Every charged line added up, or null because nothing on this challan could
+   * be priced.
+   *
+   * Null rather than zero, and the distinction is the point: zero is a challan
+   * that costs nothing, null is a challan nobody has costed.
+   */
+  totalAmount: number | null
+  /** How many lines carry no rate, so a total never pretends to cover them. */
+  unpricedItems: number
 
   document: ChallanDocumentRef
 
@@ -237,8 +307,14 @@ export interface DuplicateChallanCandidate {
   sourceFileName: string
   sourcePageStart: number
   sourcePageEnd: number
-  /** Which probe matched, so the dialog can say why it is asking. */
-  matchedOn: 'customer' | 'mobile'
+  /**
+   * Where the match was found, so the dialog can say how close it is. Both
+   * mean the same four values matched — the customer, the address, the
+   * receiver's number and the model — and differ only in scope: `batch` is the
+   * source PDF being worked through right now, `recent` is anywhere in the
+   * last three months.
+   */
+  matchedOn: 'batch' | 'recent'
 }
 
 export interface ChallanStats {
@@ -263,13 +339,28 @@ export type ChallanSuggestionField = (typeof CHALLAN_SUGGESTION_FIELDS)[number]
 export type ChallanStatusFilter = ChallanStatus | 'all'
 
 /**
- * Whether the location is settled.
+ * What state the location is in. Two of the four are working lists.
  *
- * `pending` is the working list — the challans somebody has to look at — and
- * it is the reason leaving a location blank is a workable outcome rather than
- * a record quietly lost.
+ * `pending` is "nothing was determined" — the reason leaving a location blank
+ * is a workable outcome rather than a record quietly lost. `review` is
+ * "something was determined by inference and nobody has read it", which is a
+ * different job: not choosing, but agreeing or correcting. A wrong district on
+ * a filed challan is invisible to everything downstream, so the second list
+ * matters as much as the first.
  */
-export type ChallanLocationFilter = 'all' | 'verified' | 'pending'
+export type ChallanLocationFilter = 'all' | 'verified' | 'pending' | 'review'
+
+/**
+ * What state the charges are in. Mirrors the `amount` filter in
+ * `challan.validation.ts`, which reads the stored `chargeStatus`.
+ *
+ * Two working lists again, and for the same reason the location filter has
+ * two: `unpriced` is the rows whose Amount column is a dash, which is at least
+ * visibly nothing. `partial` is the quieter one — a figure that looks complete
+ * and covers three lines of four — and folding it into the first would bury it
+ * under rows that are obviously blank.
+ */
+export type ChallanAmountFilter = 'all' | 'unpriced' | 'partial'
 
 export interface ChallanListParams {
   page: number
@@ -277,6 +368,7 @@ export interface ChallanListParams {
   search: string
   status: ChallanStatusFilter
   location: ChallanLocationFilter
+  amount: ChallanAmountFilter
   district: string
   customer: string
   product: string
@@ -302,6 +394,28 @@ export interface PageMeta {
   totalPages: number
   /** Every quantity on every matching record, not just the page on screen. */
   totalQty?: number
+  /**
+   * Every charge on every matching record, summed by the server for the same
+   * reason `totalQty` is: the browser holds one page, so anything added up
+   * here would be the total of ten rows pretending to be the total of a month.
+   *
+   * It is **understated** by any line nothing could price, which is why
+   * `unpricedChallans` travels beside it and the toolbar refuses to show one
+   * without the other.
+   */
+  totalAmount?: number
+  /** How many matching challans carry a line nobody could price. */
+  unpricedChallans?: number
+  /**
+   * The three backlogs the toolbar draws as chips, counted over the same
+   * matching set as the totals beside them — so every figure in that row
+   * answers the same question. Each one is also a filter, which is what makes
+   * a chip a way in rather than a number to look at.
+   */
+  blankAmount?: number
+  partialAmount?: number
+  locationPending?: number
+  locationReview?: number
 }
 
 export interface ChallanListResult {
@@ -317,6 +431,17 @@ export interface ChallanBatchListResult {
 /** Everything one submission carries besides the extracted pages themselves. */
 export interface SubmitChallanPayload extends ChallanValues {
   sessionKey: string
+  /**
+   * The batch being resumed, sent only when this workspace joined one instead
+   * of starting it.
+   *
+   * A resumed session's key is new and names no batch, so without this the
+   * second half of a source PDF would open a second batch for a file that
+   * already has one. It is a reference the server checks — who may add to that
+   * batch, and whether the file is even the same size — never a value it
+   * takes on trust.
+   */
+  batchId?: string
   sourceFileName: string
   sourcePageCount: number
   sourcePageStart: number

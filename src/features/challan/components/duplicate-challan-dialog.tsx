@@ -20,9 +20,15 @@ interface DuplicateChallanDialogProps {
   onContinue: () => void
 }
 
+/**
+ * Both mean the same four values matched — customer, address, receiver number
+ * and model — and differ only in where the match was found. The wording says
+ * so out loud, because "same customer and model" was the old rule and it fired
+ * on every branch of a customer taking one product to twenty of them.
+ */
 const MATCH_REASONS: Record<DuplicateChallanCandidate['matchedOn'], string> = {
-  customer: 'Same customer and model, out of this same PDF',
-  mobile: 'Same receiver number and model in the last three months',
+  batch: 'Same customer, address, number and model — out of this same PDF',
+  recent: 'Same customer, address, number and model in the last three months',
 }
 
 /**
