@@ -3,14 +3,18 @@ import { describe, it } from 'node:test'
 import {
   EMPTY_BATCH,
   addItems,
+  canJoin,
+  joinItems,
   markFiled,
   newItem,
   nextPendingAfter,
   progressOf,
   removeItem,
+  removeItems,
   replaceWith,
   select,
   skipItem,
+  splitItem,
 } from './batch-queue.ts'
 import type { BatchItem, BatchState } from './batch-queue.ts'
 
@@ -160,6 +164,127 @@ describe('combining a stack into one gate pass', () => {
   })
 })
 
+describe('removing several sheets at once', () => {
+  it('drops every named sheet and keeps the rest in order', () => {
+    const state = removeItems(stackOf(4), ['sheet-2', 'sheet-4'])
+
+    assert.deepEqual(
+      state.items.map((item) => item.id),
+      ['sheet-1', 'sheet-3'],
+    )
+  })
+
+  it('moves on when the sheet being worked on is one of them', () => {
+    const state = removeItems(select(stackOf(3), 'sheet-2'), ['sheet-1', 'sheet-2'])
+
+    assert.equal(state.activeId, 'sheet-3')
+  })
+
+  it('leaves the active sheet alone when it survives', () => {
+    const state = removeItems(select(stackOf(3), 'sheet-3'), ['sheet-1'])
+
+    assert.equal(state.activeId, 'sheet-3')
+  })
+
+  it('has nothing to work on once the last sheet goes', () => {
+    const state = removeItems(stackOf(2), ['sheet-1', 'sheet-2'])
+
+    assert.deepEqual(state.items, [])
+    assert.equal(state.activeId, null)
+  })
+
+  it('is what removing one sheet does', () => {
+    assert.deepEqual(removeItem(stackOf(3), 'sheet-2'), removeItems(stackOf(3), ['sheet-2']))
+  })
+})
+
+describe('joining some of a stack into one gate pass', () => {
+  /** What the merge produced, which the queue never does itself. */
+  const merged = (pageCount: number) => newItem(fakeFile('joined.pdf'), pageCount, 'joined')
+
+  it('refuses fewer than two sheets', () => {
+    assert.equal(canJoin(stackOf(3).items, ['sheet-2']), false)
+    assert.equal(canJoin(stackOf(3).items, []), false)
+  })
+
+  it('refuses a sheet that has already become a gate pass', () => {
+    const state = markFiled(stackOf(3), 'sheet-1', record('GP-1'), true)
+
+    assert.equal(
+      canJoin(state.items, ['sheet-1', 'sheet-2']),
+      false,
+      'a filed sheet cannot be folded into a different document',
+    )
+    assert.equal(canJoin(state.items, ['sheet-2', 'sheet-3']), true)
+  })
+
+  it('leaves the stack untouched when the join is not allowed', () => {
+    const state = markFiled(stackOf(3), 'sheet-1', record('GP-1'), true)
+    const after = joinItems(state, ['sheet-1', 'sheet-2'], merged(2))
+
+    assert.equal(after, state, 'a refused join is not a new state')
+  })
+
+  it('replaces the selected sheets with one, where the first of them sat', () => {
+    const state = joinItems(stackOf(4), ['sheet-2', 'sheet-3'], merged(2))
+
+    assert.deepEqual(
+      state.items.map((item) => item.id),
+      ['sheet-1', 'joined', 'sheet-4'],
+    )
+    assert.equal(state.activeId, 'joined', 'the join is what the operator is now typing')
+    assert.equal(state.items[1].pageCount, 2)
+  })
+
+  it('keeps the sheets it was made from, in the order they were scanned', () => {
+    const state = joinItems(stackOf(3), ['sheet-3', 'sheet-1'], merged(2))
+
+    assert.deepEqual(
+      state.items[0].parts.map((part) => part.id),
+      ['sheet-1', 'sheet-3'],
+      'ticking them out of order does not reorder the stack',
+    )
+    assert.deepEqual(
+      state.items.map((item) => item.id),
+      ['joined', 'sheet-2'],
+    )
+  })
+
+  it('flattens a join onto an already-joined sheet', () => {
+    let state = joinItems(stackOf(3), ['sheet-1', 'sheet-2'], merged(2))
+    state = joinItems(state, ['joined', 'sheet-3'], newItem(fakeFile('again.pdf'), 3, 'joined-2'))
+
+    assert.deepEqual(
+      state.items[0].parts.map((part) => part.id),
+      ['sheet-1', 'sheet-2', 'sheet-3'],
+      'splitting has to give back single sheets, not a tree',
+    )
+  })
+
+  it('puts the original sheets back when it is undone', () => {
+    const joinedState = joinItems(stackOf(4), ['sheet-2', 'sheet-3'], merged(2))
+    const state = splitItem(joinedState, 'joined')
+
+    assert.deepEqual(
+      state.items.map((item) => item.id),
+      ['sheet-1', 'sheet-2', 'sheet-3', 'sheet-4'],
+    )
+    assert.equal(state.activeId, 'sheet-2')
+  })
+
+  it('will not undo a join that has already been filed', () => {
+    let state = joinItems(stackOf(3), ['sheet-1', 'sheet-2'], merged(2))
+    state = markFiled(state, 'joined', record('GP-9'), true)
+
+    assert.equal(splitItem(state, 'joined'), state)
+  })
+
+  it('will not split an ordinary sheet', () => {
+    const state = stackOf(2)
+    assert.equal(splitItem(state, 'sheet-1'), state)
+  })
+})
+
 describe('progress', () => {
   it('reports nothing to do for an empty stack', () => {
     const progress = progressOf([])
@@ -172,6 +297,15 @@ describe('progress', () => {
   it('treats a single sheet as not a batch', () => {
     assert.equal(progressOf(stackOf(1).items).isBatch, false)
     assert.equal(progressOf(stackOf(2).items).isBatch, true)
+  })
+
+  it('reports a join, so the tray still has somewhere to undo it', () => {
+    const state = joinItems(stackOf(2), ['sheet-1', 'sheet-2'], newItem(fakeFile('j.pdf'), 2, 'j'))
+    const progress = progressOf(state.items)
+
+    assert.equal(progress.isBatch, false, 'one document is one gate pass')
+    assert.equal(progress.hasJoined, true)
+    assert.equal(progressOf(stackOf(2).items).hasJoined, false)
   })
 
   it('counts drafts and submissions as filed, and skips as neither', () => {

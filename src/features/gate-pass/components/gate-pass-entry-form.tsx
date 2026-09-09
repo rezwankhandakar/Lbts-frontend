@@ -14,6 +14,16 @@ interface GatePassEntryFormProps {
   /** True once a scanned document is attached or staged. */
   hasDocument: boolean
   isBusy: boolean
+  /**
+   * Why this record cannot be written yet, when something about the staged
+   * scan is unresolved — several sheets against a record that takes one
+   * document, say.
+   *
+   * A reason rather than a boolean, because a disabled button that does not
+   * say what would enable it is a dead end, and the thing to fix is in the
+   * other half of the workspace.
+   */
+  blockedReason?: string | null
   /** Hidden when the record can no longer be a draft. */
   canSaveDraft: boolean
   /**
@@ -49,6 +59,7 @@ export function GatePassEntryForm({
   defaultValues,
   hasDocument,
   isBusy,
+  blockedReason,
   canSaveDraft,
   primaryAction,
   submitLabel,
@@ -157,7 +168,9 @@ export function GatePassEntryForm({
           scrolling back down past four field groups. */}
       <footer className="sticky bottom-0 z-10 flex flex-col gap-2 border-t bg-card/95 px-4 py-3 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <p className="text-xs text-muted-foreground">
-          {hasDocument ? (
+          {blockedReason ? (
+            <span className="text-tone-amber">{blockedReason}</span>
+          ) : hasDocument ? (
             <span className="text-tone-emerald">Document attached</span>
           ) : (
             'A scanned document is required to submit.'
@@ -170,7 +183,7 @@ export function GatePassEntryForm({
               type="button"
               variant="outline"
               size="lg"
-              disabled={isBusy}
+              disabled={isBusy || Boolean(blockedReason)}
               onClick={() => void handleSubmit(onSaveDraft)()}
             >
               <Save data-icon="inline-start" aria-hidden />
@@ -178,7 +191,11 @@ export function GatePassEntryForm({
             </Button>
           )}
 
-          <Button type="submit" size="lg" disabled={isBusy || !hasDocument}>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isBusy || !hasDocument || Boolean(blockedReason)}
+          >
             {isBusy ? (
               <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
             ) : primaryAction === 'save' ? (
@@ -192,7 +209,8 @@ export function GatePassEntryForm({
       </footer>
 
       <p className={cn('sr-only')} aria-live="polite">
-        {hasDocument ? 'A scanned document is attached.' : 'No scanned document yet.'}
+        {blockedReason ??
+          (hasDocument ? 'A scanned document is attached.' : 'No scanned document yet.')}
       </p>
     </form>
   )

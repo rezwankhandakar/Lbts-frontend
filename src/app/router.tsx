@@ -11,6 +11,7 @@ import { CHALLAN_READ_ROLES, CHALLAN_WRITE_ROLES } from '@/features/challan/type
 import { GATE_PASS_READ_ROLES, GATE_PASS_WRITE_ROLES } from '@/features/gate-pass/types'
 import { LOCATION_READ_ROLES } from '@/features/location/types'
 import { PRODUCT_RATE_READ_ROLES } from '@/features/product-rate/types'
+import { VENDOR_READ_ROLES } from '@/features/vendor/types'
 import { DashboardPage } from '@/pages/dashboard'
 
 /**
@@ -19,9 +20,6 @@ import { DashboardPage } from '@/pages/dashboard'
  * <Suspense> boundary inside <main>, so the shell never unmounts while a chunk
  * loads. Pages use named exports, hence the default-mapping in each import.
  */
-const ModuleAPage = lazy(() => import('@/pages/module-a').then((m) => ({ default: m.ModuleAPage })))
-const ModuleBPage = lazy(() => import('@/pages/module-b').then((m) => ({ default: m.ModuleBPage })))
-const ModuleCPage = lazy(() => import('@/pages/module-c').then((m) => ({ default: m.ModuleCPage })))
 const GatePassPage = lazy(() =>
   import('@/pages/gate-pass').then((m) => ({ default: m.GatePassPage })),
 )
@@ -64,6 +62,18 @@ const LocationsPage = lazy(() =>
 )
 const ProductRatesPage = lazy(() =>
   import('@/pages/product-rates').then((m) => ({ default: m.ProductRatesPage })),
+)
+const VendorsPage = lazy(() => import('@/pages/vendors').then((m) => ({ default: m.VendorsPage })))
+const VendorDetailsPage = lazy(() =>
+  import('@/pages/vendor-details').then((m) => ({ default: m.VendorDetailsPage })),
+)
+/**
+ * The vendor account's own record. Its own route rather than a redirect into
+ * `/vendors/:id`, because it needs no id: the server reads the link off the
+ * profile, so there is nothing in the URL for a vendor user to edit.
+ */
+const MyVendorPage = lazy(() =>
+  import('@/pages/my-vendor').then((m) => ({ default: m.MyVendorPage })),
 )
 const AdministrationPage = lazy(() =>
   import('@/pages/administration').then((m) => ({ default: m.AdministrationPage })),
@@ -115,6 +125,17 @@ const LOCATION_ACCESS_REASON =
  */
 const PRODUCT_RATE_ACCESS_REASON =
   'The product rate card is what every challan line is charged from, and is open to Admin, Manager, CEO and Operation Executive accounts.'
+
+/**
+ * Vendors has one boundary here, and it is the widest in the app: every role
+ * can reach it, `Vendor` included. That is not a gap — a Vendor account's view
+ * is narrowed to its own vendor by the API, from the account's own profile, and
+ * no URL it can type widens that. Writing is Admin and Manager, enforced per
+ * endpoint rather than per route, because the same page serves both audiences
+ * with the write controls simply absent.
+ */
+const VENDOR_ACCESS_REASON =
+  'Vendors, their vehicles, their drivers and their compliance documents. Staff accounts see every vendor; a vendor account sees its own.'
 
 export function AppRouter() {
   return (
@@ -218,9 +239,25 @@ export function AppRouter() {
             <Route path="/product-rates" element={<ProductRatesPage />} />
           </Route>
 
-          <Route path="/module-a" element={<ModuleAPage />} />
-          <Route path="/module-b" element={<ModuleBPage />} />
-          <Route path="/module-c" element={<ModuleCPage />} />
+          {/* Vendors. Every role reaches this, `Vendor` included — what differs
+              is scope, and scope is the server's decision from the account's own
+              profile rather than anything a route can express. `/my-vendor` is
+              the same workspace without an id, which is what makes it impossible
+              for a vendor account to point at another vendor's record. */}
+          <Route
+            element={
+              <RoleRoute
+                roles={VENDOR_READ_ROLES}
+                area="Vendors"
+                reason={VENDOR_ACCESS_REASON}
+              />
+            }
+          >
+            <Route path="/vendors" element={<VendorsPage />} />
+            <Route path="/vendors/:id" element={<VendorDetailsPage />} />
+            <Route path="/my-vendor" element={<MyVendorPage />} />
+          </Route>
+
           {/* Reached from the account menu rather than the sidebar: it is
               every user's own account, not a destination in the business. */}
           <Route path="/profile" element={<ProfilePage />} />

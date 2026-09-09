@@ -41,10 +41,23 @@ export async function fetchUserStats(): Promise<UserStats> {
 export interface ChangeRoleInput {
   id: string
   role: UserRole
+  /**
+   * Required when the role is `Vendor`, and ignored otherwise — the server
+   * clears the link on any other role rather than trusting the client to.
+   *
+   * This is the *only* place in the app that sends a vendor id, and it is an
+   * Admin naming a relationship rather than a vendor claiming one. Every read
+   * in the Vendor module takes its scope from the profile this writes, never
+   * from a request.
+   */
+  vendorId?: string | null
 }
 
-export async function changeUserRole({ id, role }: ChangeRoleInput): Promise<AdminUser> {
-  const { data } = await api.patch<ApiEnvelope<AdminUser>>(`${BASE}/${id}/role`, { role })
+export async function changeUserRole({ id, role, vendorId }: ChangeRoleInput): Promise<AdminUser> {
+  const { data } = await api.patch<ApiEnvelope<AdminUser>>(`${BASE}/${id}/role`, {
+    role,
+    ...(role === 'Vendor' ? { vendorId } : {}),
+  })
   return data.data
 }
 

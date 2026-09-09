@@ -1,49 +1,30 @@
-import { useEffect, useMemo } from 'react'
-import { Check, FileText, Layers, SkipForward, Trash2, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
 import { isPdf } from '../lib/gate-pass-document'
-import type { BatchItem, BatchItemStatus, ScanBatch } from '../hooks/use-scan-batch'
+import type { BatchItem, ScanBatch } from '../hooks/use-scan-batch'
+import { ScanSheetActions } from './scan-sheet-actions'
+import { ScanSheetTile } from './scan-sheet-tile'
+import { ScanTrayHeader } from './scan-tray-header'
 
 interface ScanBatchTrayProps {
   batch: ScanBatch
   /** Offered only while nothing has been filed — see the comment below. */
   onCombine?: () => void
+  /**
+   * Joins the named sheets into one gate pass document. Awaited, because the
+   * merge is real work on real bytes and the tray has to say so.
+   */
+  onJoin: (ids: string[]) => Promise<boolean>
+  isJoining?: boolean
+  /**
+   * True when this workspace holds one record and therefore one document —
+   * correcting a gate pass. The sheets are then pages of a single scan rather
+   * than a queue of gate passes waiting to be typed, and everything the tray
+   * says about filing, skipping and going next is wrong.
+   */
+  singleDocument?: boolean
   disabled?: boolean
-}
-
-interface StatusStyle {
-  ring: string
-  badge: string
-  label: string
-}
-
-/**
- * Full literal class strings, because Tailwind scans source text — the same
- * rule as `layout/nav-accents.ts` and `lib/roles.ts`.
- */
-const STATUS_STYLES: Record<BatchItemStatus, StatusStyle> = {
-  pending: {
-    ring: 'ring-border',
-    badge: 'bg-muted text-muted-foreground',
-    label: 'Not entered yet',
-  },
-  submitted: {
-    ring: 'ring-tone-emerald/50',
-    badge: 'bg-tone-emerald text-background',
-    label: 'Submitted',
-  },
-  draft: {
-    ring: 'ring-tone-amber/50',
-    badge: 'bg-tone-amber text-background',
-    label: 'Saved as a draft',
-  },
-  skipped: {
-    ring: 'ring-border',
-    badge: 'bg-muted-foreground text-background',
-    label: 'Skipped',
-  },
 }
 
 /**
@@ -57,12 +38,20 @@ const STATUS_STYLES: Record<BatchItemStatus, StatusStyle> = {
 function useThumbnails(items: BatchItem[]): Record<string, string> {
   const urls = useMemo(() => {
     const map: Record<string, string> = {}
+
     for (const item of items) {
-      // A PDF cannot be shown as an <img>; those get an icon instead.
-      if (!isPdf(item.file.type)) {
-        map[item.id] = URL.createObjectURL(item.file)
+      // A joined sheet is a PDF, which cannot be an <img> — but the sheets it
+      // was made from are still here, so it keeps the picture of its first
+      // page rather than becoming an icon the moment it is joined.
+      const shown = isPdf(item.file.type)
+        ? (item.parts.find((part) => !isPdf(part.file.type))?.file ?? null)
+        : item.file
+
+      if (shown) {
+        map[item.id] = URL.createObjectURL(shown)
       }
     }
+
     return map
   }, [items])
 
@@ -84,149 +73,141 @@ function useThumbnails(items: BatchItem[]): Record<string, string> {
  * at once, the one being typed is obvious, and a filed sheet carries the gate
  * pass number it became — so nobody types the same challan twice, and nobody
  * has to remember where they were after a phone call.
+ *
+ * The tray is also where a stack is told apart from a document. Ten sheets are
+ * usually ten gate passes, but a printed challan is not always one sheet — so
+ * the sheets belonging to one Trip DO are ticked here and joined into a single
+ * document before that gate pass is filed. Correcting a record is the same
+ * mechanism with the question already answered: there is one record, so every
+ * sheet staged against it is a page of its one scan.
  */
-export function ScanBatchTray({ batch, onCombine, disabled }: ScanBatchTrayProps) {
+export function ScanBatchTray({
+  batch,
+  onCombine,
+  onJoin,
+  isJoining,
+  singleDocument = false,
+  disabled,
+}: ScanBatchTrayProps) {
   const thumbnails = useThumbnails(batch.items)
 
-  if (!batch.isBatch) {
+  /** Null while the tray is picking a sheet to type; a list while selecting. */
+  const [selection, setSelection] = useState<string[] | null>(null)
+
+  const pending = batch.items.filter((item) => item.status === 'pending')
+  const busy = Boolean(disabled || isJoining)
+
+  /**
+   * Selecting mode, closed when there is nothing left to select.
+   *
+   * Derived rather than reset, because a stack drops below two candidates on
+   * its own — a join itself does exactly that, and so does filing the
+   * second-to-last sheet. Deriving it means the mode cannot be left standing
+   * over a stack that no longer offers a choice.
+   */
+  const picking = pending.length >= 2 ? selection : null
+
+  if (!batch.isBatch && !batch.hasJoined) {
     return null
   }
+
+  const toggle = (id: string) => {
+    setSelection((current) =>
+      current === null
+        ? current
+        : current.includes(id)
+          ? current.filter((value) => value !== id)
+          : [...current, id],
+    )
+  }
+
+  const join = async (ids: string[]) => {
+    if (ids.length < 2) {
+      return
+    }
+    await onJoin(ids)
+    setSelection(null)
+  }
+
+  const removePicked = () => {
+    if (picking === null || picking.length === 0) {
+      return
+    }
+    batch.removeMany(picking)
+    setSelection(null)
+  }
+
+  const active = batch.active
 
   return (
     <section aria-label="Scanned sheets" className="border-b bg-muted/20">
       <header className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 sm:px-5">
-        <div className="flex items-center gap-2">
-          <Layers className="size-4 text-muted-foreground" aria-hidden />
-          <p className="text-[13px] font-semibold tracking-tight">
-            {batch.total} sheets scanned
+        <ScanTrayHeader
+          batch={batch}
+          singleDocument={singleDocument}
+          pendingCount={pending.length}
+          picking={picking}
+          isJoining={Boolean(isJoining)}
+          busy={busy}
+          canJoin={picking !== null && picking.length >= 2}
+          onStartPicking={() => setSelection([])}
+          onCancelPicking={() => setSelection(null)}
+          onJoin={() => void join(picking ?? [])}
+          onRemove={removePicked}
+          onCombine={onCombine}
+        />
+      </header>
+
+      {/* One record takes one document, so a stack staged against a correction
+          is not a choice the operator can leave open — the save is blocked
+          until it is one, and this is the one click that does it. */}
+      {singleDocument && picking === null && pending.length > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-tone-amber/25 bg-tone-amber/5 px-4 py-2 sm:px-5">
+          <p className="max-w-md text-xs leading-relaxed text-pretty">
+            <span className="font-semibold">This gate pass holds one document.</span> Join these{' '}
+            {pending.length} sheets into one, or remove the ones that do not belong.
           </p>
-          <span className="text-xs text-muted-foreground" aria-live="polite">
-            {batch.filed} of {batch.total} filed
-            {batch.remaining > 0 ? ` · ${batch.remaining} to go` : ''}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {/* Only while the stack is untouched. Once a sheet has become a gate
-              pass, merging the rest into one document would contradict a
-              record that already exists. */}
-          {onCombine && batch.filed === 0 && (
-            <Button variant="ghost" size="xs" onClick={onCombine} disabled={disabled}>
-              These are one gate pass
-            </Button>
-          )}
-
           <Button
-            variant="ghost"
             size="xs"
-            className="text-muted-foreground"
-            onClick={batch.clear}
-            disabled={disabled}
+            onClick={() => void join(pending.map((item) => item.id))}
+            disabled={busy}
           >
-            <X data-icon="inline-start" aria-hidden />
-            Clear all
+            <Layers data-icon="inline-start" aria-hidden />
+            Join all {pending.length}
           </Button>
         </div>
-      </header>
+      )}
 
       {/* Horizontal scroll rather than a wrapping grid: the sheets are in the
           order they came off the feeder, and that order is worth keeping
           readable at any width. */}
       <ol className="flex gap-2 overflow-x-auto px-4 pb-3 sm:px-5">
-        {batch.items.map((item, index) => {
-          const style = STATUS_STYLES[item.status]
-          const isActive = item.id === batch.activeId
-          const thumbnail = thumbnails[item.id]
-
-          return (
-            <li key={item.id} className="shrink-0">
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <button
-                      type="button"
-                      onClick={() => batch.select(item.id)}
-                      aria-current={isActive ? 'true' : undefined}
-                      className={cn(
-                        'relative block w-16 overflow-hidden rounded-lg bg-card ring-1 transition-all outline-none',
-                        'focus-visible:ring-2 focus-visible:ring-ring',
-                        style.ring,
-                        isActive && 'ring-2 ring-primary',
-                        item.status === 'skipped' && 'opacity-50',
-                      )}
-                    />
-                  }
-                >
-                  <span className="flex h-20 items-center justify-center overflow-hidden bg-muted/60">
-                    {thumbnail ? (
-                      <img src={thumbnail} alt="" className="size-full object-cover object-top" />
-                    ) : (
-                      <FileText className="size-6 text-muted-foreground" aria-hidden />
-                    )}
-                  </span>
-
-                  <span className="block truncate px-1 py-1 text-[10px] leading-tight font-medium">
-                    {item.gatePassId ?? `Sheet ${index + 1}`}
-                  </span>
-
-                  {item.status !== 'pending' && (
-                    <span
-                      className={cn(
-                        'absolute top-1 right-1 flex size-4 items-center justify-center rounded-full',
-                        style.badge,
-                      )}
-                      aria-hidden
-                    >
-                      {item.status === 'skipped' ? (
-                        <SkipForward className="size-2.5" />
-                      ) : (
-                        <Check className="size-2.5" />
-                      )}
-                    </span>
-                  )}
-                </TooltipTrigger>
-
-                <TooltipContent>
-                  Sheet {index + 1} · {style.label}
-                  {item.gatePassId ? ` · ${item.gatePassId}` : ''}
-                </TooltipContent>
-              </Tooltip>
-            </li>
-          )
-        })}
+        {batch.items.map((item, index) => (
+          <li key={item.id} className="shrink-0">
+            <ScanSheetTile
+              item={item}
+              position={index + 1}
+              thumbnail={thumbnails[item.id]}
+              isActive={item.id === batch.activeId}
+              isSelected={picking === null ? null : picking.includes(item.id)}
+              isSelectable={item.status === 'pending'}
+              onClick={() => (picking === null ? batch.select(item.id) : toggle(item.id))}
+            />
+          </li>
+        ))}
       </ol>
 
-      {batch.active && batch.active.status === 'pending' && (
-        <div className="flex items-center justify-between gap-2 border-t px-4 py-2 sm:px-5">
-          <p className="text-xs text-muted-foreground">
-            Entering sheet{' '}
-            <span className="font-medium text-foreground">{batch.activePosition}</span> of{' '}
-            {batch.total}
-          </p>
-
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="xs"
-              className="text-muted-foreground"
-              onClick={() => batch.skip(batch.active!.id)}
-              disabled={disabled}
-            >
-              <SkipForward data-icon="inline-start" aria-hidden />
-              Skip this sheet
-            </Button>
-            <Button
-              variant="ghost"
-              size="xs"
-              className="text-muted-foreground"
-              onClick={() => batch.remove(batch.active!.id)}
-              disabled={disabled}
-            >
-              <Trash2 data-icon="inline-start" aria-hidden />
-              Discard
-            </Button>
-          </div>
-        </div>
+      {picking === null && active && active.status === 'pending' && (
+        <ScanSheetActions
+          item={active}
+          position={batch.activePosition}
+          total={batch.total}
+          singleDocument={singleDocument}
+          busy={busy}
+          onSplit={() => batch.split(active.id)}
+          onSkip={() => batch.skip(active.id)}
+          onRemove={() => batch.remove(active.id)}
+        />
       )}
     </section>
   )

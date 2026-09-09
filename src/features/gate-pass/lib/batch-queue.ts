@@ -18,6 +18,15 @@ export interface BatchItem {
   /** The gate pass this sheet became, once it became one. */
   gatePassId: string | null
   recordId: string | null
+  /**
+   * The sheets this one was joined from, when it was joined from several.
+   *
+   * Empty for an ordinary sheet, and the only reason it is kept is undo: a
+   * challan spanning three pages is joined by eye off a strip of thumbnails,
+   * so joining the wrong two is an ordinary mistake and it should cost a click
+   * rather than another trip to the scanner.
+   */
+  parts: BatchItem[]
 }
 
 /**
@@ -46,7 +55,15 @@ export function makeItemId(): string {
 }
 
 export function newItem(file: File, pageCount: number, id = makeItemId()): BatchItem {
-  return { id, file, pageCount, status: 'pending', gatePassId: null, recordId: null }
+  return {
+    id,
+    file,
+    pageCount,
+    status: 'pending',
+    gatePassId: null,
+    recordId: null,
+    parts: [],
+  }
 }
 
 /**
@@ -76,6 +93,64 @@ export function addItems(state: BatchState, items: BatchItem[]): BatchState {
 /** Replaces the whole stack with one document — see "these are one gate pass". */
 export function replaceWith(item: BatchItem): BatchState {
   return { items: [item], activeId: item.id }
+}
+
+/**
+ * Whether these sheets may be joined into one gate pass.
+ *
+ * Two or more, and every one of them still pending. A sheet that has already
+ * become a gate pass is not a candidate: folding it into a different document
+ * would leave a record pointing at pages it no longer claims, and the record
+ * is the thing that has to stay true.
+ */
+export function canJoin(items: BatchItem[], ids: string[]): boolean {
+  const selected = items.filter((item) => ids.includes(item.id))
+  return selected.length >= 2 && selected.every((item) => item.status === 'pending')
+}
+
+/**
+ * Replaces the selected sheets with the one document they were merged into.
+ *
+ * The merged sheet takes the position of the first one selected, so the stack
+ * keeps the order it came off the feeder in, and it becomes the sheet being
+ * worked on — joining is something an operator does *about* the challan in
+ * front of them.
+ *
+ * The parts are flattened, so joining a sheet onto an already-joined one still
+ * splits back into single sheets rather than into a tree nobody asked for.
+ */
+export function joinItems(state: BatchState, ids: string[], joined: BatchItem): BatchState {
+  if (!canJoin(state.items, ids)) {
+    return state
+  }
+
+  const selected = state.items.filter((item) => ids.includes(item.id))
+  const at = state.items.findIndex((item) => item.id === selected[0].id)
+  const rest = state.items.filter((item) => !ids.includes(item.id))
+  const parts = selected.flatMap((item) => (item.parts.length > 0 ? item.parts : [item]))
+
+  return {
+    // Every item before `at` was unselected, so `rest` still holds all of them
+    // in order and splicing at the same index puts the join where the first
+    // selected sheet was.
+    items: [...rest.slice(0, at), { ...joined, parts }, ...rest.slice(at)],
+    activeId: joined.id,
+  }
+}
+
+/** Undoes a join, putting the original sheets back where the merged one sat. */
+export function splitItem(state: BatchState, id: string): BatchState {
+  const index = state.items.findIndex((item) => item.id === id)
+  const item = index === -1 ? null : state.items[index]
+
+  if (!item || item.parts.length === 0 || item.status !== 'pending') {
+    return state
+  }
+
+  return {
+    items: [...state.items.slice(0, index), ...item.parts, ...state.items.slice(index + 1)],
+    activeId: item.parts[0].id,
+  }
 }
 
 export function select(state: BatchState, id: string): BatchState {
@@ -115,16 +190,27 @@ export function skipItem(state: BatchState, id: string): BatchState {
   return settle(state, id, (item) => ({ ...item, status: 'skipped' }))
 }
 
-export function removeItem(state: BatchState, id: string): BatchState {
-  const items = state.items.filter((item) => item.id !== id)
+/**
+ * Discards several sheets at once.
+ *
+ * The plural is the real operation and `removeItem` is the one-sheet case of
+ * it: sheets are discarded from the same tick-box mode they are joined from,
+ * and a feeder that pulled two blank pages is one gesture rather than two.
+ */
+export function removeItems(state: BatchState, ids: string[]): BatchState {
+  const items = state.items.filter((item) => !ids.includes(item.id))
 
   return {
     items,
     activeId:
-      state.activeId === id
+      state.activeId !== null && ids.includes(state.activeId)
         ? (items.find((item) => item.status === 'pending')?.id ?? null)
         : state.activeId,
   }
+}
+
+export function removeItem(state: BatchState, id: string): BatchState {
+  return removeItems(state, [id])
 }
 
 export interface BatchProgress {
@@ -135,6 +221,14 @@ export interface BatchProgress {
   isComplete: boolean
   /** True while more than one sheet is in play, which is what shows the tray. */
   isBatch: boolean
+  /**
+   * True when any sheet is several sheets joined together.
+   *
+   * The tray is shown for this as well as for a stack, because joining a whole
+   * two-sheet scan leaves exactly one item — and the button that undoes it
+   * lives in the tray.
+   */
+  hasJoined: boolean
 }
 
 export function progressOf(items: BatchItem[]): BatchProgress {
@@ -144,5 +238,6 @@ export function progressOf(items: BatchItem[]): BatchProgress {
     remaining: items.filter((item) => item.status === 'pending').length,
     isComplete: items.length > 0 && items.every(isHandled),
     isBatch: items.length > 1,
+    hasJoined: items.some((item) => item.parts.length > 0),
   }
 }

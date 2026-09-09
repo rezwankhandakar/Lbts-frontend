@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { useGatePassDocument } from '../hooks/use-gate-pass-document'
 import { useGatePassWorkspace } from '../hooks/use-gate-pass-workspace'
 import type { StagedDocument } from '../hooks/use-gate-pass-workspace'
+import { useJoinSheets } from '../hooks/use-join-sheets'
 import { useScanBatch } from '../hooks/use-scan-batch'
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
@@ -85,6 +86,7 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
   const navigate = useNavigate()
 
   const batch = useScanBatch()
+  const joining = useJoinSheets(batch)
   const [pane, setPane] = useState<WorkspacePane>('form')
   const [isFormDirty, setIsFormDirty] = useState(false)
 
@@ -93,6 +95,15 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
    * multi-sheet scan is taken as a single document there rather than a stack.
    */
   const allowBatch = initialRecord === null
+
+  /**
+   * Sheets staged but not yet filed. In a correction these are pages of one
+   * scan, so more than one of them is a question the operator has to answer
+   * before anything is written — several sheets and one document slot means
+   * saving would quietly keep whichever was on screen and drop the rest.
+   */
+  const stagedSheets = batch.items.filter((item) => item.status === 'pending').length
+  const hasUnjoinedSheets = !allowBatch && stagedSheets > 1
 
   /**
    * Remounts the form between entries. Changing the key is what clears nine
@@ -147,8 +158,10 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
     (values: GatePassFormValues, saved: GatePassRecord, submitted: boolean) => {
       const item = activeItem
 
-      if (!item) {
-        // No stack in play: a single gate pass, which ends on its own page.
+      // A correction is one record. Marking a sheet, forgetting the record and
+      // carrying values forward are all queue moves, and running them here
+      // would turn the next staged sheet into a second gate pass.
+      if (!allowBatch || !item) {
         navigate(`/gate-pass/${saved.id}`, { replace: true })
         return
       }
@@ -169,7 +182,7 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
       setIsFormDirty(false)
       setPane('form')
     },
-    [activeItem, batch, workspace, navigate],
+    [activeItem, allowBatch, batch, workspace, navigate],
   )
 
   const handleSubmit = useCallback(
@@ -303,7 +316,12 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
             key={entryKey}
             defaultValues={defaultValues}
             hasDocument={hasDocument}
-            isBusy={workspace.isBusy}
+            isBusy={workspace.isBusy || joining.isJoining}
+            blockedReason={
+              hasUnjoinedSheets
+                ? `Join the ${stagedSheets} scanned sheets into one document first, or remove the ones that do not belong.`
+                : null
+            }
             canSaveDraft={!record || record.status === 'Draft'}
             primaryAction={isFiled ? 'save' : 'submit'}
             submitLabel={primaryLabel}
@@ -321,6 +339,7 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
         >
           <GatePassScannerPanel
             batch={batch}
+            joining={joining}
             allowBatch={allowBatch}
             storedUrl={stored.url}
             storedMimeType={record?.document?.mimeType ?? null}

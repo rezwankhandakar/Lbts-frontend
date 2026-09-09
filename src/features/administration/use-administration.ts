@@ -85,9 +85,19 @@ export function useChangeUserRole(): UseMutationResult<
   const invalidate = useInvalidateAdministration()
 
   return useMutation({
-    mutationFn: ({ id, role }) => changeUserRole({ id, role }),
+    mutationFn: ({ id, role, vendorId }) => changeUserRole({ id, role, vendorId }),
     onSuccess: (user, variables) => {
-      toast.success(`${variables.name} is now ${user.role}`)
+      /**
+       * A Vendor account is only half a decision without the vendor it speaks
+       * for, so the toast names it. Without that an Admin has no confirmation
+       * that the link they chose is the one that landed — and the link is the
+       * whole of what that account will be able to see.
+       */
+      toast.success(`${variables.name} is now ${user.role}`, {
+        description: user.vendor
+          ? `Linked to ${user.vendor.name} (${user.vendor.vendorCode}). They will see that vendor's fleet, read-only.`
+          : undefined,
+      })
       void invalidate()
     },
     onError: reportError,

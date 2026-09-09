@@ -1,5 +1,5 @@
 import {
-  Boxes,
+  Building2,
   LayoutDashboard,
   MapPinned,
   ReceiptText,
@@ -7,8 +7,7 @@ import {
   Settings,
   ShieldCheck,
   Tags,
-  Users,
-  Wallet,
+  Truck,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { UserRole } from '@/lib/roles'
@@ -72,9 +71,33 @@ export const navSections: NavSection[] = [
         accent: 'violet',
         roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
       },
-      { label: 'Module A', path: '/module-a', icon: Boxes, accent: 'amber' },
-      { label: 'Module B', path: '/module-b', icon: Users, accent: 'violet' },
-      { label: 'Module C', path: '/module-c', icon: Wallet, accent: 'emerald' },
+      /**
+       * Vendors, and the two entries are the same module seen from two sides.
+       *
+       * Staff get the directory. A `Vendor` account gets **My Vendor** instead —
+       * a directory of one row would be a list to click through for no reason,
+       * and `/my-vendor` needs no id at all, which is what makes it impossible
+       * to point at somebody else's.
+       *
+       * Both are presentation. `RoleRoute` guards the URLs and the API scopes
+       * every request from the caller's own profile, so a vendor who types
+       * `/vendors/<somebody else>` is answered 404 by the server rather than by
+       * anything here.
+       */
+      {
+        label: 'Vendors',
+        path: '/vendors',
+        icon: Building2,
+        accent: 'emerald',
+        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+      },
+      {
+        label: 'My Vendor',
+        path: '/my-vendor',
+        icon: Truck,
+        accent: 'emerald',
+        roles: ['Vendor'],
+      },
     ],
   },
   {

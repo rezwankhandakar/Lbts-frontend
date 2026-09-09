@@ -28,6 +28,22 @@ export interface AdminUser {
   statusUpdatedAt: string | null
   statusUpdatedBy: ActorRef | null
   statusNote: string | null
+  /**
+   * The vendor a `Vendor` account speaks for, and null for every other role.
+   *
+   * The name rather than the id, because "John Doe · Vendor · Malek Transport"
+   * is a sentence an Admin can check at a glance and an ObjectId is not. Null on
+   * a Vendor account whose vendor has since been removed, which the details
+   * panel renders as a warning rather than as a blank.
+   */
+  vendor: VendorRef | null
+}
+
+/** A vendor, reduced to what a user row has to say about it. */
+export interface VendorRef {
+  id: string
+  name: string
+  vendorCode: string
 }
 
 export interface UserStats {

@@ -16,7 +16,8 @@ export interface UserActionsController {
   openRoleChange: (user: AdminUser) => void
   openAction: (user: AdminUser, action: UserActionId) => void
   close: () => void
-  confirmRole: (role: UserRole) => void
+  /** `vendorId` is required when the role is Vendor, and null otherwise. */
+  confirmRole: (role: UserRole, vendorId: string | null) => void
   confirmAction: (note: string) => void
 }
 
@@ -60,11 +61,14 @@ export function useUserActions(): UserActionsController {
   }, [])
 
   const confirmRole = useCallback(
-    (role: UserRole) => {
+    (role: UserRole, vendorId: string | null) => {
       if (!target) {
         return
       }
-      changeRole.mutate({ id: target.id, role, name: target.name }, { onSuccess: close })
+      changeRole.mutate(
+        { id: target.id, role, vendorId, name: target.name },
+        { onSuccess: close },
+      )
     },
     [target, changeRole, close],
   )

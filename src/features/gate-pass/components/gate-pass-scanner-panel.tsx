@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { formatBytes } from '../lib/gate-pass-meta'
 import { useLocalFileUrl } from '../hooks/use-gate-pass-document'
+import type { JoinSheets } from '../hooks/use-join-sheets'
 import { useScanner } from '../hooks/use-scanner'
 import type { ScanBatch } from '../hooks/use-scan-batch'
 import { GatePassDocumentViewer } from './gate-pass-document-viewer'
@@ -13,8 +14,15 @@ interface GatePassScannerPanelProps {
   /** The stack of scanned sheets, owned by the workspace. */
   batch: ScanBatch
   /**
+   * Joining sheets into one document. Owned by the workspace rather than by
+   * this panel, because a correction has to be able to insist the stack is one
+   * document before it saves.
+   */
+  joining: JoinSheets
+  /**
    * False when this workspace is one record — correcting an existing gate
-   * pass. A multi-sheet scan is then one document rather than a stack.
+   * pass. The sheets are then pages of that record's one document, so the tray
+   * insists they become one before anything is saved.
    */
   allowBatch: boolean
   /** The document already stored on the record, if there is one. */
@@ -38,6 +46,7 @@ interface GatePassScannerPanelProps {
  */
 export function GatePassScannerPanel({
   batch,
+  joining,
   allowBatch,
   storedUrl,
   storedMimeType,
@@ -49,12 +58,22 @@ export function GatePassScannerPanel({
 }: GatePassScannerPanelProps) {
   const [pairing, setPairing] = useState(false)
 
-  // The hook probes for the helper as it mounts, so there is nothing to kick
-  // off here. `separatePages` is what turns a ten-sheet feeder run into ten
-  // gate passes rather than one ten-page document.
+  /**
+   * The hook probes for the helper as it mounts, so there is nothing to kick
+   * off here. `separatePages` is what turns a ten-sheet feeder run into ten
+   * gate passes rather than one ten-page document.
+   *
+   * It is on even when this workspace holds a single record. Asking the agent
+   * to merge the job would be one step shorter, but it hands back a PDF whose
+   * pages can no longer be told apart — and a feeder that pulled a blank sheet
+   * or the back of a challan is exactly what an operator correcting a record
+   * needs to remove. Sheets arrive separately and the tray joins them, which
+   * costs one click and keeps every sheet removable up to the moment it is
+   * saved.
+   */
   const scanner = useScanner({
     onScanned: batch.add,
-    separatePages: allowBatch,
+    separatePages: true,
   })
 
   const active = batch.active
@@ -135,6 +154,9 @@ export function GatePassScannerPanel({
       <ScanBatchTray
         batch={batch}
         onCombine={allowBatch ? () => void handleCombine() : undefined}
+        onJoin={joining.join}
+        isJoining={joining.isJoining}
+        singleDocument={!allowBatch}
         disabled={disabled}
       />
 
@@ -160,6 +182,7 @@ export function GatePassScannerPanel({
             <span className="font-medium text-foreground">Ready to file</span> ·{' '}
             {formatBytes(active.file.size)}
             {active.pageCount > 1 ? ` · ${active.pageCount} pages` : ''}
+            {active.parts.length > 1 ? ` · ${active.parts.length} sheets joined` : ''}
           </p>
         </footer>
       )}

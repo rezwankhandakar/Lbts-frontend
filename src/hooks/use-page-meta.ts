@@ -32,6 +32,13 @@ const STANDALONE_PAGES: Record<string, PageMeta> = {
    * apart.
    */
   '/challan/batches': { title: 'Source PDFs', section: 'Main' },
+  /**
+   * `/my-vendor` *is* a sidebar item, but only for the one role that sees it —
+   * so for anybody else the nav match below would find nothing and announce it
+   * as "Not found". This makes the header honest whoever reaches the URL, and
+   * the route guard is what actually decides who may.
+   */
+  '/my-vendor': { title: 'My Vendor', section: 'Main' },
 }
 
 export function usePageMeta(): PageMeta {

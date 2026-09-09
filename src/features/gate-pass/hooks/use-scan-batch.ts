@@ -2,13 +2,16 @@ import { useCallback, useMemo, useState } from 'react'
 import {
   EMPTY_BATCH,
   addItems,
+  joinItems,
   markFiled as markFiledIn,
   newItem,
   progressOf,
   removeItem,
+  removeItems,
   replaceWith as replaceWithItem,
   select as selectIn,
   skipItem,
+  splitItem,
 } from '../lib/batch-queue'
 import type { BatchItem, BatchProgress, BatchState } from '../lib/batch-queue'
 import type { ScannedDocument } from '../lib/scanner-agent'
@@ -39,10 +42,21 @@ export interface ScanBatch extends BatchProgress {
   add: (documents: ScannedDocument[]) => void
   /** Replaces the whole queue with one document — see `combineLast`. */
   replaceWith: (document: ScannedDocument) => void
+  /**
+   * Replaces the named sheets with the one document they were merged into.
+   *
+   * The merging itself is `lib/merge-documents.ts`; the queue is only told
+   * what came out of it, so this stays a state transition and nothing else.
+   */
+  join: (ids: string[], document: ScannedDocument) => void
+  /** Undoes a join, putting the original sheets back. */
+  split: (id: string) => void
   select: (id: string) => void
   markFiled: (id: string, record: { id: string; gatePassId: string }, submitted: boolean) => void
   skip: (id: string) => void
   remove: (id: string) => void
+  /** Discards several sheets at once — the tick-box mode's other verb. */
+  removeMany: (ids: string[]) => void
   clear: () => void
 }
 
@@ -56,6 +70,14 @@ export function useScanBatch(): ScanBatch {
 
   const replaceWith = useCallback((document: ScannedDocument) => {
     setState(replaceWithItem(newItem(document.file, document.pageCount)))
+  }, [])
+
+  const join = useCallback((ids: string[], document: ScannedDocument) => {
+    setState((current) => joinItems(current, ids, newItem(document.file, document.pageCount)))
+  }, [])
+
+  const split = useCallback((id: string) => {
+    setState((current) => splitItem(current, id))
   }, [])
 
   const select = useCallback((id: string) => {
@@ -77,6 +99,10 @@ export function useScanBatch(): ScanBatch {
     setState((current) => removeItem(current, id))
   }, [])
 
+  const removeMany = useCallback((ids: string[]) => {
+    setState((current) => removeItems(current, ids))
+  }, [])
+
   const clear = useCallback(() => setState(EMPTY_BATCH), [])
 
   const { items, activeId } = state
@@ -94,10 +120,13 @@ export function useScanBatch(): ScanBatch {
     activePosition: active ? items.indexOf(active) + 1 : 0,
     add,
     replaceWith,
+    join,
+    split,
     select,
     markFiled,
     skip,
     remove,
+    removeMany,
     clear,
   }
 }
