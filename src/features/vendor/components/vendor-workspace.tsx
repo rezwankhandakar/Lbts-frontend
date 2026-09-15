@@ -12,7 +12,6 @@ import type {
   VendorStatus,
   VendorTab,
 } from '../types'
-import { ActivityPanel } from './activity-panel'
 import { AssignmentPanel } from './assignment-panel'
 import { ConfirmDialog } from './confirm-dialog'
 import { DocumentPanel } from './document-panel'
@@ -23,6 +22,7 @@ import { VendorFormDialog } from './vendor-form-dialog'
 import { VendorHeader } from './vendor-header'
 import { VendorOverview } from './vendor-overview'
 import { VendorTabs } from './vendor-tabs'
+import { VendorTripPanel } from './vendor-trip-panel'
 
 interface VendorWorkspaceProps {
   vendor: VendorRecord
@@ -94,9 +94,9 @@ export function VendorWorkspace({
   const actions = useVendorActions()
   const photo = useVendorPhoto()
 
-  const goToTab = useCallback(
-    (next: VendorTab, filter?: Record<string, string>) => {
-      setHandoff(filter ? { token: Date.now(), filter } : null)
+  /** The tab in the URL, with no opinion about what is being handed over. */
+  const showTab = useCallback(
+    (next: VendorTab, replace: boolean) => {
       setSearchParams(
         (current) => {
           const params = new URLSearchParams(current)
@@ -106,26 +106,56 @@ export function VendorWorkspace({
         // A tab opened *by an alert* replaces rather than pushes, so Back
         // returns the reader to where they came from rather than walking them
         // through every tab they were sent to.
-        { replace: filter !== undefined },
+        { replace },
       )
     },
     [setSearchParams],
   )
 
+  /**
+   * **Every path to a tab states which handover it carries, and clears the
+   * other two.** That is the rule, and it is worth the three lines it costs.
+   *
+   * A panel is unmounted while its tab is not showing, so the "already seen
+   * this request" marker inside it dies with it — a handover the workspace is
+   * still holding therefore fires again the next time that panel mounts. That
+   * is how pressing the *Documents* tab came to reopen the renew form for
+   * whichever vehicle had last been sent there, long after the operator had
+   * closed it.
+   *
+   * So a handover lives exactly as long as the navigation that carried it. A
+   * tab reached by pressing the tab bar carries none, which is the honest
+   * reading of a plain click: it means "show me this tab", never "do that thing
+   * again".
+   */
+  const goToTab = useCallback(
+    (next: VendorTab, filter?: Record<string, string>) => {
+      setHandoff(filter ? { token: Date.now(), filter } : null)
+      setPendingAssign(null)
+      setOwnerRequest(null)
+      showTab(next, filter !== undefined)
+    },
+    [showTab],
+  )
+
   const openAssign = useCallback(
     (subject: { vehicleId?: string; driverId?: string }) => {
+      setHandoff(null)
+      setOwnerRequest(null)
       setPendingAssign(subject)
-      goToTab('assignments')
+      showTab('assignments', false)
     },
-    [goToTab],
+    [showTab],
   )
 
   const openDocuments = useCallback(
     (owner: { type: DocumentOwnerType; id: string; label: string }) => {
+      setHandoff(null)
+      setPendingAssign(null)
       setOwnerRequest({ token: Date.now(), ...owner })
-      goToTab('documents')
+      showTab('documents', false)
     },
-    [goToTab],
+    [showTab],
   )
 
   const counts = {
@@ -212,10 +242,11 @@ export function VendorWorkspace({
             canManage={canManage}
             filterRequest={handoff}
             ownerRequest={ownerRequest}
+            onOwnerHandled={() => setOwnerRequest(null)}
           />
         )}
 
-        {tab === 'activity' && <ActivityPanel vendor={vendor} />}
+        {tab === 'trips' && <VendorTripPanel vendor={vendor} />}
       </div>
 
       <VendorFormDialog

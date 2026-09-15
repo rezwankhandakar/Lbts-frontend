@@ -1,9 +1,13 @@
-import { FileText, History, Truck } from 'lucide-react'
+import { useRef } from 'react'
+import { Camera, FileText, History, Trash2, Truck } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { MAX_PHOTO_BYTES, isAllowedPhoto } from '../lib/photo-rules'
 import { formatDay, formatPeriod } from '../lib/vendor-meta'
 import type { AssignmentRecord, DocumentRecord, VehicleRecord } from '../types'
 import { InfoRow } from './form-parts'
+import { VehicleAvatar } from './vendor-identity'
 import {
   AssignmentStatusBadge,
   DocumentStatusBadge,
@@ -17,8 +21,13 @@ interface VehicleDetailSheetProps {
   assignments: AssignmentRecord[] | undefined
   documents: DocumentRecord[] | undefined
   isLoading: boolean
+  /** Write controls are absent rather than disabled for a read-only account. */
+  canManage: boolean
+  isPhotoPending: boolean
   open: boolean
   onOpenChange: (open: boolean) => void
+  onPhotoChosen: (file: File) => void
+  onPhotoRemoved: () => void
 }
 
 function SubSection({
@@ -62,9 +71,15 @@ export function VehicleDetailSheet({
   assignments,
   documents,
   isLoading,
+  canManage,
+  isPhotoPending,
   open,
   onOpenChange,
+  onPhotoChosen,
+  onPhotoRemoved,
 }: VehicleDetailSheetProps) {
+  const fileInput = useRef<HTMLInputElement>(null)
+
   if (!vehicle) {
     return null
   }
@@ -74,8 +89,42 @@ export function VehicleDetailSheet({
       <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2.5">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-tone-indigo/10 text-tone-indigo ring-1 ring-tone-indigo/20">
-              <Truck className="size-4" aria-hidden />
+            <span className="relative shrink-0">
+              <VehicleAvatar
+                photoUrl={vehicle.photoUrl}
+                label={vehicle.registrationNo}
+                caption={vehicle.vehicleCode}
+                className="size-12"
+              />
+              {canManage && (
+                <>
+                  <input
+                    ref={fileInput}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      // Reset first, so choosing the same file twice still fires.
+                      event.target.value = ''
+                      if (file && isAllowedPhoto(file)) {
+                        onPhotoChosen(file)
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label={`${vehicle.photoUrl ? 'Change' : 'Add'} vehicle photo`}
+                    title={`JPG, PNG or WEBP, up to ${MAX_PHOTO_BYTES / (1024 * 1024)} MB`}
+                    disabled={isPhotoPending}
+                    onClick={() => fileInput.current?.click()}
+                    className="absolute -right-1 -bottom-1 size-6 rounded-full bg-card shadow-sm"
+                  >
+                    <Camera className="size-3" aria-hidden />
+                  </Button>
+                </>
+              )}
             </span>
             <span className="min-w-0 wrap-break-word">{vehicle.registrationNo}</span>
           </SheetTitle>
@@ -88,6 +137,18 @@ export function VehicleDetailSheet({
           <div className="flex flex-wrap items-center gap-1.5">
             <VehicleStatusBadge value={vehicle.status} />
             <OwnershipBadge value={vehicle.ownershipType} />
+            {canManage && vehicle.photoUrl && (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={isPhotoPending}
+                onClick={onPhotoRemoved}
+                className="ml-auto h-7 px-2 text-xs text-muted-foreground"
+              >
+                <Trash2 data-icon="inline-start" className="size-3.5" aria-hidden />
+                Remove photo
+              </Button>
+            )}
           </div>
 
           {vehicle.statusNote && (

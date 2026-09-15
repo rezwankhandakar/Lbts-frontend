@@ -14,7 +14,7 @@ import {
   splitItem,
 } from '../lib/batch-queue'
 import type { BatchItem, BatchProgress, BatchState } from '../lib/batch-queue'
-import type { ScannedDocument } from '../lib/scanner-agent'
+import type { ScannedDocument } from '@/lib/scanner-agent'
 
 export type { BatchItem, BatchItemStatus } from '../lib/batch-queue'
 

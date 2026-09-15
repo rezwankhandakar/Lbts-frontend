@@ -1,9 +1,10 @@
-import { Truck, UserRound } from 'lucide-react'
+import { UserRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatDay } from '../lib/vendor-meta'
 import type { VehicleRecord } from '../types'
 import { ComplianceChips, OwnershipBadge, VehicleStatusBadge } from './status-badges'
 import { VehicleMenu } from './vehicle-table'
+import { VehicleAvatar } from './vendor-identity'
 import type { VehicleActions } from './vehicle-table'
 
 /**
@@ -33,9 +34,11 @@ export function VehicleCards({
           className={cn('p-4', record.status === 'Inactive' && 'opacity-60')}
         >
           <div className="flex items-start gap-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-tone-indigo/10 text-tone-indigo ring-1 ring-tone-indigo/20">
-              <Truck className="size-4" aria-hidden />
-            </span>
+            <VehicleAvatar
+              photoUrl={record.photoUrl}
+              label={record.registrationNo}
+              caption={record.vehicleCode}
+            />
 
             <button
               type="button"

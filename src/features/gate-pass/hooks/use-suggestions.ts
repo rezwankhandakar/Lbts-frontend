@@ -29,7 +29,14 @@ export function useSuggestions(field: SuggestionField, input: string): Suggestio
   const enabled = query.length >= MIN_QUERY_LENGTH
 
   const result = useQuery({
-    queryKey: ['gate-passes', 'suggestions', field, query],
+    /**
+     * Outside the `gate-passes` namespace on purpose. Every gate pass write
+     * invalidates that namespace — three writes per gate pass filed — and a
+     * suggestion key inside it was refetched for every mounted field on every
+     * one of them. That, stacked over a stack of challans, is what spent the
+     * API's rate limit a dozen gate passes in.
+     */
+    queryKey: ['gate-pass-suggestions', field, query],
     queryFn: () => fetchSuggestions(field, query),
     enabled,
     /**

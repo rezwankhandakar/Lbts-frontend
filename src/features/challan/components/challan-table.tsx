@@ -7,18 +7,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import { formatAmount, formatDate } from '@/lib/format'
-import { formatRangeShort, itemSummary } from '../lib/challan-meta'
+import { formatAmount } from '@/lib/format'
+import { itemSummary, shortChallanNumber } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
 import { ChallanActionMenu } from './challan-action-menu'
 import type { ChallanActions } from './challan-action-menu'
-import { ChallanPrintMark } from './challan-print-mark'
-import {
-  LocationReviewBadge,
-  LocationStatusBadge,
-} from '@/features/location/components/location-badges'
-import { isReviewableLocation } from '@/features/location/types'
-import { ChallanStatusBadge } from './challan-status-badge'
+import { DeliveryStatusCell, RecordStatusCell } from './challan-table-cells'
 
 interface ChallanTableProps {
   records: ChallanRecord[]
@@ -26,32 +20,31 @@ interface ChallanTableProps {
   onOpen: (record: ChallanRecord) => void
 }
 
-const HEAD = 'h-10 px-4 text-xs font-semibold tracking-wide text-muted-foreground uppercase'
+const HEAD =
+  'h-10 px-4 text-[11px] font-medium tracking-wider text-muted-foreground uppercase first:pl-5 last:pr-5'
+const CELL = 'px-4 py-3.5 align-top first:pl-5 last:pr-5'
 
 /**
- * The desktop view (md and up); below that the directory swaps to cards rather
- * than squashing eleven columns into a phone.
+ * The desktop view (md and up); below that the directory swaps to cards.
  *
- * Columns drop out as the viewport narrows instead of the table scrolling by
- * default: the product and model fold into the challan cell below xl, the
- * creator and district go below lg. The container still scrolls horizontally
- * as a last resort.
+ * The SL is the row's identifier, with the tail of the challan number beneath
+ * it for somebody reading one off a back page. District / Thana, product, qty
+ * and amount drop out below lg; the product folds into the customer cell there.
  */
 export function ChallanTable({ records, actions, onOpen }: ChallanTableProps) {
   return (
     <Table>
       <TableHeader>
-        <TableRow className="bg-muted/40 hover:bg-muted/40">
-          <TableHead className={cn(HEAD, 'text-right')}>SL</TableHead>
-          <TableHead className={HEAD}>Challan</TableHead>
+        <TableRow className="bg-muted/30 hover:bg-muted/30">
+          <TableHead className={HEAD}>SL</TableHead>
           <TableHead className={HEAD}>Customer</TableHead>
-          <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>District</TableHead>
-          <TableHead className={cn(HEAD, 'hidden xl:table-cell')}>Product</TableHead>
+          <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>Location</TableHead>
+          <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>Product</TableHead>
           <TableHead className={cn(HEAD, 'hidden text-right lg:table-cell')}>Qty</TableHead>
           <TableHead className={cn(HEAD, 'hidden text-right lg:table-cell')}>Amount</TableHead>
+          <TableHead className={HEAD}>Delivery</TableHead>
           <TableHead className={HEAD}>Status</TableHead>
-          <TableHead className={cn(HEAD, 'hidden xl:table-cell')}>Filed</TableHead>
-          <TableHead className={cn(HEAD, 'text-right')}>
+          <TableHead className={cn(HEAD, 'w-12 text-right')}>
             <span className="sr-only">Actions</span>
           </TableHead>
         </TableRow>
@@ -62,70 +55,68 @@ export function ChallanTable({ records, actions, onOpen }: ChallanTableProps) {
           <TableRow
             key={record.id}
             onClick={() => onOpen(record)}
-            className="cursor-pointer transition-colors duration-150 hover:bg-primary/[0.035]"
+            className="cursor-pointer transition-colors duration-150 hover:bg-muted/40"
           >
-            <TableCell className="px-4 py-3 text-right text-[13px] font-semibold tabular-nums">
-              {record.slNumber}
-            </TableCell>
-
-            <TableCell className="px-4 py-3">
+            <TableCell className={CELL}>
               {/* The button is what makes the row reachable by keyboard; the
                   row-level click is a mouse convenience on top of it. */}
               <button
                 type="button"
-                className="block max-w-[18rem] rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                title={record.challanNumber}
+                className="rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={(event) => {
                   event.stopPropagation()
                   onOpen(record)
                 }}
               >
-                <span className="block text-[13px] font-semibold">{record.challanNumber}</span>
-                <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                  {record.sourceFileName} · p{' '}
-                  {formatRangeShort({
-                    startPage: record.sourcePageStart,
-                    endPage: record.sourcePageEnd,
-                  })}
-                </span>
-                <span className="mt-0.5 block truncate text-xs text-muted-foreground xl:hidden">
-                  {itemSummary(record)} × {record.totalQty}
+                <span className="block text-sm font-semibold tabular-nums">{record.slNumber}</span>
+                <span className="mt-0.5 block font-mono text-[11px] whitespace-nowrap text-muted-foreground">
+                  {shortChallanNumber(record.challanNumber)}
                 </span>
               </button>
             </TableCell>
 
-            <TableCell className="max-w-[15rem] px-4 py-3 text-[13px]">
-              <span className="block truncate">{record.customerName}</span>
+            <TableCell className={cn(CELL, 'max-w-[15rem]')}>
+              <span className="block truncate text-sm font-medium">{record.customerName}</span>
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground tabular-nums">
+                {record.receiverMobile || '—'}
+              </span>
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground lg:hidden">
+                {itemSummary(record)} × {record.totalQty}
+              </span>
+            </TableCell>
+
+            {/* The resolved location where there is one, the transcribed text
+                otherwise: the resolved one is what a report groups by. */}
+            <TableCell className={cn(CELL, 'hidden max-w-[11rem] lg:table-cell')}>
+              <span className="block truncate text-sm">
+                {record.resolvedLocation?.district || record.district || '—'}
+              </span>
               <span className="mt-0.5 block truncate text-xs text-muted-foreground">
                 {record.resolvedLocation?.thana || record.thana || '—'}
-                {record.receiverMobile ? ` · ${record.receiverMobile}` : ''}
               </span>
             </TableCell>
 
-            {/* The resolved district where there is one, the transcribed text
-                otherwise. They are usually the same string; where they are not,
-                the resolved one is what a report groups by, so it is the one a
-                list should show. */}
-            <TableCell className="hidden max-w-[10rem] truncate px-4 py-3 text-[13px] text-muted-foreground lg:table-cell">
-              {record.resolvedLocation?.district || record.district || '—'}
-            </TableCell>
-
-            <TableCell className="hidden max-w-[14rem] px-4 py-3 text-[13px] xl:table-cell">
-              <span className="block truncate">{record.items[0]?.productName ?? '—'}</span>
-              <span className="block truncate text-xs text-muted-foreground">
+            <TableCell className={cn(CELL, 'hidden max-w-[14rem] lg:table-cell')}>
+              <span className="block truncate text-sm">{record.items[0]?.productName ?? '—'}</span>
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground">
                 {record.items[0]?.model ?? ''}
-                {record.items.length > 1 ? ` +${record.items.length - 1} more` : ''}
+                {record.items.length > 1 && (
+                  <span className="ml-1 rounded bg-muted px-1 py-px text-[10px] font-medium">
+                    +{record.items.length - 1}
+                  </span>
+                )}
               </span>
             </TableCell>
 
-            <TableCell className="hidden px-4 py-3 text-right text-[13px] tabular-nums lg:table-cell">
+            <TableCell className={cn(CELL, 'hidden text-right text-sm tabular-nums lg:table-cell')}>
               {record.totalQty}
             </TableCell>
 
-            {/* A charge that does not cover every line is marked rather than
-                shown as a plain figure: a partial total looks exactly like a
-                complete one, and this is the column somebody would add up. */}
+            {/* A charge that does not cover every line is marked: a partial
+                total looks exactly like a complete one. */}
             <TableCell
-              className="hidden px-4 py-3 text-right text-[13px] tabular-nums lg:table-cell"
+              className={cn(CELL, 'hidden text-right text-sm tabular-nums lg:table-cell')}
               title={
                 record.unpricedItems > 0
                   ? `${record.unpricedItems} of ${record.items.length} lines are not on the rate card for this location.`
@@ -135,49 +126,28 @@ export function ChallanTable({ records, actions, onOpen }: ChallanTableProps) {
               {record.totalAmount === null ? (
                 <span className="text-muted-foreground">—</span>
               ) : (
-                <>
+                <span className="font-medium">
+                  <span className="mr-0.5 text-xs font-normal text-muted-foreground">৳</span>
                   {formatAmount(record.totalAmount)}
                   {record.unpricedItems > 0 && (
                     <span className="ml-0.5 text-tone-amber" aria-hidden>
                       *
                     </span>
                   )}
-                </>
+                </span>
               )}
             </TableCell>
 
-            {/* Two chips, because they answer two questions: the badge is what
-                the record is, the mark is what happened to a piece of paper.
-                Somebody assembling a delivery reads the second one. */}
-            <TableCell className="px-4 py-3">
-              <div className="flex flex-col items-start gap-1">
-                <ChallanStatusBadge status={record.status} />
-                <ChallanPrintMark record={record} />
-                {/* Never "Location set": the district column beside it
-                    already says that, and a chip repeating it would be noise
-                    on every row. The two drawn here are the two that are not
-                    visible from the district — that there is none, and that
-                    the one shown is a machine's inference nobody has read. */}
-                {record.locationStatus === 'Pending' ? (
-                  <LocationStatusBadge value="Pending" />
-                ) : (
-                  isReviewableLocation(record.resolvedLocation) &&
-                  record.resolvedLocation && (
-                    <LocationReviewBadge source={record.resolvedLocation.source} />
-                  )
-                )}
-              </div>
+            <TableCell className={CELL}>
+              <DeliveryStatusCell record={record} />
             </TableCell>
 
-            <TableCell className="hidden px-4 py-3 text-[13px] whitespace-nowrap text-muted-foreground xl:table-cell">
-              <span className="block">{formatDate(record.submittedAt)}</span>
-              <span className="block truncate text-xs">
-                {record.submittedBy?.name ?? record.createdBy?.name ?? '—'}
-              </span>
+            <TableCell className={CELL}>
+              <RecordStatusCell record={record} />
             </TableCell>
 
             <TableCell
-              className="px-4 py-3 text-right"
+              className={cn(CELL, 'text-right')}
               onClick={(event) => event.stopPropagation()}
             >
               <ChallanActionMenu record={record} actions={actions} />

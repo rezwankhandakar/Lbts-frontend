@@ -8,6 +8,7 @@ import {
   vendorStatusMeta,
 } from '../lib/vendor-meta'
 import type { StatusMeta } from '../lib/vendor-meta'
+import { DOCUMENT_EXPIRY_SOON_DAYS } from '../types'
 
 const BASE =
   'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold whitespace-nowrap'
@@ -75,6 +76,15 @@ export function OwnershipBadge({ value, className }: BadgeProps) {
  * and a fleet table with twelve green ticks down it is twelve pieces of ink
  * saying nothing. The total is the fallback, so a subject with documents always
  * reports something.
+ *
+ * The amber chip reads **"1 expiring"** rather than "1 due", and the word was
+ * changed because "due" is ambiguous in exactly the wrong direction: it reads
+ * as "one document is still owed" — something nobody has filed yet — when what
+ * it counts is a document that *is* filed and lapses soon. Somebody who has
+ * just attached a scan and still sees "1 due" concludes the upload failed. Both
+ * chips carry a title saying the same thing in full, because a bare number and
+ * a word in a narrow column is the least room this module has to explain
+ * anything in.
  */
 export function ComplianceChips({
   tally,
@@ -98,7 +108,12 @@ export function ComplianceChips({
   return (
     <span className={cn('inline-flex flex-wrap items-center gap-1.5', className)}>
       {tally.expired > 0 && (
-        <span className={cn(BASE, documentStatusMeta('Expired').badge)}>
+        <span
+          className={cn(BASE, documentStatusMeta('Expired').badge)}
+          title={`${tally.expired} of this subject's ${tally.total} filed documents ${
+            tally.expired === 1 ? 'has' : 'have'
+          } passed its expiry date`}
+        >
           <span
             className={cn('size-1.5 shrink-0 rounded-full', documentStatusMeta('Expired').dot)}
             aria-hidden
@@ -107,7 +122,12 @@ export function ComplianceChips({
         </span>
       )}
       {tally.expiringSoon > 0 && (
-        <span className={cn(BASE, documentStatusMeta('Expiring Soon').badge)}>
+        <span
+          className={cn(BASE, documentStatusMeta('Expiring Soon').badge)}
+          title={`${tally.expiringSoon} of this subject's ${tally.total} filed documents ${
+            tally.expiringSoon === 1 ? 'expires' : 'expire'
+          } within ${DOCUMENT_EXPIRY_SOON_DAYS} days`}
+        >
           <span
             className={cn(
               'size-1.5 shrink-0 rounded-full',
@@ -115,7 +135,7 @@ export function ComplianceChips({
             )}
             aria-hidden
           />
-          {tally.expiringSoon} due
+          {tally.expiringSoon} expiring
         </span>
       )}
     </span>

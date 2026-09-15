@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { MULTIPART, api } from '@/lib/axios'
 import type { ApiError, ApiErrorSource } from '@/lib/axios'
 import type {
   ChallanBatchDetail,
@@ -42,6 +42,8 @@ function filterParams(params: ChallanListParams): Record<string, string> {
     ...(params.status !== 'all' ? { status: params.status } : {}),
     ...(params.location !== 'all' ? { location: params.location } : {}),
     ...(params.amount !== 'all' ? { amount: params.amount } : {}),
+    ...(params.dispatch !== 'all' ? { dispatch: params.dispatch } : {}),
+    ...(params.bill !== 'all' ? { bill: params.bill } : {}),
     ...(params.district ? { district: params.district } : {}),
     ...(params.customer ? { customer: params.customer } : {}),
     ...(params.product ? { product: params.product } : {}),
@@ -252,13 +254,7 @@ export async function submitChallan({
 
   try {
     const { data } = await api.post<ApiEnvelope<ChallanRecord>>(BASE, form, {
-      /**
-       * The shared instance defaults to application/json, and axios reads that
-       * default before the adapter runs: left in place it would serialise the
-       * FormData to JSON and the submission would arrive with no file at all.
-       * The browser replaces this value with one carrying the real boundary.
-       */
-      headers: { 'Content-Type': 'multipart/form-data' },
+      ...MULTIPART,
       /**
        * Longer than the shared 60 seconds. A cold Render instance has to wake,
        * generate a barcode page, merge a PDF and write it to R2 before it can

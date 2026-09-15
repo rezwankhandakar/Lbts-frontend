@@ -1,6 +1,5 @@
-import { api } from '@/lib/axios'
+import { MULTIPART, api } from '@/lib/axios'
 import type {
-  ActivityRecord,
   AssignmentListParams,
   AssignmentRecord,
   DocumentListParams,
@@ -23,6 +22,10 @@ import type {
   VendorStats,
   VendorStatus,
   VendorSummary,
+  VendorTripListParams,
+  VendorTripListResult,
+  VendorTripPageMeta,
+  VendorTripRecord,
 } from '../types'
 
 interface ApiEnvelope<T> {
@@ -116,11 +119,29 @@ export async function fetchVendorSummary(id: string): Promise<VendorSummary> {
   return data.data
 }
 
-export async function fetchVendorActivity(id: string, limit = 20): Promise<ActivityRecord[]> {
-  const { data } = await api.get<ApiEnvelope<ActivityRecord[]>>(`${VENDORS}/${id}/activity`, {
-    params: { limit },
-  })
-  return data.data
+/** One vendor's trips. A Vendor account reads its own; staff read anybody's. */
+export async function fetchVendorTrips(
+  id: string,
+  params: VendorTripListParams,
+): Promise<VendorTripListResult> {
+  const { data } = await api.get<ApiEnvelope<VendorTripRecord[]> & { meta: VendorTripPageMeta }>(
+    `${VENDORS}/${id}/trips`,
+    {
+      params: {
+        page: params.page,
+        limit: params.limit,
+        ...clean({
+          search: params.search,
+          status: params.status,
+          from: params.from,
+          to: params.to,
+          bill: params.bill,
+        }),
+      },
+    },
+  )
+
+  return { records: data.data, meta: data.meta }
 }
 
 export interface VendorInput {
@@ -164,16 +185,6 @@ export async function deleteVendor(id: string): Promise<VendorRemoval> {
   const { data } = await api.delete<ApiEnvelope<VendorRemoval>>(`${VENDORS}/${id}`)
   return data.data
 }
-
-/**
- * A photo upload.
- *
- * The Content-Type header is deliberately not set: the browser has to add the
- * multipart boundary itself, and naming the type by hand produces a body the
- * parser cannot read. The shared instance sends `application/json`, so it is
- * cleared rather than overridden.
- */
-const MULTIPART = { headers: { 'Content-Type': undefined } } as const
 
 export async function uploadVendorPhoto(id: string, file: File): Promise<VendorRecord> {
   const body = new FormData()
@@ -359,6 +370,30 @@ export async function changeDriverStatus(args: {
     status: args.status,
     ...(args.note ? { note: args.note } : {}),
   })
+  return data.data
+}
+
+/**
+ * A vehicle's picture.
+ *
+ * Public, like a vendor mark and a driver portrait — the same endpoint shape,
+ * the same 512px square WEBP, and the same reason it is not a compliance
+ * document: a plate is painted on the outside of the lorry.
+ */
+export async function uploadVehiclePhoto(id: string, file: File): Promise<VehicleRecord> {
+  const body = new FormData()
+  body.append('photo', file)
+
+  const { data } = await api.post<ApiEnvelope<VehicleRecord>>(
+    `${VEHICLES}/${id}/photo`,
+    body,
+    MULTIPART,
+  )
+  return data.data
+}
+
+export async function removeVehiclePhoto(id: string): Promise<VehicleRecord> {
+  const { data } = await api.delete<ApiEnvelope<VehicleRecord>>(`${VEHICLES}/${id}/photo`)
   return data.data
 }
 

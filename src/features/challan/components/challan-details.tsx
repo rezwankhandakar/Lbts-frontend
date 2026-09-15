@@ -19,6 +19,7 @@ import { locationSourceLabel } from '@/features/location/lib/location-meta'
 import { formatDateTime } from '@/lib/format'
 import { formatBytes, formatRange } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
+import { ChallanDispatchPanel } from '@/features/delivery/components/challan-dispatch-panel'
 import { ChallanGoodsTable } from './challan-goods-table'
 
 interface ChallanDetailsProps {
@@ -177,6 +178,12 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
             of this page with arithmetic of its own to explain. */}
         <ChallanGoodsTable record={record} />
       </Section>
+
+      {/* What became of the goods, from the module that knows: which lorries
+          took them, how much of each line went, and what those trips corrected.
+          Mounted the way the dashboard mounts each module's own card — the data
+          is trips, and this page should not have to know their shape. */}
+      <ChallanDispatchPanel challanId={record.id} />
 
       <Section
         icon={FileStack}

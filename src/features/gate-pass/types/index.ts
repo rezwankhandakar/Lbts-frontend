@@ -1,3 +1,5 @@
+import type { BillingFilter, BillingStatus } from '@/features/bill/types'
+import type { ColumnFilterValue } from '@/lib/column-filters'
 import type { UserRole } from '@/lib/roles'
 
 /**
@@ -143,6 +145,10 @@ export interface GatePassRecord {
   status: GatePassStatus
   document: GatePassDocumentRef | null
 
+  /** Whether what it carried is on a bill, written by the Bill module, and which bills. */
+  billStatus: BillingStatus
+  billNumbers: string[]
+
   submittedAt: string | null
   statusChangedAt: string | null
   statusChangedBy: ActorRef | null
@@ -167,7 +173,7 @@ export interface DuplicateCandidate {
   /** How many more lines the record carries beyond the one shown. */
   moreItems: number
   status: GatePassStatus
-  matchedOn: 'tripDo' | 'trip'
+  matchedOn: 'tripDo'
 }
 
 export interface GatePassStats {
@@ -182,15 +188,32 @@ export interface GatePassStats {
 export type StatusFilter = GatePassStatus | 'all'
 export type ReferenceTypeFilter = GatePassReferenceType | 'all'
 
+/** Mirrors `GATE_PASS_COLUMN_IDS` in `gate-pass.columns.ts`. */
+export const GATE_PASS_COLUMN_IDS = [
+  'tripDo',
+  'tripDate',
+  'delivery',
+  'csd',
+  'unit',
+  'vehicle',
+  'customer',
+  'product',
+  'model',
+  'qty',
+  'status',
+] as const
+export type GatePassColumnId = (typeof GATE_PASS_COLUMN_IDS)[number]
+
+/** Ticked values by column. A column absent here is not filtered. */
+export type GatePassColumnFilters = Partial<Record<GatePassColumnId, ColumnFilterValue[]>>
+
 export interface GatePassListParams {
   page: number
   limit: number
   search: string
-  status: StatusFilter
-  csd: string
-  unit: string
-  product: string
+  columns: GatePassColumnFilters
   referenceType: ReferenceTypeFilter
+  bill: BillingFilter
   reference: string
   createdBy: string
   from: string
@@ -216,10 +239,29 @@ export interface PageMeta {
    * from ten rows that are all it ever holds.
    */
   totalQty: number
+  /** Pieces on the matching gate passes that challans say were delivered, and the rest. */
+  deliveredQty: number
+  notDeliveredQty: number
+}
+
+/**
+ * What the challans linked to one gate pass line on the Trip DO sheet say
+ * about it. `status` is the Trip DO module's gate pass product status —
+ * `Unlinked` when no challan row points at the line.
+ */
+export interface GatePassLineDelivery {
+  linkedQty: number
+  deliveredQty: number
+  status: string
+}
+
+/** A gate pass as the records sheet draws it; `lineDelivery[i]` belongs to `items[i]`. */
+export interface GatePassListRecord extends GatePassRecord {
+  lineDelivery: GatePassLineDelivery[]
 }
 
 export interface GatePassListResult {
-  records: GatePassRecord[]
+  records: GatePassListRecord[]
   meta: PageMeta
 }
 

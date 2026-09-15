@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import type { GatePassRecord } from '../types'
+import type { FilterPatch, GatePassListParams, GatePassListRecord, GatePassRecord } from '../types'
 import type { GatePassActions } from './gate-pass-action-menu'
 import { GatePassCards } from './gate-pass-cards'
 import {
@@ -7,10 +7,10 @@ import {
   GatePassDirectoryError,
   GatePassDirectorySkeleton,
 } from './gate-pass-directory-states'
-import { GatePassTable } from './gate-pass-table'
+import { GatePassSheet } from './gate-pass-sheet'
 
 interface GatePassDirectoryProps {
-  records: GatePassRecord[]
+  records: GatePassListRecord[]
   actions: GatePassActions
   isLoading: boolean
   /** A background refetch — the previous page stays on screen, dimmed. */
@@ -18,6 +18,8 @@ interface GatePassDirectoryProps {
   isError: boolean
   errorMessage: string
   isFiltered: boolean
+  filters: GatePassListParams
+  onFilterChange: (patch: FilterPatch) => void
   onRetry: () => void
   onReset: () => void
   onOpen: (record: GatePassRecord) => void
@@ -25,8 +27,12 @@ interface GatePassDirectoryProps {
 
 /**
  * Picks the presentation for the current state, and the layout for the current
- * viewport: a table from md up, cards below it. Nothing here invents data — an
+ * viewport: a sheet with one row per product line from md up, cards below it. Nothing here invents data — an
  * empty result renders as an empty state, never as placeholder rows.
+ *
+ * A filtered sheet that matches nothing keeps its header: the column filter
+ * that emptied it is in that header, and removing it would take it out of
+ * reach.
  */
 export function GatePassDirectory({
   records,
@@ -36,6 +42,8 @@ export function GatePassDirectory({
   isError,
   errorMessage,
   isFiltered,
+  filters,
+  onFilterChange,
   onRetry,
   onReset,
   onOpen,
@@ -48,15 +56,14 @@ export function GatePassDirectory({
     return <GatePassDirectoryError message={errorMessage} onRetry={onRetry} isRetrying={isFetching} />
   }
 
-  if (records.length === 0) {
-    return (
-      <GatePassDirectoryEmpty
-        isFiltered={isFiltered}
-        canCreate={actions.canWrite}
-        onReset={onReset}
-      />
-    )
+  if (records.length === 0 && !isFiltered) {
+    return <GatePassDirectoryEmpty isFiltered={false} canCreate={actions.canWrite} onReset={onReset} />
   }
+
+  const empty =
+    records.length === 0 ? (
+      <GatePassDirectoryEmpty isFiltered canCreate={actions.canWrite} onReset={onReset} />
+    ) : undefined
 
   return (
     <div
@@ -66,11 +73,18 @@ export function GatePassDirectory({
       )}
       aria-busy={isFetching}
     >
-      <div className="hidden overflow-x-auto md:block">
-        <GatePassTable records={records} actions={actions} onOpen={onOpen} />
+      <div className="hidden md:block">
+        <GatePassSheet
+          records={records}
+          actions={actions}
+          onOpen={onOpen}
+          filters={filters}
+          onFilterChange={onFilterChange}
+          empty={empty}
+        />
       </div>
       <div className="md:hidden">
-        <GatePassCards records={records} actions={actions} onOpen={onOpen} />
+        {empty ?? <GatePassCards records={records} actions={actions} onOpen={onOpen} />}
       </div>
     </div>
   )

@@ -163,6 +163,8 @@ export interface VehicleRecord {
   registrationNo: string
   brand: string
   model: string
+  /** Public bucket, so a fleet table renders it straight from an `src`. */
+  photoUrl: string | null
   ownershipType: VehicleOwnershipType
   status: VehicleStatus
   statusNote: string | null
@@ -251,15 +253,61 @@ export interface DocumentRecord {
   updatedAt: string
 }
 
-export interface ActivityRecord {
+// --- Trips -----------------------------------------------------------------
+
+/**
+ * One of a vendor's trips, as `GET /vendors/:id/trips` returns it. Mirrors
+ * `VendorTripRecord` in `delivery.vendor-trips.ts`: deliberately smaller than a
+ * trip, with no challan, customer or address in it, because a Vendor account
+ * reads this.
+ */
+export interface VendorTripRecord {
   id: string
-  action: string
-  entityType: string
-  entityId: string | null
-  entityLabel: string
-  summary: string
-  actor: ActorRef | null
-  createdAt: string
+  tripNumber: string
+  tripDate: string
+  /** Mirrors `TRIP_STATUSES`; `Open` is drawn as "Awaiting copy". */
+  status: 'Open' | 'Completed'
+  registrationNo: string
+  driverName: string
+  challanCount: number
+  completedChallans: number
+  totalQty: number
+  returnedQty: number
+  deliveredQty: number
+  tripRent: number | null
+  labourBill: number | null
+}
+
+export interface VendorTripListParams {
+  page: number
+  limit: number
+  search: string
+  status: 'all' | 'Open' | 'Completed'
+  from: string
+  to: string
+  /** Mirrors `TRIP_BILL_FILTERS`: trips still missing their rent or labour bill. */
+  bill: 'all' | 'no-rent' | 'no-labour'
+}
+
+export type VendorTripFilterPatch = Partial<Omit<VendorTripListParams, 'page' | 'limit'>>
+
+export interface VendorTripPageMeta {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+  /** Across every matching trip, not just the page. */
+  totalQty: number
+  totalRent: number
+  totalLabour: number
+  /** Matching trips whose rent / labour bill nobody has entered. */
+  blankRent: number
+  blankLabour: number
+}
+
+export interface VendorTripListResult {
+  records: VendorTripRecord[]
+  meta: VendorTripPageMeta
 }
 
 // --- Summary ---------------------------------------------------------------
@@ -314,7 +362,6 @@ export interface VendorSummary {
   activeAssignments: number
   recentAssignments: AssignmentRecord[]
   expiringDocuments: DocumentRecord[]
-  recentActivity: ActivityRecord[]
 }
 
 export interface VendorStats {
@@ -420,7 +467,7 @@ export const VENDOR_TABS = [
   'drivers',
   'assignments',
   'documents',
-  'activity',
+  'trips',
 ] as const
 export type VendorTab = (typeof VENDOR_TABS)[number]
 

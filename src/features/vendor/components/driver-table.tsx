@@ -61,7 +61,7 @@ export function DriverMenu({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => actions.onDocuments(driver)}>
           <FileText aria-hidden />
-          Documents
+          {actions.canManage ? 'Renew or replace' : 'Documents'}
         </DropdownMenuItem>
 
         {actions.canManage && (
@@ -136,19 +136,23 @@ export function DriverTable({
               className={cn(record.status === 'Inactive' && 'opacity-60')}
             >
               <TableCell>
-                <button
-                  type="button"
-                  onClick={() => actions.onOpen(record)}
-                  className="flex min-w-0 items-center gap-2.5 rounded-sm text-left outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <DriverAvatar name={record.name} photoUrl={record.photoUrl} />
-                  <span className="min-w-0">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <DriverAvatar
+                    name={record.name}
+                    photoUrl={record.photoUrl}
+                    caption={record.driverCode}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => actions.onOpen(record)}
+                    className="min-w-0 rounded-sm text-left outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                  >
                     <span className="block truncate text-[13px] font-medium">{record.name}</span>
                     <span className="block font-mono text-[11px] text-muted-foreground">
                       {record.driverCode}
                     </span>
-                  </span>
-                </button>
+                  </button>
+                </div>
               </TableCell>
 
               <TableCell className="hidden text-xs whitespace-nowrap text-muted-foreground lg:table-cell">

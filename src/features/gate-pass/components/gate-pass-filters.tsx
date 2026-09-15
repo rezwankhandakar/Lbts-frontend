@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Boxes, FileSpreadsheet, ListFilter, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Boxes, FileSpreadsheet, Search, SlidersHorizontal, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { BillingFilterSelect } from '@/features/bill/components/billing-filter-select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -12,16 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
-import { QUICK_RANGE_LABELS, quickRangeFor, rangeFor } from '../lib/date-ranges'
-import { GATE_PASS_STATUS_META, gatePassStatusMeta } from '../lib/gate-pass-meta'
-import { GATE_PASS_REFERENCE_TYPES, GATE_PASS_STATUSES } from '../types'
-import type {
-  FilterPatch,
-  GatePassListParams,
-  ReferenceTypeFilter,
-  StatusFilter,
-} from '../types'
+import { QUICK_RANGE_LABELS, quickRangeFor, rangeFor } from '@/lib/date-ranges'
+import { GATE_PASS_REFERENCE_TYPES } from '../types'
+import type { FilterPatch, GatePassListParams, ReferenceTypeFilter } from '../types'
 
 interface GatePassFiltersProps {
   params: GatePassListParams
@@ -44,20 +38,16 @@ interface GatePassFiltersProps {
   currentUserId: string | null
 }
 
-const TRIGGER = 'h-8 w-full sm:w-[10rem]'
-
-function statusLabel(value: unknown): string {
-  return typeof value === 'string' && value !== 'all' ? gatePassStatusMeta(value).label : 'Any status'
-}
-
 /**
- * Search and filters for the records page.
+ * Search and the filters that are not a column of the sheet.
  *
- * The two an operator reaches for constantly — the text search and the status
- * — stay on the toolbar. Everything else lives behind "More filters", with a
- * count on the button so a filtered-down list is never a mystery. All of it is
- * applied server-side: on an M0 cluster, shipping the collection to the
- * browser to filter it is the one query the free tier cannot afford.
+ * Status, CSD, unit, product and the rest of what the sheet shows are filtered
+ * from the dropdown on their own column header. What stays here is what no
+ * column holds: the text search, the date range, the reference and the owner,
+ * the last three behind "More filters" with a count on the button so a
+ * filtered-down list is never a mystery. All of it is applied server-side: on
+ * an M0 cluster, shipping the collection to the browser to filter it is the one
+ * query the free tier cannot afford.
  */
 export function GatePassFilters({
   params,
@@ -74,15 +64,14 @@ export function GatePassFilters({
   const [expanded, setExpanded] = useState(false)
 
   const advancedCount =
-    (params.csd ? 1 : 0) +
-    (params.unit ? 1 : 0) +
-    (params.product ? 1 : 0) +
     (params.referenceType !== 'all' ? 1 : 0) +
+    (params.bill !== 'all' ? 1 : 0) +
     (params.reference ? 1 : 0) +
     (params.createdBy ? 1 : 0) +
     (params.from || params.to ? 1 : 0)
 
-  const isFiltered = advancedCount > 0 || params.search !== '' || params.status !== 'all'
+  const isFiltered =
+    advancedCount > 0 || params.search !== '' || Object.keys(params.columns).length > 0
   const quick = quickRangeFor({ from: params.from, to: params.to })
 
   return (
@@ -105,30 +94,6 @@ export function GatePassFilters({
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Select
-              value={params.status}
-              onValueChange={(value) => onChange({ status: value as StatusFilter })}
-            >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by status">
-                <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
-                <SelectValue>{statusLabel}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">Any status</SelectItem>
-                  {GATE_PASS_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      <span
-                        className={cn('size-1.5 shrink-0 rounded-full', GATE_PASS_STATUS_META[status].dot)}
-                        aria-hidden
-                      />
-                      {GATE_PASS_STATUS_META[status].label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-
             <Button
               variant="outline"
               size="sm"
@@ -234,34 +199,8 @@ export function GatePassFilters({
             />
           </FilterField>
 
-          <FilterField id="filter-csd" label="CSD">
-            <Input
-              id="filter-csd"
-              value={params.csd}
-              onChange={(event) => onChange({ csd: event.target.value })}
-              placeholder="CSD-04"
-              autoComplete="off"
-            />
-          </FilterField>
-
-          <FilterField id="filter-unit" label="Unit">
-            <Input
-              id="filter-unit"
-              value={params.unit}
-              onChange={(event) => onChange({ unit: event.target.value })}
-              placeholder="WFR"
-              autoComplete="off"
-            />
-          </FilterField>
-
-          <FilterField id="filter-product" label="Product">
-            <Input
-              id="filter-product"
-              value={params.product}
-              onChange={(event) => onChange({ product: event.target.value })}
-              placeholder="Refrigerator"
-              autoComplete="off"
-            />
+          <FilterField id="filter-bill" label="Bill">
+            <BillingFilterSelect id="filter-bill" value={params.bill} onChange={(bill) => onChange({ bill })} />
           </FilterField>
 
           <FilterField id="filter-reference-type" label="Reference type">

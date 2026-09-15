@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { DeleteGatePassDialog } from '@/features/gate-pass/components/delete-gate-pass-dialog'
+import { GatePassDeliveryCards } from '@/features/gate-pass/components/gate-pass-delivery-cards'
 import { ExportGatePassesDialog } from '@/features/gate-pass/components/export-gate-passes-dialog'
 import { GatePassDirectory } from '@/features/gate-pass/components/gate-pass-directory'
 import { GatePassFilters } from '@/features/gate-pass/components/gate-pass-filters'
@@ -52,7 +53,7 @@ export function GatePassPage() {
   const canWrite = canWriteGatePasses(role)
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
+    <div className="mx-auto w-full max-w-[1600px]">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Gate Pass</h1>
@@ -68,6 +69,12 @@ export function GatePassPage() {
           </Button>
         )}
       </div>
+
+      <GatePassDeliveryCards
+        meta={meta}
+        isLoading={query.isPending}
+        isFiltered={list.isFiltered}
+      />
 
       <GatePassStats
         stats={statsQuery.data}
@@ -106,6 +113,8 @@ export function GatePassPage() {
           isError={query.isError}
           errorMessage={query.error?.message ?? 'Something went wrong.'}
           isFiltered={list.isFiltered}
+          filters={list.params}
+          onFilterChange={list.applyFilters}
           onRetry={() => void query.refetch()}
           onReset={list.reset}
           onOpen={actions.open}

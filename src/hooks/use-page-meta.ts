@@ -32,6 +32,8 @@ const STANDALONE_PAGES: Record<string, PageMeta> = {
    * apart.
    */
   '/challan/batches': { title: 'Source PDFs', section: 'Main' },
+  /** The trip workspace, which "Delivery" would describe as the list. */
+  '/delivery/new': { title: 'New delivery', section: 'Main' },
   /**
    * `/my-vendor` *is* a sidebar item, but only for the one role that sees it —
    * so for anybody else the nav match below would find nothing and announce it

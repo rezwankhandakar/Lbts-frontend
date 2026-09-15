@@ -34,7 +34,7 @@ const TRIGGER = 'h-8 w-full sm:w-[11rem]'
 const COMPLIANCE_LABELS: Record<ComplianceFilter, string> = {
   all: 'Any compliance',
   expired: 'Has expired papers',
-  expiring: 'Has papers due',
+  expiring: 'Has papers expiring',
   clear: 'All papers in order',
 }
 

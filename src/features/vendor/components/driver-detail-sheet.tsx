@@ -90,7 +90,12 @@ export function DriverDetailSheet({
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2.5">
             <span className="relative shrink-0">
-              <DriverAvatar name={driver.name} photoUrl={driver.photoUrl} className="size-10" />
+              <DriverAvatar
+                name={driver.name}
+                photoUrl={driver.photoUrl}
+                caption={driver.driverCode}
+                className="size-10"
+              />
               {canManage && (
                 <>
                   <input

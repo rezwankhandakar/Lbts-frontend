@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -44,6 +45,13 @@ interface DriverFormDialogProps {
   isPending: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (values: DriverFormValues) => void
+  /**
+   * Replaces the sentence under the title. The Delivery module opens this form
+   * for a driver who is about to drive a trip, and says so.
+   */
+  description?: string
+  /** Rendered after the licence group, before the buttons — a photo, for Delivery. */
+  extra?: ReactNode
 }
 
 /**
@@ -71,6 +79,8 @@ export function DriverFormDialog({
   isPending,
   onOpenChange,
   onSubmit,
+  description,
+  extra,
 }: DriverFormDialogProps) {
   const {
     register,
@@ -111,9 +121,10 @@ export function DriverFormDialog({
         <DialogHeader>
           <DialogTitle>{record ? 'Edit driver' : 'Add driver'}</DialogTitle>
           <DialogDescription>
-            {record
-              ? 'The driver code and the vendor they work for stay the same.'
-              : `This driver will work for ${vendorName}. A driver code is allocated automatically.`}
+            {description ??
+              (record
+                ? 'The driver code and the vendor they work for stay the same.'
+                : `This driver will work for ${vendorName}. A driver code is allocated automatically.`)}
           </DialogDescription>
         </DialogHeader>
 
@@ -220,6 +231,8 @@ export function DriverFormDialog({
               of it from the documents tab.
             </p>
           </FormSection>
+
+          {extra}
 
           <DialogFooter>
             <Button

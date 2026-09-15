@@ -16,10 +16,10 @@ import {
   DOCUMENT_RULES_HINT,
   validateDocumentFile,
 } from '../lib/gate-pass-document'
-import { SCAN_RESOLUTIONS } from '../lib/scanner-agent'
-import type { ScanColorMode, ScanResolution, ScanSource } from '../lib/scanner-agent'
-import type { ScannerState } from '../lib/scanner-messages'
-import type { ScannerSettings } from '../hooks/use-scanner'
+import { SCAN_RESOLUTIONS } from '@/lib/scanner-agent'
+import type { ScanColorMode, ScanResolution, ScanSource } from '@/lib/scanner-agent'
+import type { ScannerState } from '@/lib/scanner-messages'
+import type { ScannerSettings } from '@/hooks/use-scanner'
 
 interface ScanControlsProps {
   state: ScannerState

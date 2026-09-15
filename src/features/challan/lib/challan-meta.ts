@@ -1,6 +1,22 @@
-import { CircleCheck, CircleSlash, FileCheck2, Loader, PencilLine } from 'lucide-react'
+import {
+  CircleCheck,
+  CircleSlash,
+  FileCheck2,
+  Loader,
+  PackageCheck,
+  PackageOpen,
+  PackageX,
+  PencilLine,
+  Truck,
+  Undo2,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import type { ChallanBatchStatus, ChallanStatus, PageRange } from '../types'
+import type {
+  ChallanBatchStatus,
+  ChallanStatus,
+  DispatchStatus,
+  PageRange,
+} from '../types'
 
 /**
  * Display metadata for the Challan vocabulary, in the same shape
@@ -39,12 +55,87 @@ export const CHALLAN_STATUS_META: Record<ChallanStatus, ChallanStatusMeta> = {
   },
   Amended: {
     label: 'Amended',
-    description: 'Corrected after filing. The stored document was regenerated.',
+    description: 'Corrected after filing — by hand, or by a trip that carried it.',
     icon: PencilLine,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     dot: 'bg-tone-amber',
     chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
   },
+}
+
+/**
+ * How much of a challan has left the gate.
+ *
+ * Drawn in **every** state, unlike a backlog chip: this is a status badge on a
+ * row, and an absent one would read as "no information" rather than "nothing
+ * has gone". The same rule the Location module's status badge follows.
+ */
+export const DISPATCH_META: Record<DispatchStatus, ChallanStatusMeta> = {
+  Pending: {
+    label: 'Not dispatched',
+    description: 'Filed, and on no trip yet.',
+    icon: PackageX,
+    badge: 'border-border bg-muted text-muted-foreground',
+    dot: 'bg-muted-foreground',
+    chip: 'bg-muted text-muted-foreground ring-border',
+  },
+  Partial: {
+    label: 'Partly sent',
+    description: 'Split across trips, with something still to go.',
+    icon: PackageOpen,
+    badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
+    dot: 'bg-tone-cyan',
+    chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
+  },
+  Dispatched: {
+    label: 'Sent',
+    description: 'Everything on it has left the gate; the signed copy is not back yet.',
+    icon: Truck,
+    badge: 'border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo',
+    dot: 'bg-tone-indigo',
+    chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
+  },
+  Delivered: {
+    label: 'Delivered',
+    description: 'Every trip carrying it has its signed copy in.',
+    icon: PackageCheck,
+    badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
+    dot: 'bg-tone-emerald',
+    chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
+  },
+}
+
+export function dispatchMeta(value: string): ChallanStatusMeta {
+  return DISPATCH_META[value as DispatchStatus] ?? DISPATCH_META.Pending
+}
+
+/**
+ * A `Pending` challan whose goods came back rather than never leaving. The
+ * stored status stays `Pending` — it is still waiting for a lorry, and the
+ * filters say so — and only the word on the badge says why.
+ */
+export const RETURNED_DISPATCH_META: ChallanStatusMeta = {
+  label: 'Returned',
+  description: 'Went out and came back; waiting at the depot for another trip.',
+  icon: Undo2,
+  badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
+  dot: 'bg-tone-rose',
+  chip: 'bg-tone-rose/10 text-tone-rose ring-tone-rose/20',
+}
+
+/** Pieces that came back and have not gone out again. */
+export function atDepotQty(record: { returnedQty?: number; resentQty?: number }): number {
+  return Math.max(0, (record.returnedQty ?? 0) - (record.resentQty ?? 0))
+}
+
+export function dispatchMetaFor(record: {
+  dispatchStatus: string
+  returnedQty?: number
+  resentQty?: number
+}): ChallanStatusMeta {
+  return record.dispatchStatus === 'Pending' && atDepotQty(record) > 0
+    ? RETURNED_DISPATCH_META
+    : dispatchMeta(record.dispatchStatus)
 }
 
 export interface ChallanBatchStatusMeta extends ToneClasses {

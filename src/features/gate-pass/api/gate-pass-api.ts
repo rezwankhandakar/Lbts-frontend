@@ -1,9 +1,13 @@
-import { api } from '@/lib/axios'
-import type { ApiError, ApiErrorSource } from '@/lib/axios'
+import { MULTIPART, api } from '@/lib/axios'
+import type { ApiError } from '@/lib/axios'
+import type { ColumnValuesResult } from '@/lib/column-filters'
+import { filenameFrom, withBlobMessage } from '@/lib/download-error'
 import type {
   DuplicateCandidate,
+  GatePassColumnId,
   GatePassInput,
   GatePassListParams,
+  GatePassListRecord,
   GatePassListResult,
   GatePassRecord,
   GatePassStats,
@@ -31,14 +35,13 @@ const BASE = '/gate-passes'
  * from the one on screen. Empty values and `all` are dropped rather than sent,
  * so the request URL — and therefore the query cache key — stays minimal.
  */
-function filterParams(params: GatePassListParams): Record<string, string> {
+export function filterParams(params: GatePassListParams): Record<string, string> {
   return {
     ...(params.search ? { search: params.search } : {}),
-    ...(params.status !== 'all' ? { status: params.status } : {}),
-    ...(params.csd ? { csd: params.csd } : {}),
-    ...(params.unit ? { unit: params.unit } : {}),
-    ...(params.product ? { product: params.product } : {}),
+    // One JSON parameter: a ticked value is a string, a number or a blank.
+    ...(Object.keys(params.columns).length > 0 ? { columns: JSON.stringify(params.columns) } : {}),
     ...(params.referenceType !== 'all' ? { referenceType: params.referenceType } : {}),
+    ...(params.bill !== 'all' ? { bill: params.bill } : {}),
     ...(params.reference ? { reference: params.reference } : {}),
     ...(params.createdBy ? { createdBy: params.createdBy } : {}),
     ...(params.from ? { from: params.from } : {}),
@@ -48,7 +51,7 @@ function filterParams(params: GatePassListParams): Record<string, string> {
 
 /** Filtering and pagination are server-side; see `filterParams`. */
 export async function fetchGatePasses(params: GatePassListParams): Promise<GatePassListResult> {
-  const { data } = await api.get<ApiListEnvelope<GatePassRecord[]>>(BASE, {
+  const { data } = await api.get<ApiListEnvelope<GatePassListRecord[]>>(BASE, {
     params: {
       page: params.page,
       limit: params.limit,
@@ -57,6 +60,17 @@ export async function fetchGatePasses(params: GatePassListParams): Promise<GateP
   })
 
   return { records: data.data, meta: data.meta }
+}
+
+/** The distinct values one column's dropdown offers, under the other filters. */
+export async function fetchGatePassColumnValues(
+  column: GatePassColumnId,
+  params: GatePassListParams,
+): Promise<ColumnValuesResult> {
+  const { data } = await api.get<ApiEnvelope<ColumnValuesResult>>(`${BASE}/column-values`, {
+    params: { column, ...filterParams(params) },
+  })
+  return data.data
 }
 
 export interface GatePassExportFile {
@@ -89,55 +103,10 @@ export async function exportGatePasses(params: GatePassListParams): Promise<Gate
 
     return {
       blob: response.data,
-      filename: filenameFrom(response.headers['content-disposition']),
+      filename: filenameFrom(response.headers['content-disposition'], 'gate-passes.xlsx'),
     }
   } catch (error) {
     throw await withBlobMessage(error)
-  }
-}
-
-/** The name the server chose, or a plain one if the header is unreadable. */
-function filenameFrom(disposition: unknown): string {
-  const match =
-    typeof disposition === 'string' ? /filename="?([^"';]+)"?/.exec(disposition) : null
-  return match?.[1]?.trim() || 'gate-passes.xlsx'
-}
-
-/**
- * Recovers the message from a failed download.
- *
- * A request that asked for a blob gets a blob back even when the server
- * answered with an error, so the interceptor — which reads `data.message` —
- * finds nothing and falls back to "Request failed with status code 400". The
- * body really is JSON; it just arrived in the wrong wrapper, and the operator
- * needs to read "that is 8,000 gate passes, narrow the filters" rather than a
- * status code.
- */
-async function withBlobMessage(error: unknown): Promise<unknown> {
-  if (typeof error !== 'object' || error === null) {
-    return error
-  }
-
-  const apiError = error as ApiError
-  if (!(apiError.body instanceof Blob)) {
-    return error
-  }
-
-  try {
-    const parsed = JSON.parse(await apiError.body.text()) as {
-      message?: string
-      errorSources?: ApiErrorSource[]
-    }
-
-    return {
-      ...apiError,
-      message: parsed.message ?? apiError.message,
-      errorSources: parsed.errorSources ?? [],
-      body: parsed,
-    } satisfies ApiError
-  } catch {
-    // Not JSON after all — an empty body, or a proxy's own error page.
-    return error
   }
 }
 
@@ -166,11 +135,9 @@ export async function updateGatePass({ id, input }: UpdateGatePassArgs): Promise
   return data.data
 }
 
+/** A duplicate is the same Trip DO, and nothing else — see `findDuplicates`. */
 export interface DuplicateProbe {
   tripDo: string
-  tripDate: string
-  vehicleNo: string
-  model: string
   excludeId?: string
 }
 
@@ -178,9 +145,6 @@ export async function fetchDuplicates(probe: DuplicateProbe): Promise<DuplicateC
   const { data } = await api.get<ApiEnvelope<DuplicateCandidate[]>>(`${BASE}/duplicates`, {
     params: {
       ...(probe.tripDo ? { tripDo: probe.tripDo } : {}),
-      ...(probe.tripDate ? { tripDate: probe.tripDate } : {}),
-      ...(probe.vehicleNo ? { vehicleNo: probe.vehicleNo } : {}),
-      ...(probe.model ? { model: probe.model } : {}),
       ...(probe.excludeId ? { excludeId: probe.excludeId } : {}),
     },
   })
@@ -298,13 +262,7 @@ export async function uploadGatePassDocument({
   }
 
   const { data } = await api.post<ApiEnvelope<GatePassRecord>>(`${BASE}/${id}/document`, formData, {
-    /**
-     * The shared instance defaults to application/json, and axios reads that
-     * default before the adapter runs: left in place it would serialise the
-     * FormData to JSON and the upload would arrive with no file at all. The
-     * browser replaces this value with one carrying the real boundary.
-     */
-    headers: { 'Content-Type': 'multipart/form-data' },
+    ...MULTIPART,
     onUploadProgress: (event) => {
       if (!onProgress || !event.total) {
         return

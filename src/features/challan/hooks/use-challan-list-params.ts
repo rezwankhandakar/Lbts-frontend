@@ -12,6 +12,8 @@ const INITIAL_PARAMS: ChallanListParams = {
   status: 'all',
   location: 'all',
   amount: 'all',
+  dispatch: 'all',
+  bill: 'all',
   district: '',
   customer: '',
   product: '',
@@ -99,6 +101,8 @@ export function useChallanListParams(
     params.status !== 'all' ||
     params.location !== 'all' ||
     params.amount !== 'all' ||
+    params.dispatch !== 'all' ||
+    params.bill !== 'all' ||
     params.district !== '' ||
     params.customer !== '' ||
     params.product !== '' ||

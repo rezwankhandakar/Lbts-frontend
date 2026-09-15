@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ArrowRight, Loader2, TriangleAlert, UserRound } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ArrowRight, Loader2, Truck, TriangleAlert, UserRound } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -136,14 +136,36 @@ export function AssignDriverDialog({
   const driver = drivers.find((item) => item.id === driverId)
 
   /**
+   * How the closed trigger names what is chosen.
+   *
+   * Base UI's `Select.Value` renders the raw value unless the root is told how
+   * to label it, and these values are Mongo ids — so without this the selector
+   * reads `6aa152349fe7e235ad032ebb` where a plate should be. It is
+   * deliberately the bare label: the popup rows carry a chip as well, and a
+   * one-line trigger has no room for one.
+   */
+  const vehicleOptions = useMemo(
+    () => vehicles.map((item) => ({ value: item.id, label: item.registrationNo })),
+    [vehicles],
+  )
+  const driverOptions = useMemo(
+    () => drivers.map((item) => ({ value: item.id, label: item.name })),
+    [drivers],
+  )
+
+  /**
    * The vehicle's current driver, as this dialog already knows it. The server's
    * 409 is the authority — this is what lets the warning appear *before* the
    * first submission rather than after it, which is the difference between
    * explaining a consequence and reporting one.
+   *
+   * Compared by id rather than by name: two drivers under one vendor may share
+   * a name, and putting a vehicle's own driver back on it is not a handover.
    */
   const current = conflict ?? null
+  const displacedId = current?.driver?.id ?? vehicle?.currentDriver?.driverId ?? null
   const displaced = current?.driver?.name ?? vehicle?.currentDriver?.name ?? null
-  const needsConfirmation = Boolean(displaced) && displaced !== driver?.name
+  const needsConfirmation = displacedId !== null && displacedId !== driverId
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -174,8 +196,11 @@ export function AssignDriverDialog({
               <div className="space-y-1.5">
                 <Label htmlFor="assign-vehicle">Vehicle</Label>
                 <Select
+                  items={vehicleOptions}
                   value={vehicleId}
-                  onValueChange={(value) => setValue('vehicleId', value ?? '', { shouldDirty: true })}
+                  onValueChange={(value) =>
+                    setValue('vehicleId', value ?? '', { shouldDirty: true })
+                  }
                   disabled={isPending || isLoadingOptions}
                 >
                   <SelectTrigger id="assign-vehicle" className="w-full">
@@ -185,13 +210,22 @@ export function AssignDriverDialog({
                     <SelectGroup>
                       {vehicles.map((item) => (
                         <SelectItem key={item.id} value={item.id}>
-                          {item.registrationNo}
+                          <span className="min-w-0 truncate">{item.registrationNo}</span>
+                          {item.currentDriver && (
+                            <TakenChip kind="driver" label={item.currentDriver.name} />
+                          )}
                         </SelectItem>
                       ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
                 <FieldError error={errors.vehicleId?.message} />
+                {vehicle?.currentDriver && !needsConfirmation && (
+                  <p className="text-xs leading-snug text-tone-amber">
+                    {vehicle.currentDriver.name} is the active driver, since{' '}
+                    {formatDay(vehicle.currentDriver.assignedFrom)}.
+                  </p>
+                )}
                 {vehicles.length === 0 && !isLoadingOptions && (
                   <p className="text-xs leading-snug text-muted-foreground">
                     No active vehicles. A vehicle in maintenance, suspended or out of papers cannot
@@ -203,8 +237,11 @@ export function AssignDriverDialog({
               <div className="space-y-1.5">
                 <Label htmlFor="assign-driver">Driver</Label>
                 <Select
+                  items={driverOptions}
                   value={driverId}
-                  onValueChange={(value) => setValue('driverId', value ?? '', { shouldDirty: true })}
+                  onValueChange={(value) =>
+                    setValue('driverId', value ?? '', { shouldDirty: true })
+                  }
                   disabled={isPending || isLoadingOptions}
                 >
                   <SelectTrigger id="assign-driver" className="w-full">
@@ -214,13 +251,22 @@ export function AssignDriverDialog({
                     <SelectGroup>
                       {drivers.map((item) => (
                         <SelectItem key={item.id} value={item.id}>
-                          {item.name}
+                          <span className="min-w-0 truncate">{item.name}</span>
+                          {item.currentVehicle && (
+                            <TakenChip kind="vehicle" label={item.currentVehicle.registrationNo} />
+                          )}
                         </SelectItem>
                       ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
                 <FieldError error={errors.driverId?.message} />
+                {driver?.currentVehicle && driver.currentVehicle.vehicleId !== vehicleId && (
+                  <p className="text-xs leading-snug text-tone-amber">
+                    Already driving {driver.currentVehicle.registrationNo}, since{' '}
+                    {formatDay(driver.currentVehicle.assignedFrom)}.
+                  </p>
+                )}
                 {drivers.length === 0 && !isLoadingOptions && (
                   <p className="text-xs leading-snug text-muted-foreground">
                     No active drivers. A driver on leave, suspended or inactive cannot be assigned.
@@ -316,6 +362,30 @@ export function AssignDriverDialog({
         </form>
       </DialogContent>
     </Dialog>
+  )
+}
+
+/**
+ * The mark on an option that is already spoken for.
+ *
+ * A vehicle with a driver and a driver with a vehicle are both perfectly
+ * choosable — one is a handover and the other is a transfer — so this is a
+ * label rather than a disabled state. What it prevents is the choice being made
+ * blind: the name of the driver already on that lorry, or the plate that driver
+ * is already on, read off the same `currentDriver` / `currentVehicle` the
+ * fleet tables render.
+ */
+function TakenChip({ kind, label }: { kind: 'driver' | 'vehicle'; label: string }) {
+  const Icon = kind === 'driver' ? UserRound : Truck
+
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-tone-amber/30 bg-tone-amber/10 px-1.5 py-px text-[10.5px] leading-4 font-medium text-tone-amber"
+      title={kind === 'driver' ? `Currently driven by ${label}` : `Currently driving ${label}`}
+    >
+      <Icon className="size-2.5" aria-hidden />
+      {label}
+    </span>
   )
 }
 

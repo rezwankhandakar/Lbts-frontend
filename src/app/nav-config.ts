@@ -1,7 +1,10 @@
 import {
   Building2,
+  FileSpreadsheet,
   LayoutDashboard,
   MapPinned,
+  PackageCheck,
+  Receipt,
   ReceiptText,
   ScanLine,
   Settings,
@@ -69,6 +72,44 @@ export const navSections: NavSection[] = [
         path: '/challan',
         icon: ReceiptText,
         accent: 'violet',
+        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+      },
+      /**
+       * Delivery: which challans went out on which lorry. Hidden from Vendor
+       * accounts for the reason Challan is — a trip carries every challan on
+       * it, customer addresses included. Presentation only; `RoleRoute` and
+       * the API are what refuse.
+       */
+      {
+        label: 'Delivery',
+        path: '/delivery',
+        icon: PackageCheck,
+        accent: 'amber',
+        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+      },
+      /**
+       * The Trip DO sheet: challan product lines matched to gate pass lines.
+       * Hidden from Vendor accounts for the reason Challan is — every row
+       * carries a customer's address. Presentation only; `RoleRoute` and the
+       * API are what refuse.
+       */
+      {
+        label: 'Trip DO',
+        path: '/trip-do',
+        icon: FileSpreadsheet,
+        accent: 'indigo',
+        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+      },
+      /**
+       * Excel bills, built from the Trip DO sheet and beside it. Hidden from
+       * Vendor accounts for the sheet's own reason. Presentation only;
+       * `RoleRoute` and the API are what refuse.
+       */
+      {
+        label: 'Excel Bill',
+        path: '/bills',
+        icon: Receipt,
+        accent: 'emerald',
         roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
       },
       /**

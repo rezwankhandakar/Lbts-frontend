@@ -3,6 +3,8 @@ import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
 import { ChallanSummaryCard } from '@/features/challan/components/challan-summary-card'
 import { canReadChallans } from '@/features/challan/types'
+import { DeliverySummaryCard } from '@/features/delivery/components/delivery-summary-card'
+import { canReadDeliveries } from '@/features/delivery/types'
 import { GatePassSummaryCard } from '@/features/gate-pass/components/gate-pass-summary-card'
 import { canReadGatePasses } from '@/features/gate-pass/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
@@ -19,7 +21,8 @@ export function DashboardPage() {
   const role = useCurrentRole()
   const hasGatePass = canReadGatePasses(role)
   const hasChallan = canReadChallans(role)
-  const hasAny = hasGatePass || hasChallan
+  const hasDelivery = canReadDeliveries(role)
+  const hasAny = hasGatePass || hasChallan || hasDelivery
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -32,6 +35,7 @@ export function DashboardPage() {
         <div className="mb-6 space-y-4">
           {hasGatePass && <GatePassSummaryCard />}
           {hasChallan && <ChallanSummaryCard />}
+          {hasDelivery && <DeliverySummaryCard />}
         </div>
       )}
 
@@ -40,7 +44,9 @@ export function DashboardPage() {
         badge="In preparation"
         title={hasAny ? 'More modules are on the way' : 'Dashboard is getting ready'}
         description="As each module is built, this space summarises what needs your attention across the platform."
-        footnote={hasAny ? 'Gate Pass and Challan are the modules reporting here' : undefined}
+        footnote={
+          hasAny ? 'Gate Pass, Challan and Delivery are the modules reporting here' : undefined
+        }
       />
     </div>
   )

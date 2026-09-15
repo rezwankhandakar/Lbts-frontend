@@ -69,16 +69,19 @@ export function VendorTable({
                 <TableCell>
                   {/* The whole identity is the link, so the target is the row's
                       largest object rather than a word at the end of it. */}
-                  <Link
-                    to={`/vendors/${record.id}`}
-                    className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <VendorIdentity
-                      name={record.name}
-                      vendorCode={record.vendorCode}
-                      photoUrl={record.photoUrl}
-                    />
-                  </Link>
+                  <VendorIdentity
+                    name={record.name}
+                    vendorCode={record.vendorCode}
+                    photoUrl={record.photoUrl}
+                    render={(children) => (
+                      <Link
+                        to={`/vendors/${record.id}`}
+                        className="min-w-0 rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {children}
+                      </Link>
+                    )}
+                  />
                 </TableCell>
 
                 <TableCell className="hidden text-xs whitespace-nowrap text-muted-foreground lg:table-cell">

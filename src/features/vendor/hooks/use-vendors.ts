@@ -8,10 +8,10 @@ import {
   deleteVendor,
   fetchMyVendor,
   fetchVendor,
-  fetchVendorActivity,
   fetchVendorOptions,
   fetchVendorStats,
   fetchVendorSummary,
+  fetchVendorTrips,
   fetchVendors,
   removeVendorPhoto,
   updateVendor,
@@ -19,7 +19,6 @@ import {
 } from '../api/vendor-api'
 import type { VendorInput, VendorStatusArgs } from '../api/vendor-api'
 import type {
-  ActivityRecord,
   ListResult,
   VendorListParams,
   VendorOption,
@@ -27,6 +26,8 @@ import type {
   VendorRemoval,
   VendorStats,
   VendorSummary,
+  VendorTripListParams,
+  VendorTripListResult,
 } from '../types'
 
 /**
@@ -46,7 +47,8 @@ export const vendorKeys = {
   mine: () => ['vendors', 'me'] as const,
   detail: (id: string) => ['vendors', 'detail', id] as const,
   summary: (id: string) => ['vendors', 'summary', id] as const,
-  activity: (id: string) => ['vendors', 'activity', id] as const,
+  /** Under the namespace, so a trip saved in Delivery can refresh it by prefix. */
+  trips: (id: string, params: VendorTripListParams) => ['vendors', 'trips', id, params] as const,
 }
 
 const LIST_STALE_TIME = 30_000
@@ -138,15 +140,17 @@ export function useVendorSummary(
   })
 }
 
-export function useVendorActivity(
+/** A vendor's trips, paged and filtered server-side. */
+export function useVendorTrips(
   id: string | undefined,
-  enabled = true,
-): UseQueryResult<ActivityRecord[], ApiError> {
+  params: VendorTripListParams,
+): UseQueryResult<VendorTripListResult, ApiError> {
   return useQuery({
-    queryKey: vendorKeys.activity(id ?? ''),
-    queryFn: () => fetchVendorActivity(id as string, 40),
-    enabled: Boolean(id) && enabled,
+    queryKey: vendorKeys.trips(id ?? '', params),
+    queryFn: () => fetchVendorTrips(id as string, params),
+    enabled: Boolean(id),
     staleTime: LIST_STALE_TIME,
+    placeholderData: keepPreviousData,
     retry: 2,
   })
 }

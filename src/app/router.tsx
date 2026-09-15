@@ -1,6 +1,7 @@
 import { lazy } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/app-layout'
+import { BILL_READ_ROLES } from '@/features/bill/types'
 import {
   AdminRoute,
   ProtectedRoute,
@@ -8,9 +9,11 @@ import {
   RoleRoute,
 } from '@/components/shared/route-guards'
 import { CHALLAN_READ_ROLES, CHALLAN_WRITE_ROLES } from '@/features/challan/types'
+import { DELIVERY_READ_ROLES, DELIVERY_WRITE_ROLES } from '@/features/delivery/types'
 import { GATE_PASS_READ_ROLES, GATE_PASS_WRITE_ROLES } from '@/features/gate-pass/types'
 import { LOCATION_READ_ROLES } from '@/features/location/types'
 import { PRODUCT_RATE_READ_ROLES } from '@/features/product-rate/types'
+import { TRIP_DO_READ_ROLES } from '@/features/trip-do/types'
 import { VENDOR_READ_ROLES } from '@/features/vendor/types'
 import { DashboardPage } from '@/pages/dashboard'
 
@@ -56,6 +59,26 @@ const ChallanBatchesPage = lazy(() =>
 )
 const ChallanLocationPage = lazy(() =>
   import('@/pages/challan-location').then((m) => ({ default: m.ChallanLocationPage })),
+)
+const DeliveryPage = lazy(() =>
+  import('@/pages/delivery').then((m) => ({ default: m.DeliveryPage })),
+)
+const DeliveryNewPage = lazy(() =>
+  import('@/pages/delivery-new').then((m) => ({ default: m.DeliveryNewPage })),
+)
+const DeliveryDetailsPage = lazy(() =>
+  import('@/pages/delivery-details').then((m) => ({ default: m.DeliveryDetailsPage })),
+)
+const DeliveryEditPage = lazy(() =>
+  import('@/pages/delivery-edit').then((m) => ({ default: m.DeliveryEditPage })),
+)
+const DeliveryCompletionPage = lazy(() =>
+  import('@/pages/delivery-completion').then((m) => ({ default: m.DeliveryCompletionPage })),
+)
+const TripDoPage = lazy(() => import('@/pages/trip-do').then((m) => ({ default: m.TripDoPage })))
+const BillsPage = lazy(() => import('@/pages/bills').then((m) => ({ default: m.BillsPage })))
+const BillDetailsPage = lazy(() =>
+  import('@/pages/bill-details').then((m) => ({ default: m.BillDetailsPage })),
 )
 const LocationsPage = lazy(() =>
   import('@/pages/locations').then((m) => ({ default: m.LocationsPage })),
@@ -108,6 +131,30 @@ const CHALLAN_ACCESS_REASON =
   'Challan records deliveries from the corporate office, and is open to Admin, Manager, CEO and Operation Executive accounts.'
 const CHALLAN_WRITE_REASON =
   'Filing a challan is done by Admin, Manager and Operation Executive accounts.'
+
+/**
+ * Wording for the two Delivery boundaries. A trip carries every challan on it,
+ * customer addresses included, which is why Vendor is out even though a trip
+ * is assigned to a vendor.
+ */
+const DELIVERY_ACCESS_REASON =
+  'Deliveries record which challans went out on which vehicle, and are open to Admin, Manager, CEO and Operation Executive accounts.'
+const DELIVERY_WRITE_REASON =
+  'Building and correcting a trip is done by Admin, Manager and Operation Executive accounts.'
+
+/**
+ * One boundary: the same page serves readers and writers, with the write
+ * controls simply absent for a CEO.
+ */
+const TRIP_DO_ACCESS_REASON =
+  'The Trip DO sheet matches challan product lines to gate passes, and is open to Admin, Manager, CEO and Operation Executive accounts.'
+
+/**
+ * One boundary, like the Trip DO sheet a bill is built from: the same pages
+ * serve readers and writers, with the write controls absent for a CEO.
+ */
+const BILL_ACCESS_REASON =
+  'Bills charge a unit for its Trip DOs, and are open to Admin, Manager, CEO and Operation Executive accounts.'
 
 /**
  * The Location master list has one boundary here rather than two: reading it
@@ -203,6 +250,77 @@ export function AppRouter() {
                   here and decides none of them. */}
               <Route path="/challan/:id/location" element={<ChallanLocationPage />} />
             </Route>
+          </Route>
+
+          {/* Delivery: trips, and the challans on each. The same audience as
+              Challan, and for the same reason — a trip carries customer
+              addresses. `/delivery/new` is static and ranks above
+              `/delivery/:id`, the arrangement `/challan/new` relies on. */}
+          <Route
+            element={
+              <RoleRoute
+                roles={DELIVERY_READ_ROLES}
+                area="Delivery"
+                reason={DELIVERY_ACCESS_REASON}
+              />
+            }
+          >
+            <Route path="/delivery" element={<DeliveryPage />} />
+            <Route path="/delivery/:id" element={<DeliveryDetailsPage />} />
+            {/* One challan's delivery, completed: what came back, which floor
+                it went up to, what was hired to get it there, and the signed
+                copy that ends it. A read role may open it — a CEO looking at
+                what a delivery cost — and the write controls are absent
+                rather than disabled, the rule /my-vendor follows. */}
+            <Route
+              path="/delivery/:id/challans/:challanId"
+              element={<DeliveryCompletionPage />}
+            />
+
+            <Route
+              element={
+                <RoleRoute
+                  roles={DELIVERY_WRITE_ROLES}
+                  area="Delivery"
+                  reason={DELIVERY_WRITE_REASON}
+                />
+              }
+            >
+              <Route path="/delivery/new" element={<DeliveryNewPage />} />
+              <Route path="/delivery/:id/edit" element={<DeliveryEditPage />} />
+            </Route>
+          </Route>
+
+          {/* The Trip DO sheet: challan product lines matched to gate pass
+              lines. Challans and gate passes side by side, so it takes the
+              audience both share — Vendor is out, because every row carries
+              a customer's address. Writing is checked per endpoint. */}
+          <Route
+            element={
+              <RoleRoute
+                roles={TRIP_DO_READ_ROLES}
+                area="Trip DO"
+                reason={TRIP_DO_ACCESS_REASON}
+              />
+            }
+          >
+            <Route path="/trip-do" element={<TripDoPage />} />
+          </Route>
+
+          {/* Excel bills: a unit's month of Trip DO rows. The Trip DO sheet's
+              audience, for its reason — every row carries a customer's
+              address. Preparing and finalizing are checked per endpoint. */}
+          <Route
+            element={
+              <RoleRoute
+                roles={BILL_READ_ROLES}
+                area="Excel Bill"
+                reason={BILL_ACCESS_REASON}
+              />
+            }
+          >
+            <Route path="/bills" element={<BillsPage />} />
+            <Route path="/bills/:id" element={<BillDetailsPage />} />
           </Route>
 
           {/* The district and thana master list. Open to read for everyone

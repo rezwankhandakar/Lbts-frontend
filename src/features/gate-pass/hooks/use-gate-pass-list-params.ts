@@ -3,17 +3,15 @@ import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import type { FilterPatch, GatePassListParams } from '../types'
 
 /** Ten rows fill a screen without paging on every scroll. */
-const PAGE_SIZE = 10
+const PAGE_SIZE = 20
 
 const INITIAL_PARAMS: GatePassListParams = {
   page: 1,
   limit: PAGE_SIZE,
   search: '',
-  status: 'all',
-  csd: '',
-  unit: '',
-  product: '',
+  columns: {},
   referenceType: 'all',
+  bill: 'all',
   reference: '',
   createdBy: '',
   from: '',
@@ -81,11 +79,9 @@ export function useGatePassListParams(): GatePassListParamsController {
 
   const isFiltered =
     params.search !== '' ||
-    params.status !== 'all' ||
-    params.csd !== '' ||
-    params.unit !== '' ||
-    params.product !== '' ||
+    Object.keys(params.columns).length > 0 ||
     params.referenceType !== 'all' ||
+    params.bill !== 'all' ||
     params.reference !== '' ||
     params.createdBy !== '' ||
     params.from !== '' ||

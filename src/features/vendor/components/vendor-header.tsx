@@ -82,6 +82,7 @@ export function VendorHeader({
               <VendorAvatar
                 name={vendor.name}
                 photoUrl={vendor.photoUrl}
+                caption={vendor.vendorCode}
                 className="size-14 rounded-xl text-base sm:size-16"
               />
 

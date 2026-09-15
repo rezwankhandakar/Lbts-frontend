@@ -66,12 +66,11 @@ export function ChallanPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Challan</h1>
-          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
-            Every challan filed out of a corporate PDF, with its serial, its barcode back page and
-            the document that was generated for it.
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight">Challan</h1>
+          <p className="mt-1 max-w-xl text-sm text-pretty text-muted-foreground">
+            Every challan filed out of a corporate PDF — serial, barcode back page and document.
           </p>
         </div>
 
@@ -106,7 +105,7 @@ export function ChallanPage() {
 
       <section
         aria-label="Challan records"
-        className="overflow-hidden rounded-xl border bg-card shadow-sm"
+        className="overflow-hidden rounded-xl border bg-card shadow-xs"
       >
         <ChallanFilters
           params={list.params}

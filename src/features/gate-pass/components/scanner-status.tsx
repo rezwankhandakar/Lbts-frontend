@@ -1,9 +1,9 @@
 import { Loader2, Printer, RefreshCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { SCANNER_STATE_COPY, SCANNER_TONES } from '../lib/scanner-messages'
-import type { ScannerState } from '../lib/scanner-messages'
-import type { ScannerDevice } from '../lib/scanner-agent'
+import { SCANNER_STATE_COPY, SCANNER_TONES } from '@/lib/scanner-messages'
+import type { ScannerState } from '@/lib/scanner-messages'
+import type { ScannerDevice } from '@/lib/scanner-agent'
 
 interface ScannerStatusProps {
   state: ScannerState

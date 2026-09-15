@@ -1,7 +1,7 @@
-import { ArrowRight, CalendarClock, FileClock, History } from 'lucide-react'
+import { ArrowRight, CalendarClock, FileClock } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatRelative } from '@/lib/format'
 import { formatDay, formatPeriod } from '../lib/vendor-meta'
 import type { VendorSummary, VendorTab } from '../types'
 import { AssignmentStatusBadge, DocumentStatusBadge } from './status-badges'
@@ -30,7 +30,7 @@ function Section({
   children,
 }: {
   title: string
-  icon: typeof History
+  icon: LucideIcon
   action?: { label: string; onClick: () => void }
   children: React.ReactNode
 }) {
@@ -61,9 +61,9 @@ function Nothing({ children }: { children: string }) {
  * The overview tab.
  *
  * The hierarchy is the design: the numbers first, then what needs doing about
- * them, then the two lists that answer "what has been happening" — recent
- * assignments and recent activity — with the expiring documents between them
- * because that is the one list somebody acts on today.
+ * them, then the two lists somebody acts on — the documents about to expire and
+ * the latest assignments. Recent activity used to sit underneath; it left with
+ * the Activity tab, and returns when there is an Activity module to show it.
  *
  * All of it comes from one request. The whole reason the server has a summary
  * endpoint is that six separate calls against a sleeping Render instance are
@@ -172,33 +172,6 @@ export function VendorOverview({
           )}
         </Section>
       </div>
-
-      <Section
-        title="Recent activity"
-        icon={History}
-        action={{ label: 'Full history', onClick: () => onOpenTab('activity') }}
-      >
-        {isLoading ? (
-          <div className="space-y-3 p-4" aria-busy="true">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-2/3" />
-          </div>
-        ) : (summary?.recentActivity.length ?? 0) === 0 ? (
-          <Nothing>Nothing has been changed on this vendor yet.</Nothing>
-        ) : (
-          <ul className="divide-y">
-            {summary?.recentActivity.map((entry) => (
-              <li key={entry.id} className="flex items-start justify-between gap-3 px-4 py-2.5">
-                <p className="min-w-0 text-[13px] wrap-break-word">{entry.summary}</p>
-                <p className="shrink-0 text-xs whitespace-nowrap text-muted-foreground">
-                  {entry.actor ? `${entry.actor.name} · ` : ''}
-                  {formatRelative(entry.createdAt)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
 
       {summary && summary.activeAssignments > 0 && (
         <p className="px-1 text-xs text-muted-foreground">

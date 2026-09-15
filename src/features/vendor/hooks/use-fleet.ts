@@ -27,10 +27,12 @@ import {
   fetchVehicleDocuments,
   fetchVehicles,
   removeDriverPhoto,
+  removeVehiclePhoto,
   updateDocument,
   updateDriver,
   updateVehicle,
   uploadDriverPhoto,
+  uploadVehiclePhoto,
 } from '../api/vendor-api'
 import type { AssignmentInput, DocumentInput, DriverInput, VehicleInput } from '../api/vendor-api'
 import type {
@@ -208,6 +210,40 @@ export function useChangeVehicleStatus(): UseMutationResult<
     },
     onError: reportVendorError,
   })
+}
+
+/**
+ * A vehicle's picture, set or cleared.
+ *
+ * Paired in one hook the way `useDriverPhoto` and the vendor's own are: the two
+ * calls are the same decision from the operator's side, and splitting them
+ * would leave a panel holding two mutations to keep in step.
+ */
+export function useVehiclePhoto(): {
+  upload: UseMutationResult<VehicleRecord, ApiError, { id: string; file: File }>
+  remove: UseMutationResult<VehicleRecord, ApiError, string>
+} {
+  const invalidate = useInvalidateVendors()
+
+  const upload = useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => uploadVehiclePhoto(id, file),
+    onSuccess: (vehicle) => {
+      toast.success(`Photo updated for ${vehicle.registrationNo}`)
+      void invalidate()
+    },
+    onError: reportVendorError,
+  })
+
+  const remove = useMutation({
+    mutationFn: removeVehiclePhoto,
+    onSuccess: (vehicle) => {
+      toast.success(`Photo removed from ${vehicle.registrationNo}`)
+      void invalidate()
+    },
+    onError: reportVendorError,
+  })
+
+  return { upload, remove }
 }
 
 export function useDeleteVehicle(): UseMutationResult<

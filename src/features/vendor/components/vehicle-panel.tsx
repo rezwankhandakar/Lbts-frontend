@@ -8,6 +8,7 @@ import {
   useUpdateVehicle,
   useVehicleAssignments,
   useVehicleDocuments,
+  useVehiclePhoto,
   useVehicles,
 } from '../hooks/use-fleet'
 import { useVehicleListParams } from '../hooks/use-list-params'
@@ -67,6 +68,7 @@ export function VehiclePanel({
   const update = useUpdateVehicle()
   const status = useChangeVehicleStatus()
   const remove = useDeleteVehicle()
+  const photo = useVehiclePhoto()
 
   // Only fetched once a vehicle is actually open, so a fleet table costs one
   // request rather than one per row for panels nobody looked at.
@@ -91,6 +93,14 @@ export function VehiclePanel({
 
   const records = query.data?.records ?? []
   const meta = query.data?.meta
+
+  /**
+   * The open vehicle, read back out of the list rather than off the snapshot
+   * `target` holds. Setting a photo invalidates the list, and a sheet rendering
+   * the row as it looked when it was clicked would keep showing the old picture
+   * until it was closed and opened again.
+   */
+  const open = target ? (records.find((record) => record.id === target.id) ?? target) : null
 
   if (meta && params.page > meta.totalPages) {
     clampToPages(meta.totalPages)
@@ -260,13 +270,17 @@ export function VehiclePanel({
       )}
 
       <VehicleDetailSheet
-        vehicle={target}
+        vehicle={open}
         vendorName={vendor.name}
         assignments={assignments.data}
         documents={documents.data}
         isLoading={assignments.isPending || documents.isPending}
+        canManage={canManage}
+        isPhotoPending={photo.upload.isPending || photo.remove.isPending}
         open={overlay === 'detail'}
-        onOpenChange={(open) => !open && close()}
+        onOpenChange={(isOpen) => !isOpen && close()}
+        onPhotoChosen={(file) => target && photo.upload.mutate({ id: target.id, file })}
+        onPhotoRemoved={() => target && photo.remove.mutate(target.id)}
       />
     </>
   )

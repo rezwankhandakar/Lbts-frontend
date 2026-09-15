@@ -18,7 +18,9 @@ import {
   useCreateDocument,
   useDeleteDocument,
   useDocuments,
+  useDriverDocuments,
   useUpdateDocument,
+  useVehicleDocuments,
 } from '../hooks/use-fleet'
 import { useDocumentFile } from '../hooks/use-document-file'
 import { useDocumentListParams } from '../hooks/use-list-params'
@@ -60,6 +62,8 @@ interface DocumentPanelProps {
    */
   filterRequest: { token: number; filter: DocumentFilterPatch } | null
   ownerRequest: { token: number; type: DocumentOwnerType; id: string; label: string } | null
+  /** Hands the subject back once the form it opened has been closed. */
+  onOwnerHandled: () => void
 }
 
 const TRIGGER = 'h-8 w-full sm:w-[10.5rem]'
@@ -83,6 +87,7 @@ export function DocumentPanel({
   canManage,
   filterRequest,
   ownerRequest,
+  onOwnerHandled,
 }: DocumentPanelProps) {
   const { params, applied, isFiltered, applyFilters, setPage, clampToPages, reset } =
     useDocumentListParams()
@@ -102,6 +107,22 @@ export function DocumentPanel({
   const vehicles = useAssignableVehicles(vendor.id, isChoosingOwner)
   const drivers = useAssignableDrivers(vendor.id, isChoosingOwner)
 
+  /**
+   * What that subject already has on record, so the form can renew instead of
+   * refusing.
+   *
+   * A subject's own documents rather than a slice of the paged list above: the
+   * list is ten rows of the whole fleet and the fitness certificate this vehicle
+   * already holds may be on page three. Fetched only while the form is open on
+   * a subject, so the tab itself costs nothing extra.
+   */
+  const forVehicle = owner?.type === 'Vehicle' && isChoosingOwner ? owner.id : undefined
+  const forDriver = owner?.type === 'Driver' && isChoosingOwner ? owner.id : undefined
+  const vehiclePapers = useVehicleDocuments(forVehicle)
+  const driverPapers = useDriverDocuments(forDriver)
+  const existing =
+    (owner?.type === 'Vehicle' ? vehiclePapers.data : driverPapers.data) ?? []
+
   /** An alert on the overview arrives with its filter already chosen. */
   const [seenFilter, setSeenFilter] = useState<number | null>(null)
   if (filterRequest && filterRequest.token !== seenFilter) {
@@ -109,13 +130,27 @@ export function DocumentPanel({
     applyFilters(filterRequest.filter)
   }
 
-  /** Arriving from a vehicle or driver row opens the form on that subject. */
+  /**
+   * Arriving from a vehicle or driver row.
+   *
+   * For somebody who may write, that opens the form on that subject — the row
+   * menu calls it *Renew or replace*, and the form resolves whether the chosen
+   * type is a renewal or a new document. For somebody who may not, the same
+   * menu item says *Documents* and this narrows the list instead: a form nobody
+   * may submit is a dead end with a 403 at the bottom of it, and the rule this
+   * module follows is that a write control is absent rather than disabled.
+   */
   const [seenOwner, setSeenOwner] = useState<number | null>(null)
   if (ownerRequest && ownerRequest.token !== seenOwner) {
     setSeenOwner(ownerRequest.token)
-    setOwner({ type: ownerRequest.type, id: ownerRequest.id, label: ownerRequest.label })
-    setTarget(null)
-    setOverlay('form')
+
+    if (canManage) {
+      setOwner({ type: ownerRequest.type, id: ownerRequest.id, label: ownerRequest.label })
+      setTarget(null)
+      setOverlay('form')
+    } else {
+      applyFilters({ ownerType: ownerRequest.type, ownerId: ownerRequest.id })
+    }
   }
 
   const records = query.data?.records ?? []
@@ -128,10 +163,11 @@ export function DocumentPanel({
   const close = useCallback(() => {
     setOverlay(null)
     file.close()
-  }, [file])
+    onOwnerHandled()
+  }, [file, onOwnerHandled])
 
   const submitForm = useCallback(
-    (values: DocumentFormValues, chosen: File | null) => {
+    (values: DocumentFormValues, chosen: File | null, renewing: DocumentRecord | null) => {
       const payload = {
         documentType: values.documentType,
         documentNumber: values.documentNumber,
@@ -141,8 +177,10 @@ export function DocumentPanel({
         file: chosen,
       }
 
-      if (target) {
-        update.mutate({ id: target.id, ...payload }, { onSuccess: close })
+      // The dialog resolved which row this is, so nothing here has to look it
+      // up a second time and reach a different answer.
+      if (renewing) {
+        update.mutate({ id: renewing.id, ...payload }, { onSuccess: close })
         return
       }
 
@@ -155,7 +193,7 @@ export function DocumentPanel({
         { onSuccess: close },
       )
     },
-    [target, owner, create, update, close],
+    [owner, create, update, close],
   )
 
   const isPending = create.isPending || update.isPending || remove.isPending
@@ -400,6 +438,7 @@ export function DocumentPanel({
       <DocumentFormDialog
         record={overlay === 'form' ? target : null}
         owner={owner}
+        existing={existing}
         open={overlay === 'form' && (target !== null || owner !== null)}
         isPending={isPending}
         onOpenChange={(open) => !open && close()}

@@ -56,7 +56,12 @@ export function VendorCards({
               to={`/vendors/${record.id}`}
               className="flex min-w-0 flex-1 items-start gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <VendorAvatar name={record.name} photoUrl={record.photoUrl} className="size-10" />
+              <VendorAvatar
+                name={record.name}
+                photoUrl={record.photoUrl}
+                caption={record.vendorCode}
+                className="size-10"
+              />
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">

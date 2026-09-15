@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import { FileUp, Loader2, Paperclip, X } from 'lucide-react'
+import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -22,26 +22,39 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  ALLOWED_DOCUMENT_EXTENSIONS,
-  MAX_DOCUMENT_BYTES,
-  isAllowedDocument,
-} from '../lib/photo-rules'
-import { formatFileSize } from '../lib/vendor-meta'
 import { documentFormSchema } from '../schemas/vendor-schemas'
 import type { DocumentFormValues } from '../schemas/vendor-schemas'
 import { documentTypesFor } from '../types'
 import type { DocumentOwnerType, DocumentRecord, VendorDocumentType } from '../types'
+import { DocumentAttachmentField } from './document-attachment-field'
 import { DateField, FieldError, FormSection } from './form-parts'
 
 interface DocumentFormDialogProps {
   record: DocumentRecord | null
   /** What the document is about, when a new one is being filed. */
   owner: { type: DocumentOwnerType; id: string; label: string } | null
+  /**
+   * Everything already on record for that subject, when the dialog was opened
+   * from a vehicle or a driver rather than from a document row.
+   *
+   * This is what lets one entry point cover both jobs: choosing a type that is
+   * already filed turns the form into a renewal of *that* row rather than an
+   * attempt to add a second one, which the API refuses with a 409 and which the
+   * operator had no way to see coming.
+   */
+  existing?: DocumentRecord[]
   open: boolean
   isPending: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (values: DocumentFormValues, file: File | null) => void
+  /**
+   * `renewing` is the row this replaces, or null for a genuinely new document.
+   * The caller chooses between POST and PATCH from it rather than guessing.
+   */
+  onSubmit: (
+    values: DocumentFormValues,
+    file: File | null,
+    renewing: DocumentRecord | null,
+  ) => void
 }
 
 /**
@@ -64,12 +77,12 @@ interface DocumentFormDialogProps {
 export function DocumentFormDialog({
   record,
   owner,
+  existing = [],
   open,
   isPending,
   onOpenChange,
   onSubmit,
 }: DocumentFormDialogProps) {
-  const fileInput = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
 
   const {
@@ -78,7 +91,7 @@ export function DocumentFormDialog({
     handleSubmit,
     reset,
     setValue,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = useForm<DocumentFormValues>({
     resolver: zodResolver(documentFormSchema),
     defaultValues: {
@@ -104,11 +117,13 @@ export function DocumentFormDialog({
    * quietest possible way to put the wrong scan on a record.
    */
   const [session, setSession] = useState<string | null>(null)
+  const [loaded, setLoaded] = useState<string | null>(null)
   const currentSession = open ? (record?.id ?? `new:${owner?.id ?? ''}`) : null
 
   if (currentSession !== session) {
     setSession(currentSession)
     setFile(null)
+    setLoaded(null)
     reset(
       record
         ? {
@@ -132,23 +147,65 @@ export function DocumentFormDialog({
   const issueDate = useWatch({ control, name: 'issueDate' })
   const expiryDate = useWatch({ control, name: 'expiryDate' })
 
+  /**
+   * The row this submission will actually write.
+   *
+   * Opened from a document row it is that row. Opened from a vehicle or a
+   * driver it is whichever of their documents matches the chosen type — so
+   * picking "Fitness Certificate" on a lorry that already has one renews it,
+   * and picking one it does not have files a new one. The type select is where
+   * that decision gets made, and it says which is which beside every option.
+   */
+  const target = record ?? existing.find((item) => item.documentType === documentType) ?? null
+
+  /**
+   * Loads the matched row's values whenever the chosen type lands on a
+   * different one.
+   *
+   * Adjusted during render against that row's id — the pattern this module
+   * already uses for the session above — rather than in an effect, because an
+   * effect here would show the previous document's expiry date for one frame.
+   * A file the operator has already staged is theirs and is deliberately not
+   * cleared: choosing the type is not undoing the scan.
+   *
+   * `isDirty` is the guard that matters. The subject's documents arrive from the
+   * API, and on a cold instance that can be a minute after the dialog opened —
+   * long enough for somebody to have typed a document number into it. Loading
+   * over what they wrote would be the quietest possible way to lose it, so a
+   * form somebody has touched is left exactly as it is. The reset carries no
+   * `keepDefaultValues`, which is what makes the flag mean "typed since the
+   * last load" rather than "differs from a blank form".
+   */
+  const targetKey = open ? (target?.id ?? `none:${documentType}`) : null
+
+  if (record === null && targetKey !== loaded && !isDirty) {
+    setLoaded(targetKey)
+    reset({
+      documentType,
+      documentNumber: target?.documentNumber ?? '',
+      issueDate: target?.issueDate ?? '',
+      expiryDate: target?.expiryDate ?? '',
+      note: target?.note ?? '',
+    })
+  }
+
   const subject = record?.ownerLabel ?? owner?.label ?? ''
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{record ? 'Update document' : 'File document'}</DialogTitle>
+          <DialogTitle>{target ? 'Renew or replace' : 'File document'}</DialogTitle>
           <DialogDescription>
-            {record
-              ? `Renewing replaces this document rather than adding a second one, so the compliance count stays honest. ${subject}.`
+            {target
+              ? `Renewing the ${target.documentType} on record for ${subject}. It replaces that document rather than adding a second one, so the compliance count stays honest.`
               : `A compliance document for ${subject}. Its status is worked out from the expiry date, so there is nothing to set by hand.`}
           </DialogDescription>
         </DialogHeader>
 
         <form
           noValidate
-          onSubmit={handleSubmit((values) => onSubmit(values, file))}
+          onSubmit={handleSubmit((values) => onSubmit(values, file, target))}
           className="space-y-5"
           aria-busy={isPending}
         >
@@ -168,20 +225,36 @@ export function DocumentFormDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {types.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
+                      {types.map((type) => {
+                        const filed = existing.find((item) => item.documentType === type)
+
+                        return (
+                          <SelectItem key={type} value={type}>
+                            <span className="min-w-0 truncate">{type}</span>
+                            {filed && (
+                              <span className="shrink-0 rounded-full border bg-muted px-1.5 py-px text-[10.5px] leading-4 font-medium text-muted-foreground">
+                                on record
+                              </span>
+                            )}
+                          </SelectItem>
+                        )
+                      })}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
                 <FieldError error={errors.documentType?.message} />
-                {record && (
+                {record ? (
                   <p className="text-xs leading-snug text-muted-foreground">
                     The type cannot change — a tax token is not a route permit, and each is its own
                     row.
                   </p>
+                ) : (
+                  target && (
+                    <p className="text-xs leading-snug text-tone-amber">
+                      Already on record. Saving renews that document rather than filing a second
+                      one.
+                    </p>
+                  )
                 )}
               </div>
 
@@ -224,62 +297,14 @@ export function DocumentFormDialog({
 
           <FormSection
             title="Attachment"
-            description={`Optional. ${ALLOWED_DOCUMENT_EXTENSIONS}, up to ${MAX_DOCUMENT_BYTES / (1024 * 1024)} MB. It is stored privately and only reachable through this app.`}
+            description="Optional — the expiry date is what raises the alert, and waiting for the scanner is how a lapsed certificate goes unnoticed. It is stored privately and only reachable through this app."
           >
-            <input
-              ref={fileInput}
-              type="file"
-              accept="application/pdf,image/jpeg,image/png,image/webp"
-              className="sr-only"
-              onChange={(event) => {
-                const chosen = event.target.files?.[0]
-                event.target.value = ''
-                if (chosen && isAllowedDocument(chosen)) {
-                  setFile(chosen)
-                }
-              }}
+            <DocumentAttachmentField
+              file={file}
+              current={target?.attachment ?? null}
+              disabled={isPending}
+              onFileChange={setFile}
             />
-
-            {file ? (
-              <div className="flex items-center gap-2.5 rounded-lg border bg-muted/40 px-3 py-2.5">
-                <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium">{file.name}</p>
-                  <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-7"
-                  aria-label="Remove the chosen file"
-                  disabled={isPending}
-                  onClick={() => setFile(null)}
-                >
-                  <X aria-hidden />
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isPending}
-                  onClick={() => fileInput.current?.click()}
-                  className="w-full sm:w-auto"
-                >
-                  <FileUp data-icon="inline-start" aria-hidden />
-                  {record?.attachment ? 'Replace the attached file' : 'Attach a scan'}
-                </Button>
-
-                {record?.attachment && (
-                  <p className="text-xs text-muted-foreground">
-                    Currently holding {record.attachment.originalName} (
-                    {formatFileSize(record.attachment.size)}). Choosing a new file replaces it.
-                  </p>
-                )}
-              </div>
-            )}
 
             <div className="space-y-1.5">
               <Label htmlFor="document-note">
@@ -302,7 +327,7 @@ export function DocumentFormDialog({
               {isPending && (
                 <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
               )}
-              {record ? 'Save changes' : 'File document'}
+              {target ? 'Save changes' : 'File document'}
             </Button>
           </DialogFooter>
         </form>

@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils'
 import { formatDay } from '../lib/vendor-meta'
 import type { VehicleRecord } from '../types'
 import { ComplianceChips, OwnershipBadge, VehicleStatusBadge } from './status-badges'
+import { VehicleAvatar } from './vendor-identity'
 
 export interface VehicleActions {
   canManage: boolean
@@ -27,6 +28,7 @@ export interface VehicleActions {
   onEdit: (vehicle: VehicleRecord) => void
   onStatus: (vehicle: VehicleRecord) => void
   onAssign: (vehicle: VehicleRecord) => void
+  /** Opens the file-or-renew dialog for this vehicle's compliance papers. */
   onDocuments: (vehicle: VehicleRecord) => void
   onDelete: (vehicle: VehicleRecord) => void
 }
@@ -64,7 +66,7 @@ export function VehicleMenu({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => actions.onDocuments(vehicle)}>
           <FileText aria-hidden />
-          Documents
+          {actions.canManage ? 'Renew or replace' : 'Documents'}
         </DropdownMenuItem>
 
         {actions.canManage && (
@@ -134,18 +136,25 @@ export function VehicleTable({
               className={cn(record.status === 'Inactive' && 'opacity-60')}
             >
               <TableCell>
-                <button
-                  type="button"
-                  onClick={() => actions.onOpen(record)}
-                  className="rounded-sm text-left outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <span className="block text-[13px] font-medium wrap-break-word">
-                    {record.registrationNo}
-                  </span>
-                  <span className="block font-mono text-[11px] text-muted-foreground">
-                    {record.vehicleCode}
-                  </span>
-                </button>
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <VehicleAvatar
+                    photoUrl={record.photoUrl}
+                    label={record.registrationNo}
+                    caption={record.vehicleCode}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => actions.onOpen(record)}
+                    className="min-w-0 rounded-sm text-left outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="block text-[13px] font-medium wrap-break-word">
+                      {record.registrationNo}
+                    </span>
+                    <span className="block font-mono text-[11px] text-muted-foreground">
+                      {record.vehicleCode}
+                    </span>
+                  </button>
+                </div>
               </TableCell>
 
               <TableCell className="hidden text-[13px] wrap-break-word lg:table-cell">

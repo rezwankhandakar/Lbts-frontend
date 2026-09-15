@@ -21,6 +21,7 @@ import { ReviewDialog } from '@/features/gate-pass/components/review-dialog'
 import { useGatePassActions } from '@/features/gate-pass/hooks/use-gate-pass-actions'
 import { useGatePassDocument } from '@/features/gate-pass/hooks/use-gate-pass-document'
 import { useGatePass } from '@/features/gate-pass/hooks/use-gate-passes'
+import { GatePassTripDoPanel } from '@/features/trip-do/components/gate-pass-trip-do-panel'
 import { printDocument } from '@/lib/print-document'
 import { canChangeGatePass, canReviewGatePasses } from '@/features/gate-pass/types'
 import { formatDateTime } from '@/lib/format'
@@ -232,7 +233,13 @@ export function GatePassDetailsPage() {
       </header>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-start">
-        <GatePassDetails record={record} />
+        <div className="flex min-w-0 flex-col gap-4">
+          <GatePassDetails record={record} />
+          {/* A draft cannot be a Trip DO, so it has nothing linked to show. */}
+          {record.status !== 'Draft' && (
+            <GatePassTripDoPanel gatePassId={record.id} tripDo={record.tripDo} />
+          )}
+        </div>
 
         <section
           aria-label="Scanned document"

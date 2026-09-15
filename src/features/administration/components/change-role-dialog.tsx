@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ArrowRight, Building2, ShieldAlert } from 'lucide-react'
 import {
   Dialog,
@@ -70,6 +70,20 @@ export function ChangeRoleDialog({
    */
   const needsVendor = selected === 'Vendor'
   const vendors = useVendorOptions(false, open && needsVendor)
+
+  /**
+   * How the closed trigger names the linked vendor. Base UI's `Select.Value`
+   * renders the raw value unless the root is told how to label it, and the
+   * value here is a Mongo id.
+   */
+  const vendorOptions = useMemo(
+    () =>
+      (vendors.data ?? []).map((vendor) => ({
+        value: vendor.id,
+        label: `${vendor.name} · ${vendor.vendorCode}`,
+      })),
+    [vendors.data],
+  )
 
   if (!user) {
     return null
@@ -172,6 +186,7 @@ export function ChangeRoleDialog({
             </Label>
 
             <Select
+              items={vendorOptions}
               value={vendorId}
               onValueChange={(value) => setVendorId(value ?? '')}
               disabled={isPending || vendors.isPending}

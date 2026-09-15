@@ -1,4 +1,4 @@
-import { Activity, FileText, LayoutGrid, Route, Truck, Users } from 'lucide-react'
+import { FileText, LayoutGrid, Navigation, Route, Truck, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { VENDOR_TABS } from '../types'
@@ -16,7 +16,7 @@ const TABS: Record<VendorTab, TabDef> = {
   drivers: { value: 'drivers', label: 'Drivers', icon: Users },
   assignments: { value: 'assignments', label: 'Assignments', icon: Route },
   documents: { value: 'documents', label: 'Documents', icon: FileText },
-  activity: { value: 'activity', label: 'Activity', icon: Activity },
+  trips: { value: 'trips', label: 'Trips', icon: Navigation },
 }
 
 interface VendorTabsProps {

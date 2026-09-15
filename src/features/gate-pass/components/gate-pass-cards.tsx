@@ -1,4 +1,5 @@
 import { Paperclip } from 'lucide-react'
+import { BillingStatusBadge } from '@/features/bill/components/bill-badges'
 import { formatTripDate, itemSummary } from '../lib/gate-pass-meta'
 import type { GatePassRecord } from '../types'
 import { GatePassActionMenu } from './gate-pass-action-menu'
@@ -33,6 +34,7 @@ export function GatePassCards({ records, actions, onOpen }: GatePassCardsProps) 
               <span className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-semibold">{record.gatePassId}</span>
                 <GatePassStatusBadge status={record.status} />
+                <BillingStatusBadge status={record.billStatus} billNumbers={record.billNumbers} />
                 {record.document && (
                   <Paperclip
                     className="size-3 text-muted-foreground"

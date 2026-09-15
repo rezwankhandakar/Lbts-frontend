@@ -1,11 +1,13 @@
 import { MapPin, Package, Phone } from 'lucide-react'
+import { BillingStatusBadge } from '@/features/bill/components/bill-badges'
 import { formatDate, formatTaka } from '@/lib/format'
 import { formatRange, itemSummary } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
 import { ChallanActionMenu } from './challan-action-menu'
 import type { ChallanActions } from './challan-action-menu'
 import { ChallanPrintMark } from './challan-print-mark'
-import { ChallanStatusBadge } from './challan-status-badge'
+import { ChallanStatusBadge, DispatchBadge } from './challan-status-badge'
+import { ReturnFlags } from './challan-table-cells'
 
 interface ChallanCardsProps {
   records: ChallanRecord[]
@@ -36,11 +38,14 @@ export function ChallanCards({ records, actions, onOpen }: ChallanCardsProps) {
                 <span className="text-[13px] font-semibold">{record.challanNumber}</span>
                 <ChallanStatusBadge status={record.status} />
                 <ChallanPrintMark record={record} />
+                <DispatchBadge record={record} />
+                <BillingStatusBadge status={record.billStatus} billNumbers={record.billNumbers} />
               </span>
               <span className="mt-1 block truncate text-sm font-medium">{record.customerName}</span>
               <span className="mt-0.5 block text-xs text-muted-foreground">
                 SL {record.slNumber} · {formatDate(record.submittedAt)}
               </span>
+              <ReturnFlags record={record} className="mt-1 flex-row gap-3" />
             </button>
 
             <div onClick={(event) => event.stopPropagation()}>

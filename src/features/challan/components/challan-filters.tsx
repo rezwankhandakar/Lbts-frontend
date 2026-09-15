@@ -1,9 +1,7 @@
 import { useState } from 'react'
-import { Boxes, ListFilter, MapPin, Search, SlidersHorizontal, Wallet, X } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { ListFilter, MapPin, Search, SlidersHorizontal, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -13,13 +11,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { formatTaka } from '@/lib/format'
 import { LOCATION_REVIEW_META, LOCATION_STATUS_META } from '@/features/location/lib/location-meta'
 import { CHALLAN_STATUS_META, challanStatusMeta } from '../lib/challan-meta'
 import { BacklogChips } from './backlog-chips'
+import { ChallanAdvancedFilters } from './challan-advanced-filters'
+import { ChallanDateChips } from './challan-date-chips'
+import { ChallanListSummary } from './challan-list-summary'
 import { CHALLAN_STATUSES } from '../types'
 import type {
-  ChallanAmountFilter,
   ChallanFilterPatch,
   ChallanListParams,
   ChallanLocationFilter,
@@ -31,16 +30,11 @@ interface ChallanFiltersProps {
   params: ChallanListParams
   onChange: (patch: ChallanFilterPatch) => void
   onReset: () => void
-  /** Result count, kept on the toolbar line rather than floating above it. */
+  /** Result count, kept on the toolbar rather than floating above it. */
   summary?: string
   /**
    * The response envelope for the set these filters match — the whole set, not
    * the ten rows on screen. Undefined until the first page has landed.
-   *
-   * Passed whole rather than as four unpacked totals, because everything the
-   * summary row draws comes out of it: the quantity, the charge, the caveat
-   * that the charge leaves some records out, and the backlog chips. Four props
-   * that always arrive together are one prop.
    */
   meta?: PageMeta
   /** Hidden for a role that can only ever see its own records anyway. */
@@ -50,19 +44,14 @@ interface ChallanFiltersProps {
   hideBatchFilter?: boolean
 }
 
-const TRIGGER = 'h-8 w-full sm:w-[10rem]'
+const CONTROL = 'h-9'
+const TRIGGER = cn(CONTROL, 'w-full sm:w-[10.5rem]')
 
 function locationLabel(value: unknown): string {
   if (value === 'verified') return 'Location set'
   if (value === 'pending') return 'Location pending'
   if (value === 'review') return 'Unconfirmed match'
   return 'Any location'
-}
-
-const AMOUNT_LABELS: Record<ChallanAmountFilter, string> = {
-  all: 'Any amount',
-  unpriced: 'Blank amount',
-  partial: 'Partly charged',
 }
 
 function statusLabel(value: unknown): string {
@@ -82,8 +71,7 @@ function statusLabel(value: unknown): string {
  *
  * The search box covers the challan number, the SL, the customer, the address
  * and the product, because those are the five things somebody has in front of
- * them when they come looking — a number read off a printed back page, or a
- * customer who has just rung up.
+ * them when they come looking.
  */
 export function ChallanFilters({
   params,
@@ -105,6 +93,7 @@ export function ChallanFilters({
     (params.zonePo ? 1 : 0) +
     (params.createdBy ? 1 : 0) +
     (params.from || params.to ? 1 : 0) +
+    (params.dispatch !== 'all' ? 1 : 0) +
     (!hideBatchFilter && params.batchId ? 1 : 0)
 
   const isFiltered =
@@ -116,24 +105,24 @@ export function ChallanFilters({
 
   return (
     <div className="border-b">
-      <div className="flex flex-col gap-3 p-3 sm:p-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="relative flex-1 lg:max-w-sm">
+      <div className="flex flex-col gap-3 px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+          <div className="relative flex-1">
             <Search
-              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
               aria-hidden
             />
             <Input
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="Challan no, SL, customer, address, product"
+              placeholder="Search challan no, SL, customer, address, product"
               aria-label="Search challans"
-              className="pl-8.5"
+              className={cn(CONTROL, 'pl-9')}
             />
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             <Select
               value={params.status}
               onValueChange={(value) => onChange({ status: value as ChallanStatusFilter })}
@@ -164,13 +153,7 @@ export function ChallanFilters({
             {/* On the toolbar rather than behind "More filters", because
                 "which challans still need a location?" is the question an
                 administrator sits down to answer — and one behind two clicks
-                is one nobody asks.
-
-                Two of the four options are that sitting-down: nothing was
-                determined, and something was determined by inference that
-                nobody has read. The second is the easier one to miss, because
-                a row carrying a wrong district looks exactly like a row
-                carrying a right one. */}
+                is one nobody asks. */}
             <Select
               value={params.location}
               onValueChange={(value) => onChange({ location: value as ChallanLocationFilter })}
@@ -208,8 +191,8 @@ export function ChallanFilters({
             </Select>
 
             <Button
-              variant="outline"
-              size="sm"
+              variant={expanded ? 'secondary' : 'outline'}
+              className={CONTROL}
               onClick={() => setExpanded((value) => !value)}
               aria-expanded={expanded}
               aria-controls="challan-advanced-filters"
@@ -217,14 +200,18 @@ export function ChallanFilters({
               <SlidersHorizontal data-icon="inline-start" aria-hidden />
               More filters
               {advancedCount > 0 && (
-                <Badge variant="secondary" className="ml-1">
+                <span className="ml-0.5 inline-flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground tabular-nums">
                   {advancedCount}
-                </Badge>
+                </span>
               )}
             </Button>
 
             {isFiltered && (
-              <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
+              <Button
+                variant="ghost"
+                onClick={onReset}
+                className={cn(CONTROL, 'text-muted-foreground')}
+              >
                 <X data-icon="inline-start" aria-hidden />
                 Clear
               </Button>
@@ -232,179 +219,30 @@ export function ChallanFilters({
           </div>
         </div>
 
-        {summary && (
-          <div
-            className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground"
-            aria-live="polite"
-          >
-            <span>{summary}</span>
-            {/* A count of records answers how many challans; this answers how
-                many units were moved, which is the figure a reconciliation is
-                actually after. */}
-            {meta?.totalQty !== undefined && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 font-medium text-primary tabular-nums">
-                <Boxes className="size-3" aria-hidden />
-                Total qty {meta.totalQty.toLocaleString()}
-              </span>
-            )}
-            {/* And what those units were charged. Zero is not shown: a filtered
-                set that nothing could price has no total, and printing "৳0"
-                would be a figure rather than the absence of one. */}
-            {meta?.totalAmount !== undefined && meta.totalAmount > 0 && (
-              <span
-                className="inline-flex items-center gap-1 rounded-md bg-tone-emerald/10 px-1.5 py-0.5 font-medium text-tone-emerald tabular-nums"
-                title={
-                  meta.unpricedChallans
-                    ? `${meta.unpricedChallans} of these challans carry a line that is not on the rate card, so this total does not include them.`
-                    : undefined
-                }
-              >
-                <Wallet className="size-3" aria-hidden />
-                {formatTaka(meta.totalAmount)}
-                {Boolean(meta.unpricedChallans) && <span aria-hidden>*</span>}
-              </span>
-            )}
-
-            {/* What still wants attention, and how much of it there is. Each
-                one is a filter rather than a figure, because a count nobody
-                can act on is a number to scroll past — the same reasoning
-                CLAUDE.md gives for the location backlog wanting to be
-                clickable. This replaces the sentence that used to spell out
-                the uncharged count in words: the chip says the same thing and
-                does something about it. */}
-            <BacklogChips meta={meta} params={params} onChange={onChange} />
-          </div>
-        )}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <ChallanDateChips params={params} onChange={onChange} />
+          {summary && <ChallanListSummary summary={summary} meta={meta} />}
+        </div>
       </div>
 
       {expanded && (
-        <div
-          id="challan-advanced-filters"
-          className="grid gap-3 border-t bg-muted/20 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-4"
-        >
-          {/* Also reachable from the chips above, which is where somebody
-              clearing a backlog will actually press it. This is here so the
-              filter is discoverable beside the others, and so `partial` — the
-              one whose chip is absent whenever the count is zero — has a
-              permanent home. Both write the same state, so they cannot drift. */}
-          <FilterField id="filter-amount" label="Amount">
-            <Select
-              value={params.amount}
-              onValueChange={(value) => onChange({ amount: value as ChallanAmountFilter })}
-            >
-              <SelectTrigger id="filter-amount" className="w-full">
-                <SelectValue>
-                  {(value) => AMOUNT_LABELS[(value as ChallanAmountFilter) ?? 'all']}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {(Object.keys(AMOUNT_LABELS) as ChallanAmountFilter[]).map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {AMOUNT_LABELS[value]}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </FilterField>
-
-          <FilterField id="filter-from" label="Filed from">
-            <Input
-              id="filter-from"
-              type="date"
-              value={params.from}
-              onChange={(event) => onChange({ from: event.target.value })}
-            />
-          </FilterField>
-
-          <FilterField id="filter-to" label="Filed to">
-            <Input
-              id="filter-to"
-              type="date"
-              value={params.to}
-              onChange={(event) => onChange({ to: event.target.value })}
-            />
-          </FilterField>
-
-          <FilterField id="filter-customer" label="Customer">
-            <Input
-              id="filter-customer"
-              value={params.customer}
-              onChange={(event) => onChange({ customer: event.target.value })}
-              autoComplete="off"
-            />
-          </FilterField>
-
-          <FilterField id="filter-district" label="District">
-            <Input
-              id="filter-district"
-              value={params.district}
-              onChange={(event) => onChange({ district: event.target.value })}
-              autoComplete="off"
-            />
-          </FilterField>
-
-          <FilterField id="filter-product" label="Product">
-            <Input
-              id="filter-product"
-              value={params.product}
-              onChange={(event) => onChange({ product: event.target.value })}
-              autoComplete="off"
-            />
-          </FilterField>
-
-          <FilterField id="filter-model" label="Model">
-            <Input
-              id="filter-model"
-              value={params.model}
-              onChange={(event) => onChange({ model: event.target.value })}
-              autoComplete="off"
-            />
-          </FilterField>
-
-          <FilterField id="filter-zonepo" label="Zone / PO">
-            <Input
-              id="filter-zonepo"
-              value={params.zonePo}
-              onChange={(event) => onChange({ zonePo: event.target.value })}
-              autoComplete="off"
-            />
-          </FilterField>
-
-          {canFilterByOwner && currentUserId && (
-            <FilterField id="filter-owner" label="Filed by">
-              <Button
-                id="filter-owner"
-                variant={params.createdBy ? 'secondary' : 'outline'}
-                className="w-full justify-start"
-                onClick={() => onChange({ createdBy: params.createdBy ? '' : currentUserId })}
-              >
-                {params.createdBy ? 'Only mine' : 'Everyone'}
-              </Button>
-            </FilterField>
-          )}
-        </div>
+        <ChallanAdvancedFilters
+          params={params}
+          onChange={onChange}
+          canFilterByOwner={canFilterByOwner}
+          currentUserId={currentUserId}
+        />
       )}
-    </div>
-  )
-}
 
-function FilterField({
-  id,
-  label,
-  children,
-}: {
-  id: string
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="space-y-1">
-      <Label htmlFor={id} className="text-xs text-muted-foreground">
-        {label}
-      </Label>
-      {children}
+      {/* What still wants attention. Each one is a filter rather than a
+          figure, because a count nobody can act on is a number to scroll
+          past. */}
+      <BacklogChips
+        meta={meta}
+        params={params}
+        onChange={onChange}
+        className="border-t bg-muted/20 px-4 py-2.5 sm:px-5"
+      />
     </div>
   )
 }

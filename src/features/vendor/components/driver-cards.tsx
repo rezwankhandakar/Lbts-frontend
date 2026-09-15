@@ -28,6 +28,7 @@ export function DriverCards({
             <DriverAvatar
               name={record.name}
               photoUrl={record.photoUrl}
+              caption={record.driverCode}
               className="size-10"
             />
 

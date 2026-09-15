@@ -1,6 +1,6 @@
 import { MAX_PDF_BYTES } from './gate-pass-document'
 import { formatBytes } from './gate-pass-meta'
-import type { ScannedDocument } from './scanner-agent'
+import type { ScannedDocument } from '@/lib/scanner-agent'
 
 /**
  * Joining several scanned sheets into one gate pass document.

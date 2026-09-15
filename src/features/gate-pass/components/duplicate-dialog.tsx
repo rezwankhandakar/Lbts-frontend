@@ -23,18 +23,17 @@ interface DuplicateDialogProps {
 
 const MATCH_REASONS: Record<DuplicateCandidate['matchedOn'], string> = {
   tripDo: 'Same Trip DO',
-  trip: 'Same vehicle, model and date',
 }
 
 /**
  * A possible duplicate is a question, not an error.
  *
- * Nothing here is a rule the system enforces: the same vehicle legitimately
- * carries the same model twice in a day on a split delivery, and the same DO
- * can be re-issued. So the matching records are put in front of the person who
- * can tell, with enough of each one to decide, and both answers are offered
- * plainly. The gate pass is already saved as a draft either way — closing this
- * loses nothing.
+ * It is asked only when another gate pass carries the same Trip DO. The same
+ * vehicle and model on one day is ordinary — a lorry takes one model out on
+ * several Trip DOs — so it is not asked about. Nothing here is enforced: a DO
+ * can be re-issued, so the matching records are put in front of the person who
+ * can tell, and both answers are offered plainly. The gate pass is already
+ * saved as a draft either way — closing this loses nothing.
  */
 export function DuplicateDialog({
   duplicates,
@@ -49,12 +48,12 @@ export function DuplicateDialog({
           <DialogTitle className="flex items-center gap-2">
             <CopyCheck className="size-4 text-tone-amber" aria-hidden />
             {duplicates.length === 1
-              ? 'A similar gate pass already exists'
-              : `${duplicates.length} similar gate passes already exist`}
+              ? 'This Trip DO is already on a gate pass'
+              : `This Trip DO is already on ${duplicates.length} gate passes`}
           </DialogTitle>
           <DialogDescription>
-            Check whether this is the same delivery before you submit. Your work is saved as a
-            draft either way.
+            Check whether this is the same trip before you submit. Your work is saved as a draft
+            either way.
           </DialogDescription>
         </DialogHeader>
 

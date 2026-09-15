@@ -6,6 +6,7 @@ import type {
   ResolvedLocationRef,
 } from '@/features/location/types'
 import type { Rate } from '@/features/product-rate/types'
+import type { BillingFilter, BillingStatus } from '@/features/bill/types'
 
 /**
  * The Challan API as the client sees it. Mirrors
@@ -214,6 +215,24 @@ export interface ChallanRecord {
   /** `Verified` exactly when `resolvedLocation` is set. */
   locationStatus: LocationStatus
 
+  /**
+   * How much of this challan has gone out on a trip, written by the Delivery
+   * module. `Pending` until a trip takes it.
+   */
+  dispatchStatus: DispatchStatus
+  /** Pieces across every trip carrying it, so a row can read "3 of 4 sent". */
+  dispatchedQty: number
+  /**
+   * Pieces that came back off a trip, and how many of those a later trip took
+   * out again. The difference is what is sitting at the depot.
+   */
+  returnedQty: number
+  resentQty: number
+
+  /** Whether its Trip DO rows are on a bill, written by the Bill module, and which bills. */
+  billStatus: BillingStatus
+  billNumbers: string[]
+
   /** One line per product on the challan; always at least one. */
   items: ChallanRecordItem[]
   /** Every quantity added up, so a list can show one number. */
@@ -362,6 +381,29 @@ export type ChallanLocationFilter = 'all' | 'verified' | 'pending' | 'review'
  */
 export type ChallanAmountFilter = 'all' | 'unpriced' | 'partial'
 
+/**
+ * How much of a challan has left the gate. Mirrors `DISPATCH_STATUSES` in the
+ * **Delivery** module, which owns the vocabulary and writes the field — a
+ * challan knows what it ordered, and only a trip knows what went.
+ */
+export const DISPATCH_STATUSES = ['Pending', 'Partial', 'Dispatched', 'Delivered'] as const
+export type DispatchStatus = (typeof DISPATCH_STATUSES)[number]
+
+/**
+ * What state dispatch is in, as a filter. Two working lists again: `pending`
+ * is filed and on no trip, and `partial` is the quiet one — a challan split
+ * across trips whose remainder nobody came back for, which reads as sent at a
+ * glance and is not. `returned` is goods that came back off a lorry and have
+ * not gone out again.
+ */
+export type ChallanDispatchFilter =
+  | 'all'
+  | 'pending'
+  | 'partial'
+  | 'sent'
+  | 'delivered'
+  | 'returned'
+
 export interface ChallanListParams {
   page: number
   limit: number
@@ -369,6 +411,8 @@ export interface ChallanListParams {
   status: ChallanStatusFilter
   location: ChallanLocationFilter
   amount: ChallanAmountFilter
+  dispatch: ChallanDispatchFilter
+  bill: BillingFilter
   district: string
   customer: string
   product: string
@@ -416,6 +460,11 @@ export interface PageMeta {
   partialAmount?: number
   locationPending?: number
   locationReview?: number
+  /** Filed and on no trip, and split across trips with something still to go. */
+  notDispatched?: number
+  partlyDispatched?: number
+  /** Came back off a trip and not out again. */
+  returnedAtDepot?: number
 }
 
 export interface ChallanListResult {

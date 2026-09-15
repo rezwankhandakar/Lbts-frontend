@@ -1,8 +1,17 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import type { UseQueryResult } from '@tanstack/react-query'
-import { fetchGatePass, fetchGatePassStats, fetchGatePasses } from '../api/gate-pass-api'
+import {
+  fetchGatePass,
+  fetchGatePassColumnValues,
+  fetchGatePassStats,
+  fetchGatePasses,
+  filterParams,
+} from '../api/gate-pass-api'
 import type { ApiError } from '@/lib/axios'
+import { setColumnFilter } from '@/lib/column-filters'
+import type { ColumnValuesResult } from '@/lib/column-filters'
 import type {
+  GatePassColumnId,
   GatePassListParams,
   GatePassListResult,
   GatePassRecord,
@@ -38,6 +47,27 @@ export function useGatePasses(
     // and filtering never blank the table.
     placeholderData: keepPreviousData,
     retry: COLD_START_RETRIES,
+  })
+}
+
+/**
+ * What one column's dropdown offers, fetched only while it is open. Under the
+ * gate passes namespace, so a write that invalidates the list refreshes these
+ * too; the column's own ticks are left out, so an unticked value stays listed.
+ */
+export function useGatePassColumnValues(
+  column: GatePassColumnId,
+  params: GatePassListParams,
+  enabled: boolean,
+): UseQueryResult<ColumnValuesResult, ApiError> {
+  const others = { ...params, columns: setColumnFilter(params.columns, column, null) }
+
+  return useQuery({
+    queryKey: [...gatePassKeys.all, 'column-values', column, filterParams(others)],
+    queryFn: () => fetchGatePassColumnValues(column, others),
+    enabled,
+    staleTime: LIST_STALE_TIME,
+    retry: 1,
   })
 }
 
