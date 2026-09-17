@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import { formatTakaBangla, parseAmountInput, takaInBanglaWords } from '../lib/taka-words'
+import { formatTakaBangla, parseAmountInput, takaInBanglaWords } from '@/lib/taka-words'
 
 interface AmountWordsInputProps {
   id: string
@@ -9,6 +9,8 @@ interface AmountWordsInputProps {
   value: number | null
   max: number
   disabled?: boolean
+  /** Shown under the words when the value cannot be saved as it is. */
+  error?: string | null
   onChange: (value: number | null) => void
 }
 
@@ -19,8 +21,19 @@ interface AmountWordsInputProps {
  * nothing looks wrong. The line underneath says "পনেরো হাজার টাকা মাত্র" or
  * "এক লক্ষ পঞ্চাশ হাজার টাকা মাত্র", which nobody confuses. Bangla digits can be
  * typed or pasted too; anything past the ceiling is refused rather than cut.
+ *
+ * It lived in Delivery for the trip bill until Accounts needed the same box for
+ * every amount it records — moved rather than copied, as CLAUDE.md asks.
  */
-export function AmountWordsInput({ id, label, value, max, disabled = false, onChange }: AmountWordsInputProps) {
+export function AmountWordsInput({
+  id,
+  label,
+  value,
+  max,
+  disabled = false,
+  error = null,
+  onChange,
+}: AmountWordsInputProps) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
@@ -35,6 +48,7 @@ export function AmountWordsInput({ id, label, value, max, disabled = false, onCh
           className="pl-7 text-base font-semibold tabular-nums"
           value={value === null ? '' : String(value)}
           disabled={disabled}
+          aria-invalid={Boolean(error)}
           onChange={(event) => {
             const next = parseAmountInput(event.target.value)
             if (next === null || next <= max) {
@@ -59,6 +73,7 @@ export function AmountWordsInput({ id, label, value, max, disabled = false, onCh
           </>
         )}
       </p>
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
 }

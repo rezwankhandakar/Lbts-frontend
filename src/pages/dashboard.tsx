@@ -1,6 +1,8 @@
 import { LayoutDashboard } from 'lucide-react'
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageHeader } from '@/components/shared/page-header'
+import { AccountsSummaryCard } from '@/features/accounts/components/accounts-summary-card'
+import { canReadAccounts } from '@/features/accounts/types'
 import { ChallanSummaryCard } from '@/features/challan/components/challan-summary-card'
 import { canReadChallans } from '@/features/challan/types'
 import { DeliverySummaryCard } from '@/features/delivery/components/delivery-summary-card'
@@ -22,7 +24,8 @@ export function DashboardPage() {
   const hasGatePass = canReadGatePasses(role)
   const hasChallan = canReadChallans(role)
   const hasDelivery = canReadDeliveries(role)
-  const hasAny = hasGatePass || hasChallan || hasDelivery
+  const hasAccounts = canReadAccounts(role)
+  const hasAny = hasGatePass || hasChallan || hasDelivery || hasAccounts
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -36,6 +39,7 @@ export function DashboardPage() {
           {hasGatePass && <GatePassSummaryCard />}
           {hasChallan && <ChallanSummaryCard />}
           {hasDelivery && <DeliverySummaryCard />}
+          {hasAccounts && <AccountsSummaryCard />}
         </div>
       )}
 
@@ -45,7 +49,7 @@ export function DashboardPage() {
         title={hasAny ? 'More modules are on the way' : 'Dashboard is getting ready'}
         description="As each module is built, this space summarises what needs your attention across the platform."
         footnote={
-          hasAny ? 'Gate Pass, Challan and Delivery are the modules reporting here' : undefined
+          hasAny ? 'Gate Pass, Challan, Delivery and Accounts are the modules reporting here' : undefined
         }
       />
     </div>

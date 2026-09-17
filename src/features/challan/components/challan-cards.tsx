@@ -1,13 +1,6 @@
-import { MapPin, Package, Phone } from 'lucide-react'
-import { BillingStatusBadge } from '@/features/bill/components/bill-badges'
-import { formatDate, formatTaka } from '@/lib/format'
-import { formatRange, itemSummary } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
-import { ChallanActionMenu } from './challan-action-menu'
+import { ChallanCard } from './challan-card'
 import type { ChallanActions } from './challan-action-menu'
-import { ChallanPrintMark } from './challan-print-mark'
-import { ChallanStatusBadge, DispatchBadge } from './challan-status-badge'
-import { ReturnFlags } from './challan-table-cells'
 
 interface ChallanCardsProps {
   records: ChallanRecord[]
@@ -16,95 +9,21 @@ interface ChallanCardsProps {
 }
 
 /**
- * The narrow-screen view.
+ * The records, two to a row.
  *
- * Not a table with columns hidden — a card, laid out for a phone. Eleven
- * columns squeezed onto 380px is a table nobody can read, and the fields that
- * matter on a small screen are a different set: who it is going to, where, and
- * what is in it.
+ * One layout at every width rather than a table above md and cards below it:
+ * the card is what this list is, and two presentations of the same records
+ * were two things that had to be kept saying the same thing. Below lg the grid
+ * is a single column, which is the phone view the cards were written for.
+ *
+ * The grid sits on the muted canvas so the cards read as raised panels, which
+ * is the same three-surface rule the shell uses.
  */
 export function ChallanCards({ records, actions, onOpen }: ChallanCardsProps) {
   return (
-    <ul className="divide-y">
+    <ul className="grid gap-3 bg-muted/30 p-3 lg:grid-cols-2">
       {records.map((record) => (
-        <li key={record.id} className="px-4 py-4">
-          <div className="flex items-start justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => onOpen(record)}
-              className="min-w-0 flex-1 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <span className="flex flex-wrap items-center gap-2">
-                <span className="text-[13px] font-semibold">{record.challanNumber}</span>
-                <ChallanStatusBadge status={record.status} />
-                <ChallanPrintMark record={record} />
-                <DispatchBadge record={record} />
-                <BillingStatusBadge status={record.billStatus} billNumbers={record.billNumbers} />
-              </span>
-              <span className="mt-1 block truncate text-sm font-medium">{record.customerName}</span>
-              <span className="mt-0.5 block text-xs text-muted-foreground">
-                SL {record.slNumber} · {formatDate(record.submittedAt)}
-              </span>
-              <ReturnFlags record={record} className="mt-1 flex-row gap-3" />
-            </button>
-
-            <div onClick={(event) => event.stopPropagation()}>
-              <ChallanActionMenu record={record} actions={actions} />
-            </div>
-          </div>
-
-          <dl className="mt-3 grid gap-1.5 text-xs text-muted-foreground">
-            <div className="flex items-start gap-2">
-              <MapPin className="mt-px size-3.5 shrink-0" aria-hidden />
-              {/* Joined rather than interpolated, because the thana and the
-                  district are optional: a blank one would otherwise leave a
-                  stray comma reading as a missing value nobody can act on. */}
-              <dd className="min-w-0 flex-1 truncate">
-                {[
-                  record.deliveryAddress,
-                  record.resolvedLocation?.thana || record.thana,
-                  record.resolvedLocation?.district || record.district,
-                ]
-                  .filter(Boolean)
-                  .join(', ')}
-              </dd>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="size-3.5 shrink-0" aria-hidden />
-              <dd>{record.receiverMobile}</dd>
-            </div>
-            <div className="flex items-start gap-2">
-              <Package className="mt-px size-3.5 shrink-0" aria-hidden />
-              <dd className="min-w-0 flex-1 truncate">
-                {itemSummary(record)} × {record.totalQty}
-                {/* The same figure the desktop table shows, marked the same
-                    way when it does not cover every line — the list must not
-                    say different things on different screens. */}
-                {record.totalAmount !== null && (
-                  <>
-                    {' · '}
-                    <span className="font-medium text-foreground tabular-nums">
-                      {formatTaka(record.totalAmount)}
-                      {record.unpricedItems > 0 && (
-                        <span className="text-tone-amber" aria-hidden>
-                          *
-                        </span>
-                      )}
-                    </span>
-                  </>
-                )}
-              </dd>
-            </div>
-          </dl>
-
-          <p className="mt-2.5 text-[11px] text-muted-foreground/80">
-            {record.sourceFileName} ·{' '}
-            {formatRange({
-              startPage: record.sourcePageStart,
-              endPage: record.sourcePageEnd,
-            })}
-          </p>
-        </li>
+        <ChallanCard key={record.id} record={record} actions={actions} onOpen={onOpen} />
       ))}
     </ul>
   )

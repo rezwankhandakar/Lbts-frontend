@@ -4,23 +4,42 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
 /**
- * Shaped like a populated list so the swap to real rows does not jolt the
- * layout. Deliberately not fake challans — a skeleton reads as "loading",
- * invented records read as data.
+ * Shaped like the populated card grid so the swap to real records does not
+ * jolt the layout. Deliberately not fake challans — a skeleton reads as
+ * "loading", invented records read as data.
  */
-export function ChallanDirectorySkeleton({ rows = 6 }: { rows?: number }) {
+export function ChallanDirectorySkeleton({ rows = 4 }: { rows?: number }) {
   return (
-    <div className="divide-y" aria-busy="true" aria-live="polite">
+    <div className="grid gap-3 bg-muted/30 p-3 lg:grid-cols-2" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading challans</span>
       {Array.from({ length: rows }, (_, index) => (
-        <div key={index} className="flex items-center gap-3 px-4 py-4">
-          <div className="min-w-0 flex-1 space-y-2">
-            <Skeleton className="h-3.5 w-40 max-w-full" />
-            <Skeleton className="h-3 w-60 max-w-full" />
+        <div key={index} className="rounded-xl border bg-card shadow-xs">
+          <div className="flex items-start gap-3 border-b px-4 py-3">
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-3.5 w-48 max-w-full" />
+              <Skeleton className="h-3.5 w-36 max-w-full" />
+              <Skeleton className="h-5 w-24 rounded-full" />
+            </div>
+            <Skeleton className="h-3.5 w-12 shrink-0" />
           </div>
-          <Skeleton className="hidden h-3 w-24 sm:block" />
-          <Skeleton className="h-5 w-20 rounded-full" />
-          <Skeleton className="size-7 shrink-0 rounded-lg" />
+
+          <div className="space-y-2 px-4 pt-3">
+            <Skeleton className="h-3 w-full max-w-[18rem]" />
+            <Skeleton className="h-3 w-28" />
+          </div>
+
+          <div className="flex items-center gap-3 px-4 py-2.5">
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-3.5 w-32" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+            <Skeleton className="h-3.5 w-8 shrink-0" />
+          </div>
+
+          <div className="flex items-center gap-3 border-t bg-muted/20 px-4 py-2.5">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="ml-auto h-3 w-40" />
+          </div>
         </div>
       ))}
     </div>

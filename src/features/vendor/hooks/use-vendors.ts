@@ -11,6 +11,7 @@ import {
   fetchVendorOptions,
   fetchVendorStats,
   fetchVendorSummary,
+  fetchVendorTrip,
   fetchVendorTrips,
   fetchVendors,
   removeVendorPhoto,
@@ -26,6 +27,7 @@ import type {
   VendorRemoval,
   VendorStats,
   VendorSummary,
+  VendorTripDetail,
   VendorTripListParams,
   VendorTripListResult,
 } from '../types'
@@ -49,6 +51,7 @@ export const vendorKeys = {
   summary: (id: string) => ['vendors', 'summary', id] as const,
   /** Under the namespace, so a trip saved in Delivery can refresh it by prefix. */
   trips: (id: string, params: VendorTripListParams) => ['vendors', 'trips', id, params] as const,
+  trip: (id: string, tripId: string) => ['vendors', 'trip', id, tripId] as const,
 }
 
 const LIST_STALE_TIME = 30_000
@@ -151,6 +154,20 @@ export function useVendorTrips(
     enabled: Boolean(id),
     staleTime: LIST_STALE_TIME,
     placeholderData: keepPreviousData,
+    retry: 2,
+  })
+}
+
+/** One of a vendor's trips, for the Trips tab's detail sheet. Idle until a trip is chosen. */
+export function useVendorTrip(
+  id: string,
+  tripId: string | null,
+): UseQueryResult<VendorTripDetail, ApiError> {
+  return useQuery({
+    queryKey: vendorKeys.trip(id, tripId ?? ''),
+    queryFn: () => fetchVendorTrip(id, tripId as string),
+    enabled: Boolean(tripId),
+    staleTime: LIST_STALE_TIME,
     retry: 2,
   })
 }

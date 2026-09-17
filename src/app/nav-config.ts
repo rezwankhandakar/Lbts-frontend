@@ -1,5 +1,6 @@
 import {
   Building2,
+  Landmark,
   FileSpreadsheet,
   LayoutDashboard,
   MapPinned,
@@ -111,6 +112,19 @@ export const navSections: NavSection[] = [
         icon: Receipt,
         accent: 'emerald',
         roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+      },
+      /**
+       * Accounts: balances, vendor trip bill payments, advances, expenses,
+       * Walton final bills and profit and loss. Narrower than the operating
+       * modules — the office's money is not an Operation Executive's page, and
+       * a Vendor is in no set. Presentation only; `RoleRoute` and the API refuse.
+       */
+      {
+        label: 'Accounts',
+        path: '/accounts',
+        icon: Landmark,
+        accent: 'violet',
+        roles: ['Admin', 'Manager', 'CEO'],
       },
       /**
        * Vendors, and the two entries are the same module seen from two sides.

@@ -1,6 +1,7 @@
 import { lazy } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/app-layout'
+import { ACCOUNTS_READ_ROLES } from '@/features/accounts/types'
 import { BILL_READ_ROLES } from '@/features/bill/types'
 import {
   AdminRoute,
@@ -76,6 +77,17 @@ const DeliveryCompletionPage = lazy(() =>
   import('@/pages/delivery-completion').then((m) => ({ default: m.DeliveryCompletionPage })),
 )
 const TripDoPage = lazy(() => import('@/pages/trip-do').then((m) => ({ default: m.TripDoPage })))
+/** Accounts: one chunk per page, like every other module. */
+const AccountsPage = lazy(() => import('@/pages/accounts').then((m) => ({ default: m.AccountsPage })))
+const AccountsCashPage = lazy(() => import('@/pages/accounts-cash').then((m) => ({ default: m.AccountsCashPage })))
+const AccountsCashBookPage = lazy(() => import('@/pages/accounts-cash-book').then((m) => ({ default: m.AccountsCashBookPage })))
+const AccountsVendorBillsPage = lazy(() => import('@/pages/accounts-vendor-bills').then((m) => ({ default: m.AccountsVendorBillsPage })))
+const AccountsVendorBillPage = lazy(() => import('@/pages/accounts-vendor-bill').then((m) => ({ default: m.AccountsVendorBillPage })))
+const AccountsAdvancesPage = lazy(() => import('@/pages/accounts-advances').then((m) => ({ default: m.AccountsAdvancesPage })))
+const AccountsExpensesPage = lazy(() => import('@/pages/accounts-expenses').then((m) => ({ default: m.AccountsExpensesPage })))
+const AccountsFinalBillsPage = lazy(() => import('@/pages/accounts-final-bills').then((m) => ({ default: m.AccountsFinalBillsPage })))
+const AccountsProfitLossPage = lazy(() => import('@/pages/accounts-profit-loss').then((m) => ({ default: m.AccountsProfitLossPage })))
+const AccountsWalletsPage = lazy(() => import('@/pages/accounts-wallets').then((m) => ({ default: m.AccountsWalletsPage })))
 const BillsPage = lazy(() => import('@/pages/bills').then((m) => ({ default: m.BillsPage })))
 const BillDetailsPage = lazy(() =>
   import('@/pages/bill-details').then((m) => ({ default: m.BillDetailsPage })),
@@ -153,6 +165,10 @@ const TRIP_DO_ACCESS_REASON =
  * One boundary, like the Trip DO sheet a bill is built from: the same pages
  * serve readers and writers, with the write controls absent for a CEO.
  */
+/** Accounts is the office's money: read by Admin, Manager and CEO, kept by Admin and Manager per endpoint. */
+const ACCOUNTS_ACCESS_REASON =
+  'Accounts holds the office\'s balances, payments and profit, and is open to Admin, Manager and CEO accounts.'
+
 const BILL_ACCESS_REASON =
   'Bills charge a unit for its Trip DOs, and are open to Admin, Manager, CEO and Operation Executive accounts.'
 
@@ -321,6 +337,32 @@ export function AppRouter() {
           >
             <Route path="/bills" element={<BillsPage />} />
             <Route path="/bills/:id" element={<BillDetailsPage />} />
+          </Route>
+
+          {/* Accounts: the office's money. Narrower than any operating
+              module — CEO reads, Admin and Manager keep the books, which the
+              API enforces per endpoint. */}
+          <Route
+            element={
+              <RoleRoute
+                roles={ACCOUNTS_READ_ROLES}
+                area="Accounts"
+                reason={ACCOUNTS_ACCESS_REASON}
+              />
+            }
+          >
+            <Route path="/accounts" element={<AccountsPage />} />
+            <Route path="/accounts/cash" element={<AccountsCashPage />} />
+            <Route path="/accounts/cash-book" element={<AccountsCashBookPage />} />
+            <Route path="/accounts/vendor-bills" element={<AccountsVendorBillsPage />} />
+            <Route path="/accounts/vendor-bills/:vendorId" element={<AccountsVendorBillPage />} />
+            <Route path="/accounts/advances" element={<AccountsAdvancesPage />} />
+            <Route path="/accounts/expenses" element={<AccountsExpensesPage />} />
+            <Route path="/accounts/final-bills" element={<AccountsFinalBillsPage />} />
+            <Route path="/accounts/profit-loss" element={<AccountsProfitLossPage />} />
+            <Route path="/accounts/wallets" element={<AccountsWalletsPage />} />
+            {/* The Wallets tab was called Settings; an old link still lands on it. */}
+            <Route path="/accounts/settings" element={<Navigate to="/accounts/wallets" replace />} />
           </Route>
 
           {/* The district and thana master list. Open to read for everyone

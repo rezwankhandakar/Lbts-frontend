@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
-import { CircleDashed, Search, Truck, Users, X } from 'lucide-react'
+import { CircleDashed, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { localToday, monthRange, plural, taka } from '@/features/delivery/lib/delivery-meta'
 import { cn } from '@/lib/utils'
 import type { VendorTripFilterPatch, VendorTripListParams, VendorTripPageMeta } from '../types'
+import { MonthlyBill } from './vendor-trip-monthly-bill'
 
 interface VendorTripFiltersProps {
   params: VendorTripListParams
@@ -33,7 +34,15 @@ const BILL_CHIPS: { value: Exclude<VendorTripListParams['bill'], 'all'>; label: 
   { value: 'no-labour', label: 'No labour bill' },
 ]
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
   return (
     <button
       type="button"
@@ -61,7 +70,13 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
  * chip. The bill chips are the Delivery list's: hidden when nothing is missing,
  * kept while pressed, and pressed again to let go.
  */
-export function VendorTripFilters({ params, onChange, onReset, isFiltered, meta }: VendorTripFiltersProps) {
+export function VendorTripFilters({
+  params,
+  onChange,
+  onReset,
+  isFiltered,
+  meta,
+}: VendorTripFiltersProps) {
   return (
     <div className="space-y-3 border-b p-3 sm:p-4">
       <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
@@ -80,24 +95,27 @@ export function VendorTripFilters({ params, onChange, onReset, isFiltered, meta 
           />
         </div>
 
+        {/* The two dates share one line even on a phone, each taking half; the Clear button wraps under them. */}
         <div className="flex flex-wrap items-center gap-2">
-          <Input
-            type="date"
-            value={params.from}
-            max={params.to || undefined}
-            onChange={(event) => onChange({ from: event.target.value })}
-            aria-label="Trips from"
-            className="h-8 w-full sm:w-38"
-          />
-          <span className="text-xs text-muted-foreground">to</span>
-          <Input
-            type="date"
-            value={params.to}
-            min={params.from || undefined}
-            onChange={(event) => onChange({ to: event.target.value })}
-            aria-label="Trips until"
-            className="h-8 w-full sm:w-38"
-          />
+          <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
+            <Input
+              type="date"
+              value={params.from}
+              max={params.to || undefined}
+              onChange={(event) => onChange({ from: event.target.value })}
+              aria-label="Trips from"
+              className="h-8 min-w-0 flex-1 sm:w-38 sm:flex-none"
+            />
+            <span className="shrink-0 text-xs text-muted-foreground">to</span>
+            <Input
+              type="date"
+              value={params.to}
+              min={params.from || undefined}
+              onChange={(event) => onChange({ to: event.target.value })}
+              aria-label="Trips until"
+              className="h-8 min-w-0 flex-1 sm:w-38 sm:flex-none"
+            />
+          </div>
           {isFiltered && (
             <Button variant="ghost" size="sm" onClick={onReset}>
               <X data-icon="inline-start" aria-hidden />
@@ -107,68 +125,73 @@ export function VendorTripFilters({ params, onChange, onReset, isFiltered, meta 
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        {DATE_CHIPS.map((chip) => {
-          const range = chip.range()
-          return (
+      {/* Dates and status are two rows on a phone, one row with a divider once there is room. */}
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {DATE_CHIPS.map((chip) => {
+            const range = chip.range()
+            return (
+              <Chip
+                key={chip.label}
+                active={params.from === range.from && params.to === range.to}
+                onClick={() => onChange(range)}
+              >
+                {chip.label}
+              </Chip>
+            )
+          })}
+        </div>
+        <span className="mx-1 hidden h-4 w-px bg-border sm:block" aria-hidden />
+        <div className="flex flex-wrap items-center gap-1.5">
+          {STATUS_CHIPS.map((chip) => (
             <Chip
-              key={chip.label}
-              active={params.from === range.from && params.to === range.to}
-              onClick={() => onChange(range)}
+              key={chip.value}
+              active={params.status === chip.value}
+              onClick={() => onChange({ status: chip.value })}
             >
               {chip.label}
             </Chip>
-          )
-        })}
-        <span className="mx-1 h-4 w-px bg-border" aria-hidden />
-        {STATUS_CHIPS.map((chip) => (
-          <Chip key={chip.value} active={params.status === chip.value} onClick={() => onChange({ status: chip.value })}>
-            {chip.label}
-          </Chip>
-        ))}
+          ))}
 
-        {meta &&
-          BILL_CHIPS.map((chip) => {
-            const count = chip.value === 'no-rent' ? meta.blankRent : meta.blankLabour
-            const active = params.bill === chip.value
-            if (count === 0 && !active) {
-              return null
-            }
+          {meta &&
+            BILL_CHIPS.map((chip) => {
+              const count = chip.value === 'no-rent' ? meta.blankRent : meta.blankLabour
+              const active = params.bill === chip.value
+              if (count === 0 && !active) {
+                return null
+              }
 
-            return (
-              <button
-                key={chip.value}
-                type="button"
-                aria-pressed={active}
-                onClick={() => onChange({ bill: active ? 'all' : chip.value })}
-                className={cn(
-                  'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors',
-                  active
-                    ? 'border-tone-rose/40 bg-tone-rose/15 text-tone-rose'
-                    : 'border-tone-rose/25 text-tone-rose hover:bg-tone-rose/10',
-                )}
-              >
-                <CircleDashed className="size-3" aria-hidden />
-                {chip.label}
-                <span className="rounded-full bg-tone-rose/15 px-1.5 font-bold tabular-nums">{count}</span>
-              </button>
-            )
-          })}
+              return (
+                <button
+                  key={chip.value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => onChange({ bill: active ? 'all' : chip.value })}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors',
+                    active
+                      ? 'border-tone-rose/40 bg-tone-rose/15 text-tone-rose'
+                      : 'border-tone-rose/25 text-tone-rose hover:bg-tone-rose/10',
+                  )}
+                >
+                  <CircleDashed className="size-3" aria-hidden />
+                  {chip.label}
+                  <span className="rounded-full bg-tone-rose/15 px-1.5 font-bold tabular-nums">
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+        </div>
       </div>
 
       {meta && (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            {plural(meta.total, 'trip')} · {plural(meta.totalQty, 'piece')}
+            {plural(meta.total, 'trip')} · {plural(meta.totalQty, 'piece')} · Trip rent{' '}
+            {taka(meta.totalRent)} · Labour bill {taka(meta.totalLabour)}
           </p>
-          <span className="inline-flex items-center gap-1 rounded-full border border-tone-amber/25 bg-tone-amber/10 px-2 py-0.5 text-[11px] font-medium text-tone-amber">
-            <Truck className="size-3" aria-hidden />
-            Trip rent <span className="font-bold tabular-nums">{taka(meta.totalRent)}</span>
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-tone-violet/25 bg-tone-violet/10 px-2 py-0.5 text-[11px] font-medium text-tone-violet">
-            <Users className="size-3" aria-hidden />
-            Labour bill <span className="font-bold tabular-nums">{taka(meta.totalLabour)}</span>
-          </span>
+          <MonthlyBill bill={meta.monthlyBill} />
         </div>
       )}
     </div>

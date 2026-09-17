@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Loader2, ReceiptText, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSaveTripBill } from '../hooks/use-deliveries'
-import { formatTakaBangla, takaInBanglaWords } from '../lib/taka-words'
+import { formatTakaBangla, takaInBanglaWords } from '@/lib/taka-words'
 import { MAX_TRIP_CHARGE } from '../types'
 import type { TripRecord } from '../types'
-import { AmountWordsInput } from './amount-words-input'
+import { AmountWordsInput } from '@/components/shared/amount-words-input'
 
 interface TripBillCardProps {
   trip: TripRecord

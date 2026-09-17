@@ -225,22 +225,13 @@ export function formatRanges(ranges: PageRange[]): string {
 }
 
 /**
- * A challan's load in one line: the first product, and how many more there
- * are. A list has room for a line, not a table, and the first product is what
- * somebody scanning for a delivery recognises. The same helper Gate Pass uses,
- * for the same reason.
+ * "LBTS-CH-2026-000123" is long; a card's header only needs the tail, beside
+ * the SL that identifies it.
+ *
+ * There was an `itemSummary` here too — the first product and "+2 more", which
+ * is what a row had room for. The records list draws every line now, so
+ * nothing needs a summary that hides the rest of a load.
  */
-export function itemSummary(record: { items: { productName: string; model: string }[] }): string {
-  const first = record.items[0]
-  if (!first) {
-    return '—'
-  }
-
-  const rest = record.items.length - 1
-  return `${first.productName} (${first.model})${rest > 0 ? ` +${rest} more` : ''}`
-}
-
-/** "LBTS-CH-2026-000123" is long; a table cell often only needs the tail. */
 export function shortChallanNumber(challanNumber: string): string {
   const parts = challanNumber.split('-')
   return parts.length > 2 ? parts.slice(-2).join('-') : challanNumber

@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import {
   Table,
   TableBody,
@@ -8,45 +7,43 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { TripStatusBadge } from '@/features/delivery/components/delivery-badges'
-import { useRowLink } from '@/features/delivery/hooks/use-row-link'
 import { plural, shortTripNumber, taka } from '@/features/delivery/lib/delivery-meta'
 import { formatDay } from '../lib/vendor-meta'
 import type { VendorTripRecord } from '../types'
+import { VendorTripCards } from './vendor-trip-cards'
+import { netOf, tripProgress } from '../lib/trip-figures'
+import { TripCharge } from './vendor-trip-list-parts'
 
 interface VendorTripListProps {
   records: VendorTripRecord[]
-  /** True for an account that may open a trip in Delivery; false for a Vendor account. */
-  canOpen: boolean
+  /** Opens the trip's detail sheet. */
+  onOpen: (trip: VendorTripRecord) => void
 }
 
-function amount(value: number | null) {
-  return value === null ? <span className="text-muted-foreground">—</span> : taka(value)
-}
+const MONEY = 'text-right whitespace-nowrap tabular-nums'
 
 /**
- * The vendor's trips as a table on a wide screen and as cards on a narrow one,
- * with nothing that changes anything. A row opens the trip only for somebody
- * who can read Delivery; for a Vendor account it is the whole record.
+ * The vendor's trips: a table from `xl`, where nine columns fit without
+ * scrolling, and cards below it. Nothing on either changes anything — a row
+ * opens the trip's detail sheet, which is read-only for every account. A row
+ * carries its bill and its advances and no paid or due; a payment names a
+ * month, so those are the monthly bill's, above.
  */
-export function VendorTripList({ records, canOpen }: VendorTripListProps) {
-  const openRow = useRowLink()
-  const href = (trip: VendorTripRecord) => `/delivery/${trip.id}`
-  const progress = (trip: VendorTripRecord) => ({ done: trip.completedChallans, total: trip.challanCount })
-
+export function VendorTripList({ records, onOpen }: VendorTripListProps) {
   return (
     <>
-      <div className="hidden overflow-x-auto md:block">
+      <div className="hidden overflow-x-auto xl:block">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="pl-4">Trip</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Vehicle</TableHead>
-              <TableHead>Driver</TableHead>
+              <TableHead>Vehicle · driver</TableHead>
               <TableHead>Challans</TableHead>
-              <TableHead className="text-right">Qty</TableHead>
               <TableHead className="text-right">Trip rent</TableHead>
-              <TableHead className="text-right">Labour bill</TableHead>
+              <TableHead className="text-right">Labour</TableHead>
+              <TableHead className="text-right">Total amount</TableHead>
+              <TableHead className="text-right">Advance</TableHead>
+              <TableHead className="text-right">Net amount</TableHead>
               <TableHead className="pr-4">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -54,32 +51,48 @@ export function VendorTripList({ records, canOpen }: VendorTripListProps) {
             {records.map((trip) => (
               <TableRow
                 key={trip.id}
-                className={canOpen ? 'cursor-pointer' : undefined}
-                onClick={canOpen ? openRow(href(trip)) : undefined}
+                tabIndex={0}
+                className="cursor-pointer"
+                onClick={() => onOpen(trip)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    onOpen(trip)
+                  }
+                }}
               >
-                <TableCell className="pl-4 font-mono text-[13px] font-semibold">
-                  {canOpen ? (
-                    <Link to={href(trip)} className="hover:underline">
-                      {shortTripNumber(trip.tripNumber)}
-                    </Link>
-                  ) : (
-                    shortTripNumber(trip.tripNumber)
-                  )}
+                <TableCell className="pl-4">
+                  <span className="block font-mono text-[13px] font-semibold">
+                    {shortTripNumber(trip.tripNumber)}
+                  </span>
+                  <span className="text-xs whitespace-nowrap text-muted-foreground">
+                    {formatDay(trip.tripDate)}
+                  </span>
                 </TableCell>
-                <TableCell className="text-[13px] whitespace-nowrap">{formatDay(trip.tripDate)}</TableCell>
-                <TableCell className="font-mono text-[13px]">{trip.registrationNo}</TableCell>
-                <TableCell className="text-[13px]">{trip.driverName}</TableCell>
-                <TableCell className="text-[13px] whitespace-nowrap">{plural(trip.challanCount, 'challan')}</TableCell>
-                <TableCell className="text-right tabular-nums">
-                  <span className="font-semibold">{trip.totalQty.toLocaleString()}</span>
-                  {trip.returnedQty > 0 && (
-                    <span className="block text-[11px] text-tone-rose">{trip.returnedQty} came back</span>
-                  )}
+                <TableCell className="text-[13px]">
+                  <span className="block font-mono">{trip.registrationNo}</span>
+                  <span className="text-xs text-muted-foreground">{trip.driverName}</span>
                 </TableCell>
-                <TableCell className="text-right whitespace-nowrap tabular-nums">{amount(trip.tripRent)}</TableCell>
-                <TableCell className="text-right whitespace-nowrap tabular-nums">{amount(trip.labourBill)}</TableCell>
+                <TableCell className="text-[13px] whitespace-nowrap">
+                  {plural(trip.challanCount, 'challan')}
+                  <span className="block text-xs text-muted-foreground">
+                    {trip.totalQty} pcs
+                    {trip.returnedQty > 0 && (
+                      <span className="text-tone-rose"> · {trip.returnedQty} back</span>
+                    )}
+                  </span>
+                </TableCell>
+                <TableCell className={MONEY}>
+                  <TripCharge value={trip.tripRent} />
+                </TableCell>
+                <TableCell className={MONEY}>
+                  <TripCharge value={trip.labourBill} />
+                </TableCell>
+                <TableCell className={`${MONEY} font-semibold`}>{taka(trip.bill)}</TableCell>
+                <TableCell className={MONEY}>{taka(trip.advance)}</TableCell>
+                <TableCell className={`${MONEY} font-semibold`}>{taka(netOf(trip))}</TableCell>
                 <TableCell className="pr-4">
-                  <TripStatusBadge value={trip.status} progress={progress(trip)} />
+                  <TripStatusBadge value={trip.status} progress={tripProgress(trip)} />
                 </TableCell>
               </TableRow>
             ))}
@@ -87,34 +100,7 @@ export function VendorTripList({ records, canOpen }: VendorTripListProps) {
         </Table>
       </div>
 
-      <ul className="divide-y md:hidden">
-        {records.map((trip) => (
-          <li
-            key={trip.id}
-            className={canOpen ? 'cursor-pointer p-4 hover:bg-muted/40' : 'p-4'}
-            onClick={canOpen ? openRow(href(trip)) : undefined}
-          >
-            <div className="flex items-start gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="font-mono text-sm font-semibold">{shortTripNumber(trip.tripNumber)}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatDay(trip.tripDate)} · <span className="font-mono">{trip.registrationNo}</span> ·{' '}
-                  {trip.driverName}
-                </p>
-              </div>
-              <TripStatusBadge value={trip.status} progress={progress(trip)} />
-            </div>
-            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">{plural(trip.challanCount, 'challan')}</span>
-              <span>
-                <span className="font-semibold text-foreground tabular-nums">{trip.totalQty}</span> pcs
-              </span>
-              <span>Rent <span className="font-semibold text-foreground">{amount(trip.tripRent)}</span></span>
-              <span>Labour <span className="font-semibold text-foreground">{amount(trip.labourBill)}</span></span>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <VendorTripCards records={records} onOpen={onOpen} />
     </>
   )
 }

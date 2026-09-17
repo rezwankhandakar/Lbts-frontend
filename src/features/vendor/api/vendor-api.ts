@@ -22,6 +22,7 @@ import type {
   VendorStats,
   VendorStatus,
   VendorSummary,
+  VendorTripDetail,
   VendorTripListParams,
   VendorTripListResult,
   VendorTripPageMeta,
@@ -142,6 +143,12 @@ export async function fetchVendorTrips(
   )
 
   return { records: data.data, meta: data.meta }
+}
+
+/** One of a vendor's trips, with its challans and money — never a customer. */
+export async function fetchVendorTrip(id: string, tripId: string): Promise<VendorTripDetail> {
+  const { data } = await api.get<ApiEnvelope<VendorTripDetail>>(`${VENDORS}/${id}/trips/${tripId}`)
+  return data.data
 }
 
 export interface VendorInput {

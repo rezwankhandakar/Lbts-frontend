@@ -8,7 +8,6 @@ import {
   ChallanDirectoryError,
   ChallanDirectorySkeleton,
 } from './challan-directory-states'
-import { ChallanTable } from './challan-table'
 
 interface ChallanDirectoryProps {
   records: ChallanRecord[]
@@ -25,9 +24,13 @@ interface ChallanDirectoryProps {
 }
 
 /**
- * Picks the presentation for the current state, and the layout for the current
- * viewport: a table from md up, cards below it. Nothing here invents data — an
- * empty result renders as an empty state, never as placeholder rows.
+ * Picks the presentation for the current state. Nothing here invents data — an
+ * empty result renders as an empty state, never as placeholder cards.
+ *
+ * There is one layout at every width: a card grid, two to a row from lg and a
+ * single column below it. A table above md and cards below was two renderings
+ * of one list, and keeping them saying the same thing was work that bought
+ * nothing a card could not show better.
  */
 export function ChallanDirectory({
   records,
@@ -69,12 +72,7 @@ export function ChallanDirectory({
       )}
       aria-busy={isFetching}
     >
-      <div className="hidden overflow-x-auto md:block">
-        <ChallanTable records={records} actions={actions} onOpen={onOpen} />
-      </div>
-      <div className="md:hidden">
-        <ChallanCards records={records} actions={actions} onOpen={onOpen} />
-      </div>
+      <ChallanCards records={records} actions={actions} onOpen={onOpen} />
     </div>
   )
 }

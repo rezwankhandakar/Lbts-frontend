@@ -1,3 +1,4 @@
+import { escapeHtml as escape, printHtml } from '@/lib/print-html'
 import { shortTripNumber } from './delivery-meta'
 import type { TripChallanRecord, TripLineRecord, TripRecord } from '../types'
 
@@ -5,26 +6,12 @@ import type { TripChallanRecord, TripLineRecord, TripRecord } from '../types'
  * Printing a trip's manifest — the sheet the driver carries and the gate
  * checks the load against.
  *
- * HTML in an off-screen frame rather than a PDF, and for one reason: customer
- * names and addresses on a challan are often Bangla, pdf-lib has no complex-
- * script shaping, and the browser does. The same off-screen-frame technique
- * `lib/print-document.ts` uses for a stored scan, so the app itself still
- * carries no print rules and Ctrl+P is left alone.
- *
- * Every value is escaped. These are strings people typed, and a customer
- * name is not allowed to become markup in a document that is then printed.
+ * HTML in an off-screen frame (`lib/print-html.ts`) rather than a PDF, because
+ * customer names and addresses on a challan are often Bangla. Every value is
+ * escaped.
  */
 
 const FRAME_ID = 'lbts-manifest-frame'
-
-function escape(value: string | number | null | undefined): string {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
 
 const DAY = new Intl.DateTimeFormat(undefined, {
   day: 'numeric',
@@ -135,31 +122,5 @@ ${trip.note ? `<p><b>Note:</b> ${escape(trip.note)}</p>` : ''}
 }
 
 export function printManifest(trip: TripRecord): void {
-  document.getElementById(FRAME_ID)?.remove()
-
-  const frame = document.createElement('iframe')
-  frame.id = FRAME_ID
-  frame.setAttribute('aria-hidden', 'true')
-  frame.setAttribute('tabindex', '-1')
-  // A real page size off-screen, for the same reason print-document gives: a
-  // frame with no box may never lay its content out.
-  frame.style.cssText =
-    'position:fixed;left:-10000px;top:0;width:794px;height:1123px;border:0;pointer-events:none;'
-
-  frame.addEventListener(
-    'load',
-    () => {
-      const view = frame.contentWindow
-      if (!view) {
-        return
-      }
-      view.addEventListener('afterprint', () => frame.remove(), { once: true })
-      view.focus()
-      view.print()
-    },
-    { once: true },
-  )
-
-  frame.srcdoc = manifestHtml(trip)
-  document.body.appendChild(frame)
+  printHtml(manifestHtml(trip), FRAME_ID)
 }

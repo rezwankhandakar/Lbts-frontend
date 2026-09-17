@@ -276,6 +276,38 @@ export interface VendorTripRecord {
   deliveredQty: number
   tripRent: number | null
   labourBill: number | null
+  /** Rent plus labour, a blank counting as nothing. */
+  bill: number
+  /** Trip advances paid against this trip, from Accounts. */
+  advance: number
+}
+
+/** One trip advance, as a vendor may see it. */
+export interface VendorTripMoneyEntry {
+  entryNumber: string
+  date: string
+  amount: number
+}
+
+/**
+ * One trip, as `GET /vendors/:id/trips/:tripId` returns it — still with no
+ * customer, address or receiver, because a Vendor account reads this too.
+ */
+export interface VendorTripDetail extends VendorTripRecord {
+  driverMobile: string
+  challans: {
+    challanNumber: string
+    slNumber: number
+    district: string
+    thana: string
+    locationType: string | null
+    qty: number
+    returnedQty: number
+    /** Mirrors `COMPLETION_METHODS`; null while the signed copy is awaited. */
+    completionMethod: 'SignedCopy' | 'Returned' | 'CopyMissing' | null
+    lines: { productName: string; model: string; qty: number; returnedQty: number }[]
+  }[]
+  advances: VendorTripMoneyEntry[]
 }
 
 export interface VendorTripListParams {
@@ -303,6 +335,25 @@ export interface VendorTripPageMeta {
   /** Matching trips whose rent / labour bill nobody has entered. */
   blankRent: number
   blankLabour: number
+  /**
+   * The vendor's bill for the whole months the date range touches, whatever the
+   * other filters are — paid and due belong to a month, never to a trip.
+   */
+  monthlyBill: VendorMonthlyBill
+}
+
+/** Mirrors `VendorMonthlyBill` in `accounts/vendor-trip-money.ts`. */
+export interface VendorMonthlyBill {
+  /** "September 2026", "August – September 2026", or "All months". */
+  label: string
+  tripCount: number
+  blankBills: number
+  totalBill: number
+  advance: number
+  paid: number
+  /** Negative when advances and payments ran past the bills entered. */
+  due: number
+  status: 'No Bill' | 'Unpaid' | 'Partial' | 'Paid' | 'Overpaid'
 }
 
 export interface VendorTripListResult {

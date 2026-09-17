@@ -41,6 +41,15 @@ const STANDALONE_PAGES: Record<string, PageMeta> = {
    * the route guard is what actually decides who may.
    */
   '/my-vendor': { title: 'My Vendor', section: 'Main' },
+  /** Accounts' own sections, which "Accounts" alone would not tell apart in the header. */
+  '/accounts/cash': { title: 'Cash', section: 'Accounts' },
+  '/accounts/cash-book': { title: 'Cash Book', section: 'Accounts' },
+  '/accounts/vendor-bills': { title: 'Vendor Trip Bills', section: 'Accounts' },
+  '/accounts/advances': { title: 'Advances', section: 'Accounts' },
+  '/accounts/expenses': { title: 'Expenses', section: 'Accounts' },
+  '/accounts/final-bills': { title: 'Walton Final Bill', section: 'Accounts' },
+  '/accounts/profit-loss': { title: 'Profit & Loss', section: 'Accounts' },
+  '/accounts/wallets': { title: 'Wallets', section: 'Accounts' },
 }
 
 export function usePageMeta(): PageMeta {
