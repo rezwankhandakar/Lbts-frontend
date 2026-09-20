@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 import { describedBy } from '../lib/field-messages'
+import { uppercaseInPlace } from '../lib/uppercase-field'
 
 interface EntryFieldProps {
   id: string
@@ -14,6 +15,12 @@ interface EntryFieldProps {
   required?: boolean
   /** Spans both columns on the two-column grid. */
   wide?: boolean
+  /**
+   * Drawn on the label row, right-aligned. The carried-value tick box is what
+   * this is for: it belongs beside the label rather than under the control,
+   * where the error and the hint already are.
+   */
+  action?: ReactNode
   children?: ReactNode
 }
 
@@ -32,19 +39,24 @@ export function EntryField({
   hint,
   required,
   wide,
+  action,
   children,
 }: EntryFieldProps) {
   return (
     <div className={cn('space-y-1.5', wide && 'sm:col-span-2')}>
-      <Label htmlFor={id} className="text-[13px] font-medium">
-        {label}
-        {required && (
-          <span className="text-destructive" aria-hidden>
-            *
-          </span>
-        )}
-        {required && <span className="sr-only">(required)</span>}
-      </Label>
+      <div className="flex min-h-5 items-center justify-between gap-3">
+        <Label htmlFor={id} className="shrink-0 text-[13px] font-medium">
+          {label}
+          {required && (
+            <span className="text-destructive" aria-hidden>
+              *
+            </span>
+          )}
+          {required && <span className="sr-only">(required)</span>}
+        </Label>
+
+        {action}
+      </div>
 
       {children}
 
@@ -65,6 +77,14 @@ interface EntryInputProps extends EntryFieldProps {
   registration: UseFormRegisterReturn
   type?: 'text' | 'date' | 'number'
   inputMode?: 'text' | 'numeric'
+  /**
+   * Held to a value carried from the last gate pass. Read-only rather than
+   * disabled: a disabled box reads as "not available here", and this one is
+   * available — it is holding a value somebody ticked, and unticking frees it.
+   */
+  readOnly?: boolean
+  /** Typed in capitals — see `lib/uppercase-field.ts`. */
+  uppercase?: boolean
 }
 
 /**
@@ -80,7 +100,14 @@ interface EntryInputProps extends EntryFieldProps {
  * in front of the operator, and a browser suggesting the previous customer's
  * name under the cursor is how the wrong one gets filed.
  */
-export function EntryInput({ registration, type = 'text', inputMode, ...field }: EntryInputProps) {
+export function EntryInput({
+  registration,
+  type = 'text',
+  inputMode,
+  readOnly,
+  uppercase,
+  ...field
+}: EntryInputProps) {
   return (
     <EntryField {...field}>
       <Input
@@ -89,9 +116,17 @@ export function EntryInput({ registration, type = 'text', inputMode, ...field }:
         inputMode={inputMode}
         autoComplete="off"
         spellCheck={false}
+        readOnly={readOnly}
+        className={cn(readOnly && 'bg-muted/50 text-muted-foreground')}
         aria-invalid={field.error ? true : undefined}
         aria-describedby={describedBy(field.id, field.error, field.hint)}
         {...registration}
+        onChange={(event) => {
+          if (uppercase) {
+            uppercaseInPlace(event)
+          }
+          void registration.onChange(event)
+        }}
       />
     </EntryField>
   )

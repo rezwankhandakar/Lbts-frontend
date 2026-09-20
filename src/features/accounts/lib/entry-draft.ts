@@ -44,6 +44,9 @@ export interface EntryDraft {
   walletId: string
   toWalletId: string
   finalBillId: string
+  /** A labour bill, and the CSD of it this payment settles. Both or neither. */
+  labourBillId: string
+  labourCsd: string
   /** What an expense, or an advance accepted as one, was for — typed, not chosen. */
   expenseName: string
   party: string
@@ -69,6 +72,8 @@ export function emptyDraft(kind: EntryKind, today: string, preset: Partial<Entry
     walletId: '',
     toWalletId: '',
     finalBillId: '',
+    labourBillId: '',
+    labourCsd: '',
     expenseName: '',
     party: '',
     partyPhone: '',
@@ -93,6 +98,7 @@ export interface DraftSource {
   toWallet: { id: string } | null
   source: DepositSource | null
   finalBill: { id: string } | null
+  labourBill: { id: string; csd: string } | null
   expenseName: string
   party: string
   partyPhone: string
@@ -111,6 +117,8 @@ export function draftFromEntry(entry: DraftSource): EntryDraft {
     walletId: entry.wallet?.id ?? '',
     toWalletId: entry.toWallet?.id ?? '',
     finalBillId: entry.finalBill?.id ?? '',
+    labourBillId: entry.labourBill?.id ?? '',
+    labourCsd: entry.labourBill?.csd ?? '',
     expenseName: entry.expenseName ?? '',
     party: entry.party,
     partyPhone: entry.partyPhone,
@@ -190,9 +198,16 @@ export function payloadFromDraft(draft: EntryDraft): Record<string, unknown> {
 
   switch (draft.kind) {
     case 'Deposit':
-      // A deposit is money added into cash and nothing more. It names a final
-      // bill only when it was recorded from that bill, as a Walton payment.
-      return { ...common, walletId: draft.walletId, finalBillId: draft.finalBillId || null }
+      // A deposit is money added into cash and nothing more. It names a
+      // Walton bill only when it was recorded from one — the final bill, or
+      // one CSD of a month's labour bill — as a payment against it.
+      return {
+        ...common,
+        walletId: draft.walletId,
+        finalBillId: draft.finalBillId || null,
+        labourBillId: draft.labourBillId || null,
+        labourCsd: draft.labourBillId ? draft.labourCsd : '',
+      }
     case 'Transfer':
       return { ...common, walletId: draft.walletId, toWalletId: draft.toWalletId }
     case 'Expense':

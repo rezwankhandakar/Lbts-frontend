@@ -4,8 +4,8 @@ import type { ApiError } from '@/lib/axios'
 import { scanChallan } from '../api/delivery-api'
 import { isFullyDispatched } from '../lib/cart'
 import { shortTripNumber } from '../lib/delivery-meta'
-import { normalizeScan } from '../lib/barcode-wedge'
-import { scanTone } from '../lib/scan-feedback'
+import { normalizeScan } from '@/lib/barcode-wedge'
+import { scanTone } from '@/lib/scan-feedback'
 import type { CartState, ChallanCandidate } from '../types'
 
 export type ScanOutcome =

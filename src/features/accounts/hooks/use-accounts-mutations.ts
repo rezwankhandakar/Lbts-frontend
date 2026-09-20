@@ -9,9 +9,11 @@ import {
   deleteEntry,
   deleteFinalBill,
   deleteWallet,
+  removeEntryVoucher,
   updateEntry,
   updateFinalBill,
   updateWallet,
+  uploadEntryVoucher,
 } from '../api/accounts-api'
 import { KIND_META } from '../lib/accounts-meta'
 import type { EntryRecord, FinalBillInput, FinalBillRecord, WalletInput, WalletRecord } from '../types'
@@ -42,6 +44,42 @@ export function useSaveEntry(): UseMutationResult<
       toast.success(`${KIND_META[entry.kind].label} ${variables.id ? 'updated' : 'saved'}`, {
         description: `${entry.entryNumber} · ${taka(entry.amount)}`,
       })
+      void invalidate()
+    },
+    onError: reportAccountsError,
+  })
+}
+
+/**
+ * The voucher arriving, or replacing the one on record.
+ *
+ * Its own mutation rather than part of saving the entry, because the two are
+ * two calls: the object key contains the entry id, so the entry has to exist
+ * first. Toasting is left to the caller for the same reason — attaching a
+ * voucher while recording an expense is one action to the operator, and two
+ * toasts for one press is two too many.
+ */
+export function useSaveEntryVoucher(): UseMutationResult<
+  EntryRecord,
+  ApiError,
+  { id: string; file: Blob; fileName: string; pageCount?: number | null }
+> {
+  const invalidate = useInvalidateAccounts()
+  return useMutation({
+    mutationFn: uploadEntryVoucher,
+    onSuccess: () => {
+      void invalidate()
+    },
+    onError: reportAccountsError,
+  })
+}
+
+export function useRemoveEntryVoucher(): UseMutationResult<EntryRecord, ApiError, string> {
+  const invalidate = useInvalidateAccounts()
+  return useMutation({
+    mutationFn: removeEntryVoucher,
+    onSuccess: (entry) => {
+      toast.success(`Voucher removed from ${entry.entryNumber}`)
       void invalidate()
     },
     onError: reportAccountsError,

@@ -1,9 +1,12 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Boxes, Building2, Info, Loader2, Route, Save, Send, Tag } from 'lucide-react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import type { LastGatePassEntry } from '../hooks/use-last-entry'
+import { CARRIED_FIELDS, CARRIED_LABELS } from '../lib/carried-fields'
+import type { CarriedField, CarriedValues, CarryControls } from '../lib/carried-fields'
 import { EMPTY_GATE_PASS_FORM, EMPTY_ITEM, gatePassFormSchema } from '../schemas/gate-pass-schemas'
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
 import { DeliveryFields, FieldGroup, ReferenceFields, TripFields } from './entry-form-sections'
@@ -34,14 +37,22 @@ interface GatePassEntryFormProps {
   primaryAction: 'submit' | 'save'
   submitLabel: string
   /**
-   * The gate pass whose trip date, CSD and unit were kept for this entry, when
-   * one was. Named out loud rather than left for the operator to notice.
+   * The last gate pass this session filed, whose repeated values this entry
+   * opens with. Named out loud rather than left for the operator to notice —
+   * five fields arriving pre-filled is exactly the kind of help that becomes a
+   * wrong record if nobody says it happened.
    */
-  carriedFrom?: string | null
+  carried?: LastGatePassEntry | null
   onSaveDraft: (values: GatePassFormValues) => void
   onSubmit: (values: GatePassFormValues) => void
   /** Lets the workspace warn before unsaved work is discarded. */
   onDirtyChange?: (isDirty: boolean) => void
+}
+
+/** "Trip date, CSD, Unit, Customer name and Vehicle number" — a sentence. */
+function carriedFieldSentence(): string {
+  const labels = CARRIED_FIELDS.map((field) => CARRIED_LABELS[field])
+  return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`
 }
 
 /**
@@ -63,7 +74,7 @@ export function GatePassEntryForm({
   canSaveDraft,
   primaryAction,
   submitLabel,
-  carriedFrom,
+  carried,
   onSaveDraft,
   onSubmit,
   onDirtyChange,
@@ -87,6 +98,71 @@ export function GatePassEntryForm({
     onDirtyChange?.(isDirty)
   }, [isDirty, onDirtyChange])
 
+  /**
+   * Which carried fields the operator has pinned to the last gate pass's
+   * value.
+   *
+   * State on the form, so it clears with the form between sheets. A tick that
+   * survived into the next entry would be a decision made about the last sheet
+   * still holding a value on this one, which is the whole failure the tick box
+   * exists to make visible.
+   */
+  const [pinned, setPinned] = useState<Partial<Record<CarriedField, boolean>>>({})
+  const carriedValues = carried?.values ?? null
+
+  const toggleCarry = useCallback(
+    (field: CarriedField, next: boolean) => {
+      setPinned((marks) => ({ ...marks, [field]: next }))
+      if (!carriedValues) {
+        return
+      }
+      // Unticking empties the box rather than leaving the value behind for
+      // editing: what was in it was the *last* sheet's value, put there by the
+      // tick and by nothing else, so taking the tick off takes it with it.
+      // Nothing typed can be lost this way — a ticked field is read-only.
+      setValue(field, next ? carriedValues[field] : '', {
+        shouldDirty: true,
+        shouldValidate: next,
+      })
+    },
+    [carriedValues, setValue],
+  )
+
+  const [tripDate, csd, unit, customerName, vehicleNo] = useWatch({
+    control,
+    name: CARRIED_FIELDS,
+  })
+
+  /**
+   * A tick is drawn only while its field still holds what was carried —
+   * derived from the two values rather than stored beside them, so it cannot
+   * come to assert something untrue.
+   *
+   * Read-only is what normally keeps them equal, but a date input honours that
+   * unevenly across browsers, and a value set from anywhere else would leave
+   * the box claiming "same as last" over something different. Deriving drops
+   * the tick instead: what the operator typed wins, and the box simply stops
+   * saying something that is no longer so.
+   */
+  const now: CarriedValues = { tripDate, csd, unit, customerName, vehicleNo }
+  const kept: Partial<Record<CarriedField, boolean>> = {}
+  if (carriedValues) {
+    for (const field of CARRIED_FIELDS) {
+      if (pinned[field] && now[field] === carriedValues[field]) {
+        kept[field] = true
+      }
+    }
+  }
+
+  const carry: CarryControls | undefined = carriedValues
+    ? {
+        values: carriedValues,
+        kept,
+        toggle: toggleCarry,
+        gatePassId: carried?.gatePassId ?? null,
+      }
+    : undefined
+
   return (
     <form
       noValidate
@@ -101,24 +177,25 @@ export function GatePassEntryForm({
       aria-busy={isBusy}
     >
       <div className="min-h-0 flex-1">
-        {/* Said plainly, because three fields arriving pre-filled is exactly
-            the kind of help that becomes a wrong record if nobody notices it. */}
-        {carriedFrom && (
+        {/* Said plainly, because a value from the last sheet is only ever an
+            offer here — what fills a field is somebody pressing its tick. */}
+        {carried && (
           <p
             className="flex items-start gap-2 border-b bg-tone-amber/5 px-4 py-2.5 text-xs leading-snug text-muted-foreground sm:px-5"
             role="status"
           >
             <Info className="mt-px size-3.5 shrink-0 text-tone-amber" aria-hidden />
             <span>
-              Trip date, CSD and Unit were kept from{' '}
-              <span className="font-medium text-foreground">{carriedFrom}</span>. Check them
-              against this sheet.
+              {carriedFieldSentence()} from{' '}
+              <span className="font-medium text-foreground">{carried.gatePassId}</span> are shown
+              above their boxes. Tick <span className="font-medium">Same as last</span> on any that
+              match this sheet; the rest stay empty until you type them.
             </span>
           </p>
         )}
 
         <FieldGroup icon={Route} title="Trip" description="The delivery order and where it left from.">
-          <TripFields register={register} errors={errors} />
+          <TripFields register={register} errors={errors} carry={carry} />
         </FieldGroup>
 
         <FieldGroup
@@ -131,6 +208,7 @@ export function GatePassEntryForm({
             errors={errors}
             watch={watch}
             setValue={setValue}
+            carry={carry}
           />
         </FieldGroup>
 

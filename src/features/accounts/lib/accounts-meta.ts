@@ -133,6 +133,7 @@ interface DescribableEntry {
   purpose: string
   source: string | null
   finalBill: { label: string } | null
+  labourBill: { label: string } | null
   expenseName: string
   advance: { entryNumber: string } | null
   vendor: { name: string } | null
@@ -145,10 +146,20 @@ interface DescribableEntry {
 /** What an entry was, in two lines: who or what, and the detail under it. */
 export function describeEntry(entry: DescribableEntry): { title: string; detail: string } {
   switch (entry.kind) {
+    /**
+     * A deposit says which claim it settles, because "Walton payment" beside
+     * another "Walton payment" tells nobody which of the two arrived. The
+     * bill's own name is a proper noun and keeps its capitals, exactly as the
+     * tab it comes from spells it; a plain deposit stays what it always was.
+     */
     case 'Deposit':
-      return entry.finalBill
-        ? { title: 'Walton payment', detail: entry.finalBill.label }
-        : { title: 'Cash deposit', detail: entry.party }
+      if (entry.labourBill) {
+        return { title: 'Walton Labour Bill payment', detail: entry.labourBill.label }
+      }
+      if (entry.finalBill) {
+        return { title: 'Walton Final Bill payment', detail: entry.finalBill.label }
+      }
+      return { title: 'Cash deposit', detail: entry.party }
     case 'Transfer':
       return { title: `${entry.wallet?.name ?? '—'} → ${entry.toWallet?.name ?? '—'}`, detail: 'Between wallets' }
     case 'Expense':

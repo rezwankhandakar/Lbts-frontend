@@ -46,7 +46,7 @@ export function CashBookToolbar({ params, onChange, onReset, isFiltered, showKin
         </div>
 
         {showKind && (
-          <div role="radiogroup" aria-label="Direction" className="inline-flex w-fit rounded-lg border bg-card p-0.5">
+          <div role="radiogroup" aria-label="Direction" className="grid grid-cols-3 rounded-lg border bg-card p-0.5 sm:inline-flex sm:w-fit">
             {DIRECTIONS.map((option) => (
               <button
                 key={option.value}
@@ -65,10 +65,11 @@ export function CashBookToolbar({ params, onChange, onReset, isFiltered, showKin
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
+        {/* Two controls to a row on a phone, a wrapping row from sm up. */}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center lg:ml-auto">
           {showKind && (
             <Select value={isKind ? params.kind : ANY} onValueChange={(value) => onChange({ kind: value === ANY || !value ? 'all' : (value as EntryKindFilter) })}>
-              <SelectTrigger className="h-8 w-[10.5rem]" aria-label="Entry type">
+              <SelectTrigger className="h-8 w-full sm:w-[10.5rem]" aria-label="Entry type">
                 <SelectValue>{(value: string) => (value === ANY ? 'Any type' : KIND_META[value as keyof typeof KIND_META].label)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -85,7 +86,7 @@ export function CashBookToolbar({ params, onChange, onReset, isFiltered, showKin
           )}
 
           <Select value={params.walletId || ANY} onValueChange={(value) => onChange({ walletId: value === ANY || !value ? '' : String(value) })}>
-            <SelectTrigger className="h-8 w-[10.5rem]" aria-label="Wallet">
+            <SelectTrigger className={cn('h-8 w-full sm:w-[10.5rem]', !showKind && 'col-span-2 sm:col-auto')} aria-label="Wallet">
               <SelectValue>
                 {(value: string) => (value === ANY ? 'Every wallet' : (wallets.data?.find((wallet) => wallet.id === value)?.name ?? 'Wallet'))}
               </SelectValue>
@@ -102,14 +103,15 @@ export function CashBookToolbar({ params, onChange, onReset, isFiltered, showKin
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-1.5">
-            <Input type="date" value={params.from} max={params.to || undefined} onChange={(event) => onChange({ from: event.target.value })} aria-label="From date" className="h-8 w-[9.5rem]" />
-            <span className="text-xs text-muted-foreground">to</span>
-            <Input type="date" value={params.to} min={params.from || undefined} onChange={(event) => onChange({ to: event.target.value })} aria-label="To date" className="h-8 w-[9.5rem]" />
+          {/* The dates take the whole row on a phone: two fixed boxes side by side overflow a 360px screen, and half a date is not a date. */}
+          <div className="col-span-2 flex min-w-0 items-center gap-1.5 sm:col-auto">
+            <Input type="date" value={params.from} max={params.to || undefined} onChange={(event) => onChange({ from: event.target.value })} aria-label="From date" className="h-8 w-full min-w-0 sm:w-[9.5rem]" />
+            <span className="shrink-0 text-xs text-muted-foreground">to</span>
+            <Input type="date" value={params.to} min={params.from || undefined} onChange={(event) => onChange({ to: event.target.value })} aria-label="To date" className="h-8 w-full min-w-0 sm:w-[9.5rem]" />
           </div>
 
           {isFiltered && (
-            <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
+            <Button variant="ghost" size="sm" onClick={onReset} className="col-span-2 text-muted-foreground sm:col-auto">
               <X data-icon="inline-start" aria-hidden />
               Clear
             </Button>

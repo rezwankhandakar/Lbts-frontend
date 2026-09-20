@@ -76,7 +76,7 @@ export function PlRangePicker({ value, onChange }: { value: PeriodRange; onChang
           )
         })}
       </div>
-      <div className="flex items-center gap-1.5 xl:ml-auto">
+      <div className="flex min-w-0 items-center gap-1.5 xl:ml-auto">
         <Input
           type="month"
           aria-label="From month"
@@ -86,9 +86,9 @@ export function PlRangePicker({ value, onChange }: { value: PeriodRange; onChang
             const from = parsePeriodParam(event.target.value)
             if (from) onChange({ ...value, from })
           }}
-          className="h-8 w-[9.5rem]"
+          className="h-8 w-full min-w-0 xl:w-[9.5rem]"
         />
-        <span className="text-xs text-muted-foreground">to</span>
+        <span className="shrink-0 text-xs text-muted-foreground">to</span>
         <Input
           type="month"
           aria-label="To month"
@@ -98,7 +98,7 @@ export function PlRangePicker({ value, onChange }: { value: PeriodRange; onChang
             const to = parsePeriodParam(event.target.value)
             if (to) onChange({ ...value, to })
           }}
-          className="h-8 w-[9.5rem]"
+          className="h-8 w-full min-w-0 xl:w-[9.5rem]"
         />
       </div>
     </div>

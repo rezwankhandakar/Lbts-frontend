@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut, Settings, UserRound } from 'lucide-react'
+import { ChevronDown, LogOut, UserRound } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toDisplayUser } from '@/features/auth/user-display'
 import { useSignOut } from '@/features/auth/use-sign-out'
@@ -84,13 +84,6 @@ export function UserMenu() {
         >
           <UserRound className="text-brand-indigo" aria-hidden />
           Profile
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="h-8 gap-2.5 rounded-lg text-[13px]"
-          render={<Link to="/settings" />}
-        >
-          <Settings className="text-brand-amber" aria-hidden />
-          Settings
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

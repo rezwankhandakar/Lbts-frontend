@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useSaveEntry } from '../hooks/use-accounts-mutations'
+import { useSaveEntry, useSaveEntryVoucher } from '../hooks/use-accounts-mutations'
 import type { EntryDialogRequest } from '../hooks/use-entry-dialog'
 import { KIND_META, todayString } from '../lib/accounts-meta'
 import {
@@ -24,6 +24,8 @@ import type { EntryDraft } from '../types'
 import { KindIcon } from './account-atoms'
 import { EntryField } from './entry-field'
 import { EntryKindFields } from './entry-kind-fields'
+import { VoucherField } from './voucher-field'
+import type { StagedVoucher } from './voucher-field'
 import { WalletField } from './wallet-field'
 
 const WALLET_LABEL: Partial<Record<EntryDraft['kind'], string>> = {
@@ -45,11 +47,21 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
   const [touched, setTouched] = useState(false)
   // Made when the form opens, so a double press or a retry finds the first save.
   const [submissionKey] = useState(newSubmissionKey)
+  const [voucher, setVoucher] = useState<StagedVoucher | null>(null)
   const save = useSaveEntry()
+  const saveVoucher = useSaveEntryVoucher()
 
   const meta = KIND_META[draft.kind]
   const errors = touched ? validateDraft(draft) : {}
   const set = (patch: Partial<EntryDraft>) => setDraft((current) => ({ ...current, ...patch }))
+
+  /**
+   * A Walton payment — against the final bill, or against one CSD of a month's
+   * labour bill. The two are one rule here for the reason `requiresCashWallet`
+   * gives: which claim a payment settles decides what it is recorded against,
+   * not how it is allowed to arrive.
+   */
+  const againstWaltonBill = draft.kind === 'Deposit' && Boolean(draft.finalBillId || draft.labourBillId)
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
@@ -58,8 +70,34 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
       return
     }
     const body = payloadFromDraft(draft)
-    save.mutate({ id: entry?.id ?? null, body: entry ? body : { ...body, submissionKey } }, { onSuccess: onDone })
+    save.mutate(
+      { id: entry?.id ?? null, body: entry ? body : { ...body, submissionKey } },
+      {
+        /**
+         * The voucher is a second call, because the object key contains the
+         * entry id and so the entry has to exist first — the same ordering Gate
+         * Pass's three calls have.
+         *
+         * The form closes either way. A failed upload has already said so
+         * through the mutation's own error toast, and the entry it belongs to
+         * is saved: the voucher is attached from the row menu rather than by
+         * retyping an amount that is already on the books.
+         */
+        onSuccess: (saved) => {
+          if (!voucher) {
+            onDone()
+            return
+          }
+          saveVoucher.mutate(
+            { id: saved.id, file: voucher.file, fileName: voucher.file.name, pageCount: voucher.pageCount },
+            { onSettled: onDone },
+          )
+        },
+      },
+    )
   }
+
+  const busy = save.isPending || saveVoucher.isPending
 
   return (
     <form onSubmit={submit} className="grid gap-5" noValidate>
@@ -96,8 +134,11 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
       {usesWallet(draft.kind) && (
         <WalletField
           id="entry-wallet"
-          label={draft.kind === 'Deposit' && draft.finalBillId ? 'Received into' : (WALLET_LABEL[draft.kind] ?? 'Paid from cash')}
-          cashOnly={requiresCashWallet(draft.kind, Boolean(draft.finalBillId))}
+          label={againstWaltonBill ? 'Received into' : (WALLET_LABEL[draft.kind] ?? 'Paid from cash')}
+          cashOnly={requiresCashWallet(draft.kind, againstWaltonBill)}
+          // A labour payment arrives in the bank, so the field starts there.
+          // A default rather than a restriction — every wallet stays in the list.
+          preferKind={draft.labourBillId ? 'Bank' : undefined}
           value={draft.walletId}
           error={errors.walletId}
           outgoing={movesMoneyOut(draft.kind) ? (draft.amount ?? 0) : 0}
@@ -118,8 +159,7 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
       )}
 
       <div className="grid gap-4 sm:grid-cols-[11rem_1fr]">
-        <EntryField id="entry-reference" label="Reference
-        " optional>
+        <EntryField id="entry-reference" label="Reference" optional>
           <Input
             id="entry-reference"
             value={draft.reference}
@@ -140,13 +180,29 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
         </EntryField>
       </div>
 
+      <section aria-labelledby="entry-voucher-label" className="grid gap-1.5">
+        <p id="entry-voucher-label" className="text-sm font-medium">
+          Voucher or invoice <span className="font-normal text-muted-foreground">(optional)</span>
+        </p>
+        <VoucherField
+          staged={voucher}
+          current={entry?.voucher ?? null}
+          disabled={busy}
+          onChange={setVoucher}
+        />
+      </section>
+
       <DialogFooter>
-        <Button type="button" variant="outline" onClick={onDone} disabled={save.isPending}>
+        <Button type="button" variant="outline" onClick={onDone} disabled={busy}>
           Cancel
         </Button>
-        <Button type="submit" disabled={save.isPending}>
-          {save.isPending && <Loader2 className="animate-spin" data-icon="inline-start" aria-hidden />}
-          {entry ? 'Save changes' : `Save ${meta.label.toLowerCase()}`}
+        <Button type="submit" disabled={busy}>
+          {busy && <Loader2 className="animate-spin" data-icon="inline-start" aria-hidden />}
+          {saveVoucher.isPending
+            ? 'Uploading the voucher…'
+            : entry
+              ? 'Save changes'
+              : `Save ${meta.label.toLowerCase()}`}
         </Button>
       </DialogFooter>
     </form>

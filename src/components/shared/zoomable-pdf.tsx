@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { FileWarning, Loader2 } from 'lucide-react'
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist'
 import { isRenderCancelled, openSourcePdf, startPageRender } from '@/features/challan/lib/pdf-source'
-import { useZoomSurface } from '../hooks/use-zoom'
-import type { ZoomControls } from '../hooks/use-zoom'
+import { useZoomSurface } from '@/hooks/use-zoom'
+import type { ZoomControls } from '@/hooks/use-zoom'
 
 interface ZoomablePdfProps {
   blob: Blob

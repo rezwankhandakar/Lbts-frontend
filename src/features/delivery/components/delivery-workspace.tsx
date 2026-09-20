@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useCurrentRole } from '@/hooks/use-current-role'
-import { useBarcodeWedge } from '../hooks/use-barcode-wedge'
+import { useBarcodeWedge } from '@/hooks/use-barcode-wedge'
 import { useChallanScan } from '../hooks/use-challan-scan'
 import type { TripWorkspace } from '../hooks/use-trip-workspace'
 import { canWriteDeliveries } from '../types'

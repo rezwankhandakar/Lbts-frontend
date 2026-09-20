@@ -1,11 +1,13 @@
-import { RefreshCcw, ScrollText, TriangleAlert } from 'lucide-react'
+import { Paperclip, RefreshCcw, ScrollText, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { useEntryVoucher } from '../hooks/use-entry-voucher'
 import { KIND_META, describeEntry, formatDay, taka } from '../lib/accounts-meta'
 import type { EntryRecord } from '../types'
 import { KindIcon } from './account-atoms'
 import { EntryActionsMenu } from './entry-actions-menu'
+import { VoucherViewerDialog } from './voucher-viewer-dialog'
 
 interface EntryListProps {
   records: EntryRecord[]
@@ -34,6 +36,35 @@ function signedAmount(entry: EntryRecord, walletId?: string): { text: string; cl
 }
 
 /**
+ * The paperclip that opens an entry's voucher.
+ *
+ * Drawn only when there is one — unlike a status badge on a row, where an
+ * absent chip would read as "no information". Here it is an action, and an
+ * action with nothing behind it is a button that does nothing.
+ *
+ * It sits outside `EntryActionsMenu` deliberately: that menu is drawn only for
+ * a role that may write, and reading the paper behind the books is a read. A
+ * `CEO` opens a voucher and cannot attach or remove one.
+ */
+function VoucherButton({ entry, onOpen }: { entry: EntryRecord; onOpen: (entry: EntryRecord) => void }) {
+  if (!entry.voucher) {
+    return null
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      title="Voucher attached"
+      aria-label={`Open the voucher for ${entry.entryNumber}`}
+      onClick={() => onOpen(entry)}
+    >
+      <Paperclip aria-hidden />
+    </Button>
+  )
+}
+
+/**
  * Entries, newest first: a table from md up, one card per entry below it. Both
  * read off the same `describeEntry`, so the two can never say different things.
  */
@@ -48,6 +79,8 @@ export function EntryList({
   emptyDescription = 'Money added, spent, advanced or paid shows up here.',
   compact = false,
 }: EntryListProps) {
+  const viewer = useEntryVoucher()
+
   if (isLoading) {
     return (
       <div className="grid gap-2 p-4" aria-busy="true">
@@ -92,7 +125,7 @@ export function EntryList({
             <th className="px-2 py-2.5 font-medium">Entry</th>
             <th className="px-2 py-2.5 font-medium">Wallet</th>
             <th className="px-2 py-2.5 text-right font-medium">Amount</th>
-            {canWrite && <th className="w-12 px-2 py-2.5" aria-label="Actions" />}
+            <th className="w-20 px-2 py-2.5" aria-label="Actions" />
           </tr>
         </thead>
         <tbody className="divide-y">
@@ -125,11 +158,15 @@ export function EntryList({
                 <td className={cn('px-2 py-3 text-right font-semibold whitespace-nowrap tabular-nums', amount.className)}>
                   {amount.text}
                 </td>
-                {canWrite && (
-                  <td className="px-2 py-3 text-right">
-                    <EntryActionsMenu entry={entry} />
-                  </td>
-                )}
+                <td className="px-2 py-3 text-right">
+                  <div className="flex items-center justify-end gap-0.5">
+                    <VoucherButton entry={entry} onOpen={viewer.open} />
+                    <div className="flex shrink-0 items-center gap-0.5">
+                <VoucherButton entry={entry} onOpen={viewer.open} />
+                {canWrite && <EntryActionsMenu entry={entry} />}
+              </div>
+                  </div>
+                </td>
               </tr>
             )
           })}
@@ -158,6 +195,21 @@ export function EntryList({
           )
         })}
       </ul>
+
+      <VoucherViewerDialog
+        entry={viewer.entry}
+        url={viewer.url}
+        blob={viewer.blob}
+        mimeType={viewer.mimeType}
+        isLoading={viewer.isLoading}
+        error={viewer.error}
+        onClose={viewer.close}
+        onDownload={() => {
+          if (viewer.entry?.voucher) {
+            void viewer.download(viewer.entry.voucher, `${viewer.entry.entryNumber}.pdf`)
+          }
+        }}
+      />
     </>
   )
 }

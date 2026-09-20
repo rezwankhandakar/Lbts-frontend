@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
 import { scanReceipt } from '../api/delivery-api'
-import { normalizeScan } from '../lib/barcode-wedge'
+import { normalizeScan } from '@/lib/barcode-wedge'
 import { shortTripNumber } from '../lib/delivery-meta'
-import { scanTone } from '../lib/scan-feedback'
+import { scanTone } from '@/lib/scan-feedback'
 import type { TripRecord } from '../types'
 
 interface ReceiptScanOptions {

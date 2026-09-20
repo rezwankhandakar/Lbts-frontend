@@ -210,6 +210,21 @@ export async function scanReceipt(code: string): Promise<ReceiptScanResult> {
   return data.data
 }
 
+/**
+ * One barcode read off a **printed manifest**: which trip is this sheet?
+ *
+ * The third scan question the module asks, and the third endpoint — the paper
+ * in somebody's hand is what says which one is being asked, rather than which
+ * page happened to be open. It answers with the whole trip rather than an id,
+ * so opening it costs no second round trip on a sleeping instance.
+ */
+export async function scanTripManifest(code: string): Promise<TripRecord> {
+  const { data } = await api.get<ApiEnvelope<TripRecord>>(`${BASE}/trips/scan`, {
+    params: { code },
+  })
+  return data.data
+}
+
 export async function deleteTrip(id: string): Promise<{ id: string }> {
   const { data } = await api.delete<ApiEnvelope<{ id: string }>>(`${BASE}/${id}`)
   return data.data

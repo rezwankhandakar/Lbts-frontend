@@ -11,9 +11,9 @@ import { TripBillCard } from '@/features/delivery/components/trip-bill-card'
 import { TripLoadError } from '@/features/delivery/components/trip-load-error'
 import { TripManifest } from '@/features/delivery/components/trip-manifest'
 import { TripSidePanel } from '@/features/delivery/components/trip-side-panel'
-import { useBarcodeWedge } from '@/features/delivery/hooks/use-barcode-wedge'
+import { useBarcodeWedge } from '@/hooks/use-barcode-wedge'
 import { useTrip } from '@/features/delivery/hooks/use-deliveries'
-import { useReceiptScan } from '@/features/delivery/hooks/use-receipt-scan'
+import { useSheetScan } from '@/features/delivery/hooks/use-sheet-scan'
 import { useTripActions } from '@/features/delivery/hooks/use-trip-actions'
 import { shortTripNumber } from '@/features/delivery/lib/delivery-meta'
 
@@ -37,7 +37,7 @@ export function DeliveryDetailsPage() {
   const query = useTrip(id)
   const actions = useTripActions()
   // A signed copy scanned here opens its delivery — this trip's, or another's.
-  const receipt = useReceiptScan({ trip: query.data })
+  const receipt = useSheetScan({ trip: query.data })
   useBarcodeWedge((code) => void receipt.scan(code), query.isSuccess && !receipt.pending)
 
   if (query.isPending) {

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { useZoomSurface } from '../hooks/use-zoom'
-import type { ZoomControls } from '../hooks/use-zoom'
+import { useZoomSurface } from '@/hooks/use-zoom'
+import type { ZoomControls } from '@/hooks/use-zoom'
 
 interface ZoomableImageProps {
   url: string
@@ -14,6 +14,10 @@ interface ZoomableImageProps {
  * step above makes it bigger — scrolling to reach the edges, never cropping them.
  *
  * Mount it keyed on the URL: the measured size of the image belongs to one file.
+ *
+ * It started in `features/delivery/` and moved out here when Accounts needed to
+ * read a figure off a voucher — the rule CLAUDE.md sets for a helper a second
+ * feature wants. Nothing in it was ever about a signed challan.
  */
 export function ZoomableImage({ url, alt, controls }: ZoomableImageProps) {
   const surfaceRef = useRef<HTMLDivElement>(null)

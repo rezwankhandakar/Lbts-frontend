@@ -1,10 +1,14 @@
 import { ZoomIn, ZoomOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { ZoomControls } from '../hooks/use-zoom'
+import type { ZoomControls } from '@/hooks/use-zoom'
 
 /**
  * Zoom out, the current level, zoom in. Pressing the level puts the whole page
  * back on screen, which is the one place anybody wants to return to.
+ *
+ * Shared, with `useZoom`, `ZoomableImage` and `ZoomablePdf`: they moved out of
+ * `features/delivery/` together when Accounts needed the same viewer for a
+ * voucher.
  */
 export function ZoomToolbar({ controls, disabled = false }: { controls: ZoomControls; disabled?: boolean }) {
   return (

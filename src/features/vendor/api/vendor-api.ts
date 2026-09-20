@@ -11,6 +11,7 @@ import type {
   DriverStatus,
   ListResult,
   PageMeta,
+  VendorDashboard,
   VehicleListParams,
   VehicleRecord,
   VehicleStatus,
@@ -107,6 +108,21 @@ export async function fetchVendorOptions(operational = false): Promise<VendorOpt
  */
 export async function fetchMyVendor(): Promise<VendorRecord> {
   const { data } = await api.get<ApiEnvelope<VendorRecord>>(`${VENDORS}/me`)
+  return data.data
+}
+
+/**
+ * The signed-in vendor account's dashboard — trips, money and fleet at once.
+ *
+ * No id, like `fetchMyVendor` above and for the same reason. `today` is the
+ * **browser's** calendar day: a trip date is a day, and a server working out
+ * "today" from its own UTC clock would answer for yesterday through the first
+ * six hours of every Dhaka working morning.
+ */
+export async function fetchVendorDashboard(today: string): Promise<VendorDashboard> {
+  const { data } = await api.get<ApiEnvelope<VendorDashboard>>(`${VENDORS}/me/dashboard`, {
+    params: { today },
+  })
   return data.data
 }
 

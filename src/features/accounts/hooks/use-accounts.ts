@@ -11,6 +11,9 @@ import {
   fetchFinalBill,
   fetchFinalBillSlot,
   fetchFinalBills,
+  fetchLabourReceivable,
+  fetchLabourReceivables,
+  fetchReceivableLabourCsds,
   fetchOverview,
   fetchProfitLoss,
   fetchReceivableFinalBills,
@@ -31,6 +34,10 @@ import type {
   EntryListResult,
   FinalBillDetail,
   FinalBillListParams,
+  LabourReceivableDetail,
+  LabourReceivableListParams,
+  LabourReceivableListResult,
+  LabourReceivableOption,
   FinalBillListResult,
   FinalBillRecord,
   FinalBillSlot,
@@ -64,6 +71,10 @@ export const accountsKeys = {
   finalBills: (params: FinalBillListParams) => ['accounts', 'final-bills', params] as const,
   finalBill: (id: string) => ['accounts', 'final-bill', id] as const,
   receivable: ['accounts', 'receivable'] as const,
+  labourReceivables: (params: LabourReceivableListParams) =>
+    ['accounts', 'labour-receivables', params] as const,
+  labourReceivable: (id: string) => ['accounts', 'labour-receivable', id] as const,
+  labourReceivableOptions: ['accounts', 'labour-receivable-options'] as const,
 }
 
 /** Type-ahead lives outside the invalidated namespace, the rule CLAUDE.md sets for suggestions. */
@@ -217,6 +228,38 @@ export function useFinalBillSlot(period: Period, unit: string, enabled: boolean)
 
 export function useUnits(): UseQueryResult<string[], ApiError> {
   return useQuery({ queryKey: unitKeys, queryFn: fetchUnits, staleTime: 5 * 60_000, retry: 1 })
+}
+
+export function useLabourReceivables(
+  params: LabourReceivableListParams,
+): UseQueryResult<LabourReceivableListResult, ApiError> {
+  return useQuery({
+    queryKey: accountsKeys.labourReceivables(params),
+    queryFn: () => fetchLabourReceivables(params),
+    staleTime: 15_000,
+    placeholderData: keepPreviousData,
+    ...COLD_START,
+  })
+}
+
+export function useLabourReceivable(id: string | null): UseQueryResult<LabourReceivableDetail, ApiError> {
+  return useQuery({
+    queryKey: accountsKeys.labourReceivable(id ?? ''),
+    queryFn: () => fetchLabourReceivable(id ?? ''),
+    enabled: Boolean(id),
+    staleTime: 10_000,
+    ...COLD_START,
+  })
+}
+
+export function useReceivableLabourCsds(enabled: boolean): UseQueryResult<LabourReceivableOption[], ApiError> {
+  return useQuery({
+    queryKey: accountsKeys.labourReceivableOptions,
+    queryFn: fetchReceivableLabourCsds,
+    enabled,
+    staleTime: 15_000,
+    ...COLD_START,
+  })
 }
 
 export function useReceivableFinalBills(enabled: boolean): UseQueryResult<FinalBillRecord[], ApiError> {

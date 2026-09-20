@@ -1,8 +1,9 @@
-import { ArrowRight, CircleCheckBig, ListChecks, Plus } from 'lucide-react'
+import { ArrowRight, CircleCheckBig, ListChecks, Plus, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { formatDay } from '@/features/vendor/lib/vendor-meta'
 import { plural, shortTripNumber } from '../lib/delivery-meta'
+import { printManifest } from '../lib/print-manifest'
 import type { TripRecord } from '../types'
 
 interface TripCreatedPanelProps {
@@ -19,6 +20,12 @@ interface TripCreatedPanelProps {
  * that is written on the gate register and read out to the vendor. The next
  * step — another delivery — is the primary button, since a gate rarely sends
  * one lorry.
+ *
+ * **The manifest prints from here**, rather than only from the trip's own
+ * page. This is the moment the driver is standing at the desk waiting for a
+ * sheet, and sending the operator through the trip page to find the button is
+ * a navigation that exists for no reason: the confirmation response already
+ * carries the whole trip, challans included, so there is nothing to fetch.
  */
 export function TripCreatedPanel({ trip, isNew, onStartAnother }: TripCreatedPanelProps) {
   return (
@@ -65,6 +72,10 @@ export function TripCreatedPanel({ trip, isNew, onStartAnother }: TripCreatedPan
               Start another delivery
             </Button>
           )}
+          <Button variant="outline" size="lg" onClick={() => printManifest(trip)}>
+            <Printer data-icon="inline-start" aria-hidden />
+            Print manifest
+          </Button>
           <Button variant="outline" size="lg" render={<Link to={`/delivery/${trip.id}`} />}>
             Open the trip
             <ArrowRight data-icon="inline-end" aria-hidden />
@@ -74,6 +85,11 @@ export function TripCreatedPanel({ trip, isNew, onStartAnother }: TripCreatedPan
             All deliveries
           </Button>
         </div>
+
+        <p className="mt-4 text-xs text-muted-foreground">
+          The manifest carries this trip&rsquo;s barcode — scanning it on the deliveries page
+          opens the trip again.
+        </p>
       </div>
     </section>
   )

@@ -19,7 +19,7 @@ function compact(value: number): string {
 }
 
 const SERIES = [
-  { key: 'income', label: 'Income (final bill)', swatch: 'bg-viz-1' },
+  { key: 'income', label: 'Income (Walton billed)', swatch: 'bg-viz-1' },
   { key: 'totalCost', label: 'Cost', swatch: 'bg-viz-2' },
 ] as const
 
@@ -28,9 +28,15 @@ const SERIES = [
  * profit in the tooltip and in the table beneath for anyone not reading the
  * picture. Two series, so a legend always, and the colours are the validated
  * pair from the brand layer — marks only, never text.
+ *
+ * A column is pressed as well as hovered, because a phone has no hover and the
+ * profit is only in the tooltip; and past six months every other month label is
+ * dropped on a narrow screen rather than printed over its neighbour. The slot
+ * stays either way, so the labels never slide out of step with the columns.
  */
 export function TrendChart({ months }: { months: ProfitLossMonth[] }) {
   const [active, setActive] = useState<number | null>(null)
+  const sparseLabels = months.length > 6
   const top = niceMax(Math.max(0, ...months.flatMap((month) => [month.income, month.totalCost])))
   const ticks = [top, top / 2, 0]
 
@@ -63,9 +69,10 @@ export function TrendChart({ months }: { months: ProfitLossMonth[] }) {
             {months.map((month, index) => (
               <div
                 key={`${month.year}-${month.month}`}
-                className="relative flex h-full flex-1 cursor-default items-end justify-center gap-0.5"
+                className="relative flex h-full flex-1 cursor-default touch-manipulation items-end justify-center gap-0.5"
                 onMouseEnter={() => setActive(index)}
                 onMouseLeave={() => setActive(null)}
+                onClick={() => setActive((current) => (current === index ? null : index))}
               >
                 {active === index && <div className="absolute inset-y-0 inset-x-1 rounded-md bg-muted/50" />}
                 {SERIES.map((series) => (
@@ -78,7 +85,7 @@ export function TrendChart({ months }: { months: ProfitLossMonth[] }) {
                 {active === index && (
                   <div
                     className={cn(
-                      'absolute bottom-full z-10 mb-2 w-44 rounded-lg border bg-popover p-2.5 text-xs shadow-lg',
+                      'absolute bottom-full z-10 mb-2 w-40 rounded-lg border bg-popover p-2.5 text-xs shadow-lg sm:w-44',
                       index > months.length / 2 ? 'right-0' : 'left-0',
                     )}
                   >
@@ -105,9 +112,9 @@ export function TrendChart({ months }: { months: ProfitLossMonth[] }) {
 
         <div />
         <div className="flex">
-          {months.map((month) => (
-            <span key={`${month.year}-${month.month}`} className="flex-1 text-center text-[11px] text-muted-foreground">
-              {shortPeriodLabel(month)}
+          {months.map((month, index) => (
+            <span key={`${month.year}-${month.month}`} className="min-w-0 flex-1 text-center text-[11px] text-muted-foreground">
+              <span className={cn(sparseLabels && index % 2 === 1 && 'hidden sm:inline')}>{shortPeriodLabel(month)}</span>
             </span>
           ))}
         </div>

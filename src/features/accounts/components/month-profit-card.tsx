@@ -18,7 +18,8 @@ export function MonthProfitCard({ month }: { month: ProfitLossMonth | undefined 
   }
 
   const lines = [
-    { label: 'Walton final bill', value: month.income, strong: true },
+    { label: 'Walton final bill', value: month.finalBillIncome, strong: true },
+    { label: 'Walton labour bill', value: month.waltonLabourIncome, strong: true },
     { label: 'Trip rent', value: -month.tripRent },
     { label: 'Labour bill', value: -month.labourBill },
     { label: 'Office expenses', value: -month.officeExpense },
@@ -29,7 +30,7 @@ export function MonthProfitCard({ month }: { month: ProfitLossMonth | undefined 
   return (
     <Panel
       title={`Profit & loss · ${month.label}`}
-      description="Final bill against every operational cost."
+      description="What Walton was billed, against every operational cost."
       action={
         <Button variant="ghost" size="sm" render={<Link to="/accounts/profit-loss" />}>
           Full report

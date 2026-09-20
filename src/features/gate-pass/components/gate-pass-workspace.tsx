@@ -7,10 +7,12 @@ import { useGatePassDocument } from '../hooks/use-gate-pass-document'
 import { useGatePassWorkspace } from '../hooks/use-gate-pass-workspace'
 import type { StagedDocument } from '../hooks/use-gate-pass-workspace'
 import { useJoinSheets } from '../hooks/use-join-sheets'
+import { useLastEntryStore } from '../hooks/use-last-entry'
 import { useScanBatch } from '../hooks/use-scan-batch'
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
+import { carriedValuesOf, hasCarriedValues } from '../lib/carried-fields'
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
-import { EMPTY_GATE_PASS_FORM } from '../schemas/gate-pass-schemas'
+import { EMPTY_GATE_PASS_FORM, EMPTY_ITEM } from '../schemas/gate-pass-schemas'
 import { isFiledStatus, needsReverificationAfterEdit } from '../types'
 import type { GatePassRecord } from '../types'
 import { BatchComplete } from './batch-complete'
@@ -48,24 +50,16 @@ function toFormValues(record: GatePassRecord): GatePassFormValues {
 }
 
 /**
- * Fields worth keeping between two sheets off the same stack.
+ * A blank form. Every field, every time.
  *
- * Ten challans from one depot on one day repeat these three exactly, and
- * retyping them ten times is where transcription errors come from. Everything
- * that identifies the individual delivery — the DO, the customer, the vehicle,
- * the goods — starts empty every time, because carrying one of those over is
- * how the wrong trip gets filed.
- *
- * The form says out loud that it did this, and every field is editable.
+ * What the last gate pass held is shown above the five carried boxes rather
+ * than being put into them — see `lib/carried-fields.ts` — so a value reaches
+ * a record only by somebody pressing its tick or typing it. The array is fresh
+ * on purpose: the empty form's own row would otherwise be shared between every
+ * entry this workspace opens.
  */
-const CARRIED_FIELDS = ['tripDate', 'csd', 'unit'] as const
-
-function carryOver(previous: GatePassFormValues): GatePassFormValues {
-  const next = { ...EMPTY_GATE_PASS_FORM }
-  for (const field of CARRIED_FIELDS) {
-    next[field] = previous[field]
-  }
-  return next
+function blankEntry(): GatePassFormValues {
+  return { ...EMPTY_GATE_PASS_FORM, items: [{ ...EMPTY_ITEM }] }
 }
 
 /**
@@ -106,13 +100,29 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
   const hasUnjoinedSheets = !allowBatch && stagedSheets > 1
 
   /**
-   * Remounts the form between entries. Changing the key is what clears nine
-   * fields at once without React Hook Form having to reset each of them, and
-   * it guarantees no value from the last challan survives into the next.
+   * Remounts the form between entries. Changing the key is what rebuilds it
+   * from `blankEntry` without React Hook Form having to reset each field —
+   * and what guarantees that nothing survives into the next sheet except the
+   * five values that are meant to, each of which arrives with a tick box and a
+   * banner saying where it came from.
    */
   const [entryKey, setEntryKey] = useState(0)
-  const [carried, setCarried] = useState<GatePassFormValues | null>(null)
-  const [carriedFrom, setCarriedFrom] = useState<string | null>(null)
+
+  /**
+   * The last gate pass this session filed. It lives outside the workspace,
+   * because filing a single sheet ends on that record's page and unmounts
+   * this — see `use-last-entry.ts`.
+   */
+  const lastEntry = useLastEntryStore((state) => state.last)
+  const rememberEntry = useLastEntryStore((state) => state.remember)
+
+  /**
+   * A correction carries nothing: the values on screen are that record's own,
+   * and offering another gate pass's customer beside them would be an offer to
+   * overwrite the thing being corrected.
+   */
+  const carried =
+    initialRecord || !hasCarriedValues(lastEntry?.values ?? null) ? null : lastEntry
 
   const activeItem = batch.active
 
@@ -143,8 +153,8 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
     if (initialRecord) {
       return toFormValues(initialRecord)
     }
-    return carried ?? EMPTY_GATE_PASS_FORM
-  }, [initialRecord, carried])
+    return blankEntry()
+  }, [initialRecord])
 
   /**
    * The values behind the duplicate question, kept so "submit anyway" resends
@@ -160,29 +170,32 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
 
       // A correction is one record. Marking a sheet, forgetting the record and
       // carrying values forward are all queue moves, and running them here
-      // would turn the next staged sheet into a second gate pass.
+      // would turn the next staged sheet into a second gate pass. Nor is a
+      // correction "the last gate pass filed" — nothing new was filed.
       if (!allowBatch || !item) {
         navigate(`/gate-pass/${saved.id}`, { replace: true })
         return
       }
 
+      // Remembered whichever way this entry ends, because the next one is as
+      // likely to be a fresh visit to this page as the next sheet in the tray.
+      rememberEntry({ values: carriedValuesOf(values), gatePassId: saved.gatePassId })
+
       batch.markFiled(item.id, saved, submitted)
       workspace.startNewEntry()
 
-      // One sheet on its own behaves exactly as before, so nothing is carried
-      // and the operator lands on the record they just filed.
+      // One sheet on its own ends on the record it became. What it repeated is
+      // kept all the same, so opening the form again offers it.
       if (!batch.isBatch) {
         navigate(`/gate-pass/${saved.id}`, { replace: true })
         return
       }
 
-      setCarried(carryOver(values))
-      setCarriedFrom(saved.gatePassId)
       setEntryKey((key) => key + 1)
       setIsFormDirty(false)
       setPane('form')
     },
-    [activeItem, allowBatch, batch, workspace, navigate],
+    [activeItem, allowBatch, batch, workspace, navigate, rememberEntry],
   )
 
   const handleSubmit = useCallback(
@@ -225,8 +238,6 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
   const startNextStack = useCallback(() => {
     batch.clear()
     workspace.startNewEntry()
-    setCarried(null)
-    setCarriedFrom(null)
     setEntryKey((key) => key + 1)
   }, [batch, workspace])
 
@@ -325,7 +336,7 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
             canSaveDraft={!record || record.status === 'Draft'}
             primaryAction={isFiled ? 'save' : 'submit'}
             submitLabel={primaryLabel}
-            carriedFrom={carriedFrom}
+            carried={carried}
             onSaveDraft={(values) => void handleSaveDraft(values)}
             onSubmit={(values) =>
               void (isFiled ? handleSaveChanges(values) : handleSubmit(values))

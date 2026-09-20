@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/app-layout'
 import { ACCOUNTS_READ_ROLES } from '@/features/accounts/types'
 import { BILL_READ_ROLES } from '@/features/bill/types'
+import { LABOUR_BILL_READ_ROLES } from '@/features/labour-bill/types'
 import {
   AdminRoute,
   ProtectedRoute,
@@ -86,11 +87,19 @@ const AccountsVendorBillPage = lazy(() => import('@/pages/accounts-vendor-bill')
 const AccountsAdvancesPage = lazy(() => import('@/pages/accounts-advances').then((m) => ({ default: m.AccountsAdvancesPage })))
 const AccountsExpensesPage = lazy(() => import('@/pages/accounts-expenses').then((m) => ({ default: m.AccountsExpensesPage })))
 const AccountsFinalBillsPage = lazy(() => import('@/pages/accounts-final-bills').then((m) => ({ default: m.AccountsFinalBillsPage })))
+const AccountsLabourBillsPage = lazy(() => import('@/pages/accounts-labour-bills').then((m) => ({ default: m.AccountsLabourBillsPage })))
+const AccountsLabourBillPage = lazy(() => import('@/pages/accounts-labour-bill').then((m) => ({ default: m.AccountsLabourBillPage })))
 const AccountsProfitLossPage = lazy(() => import('@/pages/accounts-profit-loss').then((m) => ({ default: m.AccountsProfitLossPage })))
 const AccountsWalletsPage = lazy(() => import('@/pages/accounts-wallets').then((m) => ({ default: m.AccountsWalletsPage })))
 const BillsPage = lazy(() => import('@/pages/bills').then((m) => ({ default: m.BillsPage })))
 const BillDetailsPage = lazy(() =>
   import('@/pages/bill-details').then((m) => ({ default: m.BillDetailsPage })),
+)
+const LabourBillsPage = lazy(() =>
+  import('@/pages/labour-bills').then((m) => ({ default: m.LabourBillsPage })),
+)
+const LabourBillDetailsPage = lazy(() =>
+  import('@/pages/labour-bill-details').then((m) => ({ default: m.LabourBillDetailsPage })),
 )
 const LocationsPage = lazy(() =>
   import('@/pages/locations').then((m) => ({ default: m.LocationsPage })),
@@ -114,9 +123,6 @@ const AdministrationPage = lazy(() =>
   import('@/pages/administration').then((m) => ({ default: m.AdministrationPage })),
 )
 const ProfilePage = lazy(() => import('@/pages/profile').then((m) => ({ default: m.ProfilePage })))
-const SettingsPage = lazy(() =>
-  import('@/pages/settings').then((m) => ({ default: m.SettingsPage })),
-)
 const NotFoundPage = lazy(() =>
   import('@/pages/not-found').then((m) => ({ default: m.NotFoundPage })),
 )
@@ -171,6 +177,15 @@ const ACCOUNTS_ACCESS_REASON =
 
 const BILL_ACCESS_REASON =
   'Bills charge a unit for its Trip DOs, and are open to Admin, Manager, CEO and Operation Executive accounts.'
+
+/**
+ * The Walton Labour Bill has the Trip DO sheet's audience too, and for the
+ * sheet's reason — every row carries a customer's address and a receiver's
+ * number. One boundary, like the Excel Bill beside it: the same pages serve
+ * readers and writers, with every cell read-only for a CEO.
+ */
+const LABOUR_BILL_ACCESS_REASON =
+  'Walton Labour Bills charge the handling on each delivery, and are open to Admin, Manager, CEO and Operation Executive accounts.'
 
 /**
  * The Location master list has one boundary here rather than two: reading it
@@ -339,6 +354,22 @@ export function AppRouter() {
             <Route path="/bills/:id" element={<BillDetailsPage />} />
           </Route>
 
+          {/* Walton Labour Bills: a month of scanned challans and what the
+              handling on each model cost. The Trip DO sheet's audience, for its
+              reason. Scanning, typing and finalizing are checked per endpoint. */}
+          <Route
+            element={
+              <RoleRoute
+                roles={LABOUR_BILL_READ_ROLES}
+                area="Walton Labour Bill"
+                reason={LABOUR_BILL_ACCESS_REASON}
+              />
+            }
+          >
+            <Route path="/labour-bills" element={<LabourBillsPage />} />
+            <Route path="/labour-bills/:id" element={<LabourBillDetailsPage />} />
+          </Route>
+
           {/* Accounts: the office's money. Narrower than any operating
               module — CEO reads, Admin and Manager keep the books, which the
               API enforces per endpoint. */}
@@ -359,6 +390,9 @@ export function AppRouter() {
             <Route path="/accounts/advances" element={<AccountsAdvancesPage />} />
             <Route path="/accounts/expenses" element={<AccountsExpensesPage />} />
             <Route path="/accounts/final-bills" element={<AccountsFinalBillsPage />} />
+            {/* The labour receivable: months, then the CSDs each is paid on. */}
+            <Route path="/accounts/labour-bills" element={<AccountsLabourBillsPage />} />
+            <Route path="/accounts/labour-bills/:id" element={<AccountsLabourBillPage />} />
             <Route path="/accounts/profit-loss" element={<AccountsProfitLossPage />} />
             <Route path="/accounts/wallets" element={<AccountsWalletsPage />} />
             {/* The Wallets tab was called Settings; an old link still lands on it. */}
@@ -421,7 +455,6 @@ export function AppRouter() {
           {/* Reached from the account menu rather than the sidebar: it is
               every user's own account, not a destination in the business. */}
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
 
           {/* Admin-only. The guard nests inside the layout so a denied user
               still gets the shell, not a bare page. */}

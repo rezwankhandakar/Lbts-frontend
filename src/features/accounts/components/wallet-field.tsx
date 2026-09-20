@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useWallets } from '../hooks/use-accounts'
 import { WALLET_KIND_LABEL, taka } from '../lib/accounts-meta'
+import type { WalletKind } from '../types'
 import { EntryField } from './entry-field'
 
 interface WalletFieldProps {
@@ -18,6 +19,13 @@ interface WalletFieldProps {
   exclude?: string
   /** Deposits go into cash, and vendor payments, advances and expenses leave from it, and nothing else. */
   cashOnly?: boolean
+  /**
+   * The kind to choose first when nothing has been chosen yet — a Walton labour
+   * payment lands in the bank. A **default and not a restriction**: every other
+   * wallet stays in the list, because a payment that came in cash is an
+   * ordinary thing that must still be recordable.
+   */
+  preferKind?: WalletKind
   onChange: (walletId: string) => void
 }
 
@@ -38,6 +46,7 @@ export function WalletField({
   ownAmount = 0,
   exclude,
   cashOnly = false,
+  preferKind,
   onChange,
 }: WalletFieldProps) {
   const wallets = useWallets()
@@ -46,13 +55,21 @@ export function WalletField({
   )
   const selected = options.find((wallet) => wallet.id === value)
   const after = selected ? selected.balance + ownAmount - outgoing : null
-  const onlyOption = cashOnly && options.length === 1 ? options[0].id : null
+
+  /**
+   * What an empty field fills itself with: the only cash wallet there is, or
+   * the first wallet of the preferred kind. Either way it is chosen once, on a
+   * blank field, so a deliberate change is never undone.
+   */
+  const suggested =
+    (cashOnly && options.length === 1 ? options[0].id : null) ??
+    (preferKind ? (options.find((wallet) => wallet.kind === preferKind)?.id ?? null) : null)
 
   useEffect(() => {
-    if (onlyOption && !value) {
-      onChange(onlyOption)
+    if (suggested && !value) {
+      onChange(suggested)
     }
-  }, [onlyOption, value, onChange])
+  }, [suggested, value, onChange])
 
   const hint =
     selected && after !== null && after < 0 && outgoing > 0 ? (

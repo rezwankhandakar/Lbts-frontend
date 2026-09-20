@@ -3,15 +3,15 @@ import { Download, Loader2, Printer, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { printDocument } from '@/lib/print-document'
-import { useZoom } from '../hooks/use-zoom'
-import { formatBytes } from '../lib/receipt-rules'
+import { useZoom } from '@/hooks/use-zoom'
+import { formatBytes } from '@/lib/document-file-rules'
 import type { ReceivedCopyRecord } from '../types'
-import { ZoomToolbar } from './zoom-toolbar'
-import { ZoomableImage } from './zoomable-image'
+import { ZoomToolbar } from '@/components/shared/zoom-toolbar'
+import { ZoomableImage } from '@/components/shared/zoomable-image'
 
 /** pdf.js is only downloaded once somebody actually opens a PDF copy. */
 const ZoomablePdf = lazy(() =>
-  import('./zoomable-pdf').then((module) => ({ default: module.ZoomablePdf })),
+  import('@/components/shared/zoomable-pdf').then((module) => ({ default: module.ZoomablePdf })),
 )
 
 interface ReceivedCopyViewerProps {

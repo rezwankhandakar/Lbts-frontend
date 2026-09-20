@@ -66,7 +66,10 @@ export function AccountsPage() {
             <StatTile
               label="Receivable from Walton"
               value={overview ? taka(overview.receivable.outstanding) : ''}
-              hint={overview && `${overview.receivable.count} final bills open`}
+              hint={
+                overview &&
+                `${overview.receivable.finalBills} final ${overview.receivable.finalBills === 1 ? 'bill' : 'bills'} · ${overview.receivable.labourCsds} labour ${overview.receivable.labourCsds === 1 ? 'CSD' : 'CSDs'} open`
+              }
               icon={FileClock}
               tone="emerald"
               to="/accounts/final-bills"

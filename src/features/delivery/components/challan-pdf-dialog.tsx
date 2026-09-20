@@ -5,12 +5,12 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { printDocument } from '@/lib/print-document'
 import { saveBlob } from '@/lib/save-blob'
 import { useChallanFrontPages } from '../hooks/use-challan-front-pages'
-import { useZoom } from '../hooks/use-zoom'
-import { ZoomToolbar } from './zoom-toolbar'
+import { useZoom } from '@/hooks/use-zoom'
+import { ZoomToolbar } from '@/components/shared/zoom-toolbar'
 
 /** pdf.js is only downloaded once somebody actually opens a PDF. */
 const ZoomablePdf = lazy(() =>
-  import('./zoomable-pdf').then((module) => ({ default: module.ZoomablePdf })),
+  import('@/components/shared/zoomable-pdf').then((module) => ({ default: module.ZoomablePdf })),
 )
 
 interface ChallanPdfDialogProps {

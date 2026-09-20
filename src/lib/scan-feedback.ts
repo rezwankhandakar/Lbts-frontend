@@ -9,6 +9,10 @@
  * The Web Audio API, created lazily on the first scan (which is a user gesture,
  * so the browser allows it), and silent if the platform refuses — a missing
  * beep must never be an error.
+ *
+ * Moved out of `features/delivery/` alongside the wedge itself when the Walton
+ * Labour Bill wanted the same two tones: an operator scanning a stack of
+ * challans onto a labour bill is looking at the paper there too.
  */
 
 let context: AudioContext | null = null

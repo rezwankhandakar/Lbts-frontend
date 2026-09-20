@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { MAX_GATE_PASS_ITEMS } from '../schemas/gate-pass-schemas'
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
+import { ProductSuggestInput } from './product-suggest-input'
 import { SuggestInput } from './suggest-input'
 
 interface GatePassItemRowsProps {
@@ -30,7 +31,9 @@ const LABEL = 'text-[11px] font-medium text-muted-foreground'
  * remaining row cannot be removed.
  *
  * Product and model offer what has been filed before, which is what keeps the
- * same model from being recorded three ways across three gate passes.
+ * same model from being recorded three ways across three gate passes — and the
+ * product box also reads the rate card, so a model pasted off the challan
+ * names its own product without anybody typing it.
  */
 export function GatePassItemRows({
   fields,
@@ -94,11 +97,11 @@ export function GatePassItemRows({
                   <Label htmlFor={productId} className={LABEL}>
                     Product name<span className="text-destructive"> *</span>
                   </Label>
-                  <SuggestInput
+                  <ProductSuggestInput
                     id={productId}
-                    field="productName"
                     registration={register(`items.${index}.productName`)}
                     value={items?.[index]?.productName ?? ''}
+                    model={items?.[index]?.model ?? ''}
                     invalid={Boolean(rowErrors?.productName)}
                     onPick={(value) =>
                       setValue(`items.${index}.productName`, value, {
@@ -119,6 +122,7 @@ export function GatePassItemRows({
                     field="model"
                     registration={register(`items.${index}.model`)}
                     value={items?.[index]?.model ?? ''}
+                    uppercase
                     invalid={Boolean(rowErrors?.model)}
                     onPick={(value) =>
                       setValue(`items.${index}.model`, value, {

@@ -8,6 +8,7 @@ import {
   deleteVendor,
   fetchMyVendor,
   fetchVendor,
+  fetchVendorDashboard,
   fetchVendorOptions,
   fetchVendorStats,
   fetchVendorSummary,
@@ -21,6 +22,7 @@ import {
 import type { VendorInput, VendorStatusArgs } from '../api/vendor-api'
 import type {
   ListResult,
+  VendorDashboard,
   VendorListParams,
   VendorOption,
   VendorRecord,
@@ -47,6 +49,8 @@ export const vendorKeys = {
   stats: () => ['vendors', 'stats'] as const,
   options: (operational: boolean) => ['vendors', 'options', operational] as const,
   mine: () => ['vendors', 'me'] as const,
+  /** The vendor account's own dashboard, keyed on the day it asks about. */
+  dashboard: (today: string) => ['vendors', 'dashboard', today] as const,
   detail: (id: string) => ['vendors', 'detail', id] as const,
   summary: (id: string) => ['vendors', 'summary', id] as const,
   /** Under the namespace, so a trip saved in Delivery can refresh it by prefix. */
@@ -107,6 +111,27 @@ export function useMyVendor(enabled = true): UseQueryResult<VendorRecord, ApiErr
   return useQuery({
     queryKey: vendorKeys.mine(),
     queryFn: fetchMyVendor,
+    staleTime: LIST_STALE_TIME,
+    enabled,
+    retry: 2,
+  })
+}
+
+/**
+ * The vendor account's own dashboard.
+ *
+ * The day is worked out **when the hook renders** rather than once at module
+ * load, so a tab left open overnight asks about the day it is now rather than
+ * the day it was opened on. It is part of the key for the same reason: crossing
+ * midnight is a different question, and a cached answer to yesterday's is the
+ * wrong one.
+ */
+export function useVendorDashboard(enabled = true): UseQueryResult<VendorDashboard, ApiError> {
+  const today = new Date().toISOString().slice(0, 10)
+
+  return useQuery({
+    queryKey: vendorKeys.dashboard(today),
+    queryFn: () => fetchVendorDashboard(today),
     staleTime: LIST_STALE_TIME,
     enabled,
     retry: 2,

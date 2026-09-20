@@ -42,8 +42,26 @@ export function PlSummary({ report }: { report: ProfitLossReport }) {
         <div className="border-b p-5 lg:border-r lg:border-b-0">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Income</p>
           <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">{taka(summary.income)}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {summary.finalBillCount} Walton final {summary.finalBillCount === 1 ? 'bill' : 'bills'} · {report.from.label}
+          {/* The two claims on their own lines: neither stands for the other, and
+              a single figure would hide which half a month is missing. */}
+          <dl className="mt-3 grid gap-1.5 text-sm">
+            <div className="grid grid-cols-[1fr_auto] gap-x-3">
+              <dt className="text-muted-foreground">
+                Walton final {summary.finalBillCount === 1 ? 'bill' : 'bills'}
+                <span className="ml-1 text-xs">({summary.finalBillCount})</span>
+              </dt>
+              <dd className="tabular-nums">{taka(summary.finalBillIncome)}</dd>
+            </div>
+            <div className="grid grid-cols-[1fr_auto] gap-x-3">
+              <dt className="text-muted-foreground">
+                Walton labour {summary.labourBillCount === 1 ? 'bill' : 'bills'}
+                <span className="ml-1 text-xs">({summary.labourBillCount})</span>
+              </dt>
+              <dd className="tabular-nums">{taka(summary.waltonLabourIncome)}</dd>
+            </div>
+          </dl>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {report.from.label}
             {report.months.length > 1 && ` – ${report.to.label}`}
           </p>
         </div>

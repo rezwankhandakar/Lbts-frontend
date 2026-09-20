@@ -2,13 +2,13 @@ import {
   Building2,
   Landmark,
   FileSpreadsheet,
+  HardHat,
   LayoutDashboard,
   MapPinned,
   PackageCheck,
   Receipt,
   ReceiptText,
   ScanLine,
-  Settings,
   ShieldCheck,
   Tags,
   Truck,
@@ -114,6 +114,20 @@ export const navSections: NavSection[] = [
         roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
       },
       /**
+       * The handling charge beside the Excel bill's transport charge: a month
+       * of scanned challans, one row per model, every amount typed. Hidden
+       * from Vendor accounts for the Trip DO sheet's reason — every row
+       * carries a customer's address. Presentation only; `RoleRoute` and the
+       * API are what refuse.
+       */
+      {
+        label: 'Labour Bill',
+        path: '/labour-bills',
+        icon: HardHat,
+        accent: 'amber',
+        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+      },
+      /**
        * Accounts: balances, vendor trip bill payments, advances, expenses,
        * Walton final bills and profit and loss. Narrower than the operating
        * modules — the office's money is not an Operation Executive's page, and
@@ -197,7 +211,6 @@ export const navSections: NavSection[] = [
         accent: 'emerald',
         roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
       },
-      { label: 'Settings', path: '/settings', icon: Settings, accent: 'amber' },
     ],
   },
 ]

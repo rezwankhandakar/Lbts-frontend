@@ -18,7 +18,12 @@ import { cn } from '@/lib/utils'
 
 interface DocumentScanPanelProps {
   disabled: boolean
-  onScanned: (file: File) => void
+  /**
+   * The scanned document, and how many sheets produced it — the agent is the
+   * only thing that knows, and a caller storing a page count wants it. A caller
+   * that does not simply ignores the second argument.
+   */
+  onScanned: (file: File, pageCount: number | null) => void
   onDismiss: () => void
   /** Distinguishes this panel's field ids from another on the same page. */
   idPrefix?: string
@@ -87,7 +92,7 @@ export function DocumentScanPanel({
     onScanned: (documents) => {
       const [scanned] = documents
       if (scanned) {
-        onScanned(scanned.file)
+        onScanned(scanned.file, scanned.pageCount ?? null)
       }
     },
   })

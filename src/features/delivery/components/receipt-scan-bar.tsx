@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Loader2, ScanBarcode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { isChallanCode } from '../lib/barcode-wedge'
+import { isChallanCode, isTripCode } from '@/lib/barcode-wedge'
 
 interface ReceiptScanBarProps {
   onScan: (code: string) => void
@@ -12,7 +12,13 @@ interface ReceiptScanBarProps {
 }
 
 /**
- * Where a signed challan copy is read in.
+ * Where paper coming back off a lorry is read in — a signed challan copy, or
+ * the trip manifest that went out with it.
+ *
+ * Both sheets carry a barcode and an operator holds both, so the two are told
+ * apart by the shape of the code rather than by which one this bar claims to
+ * be for: a challan opens the delivery it belongs to, a manifest opens its
+ * trip. See `useSheetScan`.
  *
  * The scanner needs nothing here at all — `useBarcodeWedge` listens page-wide
  * whenever no field has focus and no dialog is open, so an operator working
@@ -48,10 +54,10 @@ export function ReceiptScanBar({ onScan, pending, listening }: ReceiptScanBarPro
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">A signed copy came back?</p>
+        <p className="text-sm font-medium">A signed copy came back, or a manifest in hand?</p>
         <p className="text-xs text-muted-foreground">
           {listening
-            ? 'Scan its barcode anywhere on this page and it opens the delivery it belongs to.'
+            ? 'Scan anywhere on this page: a challan opens the delivery it belongs to, a manifest opens its trip.'
             : 'Close what is open to scan, or type the challan number.'}
         </p>
       </div>
@@ -73,7 +79,7 @@ export function ReceiptScanBar({ onScan, pending, listening }: ReceiptScanBarPro
         <Button
           variant="outline"
           className="h-9"
-          disabled={pending || !isChallanCode(typed.trim())}
+          disabled={pending || !(isChallanCode(typed.trim()) || isTripCode(typed.trim()))}
           onClick={submit}
         >
           Open

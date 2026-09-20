@@ -61,8 +61,8 @@ export function AdvanceField({ draft, set, errors, request }: KindFieldsProps) {
             )}
             {options.map((advance) => (
               <SelectItem key={advance.id} value={advance.id}>
-                <span className="flex flex-1 items-center justify-between gap-4">
-                  <span className="truncate">
+                <span className="flex min-w-0 flex-1 items-center justify-between gap-4">
+                  <span className="min-w-0 truncate">
                     {advance.party}
                     <span className="ml-1.5 text-xs text-muted-foreground">{formatDay(advance.date)}</span>
                   </span>

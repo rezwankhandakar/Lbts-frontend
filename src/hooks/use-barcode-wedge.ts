@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { EMPTY_WEDGE, feedWedge } from '../lib/barcode-wedge'
+import { EMPTY_WEDGE, feedWedge } from '@/lib/barcode-wedge'
 
 /**
  * True while somebody is typing into a field — the one time the page must not

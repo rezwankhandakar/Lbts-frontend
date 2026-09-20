@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { EMPTY_WEDGE, WEDGE_MAX_GAP_MS, feedWedge, normalizeScan } from './barcode-wedge.ts'
+import {
+  EMPTY_WEDGE,
+  WEDGE_MAX_GAP_MS,
+  feedWedge,
+  isChallanCode,
+  isTripCode,
+  normalizeScan,
+} from './barcode-wedge.ts'
 import type { WedgeState } from './barcode-wedge.ts'
 
 /** Types a string as one burst `gap` ms apart, then Enter, and returns what came out. */
@@ -79,5 +86,23 @@ describe('feedWedge', () => {
 describe('normalizeScan', () => {
   it('cleans case and stray spaces the way the server does', () => {
     assert.equal(normalizeScan('  lbts-ch-2026-000982 \n'), 'LBTS-CH-2026-000982')
+  })
+})
+
+describe('telling the two printed barcodes apart', () => {
+  it('reads a manifest barcode as a trip', () => {
+    assert.equal(isTripCode('V-0007-TRIP-0012'), true)
+    assert.equal(isTripCode(' v-12-trip-3 '), true)
+  })
+
+  it('refuses the short form, which names no trip on its own', () => {
+    // Every vendor has a twelfth trip, so a bare TRIP-0012 is not an identifier.
+    assert.equal(isTripCode('TRIP-0012'), false)
+  })
+
+  it('never reads one sheet as the other', () => {
+    assert.equal(isTripCode('LBTS-CH-2026-000982'), false)
+    assert.equal(isTripCode('41822'), false)
+    assert.equal(isChallanCode('V-0007-TRIP-0012'), false)
   })
 })

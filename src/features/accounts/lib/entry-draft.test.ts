@@ -68,13 +68,42 @@ describe('payloadFromDraft', () => {
 
   it('adds money into cash with nothing but the amount, the day and the wallet', () => {
     const payload = payloadFromDraft(emptyDraft('Deposit', TODAY, { amount: 900, walletId: 'w', party: 'stray' }))
-    assert.deepEqual(Object.keys(payload).sort(), ['amount', 'date', 'finalBillId', 'kind', 'note', 'reference', 'walletId'])
+    assert.deepEqual(Object.keys(payload).sort(), [
+      'amount',
+      'date',
+      'finalBillId',
+      'kind',
+      'labourBillId',
+      'labourCsd',
+      'note',
+      'reference',
+      'walletId',
+    ])
     assert.equal(payload.finalBillId, null)
+    assert.equal(payload.labourBillId, null)
   })
 
   it('links a deposit recorded from a final bill to that bill', () => {
     const payload = payloadFromDraft(emptyDraft('Deposit', TODAY, { amount: 900, walletId: 'w', finalBillId: 'f' }))
     assert.equal(payload.finalBillId, 'f')
+  })
+
+  it('links a deposit recorded from a labour bill to that bill and its CSD', () => {
+    const payload = payloadFromDraft(
+      emptyDraft('Deposit', TODAY, { amount: 900, walletId: 'w', labourBillId: 'l', labourCsd: 'CSD-02' }),
+    )
+    assert.equal(payload.labourBillId, 'l')
+    assert.equal(payload.labourCsd, 'CSD-02')
+  })
+
+  // A CSD without a bill names nothing, so it is dropped rather than sent as a
+  // half link the server would have to refuse.
+  it('drops a stray CSD when no labour bill is named', () => {
+    const payload = payloadFromDraft(
+      emptyDraft('Deposit', TODAY, { amount: 900, walletId: 'w', labourCsd: 'CSD-02' }),
+    )
+    assert.equal(payload.labourBillId, null)
+    assert.equal(payload.labourCsd, '')
   })
 
   it('carries the month a vendor payment settles', () => {
@@ -96,6 +125,7 @@ describe('draftFromEntry', () => {
       toWallet: null,
       source: null,
       finalBill: null,
+      labourBill: null,
       expenseName: '',
       party: 'Rahim',
       partyPhone: '',

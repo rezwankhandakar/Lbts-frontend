@@ -8,9 +8,9 @@ import { ReceiptScanBar } from '@/features/delivery/components/receipt-scan-bar'
 import { TripDirectory } from '@/features/delivery/components/trip-directory'
 import { TripFilters } from '@/features/delivery/components/trip-filters'
 import { TripStatsPanel } from '@/features/delivery/components/trip-stats'
-import { useBarcodeWedge } from '@/features/delivery/hooks/use-barcode-wedge'
+import { useBarcodeWedge } from '@/hooks/use-barcode-wedge'
 import { useTripStats, useTrips } from '@/features/delivery/hooks/use-deliveries'
-import { useReceiptScan } from '@/features/delivery/hooks/use-receipt-scan'
+import { useSheetScan } from '@/features/delivery/hooks/use-sheet-scan'
 import { useTripActions } from '@/features/delivery/hooks/use-trip-actions'
 import { useTripListParams } from '@/features/delivery/hooks/use-trip-list-params'
 import { localToday, plural } from '@/features/delivery/lib/delivery-meta'
@@ -40,7 +40,7 @@ export function DeliveryPage() {
   const query = useTrips(list.applied)
   const statsQuery = useTripStats()
   const actions = useTripActions()
-  const receipt = useReceiptScan()
+  const receipt = useSheetScan()
 
   /**
    * Only for somebody who may write: a scan opens a page whose whole purpose

@@ -17,6 +17,9 @@ import {
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
 import type { GatePassReferenceType } from '../types'
 import { describedBy } from '../lib/field-messages'
+import { isKept } from '../lib/carried-fields'
+import type { CarryControls } from '../lib/carried-fields'
+import { CarryToggle } from './carry-toggle'
 import { EntryField, EntryInput } from './entry-field'
 import { SuggestInput } from './suggest-input'
 
@@ -30,6 +33,12 @@ import { SuggestInput } from './suggest-input'
 interface SectionProps {
   register: UseFormRegister<GatePassFormValues>
   errors: FieldErrors<GatePassFormValues>
+  /**
+   * The values the last gate pass left and which of them are being held.
+   * Absent when correcting a record, where there is no "last" to carry from —
+   * the values on screen are that record's own.
+   */
+  carry?: CarryControls
 }
 
 /**
@@ -72,7 +81,7 @@ export function FieldGrid({ children }: { children: ReactNode }) {
   return <div className="grid gap-3.5 sm:grid-cols-2">{children}</div>
 }
 
-export function TripFields({ register, errors }: SectionProps) {
+export function TripFields({ register, errors, carry }: SectionProps) {
   return (
     <FieldGrid>
       <EntryInput
@@ -90,20 +99,28 @@ export function TripFields({ register, errors }: SectionProps) {
         type="date"
         registration={register('tripDate')}
         error={errors.tripDate?.message}
+        action={<CarryToggle carry={carry} field="tripDate" />}
+        readOnly={isKept(carry, 'tripDate')}
       />
       <EntryInput
         id="csd"
         label="CSD"
         required
+        uppercase
         registration={register('csd')}
         error={errors.csd?.message}
+        action={<CarryToggle carry={carry} field="csd" />}
+        readOnly={isKept(carry, 'csd')}
       />
       <EntryInput
         id="unit"
         label="Unit"
         required
+        uppercase
         registration={register('unit')}
         error={errors.unit?.message}
+        action={<CarryToggle carry={carry} field="unit" />}
+        readOnly={isKept(carry, 'unit')}
       />
     </FieldGrid>
   )
@@ -119,8 +136,19 @@ interface DeliveryFieldsProps extends SectionProps {
  * constantly — the same customers, the same trucks — and a suggestion is what
  * stops one of them being recorded three different ways across three gate
  * passes.
+ *
+ * They are also the two carried fields that identify a *delivery* rather than
+ * a day, which is why each carries its own tick box: ten sheets for one
+ * customer on one lorry is an ordinary morning, and the eleventh being for
+ * somebody else is exactly the mistake a blindly carried value would file.
  */
-export function DeliveryFields({ register, errors, watch, setValue }: DeliveryFieldsProps) {
+export function DeliveryFields({
+  register,
+  errors,
+  watch,
+  setValue,
+  carry,
+}: DeliveryFieldsProps) {
   const customerName = watch('customerName')
   const vehicleNo = watch('vehicleNo')
 
@@ -132,12 +160,14 @@ export function DeliveryFields({ register, errors, watch, setValue }: DeliveryFi
         required
         wide
         error={errors.customerName?.message}
+        action={<CarryToggle carry={carry} field="customerName" />}
       >
         <SuggestInput
           id="customerName"
           field="customerName"
           registration={register('customerName')}
           value={customerName}
+          readOnly={isKept(carry, 'customerName')}
           invalid={Boolean(errors.customerName)}
           describedBy={describedBy('customerName', errors.customerName?.message)}
           onPick={(value) =>
@@ -152,18 +182,21 @@ export function DeliveryFields({ register, errors, watch, setValue }: DeliveryFi
         required
         wide
         error={errors.vehicleNo?.message}
-        hint="Kept exactly as entered, so it matches the plate on the challan."
+        hint="Typed in capitals. Spacing and punctuation are kept as printed."
+        action={<CarryToggle carry={carry} field="vehicleNo" />}
       >
         <SuggestInput
           id="vehicleNo"
           field="vehicleNo"
           registration={register('vehicleNo')}
           value={vehicleNo}
+          uppercase
+          readOnly={isKept(carry, 'vehicleNo')}
           invalid={Boolean(errors.vehicleNo)}
           describedBy={describedBy(
             'vehicleNo',
             errors.vehicleNo?.message,
-            'Kept exactly as entered, so it matches the plate on the challan.',
+            'Typed in capitals. Spacing and punctuation are kept as printed.',
           )}
           onPick={(value) =>
             setValue('vehicleNo', value, { shouldDirty: true, shouldValidate: true })

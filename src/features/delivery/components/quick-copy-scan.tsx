@@ -7,7 +7,11 @@ import { useScanner } from '@/hooks/use-scanner'
 import { SCANNER_STATE_COPY, SCANNER_TONES } from '@/lib/scanner-messages'
 import type { ScanSource } from '@/lib/scanner-agent'
 import { cn } from '@/lib/utils'
-import { ALLOWED_RECEIPT_EXTENSIONS, RECEIPT_ACCEPT, receiptFileProblem } from '../lib/receipt-rules'
+import {
+  ALLOWED_DOCUMENT_FILE_EXTENSIONS,
+  DOCUMENT_FILE_ACCEPT,
+  documentFileProblem,
+} from '@/lib/document-file-rules'
 
 interface QuickCopyScanProps {
   /** True while the file is on its way to the API. */
@@ -46,7 +50,7 @@ export function QuickCopyScan({
   const [pairing, setPairing] = useState(false)
 
   const accept = (file: File, pageCount: number | null) => {
-    const problem = receiptFileProblem(file)
+    const problem = documentFileProblem(file)
     if (problem) {
       toast.error(problem)
       return
@@ -76,7 +80,7 @@ export function QuickCopyScan({
       <input
         ref={fileInput}
         type="file"
-        accept={RECEIPT_ACCEPT}
+        accept={DOCUMENT_FILE_ACCEPT}
         className="sr-only"
         tabIndex={-1}
         aria-hidden
@@ -169,7 +173,7 @@ export function QuickCopyScan({
 
       <p className="text-xs leading-snug text-muted-foreground">
         {!canScan && !scanning && scanner.state !== 'checking' ? `${copy.description} ` : ''}
-        {ALLOWED_RECEIPT_EXTENSIONS}. Two sheets are saved as one PDF.
+        {ALLOWED_DOCUMENT_FILE_EXTENSIONS}. Two sheets are saved as one PDF.
       </p>
 
       <ScannerPairingDialog open={pairing} onOpenChange={setPairing} onPaired={scanner.check} />

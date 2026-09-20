@@ -99,6 +99,25 @@ export interface WalletInput {
 
 // --- Entries ----------------------------------------------------------------
 
+/**
+ * The paper behind an entry — a fuel bill, a repair invoice, a receipt signed
+ * for an advance.
+ *
+ * `url` is an API path, not a bucket URL: the object is private, so the
+ * browser cannot put it in a `src` and fetches it through axios, the only
+ * thing that attaches the Firebase token. Mirrors `VoucherRecord` in
+ * `accounts.serializer.ts`.
+ */
+export interface EntryVoucher {
+  url: string
+  mimeType: string
+  size: number
+  originalName: string
+  pageCount: number | null
+  uploadedAt: string
+  uploadedBy: ActorRef | null
+}
+
 export interface EntryRecord {
   id: string
   entryNumber: string
@@ -114,6 +133,8 @@ export interface EntryRecord {
   note: string
   source: DepositSource | null
   finalBill: { id: string; label: string } | null
+  /** A Walton payment against one CSD of a month's labour bill. */
+  labourBill: { id: string; csd: string; label: string } | null
   /** What an expense, or an advance accepted as one, was for. Empty for every other kind. */
   expenseName: string
   purpose: string
@@ -124,6 +145,8 @@ export interface EntryRecord {
   vendor: { id: string; vendorCode: string; name: string } | null
   trip: { id: string; tripNumber: string; tripDate: string; registrationNo: string; driverName: string } | null
   period: LabelledPeriod | null
+  /** The voucher or invoice behind this entry, or null while none is on record. */
+  voucher: EntryVoucher | null
   createdBy: ActorRef | null
   createdAt: string
   updatedBy: ActorRef | null
@@ -343,7 +366,14 @@ export interface FinalBillDetail {
 // --- Reports ----------------------------------------------------------------
 
 export interface ProfitLossMonth extends LabelledPeriod {
+  /** The two claims together: the final bill plus the month's labour bill. */
   income: number
+  finalBillIncome: number
+  /**
+   * What the month's labour bill billed. Named apart from `labourBill` below,
+   * which is the **cost** of a vendor's labour on a trip.
+   */
+  waltonLabourIncome: number
   tripRent: number
   labourBill: number
   officeExpense: number
@@ -353,8 +383,11 @@ export interface ProfitLossMonth extends LabelledPeriod {
   tripCount: number
   blankBills: number
   finalBillCount: number
+  labourBillCount: number
   pendingUnits: string[]
   pendingSubmitted: number
+  /** Labour rows with no Trip DO, so their charge is not income yet. */
+  pendingLabour: number
 }
 
 export interface ProfitLossReport {
@@ -413,18 +446,103 @@ export interface CashSummary {
 export interface AccountsOverview {
   today: string
   period: LabelledPeriod
-  /** Cash wallets only — bank and mobile balances are not added in. */
+  /**
+   * Cash wallets only — bank and mobile balances are not added in. The two
+   * headline flows are the calendar year to date and the month inside it,
+   * never all time: a total that only grows is not a figure anybody acts on.
+   */
   cash: {
     wallets: WalletRecord[]
     balance: number
-    allTime: CashFigures
+    thisYear: CashFigures
     thisMonth: CashFigures
+    year: number
   }
   vendorDue: { total: number; vendors: number; blankBills: number }
   advances: { outstanding: number; count: number }
-  receivable: { outstanding: number; count: number }
+  /** Both Walton claims together: final bills and labour bill CSDs. */
+  receivable: { outstanding: number; count: number; finalBills: number; labourCsds: number }
   profitLoss: ProfitLossMonth
   trend: ProfitLossMonth[]
   pendingFinalBills: number
   recentEntries: EntryRecord[]
+}
+
+// ---------------------------------------------------------------------------
+// Walton labour bill receivables
+// ---------------------------------------------------------------------------
+
+/**
+ * What Walton owes on the labour side. Mirrors
+ * `LBTS-Backend/src/modules/accounts/labour-receivable.service.ts`.
+ *
+ * Nothing here is typed: what a CSD was billed is read off its labour bill's
+ * own sheet, and what has arrived is the deposits recorded against it. There is
+ * no receivable to create, edit or delete — only payments.
+ */
+export interface LabourCsdReceivable {
+  csd: string
+  key: string
+  label: string
+  isPending: boolean
+  rows: number
+  challans: number
+  qty: number
+  labourTotal: number
+  floorTotal: number
+  billedAmount: number
+  receivedAmount: number
+  outstanding: number
+  paymentStatus: SettlementStatus
+  unpricedLines: number
+  /** False for the pending section: those rows belong to no CSD, so nobody is billed. */
+  canReceive: boolean
+}
+
+export interface LabourReceivableRecord {
+  id: string
+  billNumber: string
+  year: number
+  month: number
+  periodLabel: string
+  company: string
+  status: 'Draft' | 'Finalized'
+  billedAmount: number
+  receivedAmount: number
+  outstanding: number
+  paymentStatus: SettlementStatus
+  csdCount: number
+  pendingAmount: number
+  unpricedLines: number
+  csds: LabourCsdReceivable[]
+}
+
+export interface LabourReceivableListParams {
+  page: number
+  limit: number
+  year: number | null
+  status: 'all' | SettlementStatus
+}
+
+export interface LabourReceivableListResult {
+  records: LabourReceivableRecord[]
+  totals: { total: number; billedAmount: number; receivedAmount: number; outstanding: number }
+  meta: PageMeta
+}
+
+export interface LabourReceivableDetail {
+  month: LabourReceivableRecord
+  receipts: EntryRecord[]
+}
+
+/** One CSD still owed something, for the deposit form's locked field. */
+export interface LabourReceivableOption {
+  billId: string
+  billNumber: string
+  periodLabel: string
+  csd: string
+  key: string
+  billedAmount: number
+  receivedAmount: number
+  outstanding: number
 }

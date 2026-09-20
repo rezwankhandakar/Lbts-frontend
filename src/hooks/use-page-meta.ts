@@ -48,6 +48,7 @@ const STANDALONE_PAGES: Record<string, PageMeta> = {
   '/accounts/advances': { title: 'Advances', section: 'Accounts' },
   '/accounts/expenses': { title: 'Expenses', section: 'Accounts' },
   '/accounts/final-bills': { title: 'Walton Final Bill', section: 'Accounts' },
+  '/accounts/labour-bills': { title: 'Walton Labour Bill', section: 'Accounts' },
   '/accounts/profit-loss': { title: 'Profit & Loss', section: 'Accounts' },
   '/accounts/wallets': { title: 'Wallets', section: 'Accounts' },
 }

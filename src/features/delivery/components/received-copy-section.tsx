@@ -8,7 +8,7 @@ import {
   useUploadReceivedCopy,
 } from '../hooks/use-deliveries'
 import { useReceivedCopy } from '../hooks/use-received-copy'
-import { formatBytes } from '../lib/receipt-rules'
+import { formatBytes } from '@/lib/document-file-rules'
 import type { TripChallanRecord, TripRecord } from '../types'
 import { CopyMissingForm } from './copy-missing-form'
 import { QuickCopyScan } from './quick-copy-scan'

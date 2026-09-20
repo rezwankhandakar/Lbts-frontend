@@ -11,6 +11,12 @@
  *
  * Pure and import-free, so `node --test` loads it directly; the React half is
  * `hooks/use-barcode-wedge.ts`.
+ *
+ * It started inside `features/delivery/` and moved out here when the Walton
+ * Labour Bill needed to be filled by scanning challans — the rule CLAUDE.md
+ * sets for a helper a second feature wants. Nothing in it was ever about a
+ * trip: it is the timing that tells a scanner from a person, and both modules
+ * want exactly that, in exactly the same shape.
  */
 
 /**
@@ -98,4 +104,26 @@ const CHALLAN_CODE = /^(LBTS-CH-\d{4}-\d+|\d{5,})$/i
  */
 export function isChallanCode(value: string): boolean {
   return CHALLAN_CODE.test(value.trim())
+}
+
+/** A trip number in its **stored** form, which is what a manifest's barcode carries. */
+const TRIP_CODE = /^V-\d+-TRIP-\d+$/i
+
+/**
+ * Whether a scan is a **trip manifest's** barcode rather than a challan's.
+ *
+ * Two different sheets now carry a barcode and an operator holds both: the
+ * challan's back page, which means "this came back signed", and the manifest,
+ * which means "open this trip". They are told apart by shape rather than by
+ * which page happens to be open, because a scanner is pointed at paper and the
+ * paper is what says which question is being asked.
+ *
+ * The **stored** form only — `V-0007-TRIP-0012`, vendor code and all. The
+ * short form the screens read (`TRIP-0012`) is the vendor's own running count
+ * and two vendors both have a twelfth trip, so a bare one names no trip. That
+ * is exactly why the barcode carries the long form even though nobody says it
+ * out loud.
+ */
+export function isTripCode(value: string): boolean {
+  return TRIP_CODE.test(value.trim())
 }

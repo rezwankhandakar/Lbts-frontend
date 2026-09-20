@@ -55,7 +55,7 @@ export function ChallanQuantitySummary({
         <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Boxes className="size-4" aria-hidden />
         </span>
-        <h3 className="text-sm font-semibold tracking-tight">Challan quantity</h3>
+        <h3 className="text-sm font-semibold tracking-tight">Product Summary</h3>
         <span className="ml-auto text-xs text-muted-foreground">
           {tally.products} {tally.products === 1 ? 'product' : 'products'}
         </span>

@@ -4,6 +4,7 @@ import {
   ChartNoAxesCombined,
   FileBadge,
   HandCoins,
+  HardHat,
   LayoutGrid,
   Receipt,
   Truck,
@@ -30,6 +31,7 @@ const TABS: AccountsTab[] = [
   { label: 'Advances', to: '/accounts/advances', icon: HandCoins },
   { label: 'Expenses', to: '/accounts/expenses', icon: Receipt },
   { label: 'Walton Final Bill', to: '/accounts/final-bills', icon: FileBadge },
+  { label: 'Walton Labour Bill', to: '/accounts/labour-bills', icon: HardHat },
   { label: 'Profit & Loss', to: '/accounts/profit-loss', icon: ChartNoAxesCombined },
   { label: 'Wallets', to: '/accounts/wallets', icon: Wallet },
 ]
