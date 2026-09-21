@@ -38,11 +38,12 @@ export function useAdminUsers(params: UserListParams): UseQueryResult<UserListRe
   })
 }
 
-export function useAdminUserStats(): UseQueryResult<UserStats, ApiError> {
+export function useAdminUserStats(enabled = true): UseQueryResult<UserStats, ApiError> {
   return useQuery({
     queryKey: administrationKeys.stats(),
     queryFn: fetchUserStats,
     staleTime: LIST_STALE_TIME,
+    enabled,
     retry: 2,
   })
 }

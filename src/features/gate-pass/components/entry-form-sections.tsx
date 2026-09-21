@@ -17,8 +17,8 @@ import {
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
 import type { GatePassReferenceType } from '../types'
 import { describedBy } from '../lib/field-messages'
-import { isKept } from '../lib/carried-fields'
-import type { CarryControls } from '../lib/carried-fields'
+import type { CarryControls } from '@/hooks/use-carry-over'
+import type { CarriedField } from '../lib/carried-fields'
 import { CarryToggle } from './carry-toggle'
 import { EntryField, EntryInput } from './entry-field'
 import { SuggestInput } from './suggest-input'
@@ -38,7 +38,7 @@ interface SectionProps {
    * Absent when correcting a record, where there is no "last" to carry from —
    * the values on screen are that record's own.
    */
-  carry?: CarryControls
+  carry?: CarryControls<CarriedField>
 }
 
 /**
@@ -100,7 +100,6 @@ export function TripFields({ register, errors, carry }: SectionProps) {
         registration={register('tripDate')}
         error={errors.tripDate?.message}
         action={<CarryToggle carry={carry} field="tripDate" />}
-        readOnly={isKept(carry, 'tripDate')}
       />
       <EntryInput
         id="csd"
@@ -110,7 +109,6 @@ export function TripFields({ register, errors, carry }: SectionProps) {
         registration={register('csd')}
         error={errors.csd?.message}
         action={<CarryToggle carry={carry} field="csd" />}
-        readOnly={isKept(carry, 'csd')}
       />
       <EntryInput
         id="unit"
@@ -120,7 +118,6 @@ export function TripFields({ register, errors, carry }: SectionProps) {
         registration={register('unit')}
         error={errors.unit?.message}
         action={<CarryToggle carry={carry} field="unit" />}
-        readOnly={isKept(carry, 'unit')}
       />
     </FieldGrid>
   )
@@ -167,7 +164,6 @@ export function DeliveryFields({
           field="customerName"
           registration={register('customerName')}
           value={customerName}
-          readOnly={isKept(carry, 'customerName')}
           invalid={Boolean(errors.customerName)}
           describedBy={describedBy('customerName', errors.customerName?.message)}
           onPick={(value) =>
@@ -191,7 +187,6 @@ export function DeliveryFields({
           registration={register('vehicleNo')}
           value={vehicleNo}
           uppercase
-          readOnly={isKept(carry, 'vehicleNo')}
           invalid={Boolean(errors.vehicleNo)}
           describedBy={describedBy(
             'vehicleNo',

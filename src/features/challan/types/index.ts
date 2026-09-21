@@ -34,10 +34,18 @@ export type ChallanBatchStatus = (typeof CHALLAN_BATCH_STATUSES)[number]
  * Module permissions, mirroring `challan.constants.ts`. These decide what the
  * UI offers; the API decides what actually happens. Hiding a button is
  * courtesy, and the route that refuses the request is the boundary.
+ *
+ * `Vendor` is out and every other role is in all three sets. `MANAGE_ANY`
+ * equalling `WRITE` is what puts the ownership scope away.
  */
 export const CHALLAN_READ_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
-export const CHALLAN_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'OpEx']
-export const CHALLAN_MANAGE_ANY_ROLES: readonly UserRole[] = ['Admin', 'Manager']
+export const CHALLAN_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
+export const CHALLAN_MANAGE_ANY_ROLES: readonly UserRole[] = [
+  'Admin',
+  'Manager',
+  'CEO',
+  'OpEx',
+]
 
 export function canReadChallans(role: UserRole | null): boolean {
   return role !== null && CHALLAN_READ_ROLES.includes(role)
@@ -336,12 +344,31 @@ export interface DuplicateChallanCandidate {
   matchedOn: 'batch' | 'recent'
 }
 
+/**
+ * Mirrors `ChallanStats` in `challan.service.ts`.
+ *
+ * The backlog figures are the **whole collection**, not a filtered view. The
+ * records toolbar computes its own chips over the filters in force, because
+ * there a figure answering a different question would be the one thing in
+ * that row nobody could trust. The dashboard asks the unfiltered question
+ * instead — what is outstanding at all — and gets it from the same grouped
+ * pass, so the two can never disagree about what counts as a backlog.
+ */
 export interface ChallanStats {
   total: number
   today: number
   totalQty: number
+  totalAmount: number
   batchesProcessing: number
   batchesCompleted: number
+  blankAmount: number
+  partialAmount: number
+  locationPending: number
+  locationReview: number
+  notDispatched: number
+  partlyDispatched: number
+  returnedAtDepot: number
+  unpricedChallans: number
 }
 
 /** Fields the entry form offers type-ahead for, from what is already on record. */

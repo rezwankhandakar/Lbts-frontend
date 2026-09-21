@@ -60,11 +60,16 @@ export const LOCATION_STATUSES = ['Verified', 'Pending'] as const
 export type LocationStatus = (typeof LOCATION_STATUSES)[number]
 
 /**
- * Reading the master list is open to everyone who may reach a challan; writing
- * it is Admin-only. Mirrors `location.constants.ts`. These decide what the UI
- * offers; the API decides what actually happens.
+ * **The master list is Admin-only** — the page, the rows and every control on
+ * them. Mirrors `location.constants.ts`.
+ *
+ * The lookups behind the Challan entry form — districts, thanas and the
+ * resolver — are deliberately *not* gated by this, and the server keeps them
+ * open to the Challan audience under `LOCATION_LOOKUP_ROLES`. Nothing on this
+ * side needs a second copy of that set: no component asks whether it may run a
+ * lookup, it simply runs one, and the API is what answers.
  */
-export const LOCATION_READ_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
+export const LOCATION_READ_ROLES: readonly UserRole[] = ['Admin']
 export const LOCATION_MANAGE_ROLES: readonly UserRole[] = ['Admin']
 
 export function canReadLocations(role: UserRole | null): boolean {

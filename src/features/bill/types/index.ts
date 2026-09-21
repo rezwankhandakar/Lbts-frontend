@@ -20,13 +20,14 @@ export type BillingStatus = (typeof BILLING_STATUSES)[number]
 export type BillingFilter = 'all' | 'unbilled' | 'partial' | 'billed'
 
 /**
- * Reading bills is everyone who reads the Trip DO sheet; preparing one is
- * everyone who writes it; finalizing and reopening is Admin and Manager. These
- * decide what the UI offers; the API decides what happens.
+ * Reading bills is everyone who reads the Trip DO sheet; **preparing,
+ * finalizing and reopening one is Admin alone**, following the sheet a bill is
+ * built out of. Mirrors `bill.constants.ts`. These decide what the UI offers;
+ * the API decides what happens.
  */
 export const BILL_READ_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
-export const BILL_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'OpEx']
-export const BILL_REVIEW_ROLES: readonly UserRole[] = ['Admin', 'Manager']
+export const BILL_WRITE_ROLES: readonly UserRole[] = ['Admin']
+export const BILL_REVIEW_ROLES: readonly UserRole[] = ['Admin']
 
 export function canWriteBill(role: UserRole | null): boolean {
   return role !== null && BILL_WRITE_ROLES.includes(role)

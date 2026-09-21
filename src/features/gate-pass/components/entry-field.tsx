@@ -77,12 +77,6 @@ interface EntryInputProps extends EntryFieldProps {
   registration: UseFormRegisterReturn
   type?: 'text' | 'date' | 'number'
   inputMode?: 'text' | 'numeric'
-  /**
-   * Held to a value carried from the last gate pass. Read-only rather than
-   * disabled: a disabled box reads as "not available here", and this one is
-   * available — it is holding a value somebody ticked, and unticking frees it.
-   */
-  readOnly?: boolean
   /** Typed in capitals — see `lib/uppercase-field.ts`. */
   uppercase?: boolean
 }
@@ -104,7 +98,6 @@ export function EntryInput({
   registration,
   type = 'text',
   inputMode,
-  readOnly,
   uppercase,
   ...field
 }: EntryInputProps) {
@@ -116,8 +109,6 @@ export function EntryInput({
         inputMode={inputMode}
         autoComplete="off"
         spellCheck={false}
-        readOnly={readOnly}
-        className={cn(readOnly && 'bg-muted/50 text-muted-foreground')}
         aria-invalid={field.error ? true : undefined}
         aria-describedby={describedBy(field.id, field.error, field.hint)}
         {...registration}

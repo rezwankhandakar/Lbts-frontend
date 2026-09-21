@@ -1,7 +1,6 @@
 import { ArrowRight, CircleCheck, Download, Eye, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { formatRange } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
 
 interface ChallanFiledPanelProps {
@@ -19,8 +18,15 @@ interface ChallanFiledPanelProps {
  *
  * The two numbers are the point. The operator never typed either of them —
  * they are allocated server-side and printed on the barcode page — so this is
- * the only moment they see what the sheet in front of them is now called, and
- * it is worth more room than a toast gives.
+ * the only moment they see what the sheet in front of them is now called.
+ *
+ * It is one row rather than a card, and that is a layout decision with a
+ * reason: it appears above a split whose whole purpose is showing a challan
+ * page and its form at once, and a card holding a stacked definition list over
+ * a row of buttons took a fifth of the page an operator was reading. Nothing
+ * is lost by flattening it — the numbers are still the largest text on the
+ * strip, and the source pages it came from are already the range drawn in the
+ * page strip under the viewer.
  *
  * The primary action moves to the next challan rather than to this one's
  * details page, because the job is a stack and the next sheet is already
@@ -38,74 +44,58 @@ export function ChallanFiledPanel({
   return (
     <section
       aria-label="Challan filed"
-      className="rounded-xl border border-tone-emerald/30 bg-tone-emerald/5 p-4 shadow-sm"
+      className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-tone-emerald/30 bg-tone-emerald/5 px-3 py-2"
     >
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-tone-emerald/15 text-tone-emerald ring-1 ring-tone-emerald/25">
-          <CircleCheck className="size-5" aria-hidden />
-        </span>
+      <span className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-tone-emerald">
+        <CircleCheck className="size-4" aria-hidden />
+        Filed
+      </span>
 
-        <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold tracking-tight">Challan filed</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {formatRange({
-              startPage: record.sourcePageStart,
-              endPage: record.sourcePageEnd,
-            })}{' '}
-            of {record.sourceFileName}, plus the generated LBTS back page.
-          </p>
-
-          <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-2">
-            <div>
-              <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                SL number
-              </dt>
-              <dd className="text-xl leading-tight font-semibold tabular-nums">
-                {record.slNumber}
-              </dd>
-            </div>
-            <div className="min-w-0">
-              <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                Challan number
-              </dt>
-              <dd className="truncate text-xl leading-tight font-semibold">
-                {record.challanNumber}
-              </dd>
-            </div>
-          </dl>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            {nextLabel ? (
-              <Button size="sm" onClick={onNext}>
-                {nextLabel}
-                <ArrowRight data-icon="inline-end" aria-hidden />
-              </Button>
-            ) : (
-              <Button size="sm" variant="outline" onClick={onDismiss}>
-                Close
-              </Button>
-            )}
-
-            <Button
-              variant="outline"
-              size="sm"
-              render={<Link to={`/challan/${record.id}`} target="_blank" rel="noreferrer" />}
-            >
-              <Eye data-icon="inline-start" aria-hidden />
-              View
-            </Button>
-
-            <Button variant="outline" size="sm" onClick={() => onPrint(record)}>
-              <Printer data-icon="inline-start" aria-hidden />
-              Print
-            </Button>
-
-            <Button variant="outline" size="sm" onClick={() => onDownload(record)}>
-              <Download data-icon="inline-start" aria-hidden />
-              Download
-            </Button>
-          </div>
+      <dl className="flex min-w-0 flex-wrap items-baseline gap-x-5 gap-y-1">
+        <div className="flex items-baseline gap-1.5">
+          <dt className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+            SL
+          </dt>
+          <dd className="text-base leading-none font-semibold tabular-nums">{record.slNumber}</dd>
         </div>
+        <div className="flex min-w-0 items-baseline gap-1.5">
+          <dt className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+            Challan
+          </dt>
+          <dd className="truncate text-base leading-none font-semibold">{record.challanNumber}</dd>
+        </div>
+      </dl>
+
+      <div className="ml-auto flex shrink-0 flex-wrap items-center gap-1.5">
+        {nextLabel ? (
+          <Button size="xs" onClick={onNext}>
+            {nextLabel}
+            <ArrowRight data-icon="inline-end" aria-hidden />
+          </Button>
+        ) : (
+          <Button size="xs" variant="outline" onClick={onDismiss}>
+            Close
+          </Button>
+        )}
+
+        <Button
+          variant="outline"
+          size="xs"
+          render={<Link to={`/challan/${record.id}`} target="_blank" rel="noreferrer" />}
+        >
+          <Eye data-icon="inline-start" aria-hidden />
+          View
+        </Button>
+
+        <Button variant="outline" size="xs" onClick={() => onPrint(record)}>
+          <Printer data-icon="inline-start" aria-hidden />
+          Print
+        </Button>
+
+        <Button variant="outline" size="xs" onClick={() => onDownload(record)}>
+          <Download data-icon="inline-start" aria-hidden />
+          Download
+        </Button>
       </div>
     </section>
   )

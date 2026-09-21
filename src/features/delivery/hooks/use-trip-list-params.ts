@@ -20,8 +20,15 @@ const INITIAL: TripListParams = {
  * after a deletion shrinks the result set. Filters live in component state,
  * not the URL, which is the convention the app already follows.
  */
-export function useTripListParams() {
-  const [params, setParams] = useState<TripListParams>(INITIAL)
+/**
+ * `restored` seeds the first render and nothing else — the dashboard linking
+ * here with the backlog it just counted. Clear still clears to nothing, the
+ * arrangement `useChallanListParams` already has.
+ */
+export function useTripListParams(restored?: Partial<TripListParams>) {
+  const [params, setParams] = useState<TripListParams>(
+    restored ? { ...INITIAL, ...restored } : INITIAL,
+  )
   const debouncedSearch = useDebouncedValue(params.search, 350)
 
   const applied = useMemo(() => ({ ...params, search: debouncedSearch }), [params, debouncedSearch])

@@ -133,84 +133,88 @@ const ForgotPasswordPage = lazy(() =>
 )
 
 /**
- * Wording for the two Gate Pass boundaries. Kept beside the routes that use
- * them so the sentence and the role list cannot drift apart.
+ * Wording for the Gate Pass boundaries. Kept beside the routes that use them
+ * so the sentence and the role list cannot drift apart.
+ *
+ * Read and write are the same four roles now, so the second sentence exists
+ * only for the day they part company again.
  */
 const GATE_PASS_ACCESS_REASON =
   'Gate Pass records the transport operation, and is open to Admin, Manager, CEO and Operation Executive accounts.'
 const GATE_PASS_WRITE_REASON =
-  'Filing a gate pass is done by Admin, Manager and Operation Executive accounts.'
+  'Filing a gate pass is done by Admin, Manager, CEO and Operation Executive accounts.'
 
 /**
- * Wording for the two Challan boundaries. Kept beside the routes that use them
+ * Wording for the Challan boundaries. Kept beside the routes that use them
  * so the sentence and the role list cannot drift apart.
  */
 const CHALLAN_ACCESS_REASON =
   'Challan records deliveries from the corporate office, and is open to Admin, Manager, CEO and Operation Executive accounts.'
 const CHALLAN_WRITE_REASON =
-  'Filing a challan is done by Admin, Manager and Operation Executive accounts.'
+  'Filing a challan is done by Admin, Manager, CEO and Operation Executive accounts.'
 
 /**
- * Wording for the two Delivery boundaries. A trip carries every challan on it,
+ * Wording for the Delivery boundaries. A trip carries every challan on it,
  * customer addresses included, which is why Vendor is out even though a trip
  * is assigned to a vendor.
  */
 const DELIVERY_ACCESS_REASON =
   'Deliveries record which challans went out on which vehicle, and are open to Admin, Manager, CEO and Operation Executive accounts.'
 const DELIVERY_WRITE_REASON =
-  'Building and correcting a trip is done by Admin, Manager and Operation Executive accounts.'
+  'Building and correcting a trip is done by Admin, Manager, CEO and Operation Executive accounts.'
 
 /**
- * One boundary: the same page serves readers and writers, with the write
- * controls simply absent for a CEO.
+ * One boundary: the same page serves readers and writers, with the linking
+ * controls absent for everyone but an Admin.
  */
 const TRIP_DO_ACCESS_REASON =
-  'The Trip DO sheet matches challan product lines to gate passes, and is open to Admin, Manager, CEO and Operation Executive accounts.'
+  'The Trip DO sheet matches challan product lines to gate passes, and is open to Admin, Manager, CEO and Operation Executive accounts. Only an Admin changes it.'
 
-/**
- * One boundary, like the Trip DO sheet a bill is built from: the same pages
- * serve readers and writers, with the write controls absent for a CEO.
- */
-/** Accounts is the office's money: read by Admin, Manager and CEO, kept by Admin and Manager per endpoint. */
+/** Accounts is the office's money: read by Admin, Manager and CEO, kept by Manager alone per endpoint. */
 const ACCOUNTS_ACCESS_REASON =
   'Accounts holds the office\'s balances, payments and profit, and is open to Admin, Manager and CEO accounts.'
 
+/**
+ * One boundary, like the Trip DO sheet a bill is built from: the same pages
+ * serve readers and writers, with the preparing controls absent for everyone
+ * but an Admin.
+ */
 const BILL_ACCESS_REASON =
-  'Bills charge a unit for its Trip DOs, and are open to Admin, Manager, CEO and Operation Executive accounts.'
+  'Bills charge a unit for its Trip DOs, and are open to Admin, Manager, CEO and Operation Executive accounts. Only an Admin prepares one.'
 
 /**
  * The Walton Labour Bill has the Trip DO sheet's audience too, and for the
  * sheet's reason — every row carries a customer's address and a receiver's
- * number. One boundary, like the Excel Bill beside it: the same pages serve
- * readers and writers, with every cell read-only for a CEO.
+ * number. Unlike the Excel Bill beside it, every one of those roles writes:
+ * it charges typed figures and claims no sheet row from anybody.
  */
 const LABOUR_BILL_ACCESS_REASON =
   'Walton Labour Bills charge the handling on each delivery, and are open to Admin, Manager, CEO and Operation Executive accounts.'
 
 /**
- * The Location master list has one boundary here rather than two: reading it
- * is open to everyone Challan is, and changing it is Admin-only — enforced per
- * endpoint by the API rather than per route, because the same page serves both
- * audiences with the write controls simply absent.
+ * The Location master list is Admin-only, page and controls alike. The
+ * district and thana lookups the Challan entry form runs are separate
+ * endpoints with a wider audience, so closing this page costs nobody a
+ * location on a challan.
  */
 const LOCATION_ACCESS_REASON =
-  'The location master list is the reference every challan is classified against, and is open to Admin, Manager, CEO and Operation Executive accounts.'
+  'The location master list is reference data the whole operation is classified against, and only an Admin account may open it.'
 
 /**
- * The rate card has the same single boundary as the location master, and for
- * the same reason: the entry form reads it, so everyone who files a challan
- * needs it, and only the write endpoints are Admin-only.
+ * The rate card is Admin-only for a sharper reason than the location master:
+ * a rate is money. Its model and product lookups are separate endpoints with
+ * the Challan audience, so a challan still prices itself for whoever files it.
  */
 const PRODUCT_RATE_ACCESS_REASON =
-  'The product rate card is what every challan line is charged from, and is open to Admin, Manager, CEO and Operation Executive accounts.'
+  'The product rate card sets what every delivery is charged, and only an Admin account may open it.'
 
 /**
  * Vendors has one boundary here, and it is the widest in the app: every role
  * can reach it, `Vendor` included. That is not a gap — a Vendor account's view
  * is narrowed to its own vendor by the API, from the account's own profile, and
- * no URL it can type widens that. Writing is Admin and Manager, enforced per
- * endpoint rather than per route, because the same page serves both audiences
- * with the write controls simply absent.
+ * no URL it can type widens that. Every staff role writes; only the Vendor
+ * account is read-only, enforced per endpoint rather than per route, because
+ * the same page serves both audiences with the write controls simply absent.
  */
 const VENDOR_ACCESS_REASON =
   'Vendors, their vehicles, their drivers and their compliance documents. Staff accounts see every vendor; a vendor account sees its own.'
@@ -229,9 +233,9 @@ export function AppRouter() {
           <Route path="/" element={<DashboardPage />} />
 
           {/* Gate Pass is the operation's own paperwork: every role except
-              Vendor reads it, and CEO reads without writing. The roles come
-              from the module rather than a central matrix, and the API
-              re-checks every one of them. */}
+              Vendor both reads and writes it. The roles come from the module
+              rather than a central matrix, and the API re-checks every one of
+              them. */}
           <Route element={<RoleRoute roles={GATE_PASS_READ_ROLES} area="Gate Pass" reason={GATE_PASS_ACCESS_REASON} />}>
             <Route path="/gate-pass" element={<GatePassPage />} />
             <Route path="/gate-pass/:id" element={<GatePassDetailsPage />} />
@@ -243,10 +247,10 @@ export function AppRouter() {
           </Route>
 
           {/* Challan is the corporate office's paperwork: every role except
-              Vendor reads it, and CEO reads without writing. A challan carries
-              a customer's home address, which is why Vendor is out entirely.
-              The roles come from the module rather than a central matrix, and
-              the API re-checks every one of them. */}
+              Vendor both reads and writes it. A challan carries a customer's
+              home address, which is why Vendor is out entirely. The roles
+              come from the module rather than a central matrix, and the API
+              re-checks every one of them. */}
           <Route
             element={
               <RoleRoute
@@ -371,8 +375,8 @@ export function AppRouter() {
           </Route>
 
           {/* Accounts: the office's money. Narrower than any operating
-              module — CEO reads, Admin and Manager keep the books, which the
-              API enforces per endpoint. */}
+              module — Admin and CEO read, Manager alone keeps the books,
+              which the API enforces per endpoint. */}
           <Route
             element={
               <RoleRoute
@@ -399,10 +403,11 @@ export function AppRouter() {
             <Route path="/accounts/settings" element={<Navigate to="/accounts/wallets" replace />} />
           </Route>
 
-          {/* The district and thana master list. Open to read for everyone
-              Challan is open to — an operator looks up what a delivery is
-              classified as — and Admin-only to change, which the API enforces
-              per endpoint rather than per route. */}
+          {/* The district and thana master list. Admin-only, page and
+              controls alike — one careless edit re-classifies every future
+              challan in a district. The district and thana lookups the entry
+              form runs are separate endpoints with their own, wider audience,
+              so this costs nobody a location on a challan. */}
           <Route
             element={
               <RoleRoute
@@ -415,12 +420,12 @@ export function AppRouter() {
             <Route path="/locations" element={<LocationsPage />} />
           </Route>
 
-          {/* The product rate card. The same boundary the location master has,
-              and for the same reason: reading it is open to everyone Challan
-              is open to, because the entry form offers product names off it,
-              and changing it is Admin-only — enforced per endpoint by the API
-              rather than per route, because the same page serves both
-              audiences with the write controls simply absent. */}
+          {/* The product rate card. The same boundary the location master
+              has, and for a sharper reason: a rate is money. Admin-only,
+              page and controls alike; the model and product lookups the
+              entry form runs are separate endpoints with their own, wider
+              audience, so a challan still prices itself for whoever files
+              it. */}
           <Route
             element={
               <RoleRoute

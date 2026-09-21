@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ListPagination } from '@/components/shared/list-pagination'
 import { Button } from '@/components/ui/button'
 import { useCurrentRole } from '@/hooks/use-current-role'
@@ -15,6 +15,7 @@ import { useTripActions } from '@/features/delivery/hooks/use-trip-actions'
 import { useTripListParams } from '@/features/delivery/hooks/use-trip-list-params'
 import { localToday, plural } from '@/features/delivery/lib/delivery-meta'
 import { canWriteDeliveries } from '@/features/delivery/types'
+import type { TripListParams } from '@/features/delivery/types'
 
 /**
  * Every trip, filtered and paged server-side — and the desk where signed
@@ -36,7 +37,17 @@ export function DeliveryPage() {
   const role = useCurrentRole()
   const canWrite = canWriteDeliveries(role)
 
-  const list = useTripListParams()
+  /**
+   * The dashboard links here with the backlog it just counted, and this is how
+   * that filter survives the trip. Router state rather than the URL, because
+   * these filters have never been in the URL — carrying them is a convenience
+   * for one journey, not a promise that a link reproduces a view. It seeds the
+   * first render only, so Clear still clears to nothing.
+   */
+  const { state } = useLocation()
+  const seeded = (state as { tripFilters?: Partial<TripListParams> } | null)?.tripFilters
+
+  const list = useTripListParams(seeded)
   const query = useTrips(list.applied)
   const statsQuery = useTripStats()
   const actions = useTripActions()

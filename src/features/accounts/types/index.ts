@@ -11,9 +11,12 @@ import type { DepositSource, EntryKind } from '../lib/entry-draft'
 export { DEPOSIT_SOURCES, ENTRY_KINDS, MAX_ACCOUNT_AMOUNT, requiresCashWallet } from '../lib/entry-draft'
 export type { DepositSource, EntryDraft, EntryKind } from '../lib/entry-draft'
 
-/** Admin, Manager and CEO read the books; Admin and Manager keep them. The API decides what happens. */
+/**
+ * Admin, Manager and CEO read the books; **Manager alone keeps them**. Accounts
+ * is the one module where Admin does not write. The API decides what happens.
+ */
 export const ACCOUNTS_READ_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO']
-export const ACCOUNTS_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager']
+export const ACCOUNTS_WRITE_ROLES: readonly UserRole[] = ['Manager']
 
 export function canReadAccounts(role: UserRole | null): boolean {
   return role !== null && ACCOUNTS_READ_ROLES.includes(role)

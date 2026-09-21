@@ -40,11 +40,18 @@ export interface TieredRate {
 export type Rate = FlatRate | TieredRate
 
 /**
- * Reading the rate card is open to everyone who may reach a challan; writing
- * it is Admin-only. Mirrors `product-rate.constants.ts`. These decide what the
- * UI offers; the API decides what actually happens.
+ * **The rate card is Admin-only** — the page, the rows and every control on
+ * them. A rate is money, and what a delivery costs is not something the whole
+ * office reads down a page. Mirrors `product-rate.constants.ts`.
+ *
+ * The lookups behind the Challan and Gate Pass entry forms — model matches,
+ * product names and the quote — are deliberately *not* gated by this, and the
+ * server keeps them open to the Challan audience under
+ * `PRODUCT_RATE_LOOKUP_ROLES`. Nothing on this side needs a second copy of
+ * that set: no component asks whether it may run a lookup, it simply runs one,
+ * and the API is what answers.
  */
-export const PRODUCT_RATE_READ_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
+export const PRODUCT_RATE_READ_ROLES: readonly UserRole[] = ['Admin']
 export const PRODUCT_RATE_MANAGE_ROLES: readonly UserRole[] = ['Admin']
 
 export function canReadProductRates(role: UserRole | null): boolean {

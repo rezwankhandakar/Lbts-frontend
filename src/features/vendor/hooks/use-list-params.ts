@@ -50,8 +50,16 @@ interface Controller<TParams, TPatch> {
 function useListParams<TParams extends { page: number; search?: string }, TPatch>(
   initial: TParams,
   isFilteredOf: (params: TParams) => boolean,
+  /**
+   * Seeds the first render and nothing else — the dashboard linking here with
+   * the compliance backlog it just counted. `reset` still returns to `initial`,
+   * so Clear clears to nothing rather than back to the seed.
+   */
+  restored?: Partial<TParams>,
 ): Controller<TParams, TPatch> {
-  const [params, setParams] = useState<TParams>(initial)
+  const [params, setParams] = useState<TParams>(
+    restored ? { ...initial, ...restored } : initial,
+  )
 
   // Typing must not fire a request per keystroke; the debounced value is what
   // reaches the query key, so the cache holds settled searches only.
@@ -101,7 +109,9 @@ const VENDOR_INITIAL: VendorListParams = {
   sort: 'name',
 }
 
-export function useVendorListParams(): Controller<VendorListParams, VendorFilterPatch> {
+export function useVendorListParams(
+  restored?: Partial<VendorListParams>,
+): Controller<VendorListParams, VendorFilterPatch> {
   return useListParams(
     VENDOR_INITIAL,
     (params) =>
@@ -111,6 +121,7 @@ export function useVendorListParams(): Controller<VendorListParams, VendorFilter
       // Sorting is not a filter, and counting it as one would make "Clear" a
       // button that silently re-ordered the list somebody had just arranged.
       false,
+    restored,
   )
 }
 

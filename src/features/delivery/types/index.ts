@@ -88,9 +88,19 @@ export function tripIsEditable(status: TripStatus): boolean {
 
 // --- Permissions -----------------------------------------------------------
 
+/**
+ * Mirrors `delivery.constants.ts`. `Vendor` is out and every other role is in
+ * both sets; `MANAGE_ANY` equalling `WRITE` is what puts the ownership scope
+ * away, so a trip is no longer anybody's private work.
+ */
 export const DELIVERY_READ_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
-export const DELIVERY_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'OpEx']
-export const DELIVERY_MANAGE_ANY_ROLES: readonly UserRole[] = ['Admin', 'Manager']
+export const DELIVERY_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
+export const DELIVERY_MANAGE_ANY_ROLES: readonly UserRole[] = [
+  'Admin',
+  'Manager',
+  'CEO',
+  'OpEx',
+]
 
 export function canReadDeliveries(role: UserRole | null): boolean {
   return role !== null && DELIVERY_READ_ROLES.includes(role)

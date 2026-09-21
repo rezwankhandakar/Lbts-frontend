@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom'
 import { ListPagination } from '@/components/shared/list-pagination'
 import { PageHeader } from '@/components/shared/page-header'
 import { useCurrentRole } from '@/hooks/use-current-role'
@@ -12,7 +13,7 @@ import { useVendorListParams } from '@/features/vendor/hooks/use-list-params'
 import { useVendorStats, useVendors } from '@/features/vendor/hooks/use-vendors'
 import { vendorStatusMeta } from '@/features/vendor/lib/vendor-meta'
 import { VENDOR_STATUSES, canManageVendors } from '@/features/vendor/types'
-import type { VendorStatus } from '@/features/vendor/types'
+import type { VendorListParams, VendorStatus } from '@/features/vendor/types'
 
 /**
  * Vendor Management: every vendor, and the size and health of each one's fleet.
@@ -32,8 +33,18 @@ export function VendorsPage() {
   const role = useCurrentRole()
   const canManage = canManageVendors(role)
 
+  /**
+   * The dashboard links here with the backlog it just counted, and this is how
+   * that filter survives the trip. Router state rather than the URL, because
+   * these filters have never been in the URL — carrying them is a convenience
+   * for one journey, not a promise that a link reproduces a view. It seeds the
+   * first render only, so Clear still clears to nothing.
+   */
+  const { state } = useLocation()
+  const seeded = (state as { vendorFilters?: Partial<VendorListParams> } | null)?.vendorFilters
+
   const { params, applied, isFiltered, applyFilters, setPage, clampToPages, reset } =
-    useVendorListParams()
+    useVendorListParams(seeded)
 
   const vendorsQuery = useVendors(applied)
   const statsQuery = useVendorStats()

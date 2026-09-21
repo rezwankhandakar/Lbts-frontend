@@ -1,13 +1,20 @@
 import { Plus, Trash2 } from 'lucide-react'
-import type { FieldArrayWithId, FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
+import type {
+  FieldArrayWithId,
+  FieldErrors,
+  UseFormRegister,
+  UseFormRegisterReturn,
+  UseFormSetValue,
+  UseFormWatch,
+} from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { MAX_GATE_PASS_ITEMS } from '../schemas/gate-pass-schemas'
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
+import { uppercaseInPlace } from '../lib/uppercase-field'
 import { ProductSuggestInput } from './product-suggest-input'
-import { SuggestInput } from './suggest-input'
 
 interface GatePassItemRowsProps {
   fields: FieldArrayWithId<GatePassFormValues, 'items', 'id'>[]
@@ -30,10 +37,19 @@ const LABEL = 'text-[11px] font-medium text-muted-foreground'
  * minimum: a gate pass carrying nothing is not a gate pass, and the last
  * remaining row cannot be removed.
  *
- * Product and model offer what has been filed before, which is what keeps the
- * same model from being recorded three ways across three gate passes — and the
- * product box also reads the rate card, so a model pasted off the challan
+ * The product box offers what has been filed before and, above that, what the
+ * rate card calls the model on this row — so a model copied off the challan
  * names its own product without anybody typing it.
+ *
+ * **The model box offers nothing.** It is the one field on this form that is
+ * read straight off the paper character for character, and a list of models
+ * already filed is a list of near-misses over it: `WCF-1D5-GDEL-LX` beside
+ * `WCF-1D5-GDEL-SC` is one keystroke apart and a quarter of an inch apart on
+ * screen, and picking the wrong one is silent — the gate pass reads as a
+ * perfectly ordinary record of a different machine. The suggestion this field
+ * used to make was also the one with least to offer: the product name it would
+ * have helped fill is already answered by the rate card, from whatever the
+ * model actually says.
  */
 export function GatePassItemRows({
   fields,
@@ -117,19 +133,10 @@ export function GatePassItemRows({
                   <Label htmlFor={modelId} className={LABEL}>
                     Model<span className="text-destructive"> *</span>
                   </Label>
-                  <SuggestInput
+                  <ModelInput
                     id={modelId}
-                    field="model"
                     registration={register(`items.${index}.model`)}
-                    value={items?.[index]?.model ?? ''}
-                    uppercase
                     invalid={Boolean(rowErrors?.model)}
-                    onPick={(value) =>
-                      setValue(`items.${index}.model`, value, {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      })
-                    }
                   />
                   <RowError message={rowErrors?.model?.message} />
                 </div>
@@ -179,6 +186,37 @@ export function GatePassItemRows({
         </p>
       )}
     </div>
+  )
+}
+
+/**
+ * The model, typed and nothing else — no list, no type-ahead, no offer.
+ *
+ * Capitals are applied as the keys land, the way the other three code fields
+ * on this form are: see `lib/uppercase-field.ts`.
+ */
+function ModelInput({
+  id,
+  registration,
+  invalid,
+}: {
+  id: string
+  registration: UseFormRegisterReturn
+  invalid: boolean
+}) {
+  return (
+    <Input
+      id={id}
+      type="text"
+      autoComplete="off"
+      spellCheck={false}
+      aria-invalid={invalid ? true : undefined}
+      {...registration}
+      onChange={(event) => {
+        uppercaseInPlace(event)
+        void registration.onChange(event)
+      }}
+    />
   )
 }
 

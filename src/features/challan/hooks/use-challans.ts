@@ -61,11 +61,12 @@ export function useChallan(id: string | undefined): UseQueryResult<ChallanRecord
   })
 }
 
-export function useChallanStats(): UseQueryResult<ChallanStats, ApiError> {
+export function useChallanStats(enabled = true): UseQueryResult<ChallanStats, ApiError> {
   return useQuery({
     queryKey: challanKeys.stats(),
     queryFn: fetchChallanStats,
     staleTime: LIST_STALE_TIME,
+    enabled,
     retry: COLD_START_RETRIES,
   })
 }

@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { Boxes, Building2, Info, Loader2, Route, Save, Send, Tag } from 'lucide-react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
+import { useCarryOver } from '@/hooks/use-carry-over'
 import { cn } from '@/lib/utils'
 import type { LastGatePassEntry } from '../hooks/use-last-entry'
 import { CARRIED_FIELDS, CARRIED_LABELS } from '../lib/carried-fields'
-import type { CarriedField, CarriedValues, CarryControls } from '../lib/carried-fields'
+import type { CarriedField } from '../lib/carried-fields'
 import { EMPTY_GATE_PASS_FORM, EMPTY_ITEM, gatePassFormSchema } from '../schemas/gate-pass-schemas'
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
 import { DeliveryFields, FieldGroup, ReferenceFields, TripFields } from './entry-form-sections'
@@ -98,70 +99,29 @@ export function GatePassEntryForm({
     onDirtyChange?.(isDirty)
   }, [isDirty, onDirtyChange])
 
-  /**
-   * Which carried fields the operator has pinned to the last gate pass's
-   * value.
-   *
-   * State on the form, so it clears with the form between sheets. A tick that
-   * survived into the next entry would be a decision made about the last sheet
-   * still holding a value on this one, which is the whole failure the tick box
-   * exists to make visible.
-   */
-  const [pinned, setPinned] = useState<Partial<Record<CarriedField, boolean>>>({})
-  const carriedValues = carried?.values ?? null
-
-  const toggleCarry = useCallback(
-    (field: CarriedField, next: boolean) => {
-      setPinned((marks) => ({ ...marks, [field]: next }))
-      if (!carriedValues) {
-        return
-      }
-      // Unticking empties the box rather than leaving the value behind for
-      // editing: what was in it was the *last* sheet's value, put there by the
-      // tick and by nothing else, so taking the tick off takes it with it.
-      // Nothing typed can be lost this way — a ticked field is read-only.
-      setValue(field, next ? carriedValues[field] : '', {
-        shouldDirty: true,
-        shouldValidate: next,
-      })
-    },
-    [carriedValues, setValue],
-  )
-
   const [tripDate, csd, unit, customerName, vehicleNo] = useWatch({
     control,
     name: CARRIED_FIELDS,
   })
 
   /**
-   * A tick is drawn only while its field still holds what was carried —
-   * derived from the two values rather than stored beside them, so it cannot
-   * come to assert something untrue.
-   *
-   * Read-only is what normally keeps them equal, but a date input honours that
-   * unevenly across browsers, and a value set from anywhere else would leave
-   * the box claiming "same as last" over something different. Deriving drops
-   * the tick instead: what the operator typed wins, and the box simply stops
-   * saying something that is no longer so.
+   * The tick boxes beside the five carried fields — shown, ticked to fill,
+   * unticked to clear, and never locking the box. The rule and the reasoning
+   * are `hooks/use-carry-over.ts`, shared with Challan.
    */
-  const now: CarriedValues = { tripDate, csd, unit, customerName, vehicleNo }
-  const kept: Partial<Record<CarriedField, boolean>> = {}
-  if (carriedValues) {
-    for (const field of CARRIED_FIELDS) {
-      if (pinned[field] && now[field] === carriedValues[field]) {
-        kept[field] = true
-      }
-    }
-  }
+  const setCarriedField = useCallback(
+    (field: CarriedField, value: string) => {
+      setValue(field, value, { shouldDirty: true, shouldValidate: value !== '' })
+    },
+    [setValue],
+  )
 
-  const carry: CarryControls | undefined = carriedValues
-    ? {
-        values: carriedValues,
-        kept,
-        toggle: toggleCarry,
-        gatePassId: carried?.gatePassId ?? null,
-      }
-    : undefined
+  const carry = useCarryOver({
+    fields: CARRIED_FIELDS,
+    carried: carried ?? null,
+    current: { tripDate, csd, unit, customerName, vehicleNo },
+    setField: setCarriedField,
+  })
 
   return (
     <form
@@ -187,7 +147,7 @@ export function GatePassEntryForm({
             <Info className="mt-px size-3.5 shrink-0 text-tone-amber" aria-hidden />
             <span>
               {carriedFieldSentence()} from{' '}
-              <span className="font-medium text-foreground">{carried.gatePassId}</span> are shown
+              <span className="font-medium text-foreground">{carried.sourceLabel}</span> are shown
               above their boxes. Tick <span className="font-medium">Same as last</span> on any that
               match this sheet; the rest stay empty until you type them.
             </span>

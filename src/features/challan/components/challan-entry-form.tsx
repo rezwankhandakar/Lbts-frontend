@@ -1,8 +1,12 @@
-import { useEffect } from 'react'
-import { Boxes, Loader2, Phone, Save, Send, User } from 'lucide-react'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { useCallback, useEffect } from 'react'
+import { Boxes, Info, Loader2, Phone, Save, Send, User } from 'lucide-react'
+import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
+import { useCarryOver } from '@/hooks/use-carry-over'
+import type { LastChallanEntry } from '../hooks/use-last-entry'
+import { CARRIED_FIELDS, CARRIED_LABELS } from '../lib/carried-fields'
+import type { CarriedField } from '../lib/carried-fields'
 import type { ParsedChallanFields } from '../lib/paste-parse'
 import {
   EMPTY_CHALLAN_FORM,
@@ -24,6 +28,13 @@ interface ChallanEntryFormProps {
   submitLabel: string
   /** Shown on the correction form, where there is a second way out. */
   secondaryAction?: { label: string; onClick: () => void }
+  /**
+   * The last challan this session filed, whose customer and reference this
+   * entry may take again. Absent on the correction form, where the values on
+   * screen are that record's own and another challan's customer beside them
+   * would be an offer to overwrite the thing being corrected.
+   */
+  carried?: LastChallanEntry | null
   onSubmit: (values: ChallanValues) => void
   /** Lets the workspace keep what has been typed against the queued challan. */
   onValuesChange?: (values: ChallanValues | null) => void
@@ -49,6 +60,7 @@ export function ChallanEntryForm({
   blockedReason,
   submitLabel,
   secondaryAction,
+  carried,
   onSubmit,
   onValuesChange,
 }: ChallanEntryFormProps) {
@@ -95,6 +107,30 @@ export function ChallanEntryForm({
   }, [subscribe, onValuesChange])
 
   const items = useFieldArray({ control, name: 'items' })
+
+  /**
+   * The two values a stack out of one PDF repeats, offered above their boxes.
+   *
+   * `useWatch` on those two names alone, so the form re-renders while somebody
+   * is typing a customer or a reference and not while they are typing an
+   * address or a quantity — the tick has to go out the moment its field stops
+   * matching, and that is the only thing here that needs the live value.
+   */
+  const [customerName, zonePo] = useWatch({ control, name: CARRIED_FIELDS })
+
+  const setCarriedField = useCallback(
+    (field: CarriedField, value: string) => {
+      setValue(field, value, { shouldDirty: true, shouldValidate: value !== '' })
+    },
+    [setValue],
+  )
+
+  const carry = useCarryOver({
+    fields: CARRIED_FIELDS,
+    carried: carried ?? null,
+    current: { customerName, zonePo },
+    setField: setCarriedField,
+  })
 
   /**
    * What the paste parser is allowed to see, flattened.
@@ -157,6 +193,23 @@ export function ChallanEntryForm({
       aria-busy={isBusy}
     >
       <div className="min-h-0 flex-1">
+        {/* Said plainly, because a value from the last challan is only ever an
+            offer here — what fills a field is somebody pressing its tick. */}
+        {carried && (
+          <p
+            className="flex items-start gap-2 border-b bg-tone-amber/5 px-4 py-2.5 text-xs leading-snug text-muted-foreground sm:px-5"
+            role="status"
+          >
+            <Info className="mt-px size-3.5 shrink-0 text-tone-amber" aria-hidden />
+            <span>
+              {CARRIED_LABELS.customerName} and {CARRIED_LABELS.zonePo} from{' '}
+              <span className="font-medium text-foreground">{carried.sourceLabel}</span> are shown
+              above their boxes. Tick <span className="font-medium">Same as last</span> on either
+              that matches this challan; both stay empty until you type them.
+            </span>
+          </p>
+        )}
+
         <PasteParsePanel current={parseTarget()} onFill={fill} disabled={isBusy} />
 
         <FieldGroup
@@ -167,6 +220,7 @@ export function ChallanEntryForm({
           <CustomerFields
             register={register}
             errors={errors}
+            carry={carry}
             watch={watch}
             setValue={setValue}
             disabled={isBusy}
@@ -181,6 +235,7 @@ export function ChallanEntryForm({
           <ContactFields
             register={register}
             errors={errors}
+            carry={carry}
             watch={watch}
             setValue={setValue}
             disabled={isBusy}

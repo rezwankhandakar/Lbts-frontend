@@ -16,6 +16,10 @@
  * already checked against the sheet in their hand, and on a customer or a
  * plate that is how a delivery gets filed against the wrong paper.
  *
+ * How the tick behaves is `hooks/use-carry-over.ts`, shared with Challan,
+ * which files a stack out of one PDF and repeats values sheet after sheet for
+ * the same reason.
+ *
  * Import-free on purpose, so the field list is one value rather than a
  * constant the form and the workspace each spell out for themselves.
  */
@@ -73,27 +77,3 @@ export function hasCarriedValues(values: CarriedValues | null): boolean {
   return CARRIED_FIELDS.some((field) => values[field].trim().length > 0)
 }
 
-/**
- * What the form hands each carried field's tick box.
- *
- * `values` is what the last gate pass filed left behind, shown above the box
- * whether or not it is used; `kept` is which fields are currently holding it.
- * Ticked, the field **is** that value and is read-only. Unticked, the field is
- * empty unless somebody typed in it, and what they typed is what gets filed.
- *
- * That is the whole rule, and it is why the tick can never lie about what will
- * be filed. The form drops a tick the moment its field stops matching, so
- * there is no state in which a box says "same as last" over a different value.
- */
-export interface CarryControls {
-  values: CarriedValues | null
-  kept: Partial<Record<CarriedField, boolean>>
-  toggle: (field: CarriedField, next: boolean) => void
-  /** The gate pass the values came from, for the label that names it. */
-  gatePassId: string | null
-}
-
-/** Whether this field is currently pinned, and therefore read-only. */
-export function isKept(carry: CarryControls | undefined, field: CarriedField): boolean {
-  return Boolean(carry?.values && carry.kept[field])
-}

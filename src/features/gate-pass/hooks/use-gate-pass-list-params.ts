@@ -40,8 +40,22 @@ export interface GatePassListParamsController {
  * same set of records. A second copy of "what is currently being shown" is how
  * a downloaded spreadsheet ends up describing a list nobody was looking at.
  */
-export function useGatePassListParams(): GatePassListParamsController {
-  const [params, setParams] = useState<GatePassListParams>(INITIAL_PARAMS)
+/**
+ * `restored` seeds the first render and nothing else — the dashboard linking
+ * here with the backlog it just counted, so the list opens on the records the
+ * row was about rather than on everything.
+ *
+ * Deliberately not folded into the initial params: **Clear** must return to no
+ * filters at all, not to the ones that happened to be seeded, or the one
+ * control whose entire job is emptying the list would quietly refuse to. The
+ * same arrangement `useChallanListParams` already has.
+ */
+export function useGatePassListParams(
+  restored?: Partial<GatePassListParams>,
+): GatePassListParamsController {
+  const [params, setParams] = useState<GatePassListParams>(
+    restored ? { ...INITIAL_PARAMS, ...restored } : INITIAL_PARAMS,
+  )
 
   // Typing must not fire a request per keystroke; the debounced value is what
   // reaches the query key, so the cache holds settled searches only.

@@ -71,11 +71,12 @@ export function useGatePassColumnValues(
   })
 }
 
-export function useGatePassStats(): UseQueryResult<GatePassStats, ApiError> {
+export function useGatePassStats(enabled = true): UseQueryResult<GatePassStats, ApiError> {
   return useQuery({
     queryKey: gatePassKeys.stats(),
     queryFn: fetchGatePassStats,
     staleTime: LIST_STALE_TIME,
+    enabled,
     retry: COLD_START_RETRIES,
   })
 }

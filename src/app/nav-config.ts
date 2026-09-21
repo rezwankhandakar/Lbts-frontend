@@ -184,32 +184,38 @@ export const navSections: NavSection[] = [
        * records module, which is why it sits under System beside
        * Administration and not beside Challan.
        *
-       * Visible to everyone Challan is: the classification a delivery carries
-       * is something an operator looks up, and only the Add, Edit and Remove
-       * controls are Admin-only. Vendor is out for the same reason it is out
-       * of Challan.
+       * **Admin only, like everything else under System.** One careless edit
+       * re-classifies every future challan in a district, and there is no
+       * per-row owner to scope it to, so nobody else sees the page at all.
+       *
+       * That does not cost anybody a location on a challan: the entry form's
+       * district and thana lookups are served by their own endpoints, which
+       * stay open to the whole Challan audience. See
+       * `features/location/types`.
        */
       {
         label: 'Locations',
         path: '/locations',
         icon: MapPinned,
         accent: 'cyan',
-        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+        roles: ['Admin'],
       },
       /**
        * The product rate card. Reference data, so it sits beside Locations
        * under System rather than beside Challan, and it carries the same
-       * visibility: everyone Challan is open to can read it, because the entry
-       * form offers product names off it, and only the Add, Edit and Remove
-       * controls are Admin-only. Vendor is out for the same reason it is out
-       * of Challan.
+       * visibility for a sharper reason: a rate is money, and what a delivery
+       * costs is not something the whole office reads down a page.
+       *
+       * **Admin only.** As with Locations, the entry form's model and product
+       * lookups have their own endpoints and stay open to the Challan
+       * audience, so a rate still fills in for whoever files the challan.
        */
       {
         label: 'Product Rates',
         path: '/product-rates',
         icon: Tags,
         accent: 'emerald',
-        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+        roles: ['Admin'],
       },
     ],
   },

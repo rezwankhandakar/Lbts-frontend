@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { AdministrationHeader } from '@/features/administration/components/administration-header'
 import { AdministrationOverlays } from '@/features/administration/components/administration-overlays'
 import { AdministrationStats } from '@/features/administration/components/administration-stats'
@@ -24,9 +25,20 @@ const PAGE_SIZE = 10
 export function AdministrationPage() {
   const currentUserId = useAuthStore((state) => state.profile?.id ?? null)
 
+  /**
+   * The dashboard links here with the pending queue it just counted, and this
+   * is how that filter survives the trip. Router state rather than the URL,
+   * because these filters have never been in the URL — carrying one is a
+   * convenience for one journey, not a promise that a link reproduces a view.
+   *
+   * It seeds the first render only, so Clear still clears to nothing.
+   */
+  const { state } = useLocation()
+  const seeded = (state as { userFilters?: { status?: StatusFilter } } | null)?.userFilters
+
   const [search, setSearch] = useState('')
   const [role, setRole] = useState<RoleFilter>('all')
-  const [status, setStatus] = useState<StatusFilter>('all')
+  const [status, setStatus] = useState<StatusFilter>(seeded?.status ?? 'all')
   const [page, setPage] = useState(1)
 
   // Typing must not fire a request per keystroke; the debounced value is what

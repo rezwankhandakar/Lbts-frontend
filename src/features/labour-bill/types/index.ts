@@ -28,14 +28,20 @@ export const LABOUR_BILL_STATUSES = ['Draft', 'Finalized'] as const
 export type LabourBillStatus = (typeof LABOUR_BILL_STATUSES)[number]
 
 /**
- * Reading a labour bill is everyone who reads the Trip DO sheet; scanning
- * challans in and typing what the handling cost is everyone who writes it;
- * finalizing and reopening is Admin and Manager. These decide what the UI
- * offers; the API decides what happens.
+ * `Vendor` is out and every other role is in every set: a labour bill charges
+ * figures nothing can derive, typed by whoever holds the paper, and it claims
+ * no Trip DO row from anybody — which is why it is open where the Excel bill
+ * beside it is Admin-only. Mirrors `labour-bill.constants.ts`. These decide
+ * what the UI offers; the API decides what happens.
  */
 export const LABOUR_BILL_READ_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
-export const LABOUR_BILL_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'OpEx']
-export const LABOUR_BILL_REVIEW_ROLES: readonly UserRole[] = ['Admin', 'Manager']
+export const LABOUR_BILL_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
+export const LABOUR_BILL_REVIEW_ROLES: readonly UserRole[] = [
+  'Admin',
+  'Manager',
+  'CEO',
+  'OpEx',
+]
 
 export function canWriteLabourBill(role: UserRole | null): boolean {
   return role !== null && LABOUR_BILL_WRITE_ROLES.includes(role)

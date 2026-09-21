@@ -49,7 +49,7 @@ export interface ChallanListParamsController {
  */
 export function useChallanListParams(
   overrides: Partial<ChallanListParams> = {},
-  restored?: ChallanListParams,
+  restored?: Partial<ChallanListParams>,
 ): ChallanListParamsController {
   const initial = useMemo(() => ({ ...INITIAL_PARAMS, ...overrides }), [overrides])
 
@@ -63,7 +63,9 @@ export function useChallanListParams(
    * filters at all, not to the ones that happened to be restored, or the one
    * control whose entire job is emptying the list would quietly refuse to.
    */
-  const [params, setParams] = useState<ChallanListParams>(restored ?? initial)
+  const [params, setParams] = useState<ChallanListParams>(
+    restored ? { ...initial, ...restored } : initial,
+  )
 
   // Typing must not fire a request per keystroke; the debounced value is what
   // reaches the query key, so the cache holds settled searches only.

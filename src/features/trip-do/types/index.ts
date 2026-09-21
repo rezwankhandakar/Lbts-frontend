@@ -35,12 +35,14 @@ export const GATE_PASS_PRODUCT_STATUSES = [
 export type GatePassProductStatus = (typeof GATE_PASS_PRODUCT_STATUSES)[number]
 
 /**
- * Reading the sheet is everyone who reads challans and gate passes; changing
- * it is everyone who writes them. These decide what the UI offers; the API
- * decides what happens.
+ * Reading the sheet is everyone who reads challans and gate passes; **changing
+ * it is Admin alone**. A Trip DO link is what an Excel bill is built from and
+ * what a gate pass line counts its delivered pieces against, so a link set
+ * wrongly is money charged to the wrong unit. Mirrors `trip-do.constants.ts`.
+ * These decide what the UI offers; the API decides what happens.
  */
 export const TRIP_DO_READ_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
-export const TRIP_DO_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'OpEx']
+export const TRIP_DO_WRITE_ROLES: readonly UserRole[] = ['Admin']
 
 export function canWriteTripDo(role: UserRole | null): boolean {
   return role !== null && TRIP_DO_WRITE_ROLES.includes(role)

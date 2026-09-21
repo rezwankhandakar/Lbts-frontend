@@ -1,7 +1,10 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
+import type { CarryControls } from '@/hooks/use-carry-over'
+import type { CarriedField } from '../lib/carried-fields'
 import type { ChallanFormValues } from '../schemas/challan-schemas'
+import { CarryToggle } from './carry-toggle'
 import { ChallanLocationPanel } from './challan-location-panel'
 import { ChallanTextField } from './entry-field'
 
@@ -15,6 +18,12 @@ import { ChallanTextField } from './entry-field'
 interface SectionProps {
   register: UseFormRegister<ChallanFormValues>
   errors: FieldErrors<ChallanFormValues>
+  /**
+   * What the last challan left in the two carried fields, and which of them
+   * are holding it. Absent when correcting a filed challan, where there is no
+   * "last" to carry from — the values on screen are that record's own.
+   */
+  carry?: CarryControls<CarriedField>
   watch: UseFormWatch<ChallanFormValues>
   setValue: UseFormSetValue<ChallanFormValues>
   disabled?: boolean
@@ -77,7 +86,14 @@ function setter(setValue: UseFormSetValue<ChallanFormValues>, field: TextField) 
  * suggestion is what stops one district being recorded three different ways
  * across three challans.
  */
-export function CustomerFields({ register, errors, watch, setValue, disabled }: SectionProps) {
+export function CustomerFields({
+  register,
+  errors,
+  carry,
+  watch,
+  setValue,
+  disabled,
+}: SectionProps) {
   return (
     <FieldGrid>
       <ChallanTextField
@@ -91,6 +107,7 @@ export function CustomerFields({ register, errors, watch, setValue, disabled }: 
         value={watch('customerName')}
         onSetValue={setter(setValue, 'customerName')}
         error={errors.customerName?.message}
+        action={<CarryToggle carry={carry} field="customerName" />}
         disabled={disabled}
       />
 
@@ -160,7 +177,14 @@ export function CustomerFields({ register, errors, watch, setValue, disabled }: 
  * the difference between two taps and eight. No Bangla conversion here — a
  * phone number is digits, and offering to convert them could only do harm.
  */
-export function ContactFields({ register, errors, watch, setValue, disabled }: SectionProps) {
+export function ContactFields({
+  register,
+  errors,
+  carry,
+  watch,
+  setValue,
+  disabled,
+}: SectionProps) {
   return (
     <FieldGrid>
       <ChallanTextField
@@ -197,6 +221,7 @@ export function ContactFields({ register, errors, watch, setValue, disabled }: S
         onSetValue={setter(setValue, 'zonePo')}
         error={errors.zonePo?.message}
         hint="Copied as one value, exactly as the challan prints it."
+        action={<CarryToggle carry={carry} field="zonePo" />}
         disabled={disabled}
       />
     </FieldGrid>

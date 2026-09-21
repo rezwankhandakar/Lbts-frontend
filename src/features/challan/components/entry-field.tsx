@@ -18,6 +18,12 @@ interface EntryFieldProps {
   required?: boolean
   /** Spans both columns on the two-column grid. */
   wide?: boolean
+  /**
+   * Drawn on the label row, right-aligned. The carried-value tick box is what
+   * this is for: it belongs beside the label rather than under the control,
+   * where the error, the hint and the Bangla offer already are.
+   */
+  action?: ReactNode
   children?: ReactNode
 }
 
@@ -29,21 +35,34 @@ interface EntryFieldProps {
  * and `aria-describedby` are wired here so every field gets them without each
  * caller remembering.
  */
-export function EntryField({ id, label, error, hint, required, wide, children }: EntryFieldProps) {
+export function EntryField({
+  id,
+  label,
+  error,
+  hint,
+  required,
+  wide,
+  action,
+  children,
+}: EntryFieldProps) {
   return (
     <div className={cn('space-y-1.5', wide && 'sm:col-span-2')}>
-      <Label htmlFor={id} className="text-[13px] font-medium">
-        {label}
-        {required && (
-          <span className="text-destructive" aria-hidden>
-            *
-          </span>
-        )}
-        {required && <span className="sr-only">(required)</span>}
-        {!required && (
-          <span className="ml-1 text-[11px] font-normal text-muted-foreground">Optional</span>
-        )}
-      </Label>
+      <div className="flex min-h-5 items-center justify-between gap-3">
+        <Label htmlFor={id} className="shrink-0 text-[13px] font-medium">
+          {label}
+          {required && (
+            <span className="text-destructive" aria-hidden>
+              *
+            </span>
+          )}
+          {required && <span className="sr-only">(required)</span>}
+          {!required && (
+            <span className="ml-1 text-[11px] font-normal text-muted-foreground">Optional</span>
+          )}
+        </Label>
+
+        {action}
+      </div>
 
       {children}
 

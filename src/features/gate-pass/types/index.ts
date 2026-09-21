@@ -18,11 +18,20 @@ export type GatePassReferenceType = (typeof GATE_PASS_REFERENCE_TYPES)[number]
  * Module permissions, mirroring `gate-pass.constants.ts`. These decide what the
  * UI offers; the API decides what actually happens. Hiding a button is
  * courtesy, and the route that refuses the request is the boundary.
+ *
+ * `Vendor` is out and every other role is in all four sets. `MANAGE_ANY`
+ * equalling `WRITE` is what puts the ownership scope away: no record here is
+ * anybody's private work any more.
  */
 export const GATE_PASS_READ_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
-export const GATE_PASS_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'OpEx']
-export const GATE_PASS_REVIEW_ROLES: readonly UserRole[] = ['Admin', 'Manager']
-export const GATE_PASS_MANAGE_ANY_ROLES: readonly UserRole[] = ['Admin', 'Manager']
+export const GATE_PASS_WRITE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
+export const GATE_PASS_REVIEW_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
+export const GATE_PASS_MANAGE_ANY_ROLES: readonly UserRole[] = [
+  'Admin',
+  'Manager',
+  'CEO',
+  'OpEx',
+]
 
 export function canReadGatePasses(role: UserRole | null): boolean {
   return role !== null && GATE_PASS_READ_ROLES.includes(role)

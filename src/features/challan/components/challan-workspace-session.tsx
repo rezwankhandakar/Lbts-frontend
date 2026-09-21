@@ -9,7 +9,9 @@ import { useChallanActions } from '../hooks/use-challan-actions'
 import { useBatchSkippedPages } from '../hooks/use-challan-mutations'
 import { useChallanSession } from '../hooks/use-challan-session'
 import type { ResumedBatch } from '../hooks/use-challan-session'
+import { useLastEntryStore } from '../hooks/use-last-entry'
 import { useChallanSubmission } from '../hooks/use-challan-submission'
+import { carriedValuesOf, hasCarriedValues } from '../lib/carried-fields'
 import type { SourcePdf } from '../lib/pdf-source'
 import { fromChallanValues } from '../schemas/challan-schemas'
 import { canWriteChallans } from '../types'
@@ -72,10 +74,21 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
   const canMark = canWriteChallans(useCurrentRole())
 
   const [pane, setPane] = useState<WorkspacePane>('pdf')
+
+  /**
+   * What the last filed challan left in the two carried fields. It lives
+   * outside this component because a session is one source PDF, and the next
+   * file opened is usually the next twenty deliveries for the same customer.
+   */
+  const lastEntry = useLastEntryStore((state) => state.last)
+  const rememberEntry = useLastEntryStore((state) => state.remember)
+  const carried = hasCarriedValues(lastEntry?.values ?? null) ? lastEntry : null
   /**
    * Remounts the entry form. Changing the key clears ten fields at once
-   * without React Hook Form having to reset each of them, and it guarantees no
-   * value from the last challan survives into the next.
+   * without React Hook Form having to reset each of them, and it guarantees
+   * that nothing survives into the next challan except the two values that are
+   * meant to be offered — and those are shown above their boxes rather than
+   * written into them, so they reach a record only by somebody ticking them.
    */
   const [entryKey, setEntryKey] = useState(0)
 
@@ -143,6 +156,10 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
 
       if (record) {
         session.markFiled(active.id, record)
+        rememberEntry({
+          values: carriedValuesOf(values),
+          sourceLabel: record.challanNumber,
+        })
         // The batch exists from this moment; anything already marked blank in
         // the session is pushed to it by the effect above.
         setBatchId(record.batchId)
@@ -151,7 +168,7 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
         setPane('pdf')
       }
     },
-    [active, submission, session],
+    [active, submission, session, rememberEntry],
   )
 
   const startNext = useCallback(() => {
@@ -171,21 +188,39 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
 
   return (
     <div className="mx-auto flex w-full max-w-[100rem] flex-col">
-      <WorkspaceHeader
-        activeLabel={session.activeLabel}
-        isResuming={Boolean(resume)}
-        onClose={onClose}
-        onLeave={() => navigate('/challan')}
-      />
+      {/* One row, and it is nearly all bar.
 
-      <div className="mb-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+          Everything above the split is space taken off the challan page and
+          the form beside it, which are the two things this workspace exists
+          to show at once. A title block repeating the page name the app
+          header already carries, a card repeating the file name the PDF panel
+          already carries, and the unassigned ranges the page strip already
+          colours in were three panels saying what was said elsewhere — so the
+          progress is a bar, the two ways out are beside it, and the rest of
+          the screen belongs to the work. */}
+      <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
         <SessionProgressPanel
-          fileName={source.fileName}
           pageCount={source.pageCount}
           progress={progress}
+          className="min-w-56 flex-1"
         />
 
-        {filed && (
+        <div className="flex shrink-0 items-center gap-2">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Open a different PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate('/challan')}>
+            <ArrowLeft data-icon="inline-start" aria-hidden />
+            All challans
+          </Button>
+        </div>
+      </div>
+
+      {/* Transient: it is here between filing one challan and starting the
+          next, and the numbers on it are the only place an operator ever sees
+          what the sheet in their hand is now called. */}
+      {filed && (
+        <div className="mb-3">
           <ChallanFiledPanel
             record={filed}
             nextLabel={nextLabelFor(session.active, progress.isComplete)}
@@ -194,8 +229,8 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
             onDownload={actions.download}
             onPrint={actions.printNow}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* The end of the file, without leaving the workspace.
           Filing the last challan out of a WhatsApp PDF is the moment the whole
@@ -204,7 +239,7 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
           from a workspace still holding the source PDF — so the same two
           actions are offered here, where the job actually ends. */}
       {batchId && progress.isComplete && (
-        <div className="mb-4">
+        <div className="mb-3">
           <BatchCompletePanel batchId={batchId} canChange={canMark} />
         </div>
       )}
@@ -243,6 +278,7 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
             isBusy={submission.isBusy}
             blockedReason={blockedReason}
             submitLabel={`File ${session.activeLabel}`}
+            carried={carried}
             onSubmit={(values) => void file(values)}
             onValuesChange={session.rememberValues}
           />
@@ -290,43 +326,4 @@ function nextLabelFor(active: { id: string } | null, isComplete: boolean): strin
     return null
   }
   return active ? 'Next challan' : 'Add the next challan'
-}
-
-function WorkspaceHeader({
-  activeLabel,
-  isResuming,
-  onClose,
-  onLeave,
-}: {
-  activeLabel: string
-  /** Finishing a batch somebody started earlier, rather than opening one. */
-  isResuming: boolean
-  onClose: () => void
-  onLeave: () => void
-}) {
-  return (
-    <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0">
-        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-          {isResuming ? 'Challan entry · continuing a batch' : 'Challan entry'}
-        </h1>
-        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
-          {isResuming
-            ? 'The challans already filed from this PDF are in the queue and their pages cannot be claimed again. Carry on with the pages nobody has taken.'
-            : 'Mark out where each challan starts and ends in the PDF, type its details beside the page, and file them one at a time.'}{' '}
-          {activeLabel} is on screen.
-        </p>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-2">
-        <Button variant="outline" size="sm" onClick={onClose}>
-          Open a different PDF
-        </Button>
-        <Button variant="outline" size="sm" onClick={onLeave}>
-          <ArrowLeft data-icon="inline-start" aria-hidden />
-          All challans
-        </Button>
-      </div>
-    </header>
-  )
 }

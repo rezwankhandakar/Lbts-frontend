@@ -179,7 +179,7 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
 
       // Remembered whichever way this entry ends, because the next one is as
       // likely to be a fresh visit to this page as the next sheet in the tray.
-      rememberEntry({ values: carriedValuesOf(values), gatePassId: saved.gatePassId })
+      rememberEntry({ values: carriedValuesOf(values), sourceLabel: saved.gatePassId })
 
       batch.markFiled(item.id, saved, submitted)
       workspace.startNewEntry()

@@ -67,6 +67,9 @@ export const DOCUMENT_EXPIRY_SOON_DAYS = 30
  * its read is *scoped* to one vendor, which is enforced entirely on the server
  * from the account's own profile. Nothing the browser does is load-bearing
  * there; a Vendor user who edits a URL is answered 404 by the API.
+ *
+ * Every other role now both reads and writes: a vendor record is the
+ * operation's own supplier list rather than anybody's private work.
  */
 export const VENDOR_READ_ROLES: readonly UserRole[] = [
   'Admin',
@@ -75,7 +78,7 @@ export const VENDOR_READ_ROLES: readonly UserRole[] = [
   'OpEx',
   'Vendor',
 ]
-export const VENDOR_MANAGE_ROLES: readonly UserRole[] = ['Admin', 'Manager']
+export const VENDOR_MANAGE_ROLES: readonly UserRole[] = ['Admin', 'Manager', 'CEO', 'OpEx']
 
 export function canReadVendors(role: UserRole | null): boolean {
   return role !== null && VENDOR_READ_ROLES.includes(role)

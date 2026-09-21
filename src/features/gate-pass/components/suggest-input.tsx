@@ -34,11 +34,6 @@ interface SuggestInputProps {
   describedBy?: string
   className?: string
   /**
-   * Held to a value carried from the last gate pass. Nothing is offered while
-   * it is: a list under a box that cannot take what is chosen is a dead end.
-   */
-  readOnly?: boolean
-  /**
    * Typed in capitals, and a suggestion taken from the list with it — see
    * `lib/uppercase-field.ts`. One spelling either way, or the field would
    * disagree with itself depending on whether a value was typed or picked.
@@ -70,7 +65,6 @@ export function SuggestInput({
   invalid,
   describedBy,
   className,
-  readOnly,
   uppercase,
   priorityOptions,
   priorityLabel,
@@ -86,9 +80,9 @@ export function SuggestInput({
    */
   const pickingRef = useRef(false)
 
-  const { values, isLoading } = useSuggestions(field, readOnly ? '' : value)
+  const { values, isLoading } = useSuggestions(field, value)
 
-  const priority = readOnly ? [] : (priorityOptions ?? [])
+  const priority = priorityOptions ?? []
   const priorityValues = new Set(priority.map((option) => option.value.toLowerCase()))
 
   /**
@@ -107,7 +101,7 @@ export function SuggestInput({
    * rather than getting stuck at the boundary between them.
    */
   const allOptions = [...priority.map((option) => option.value), ...options]
-  const showList = isOpen && !readOnly && allOptions.length > 0
+  const showList = isOpen && allOptions.length > 0
 
   const choose = (option: string) => {
     onPick(uppercase ? option.toUpperCase() : option)
@@ -129,8 +123,7 @@ export function SuggestInput({
         aria-autocomplete="list"
         aria-invalid={invalid ? true : undefined}
         aria-describedby={describedBy}
-        readOnly={readOnly}
-        className={cn(readOnly && 'bg-muted/50 text-muted-foreground', className)}
+        className={className}
         onChange={(event) => {
           if (uppercase) {
             uppercaseInPlace(event)
