@@ -20,10 +20,13 @@ import { DashboardModules } from './dashboard-modules'
  * passes.
  *
  * It resolves through its **own** `<Suspense>` rather than the route's, and
- * that is the whole point of the local boundary: the one inside `<main>`
- * swaps the entire page for a skeleton, so suspending against it would blank
- * the hero and the attention list somebody is already reading while a chunk
- * arrives at the bottom of the page.
+ * that is the whole point of the local boundary: the one inside `<main>` swaps
+ * the entire page for a skeleton, so suspending against it would blank the
+ * hero above it and the modules and attention list below while a chunk
+ * arrives. That matters more now the panel sits second rather than last: a
+ * boundary this high up the page is exactly the one that must not take the
+ * rest of the page down with it, and the skeleton holds its own space until
+ * the chunk lands.
  */
 const DashboardMoney = lazy(() =>
   import('./dashboard-money').then((m) => ({ default: m.DashboardMoney })),
@@ -32,13 +35,16 @@ const DashboardMoney = lazy(() =>
 /**
  * The operational overview, for every role but `Vendor`.
  *
- * **Read top to bottom it is one question answered three times, narrowing.**
- * The hero is *what is happening now* — the day's work, at a glance, with the
- * things somebody starts from. The attention list is *what is waiting*, which
- * is the reason a dashboard exists at all: not how much was done but what has
- * not been. The module cards are *where everything is*, with the totals that
- * say whether a module is worth opening. And for the roles that keep the
- * books, the money panel is *what it all came to*.
+ * **Read top to bottom it is one question answered four times, widening out
+ * and then back down to what is left to do.** The hero is *what is happening
+ * now* — the day's work, at a glance, with the things somebody starts from.
+ * For the roles that keep the books, the money panel under it is *what it all
+ * came to*, which is the figure those roles open this page for and is why it
+ * reads before the operating detail rather than after it. The module cards are
+ * *where everything is*, with the totals that say whether a module is worth
+ * opening. And the attention list closes the page with *what is waiting*,
+ * which is the one section somebody is meant to act on — it sits last because
+ * it is where the reading ends and the work starts.
  *
  * Three rules hold the whole page together, and every one of them is stated
  * elsewhere in this codebase because every one of them was learned somewhere
@@ -67,15 +73,15 @@ export function StaffDashboard() {
     <div className="mx-auto w-full max-w-6xl space-y-4">
       <DashboardHero dashboard={dashboard} name={name} />
 
-      <DashboardAttention dashboard={dashboard} />
-
-      <DashboardModules dashboard={dashboard} />
-
       {dashboard.can.accounts && (
         <Suspense fallback={<Skeleton className="h-[34rem] rounded-xl lg:h-96" />}>
           <DashboardMoney dashboard={dashboard} />
         </Suspense>
       )}
+
+      <DashboardModules dashboard={dashboard} />
+
+      <DashboardAttention dashboard={dashboard} />
 
       {/*
        * An account whose role reaches nothing at all. It should not be

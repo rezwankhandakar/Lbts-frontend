@@ -22,6 +22,7 @@ import { VendorFormDialog } from './vendor-form-dialog'
 import { VendorHeader } from './vendor-header'
 import { VendorOverview } from './vendor-overview'
 import { VendorTabs } from './vendor-tabs'
+import { VendorActivityPanel } from './vendor-activity-panel'
 import { VendorTripPanel } from './vendor-trip-panel'
 
 interface VendorWorkspaceProps {
@@ -34,7 +35,7 @@ interface VendorWorkspaceProps {
 }
 
 /**
- * One vendor, across six tabs.
+ * One vendor, across seven tabs.
  *
  * The tab lives in the URL as `?tab=`, which is the one piece of list state in
  * this module that does. Filters stay in component state, as they do everywhere
@@ -45,7 +46,7 @@ interface VendorWorkspaceProps {
  * walking every tab they were sent through.
  *
  * The cross-tab jumps are what make the module feel like one thing rather than
- * six: an alert on the overview opens the documents tab already filtered, and
+ * seven: an alert on the overview opens the documents tab already filtered, and
  * "Assign driver" from a vehicle row opens the assignments tab with that vehicle
  * chosen. Both are carried in state rather than in the URL, because they are one
  * gesture rather than a destination.
@@ -247,6 +248,12 @@ export function VendorWorkspace({
         )}
 
         {tab === 'trips' && <VendorTripPanel vendor={vendor} />}
+
+        {/* A reading rather than a workspace, and it carries no handover:
+            there is nothing on it to be sent to. */}
+        {tab === 'activity' && (
+          <VendorActivityPanel vendorId={vendor.id} vendorName={vendor.name} />
+        )}
       </div>
 
       <VendorFormDialog

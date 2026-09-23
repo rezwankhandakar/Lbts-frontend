@@ -23,7 +23,7 @@ const DAY_FORMAT = new Intl.DateTimeFormat(undefined, {
  * **The headline is pieces out today**, because that is what this operation
  * does. Everything else on the dashboard is a backlog or a total; this one
  * figure is the work itself, so it is the largest thing on the screen and the
- * three counts behind it sit beside it as the detail rather than as equals.
+ * three counts beside it sit as the detail rather than as equals.
  *
  * A quiet morning reads as a quiet morning rather than as a fault. Zero here
  * is information — the hero is a *reading* of the day, which is the rule the
@@ -36,6 +36,17 @@ const DAY_FORMAT = new Intl.DateTimeFormat(undefined, {
  * page's headline either way. Its own palette is `primary-foreground` at
  * varying opacity rather than the tone table, whose colours are tuned for a
  * light surface.
+ *
+ * **It is two bands, and that is what keeps it short.** It was a two-column
+ * block with the greeting, the date, the headline, a sentence and the actions
+ * stacked down the left of it, which ran past 500px and took the whole fold
+ * on a laptop — a banner that has to be scrolled past to reach the page is a
+ * banner nobody is glad to have. So the identity line and the actions share
+ * one row, a hairline closes it, and the measurements sit on a single band
+ * beneath: the headline at the left of the instrument, the three module
+ * counts as one strip to its right. **Nothing was dropped to get there** —
+ * every figure, link and action that was here still is, and the saving is
+ * entirely in what sits *beside* what rather than under it.
  */
 export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; name: string }) {
   const now = new Date()
@@ -66,6 +77,26 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
       : dashboard.can.challan
         ? { label: 'Challans filed today', value: challans?.today }
         : null
+
+  /**
+   * The sentence beside the figure, and it is deliberately short now that it
+   * sits on the same line rather than under it.
+   *
+   * It used to end "everything filed and waiting is below", which was a
+   * pointer at the attention list while that list sat directly beneath the
+   * hero. It is the last panel on the page now, so the sentence would have
+   * been quietly sending somebody past two sections to find it.
+   */
+  const note =
+    headline === null
+      ? ''
+      : headline.value === undefined
+        ? 'Counting what has gone out.'
+        : headline.value === 0
+          ? 'Nothing has left the gate yet today.'
+          : dashboard.can.delivery
+            ? `Carried on ${trips?.today === 1 ? 'one trip' : `${(trips?.today ?? 0).toLocaleString()} trips`} so far today.`
+            : 'Filed today.'
 
   const panels: Panel[] = []
   if (dashboard.can.delivery) {
@@ -108,14 +139,19 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
   }
 
   return (
-    <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-brand-from to-brand-to p-5 text-primary-foreground shadow-xl ring-1 ring-primary-foreground/10 sm:p-7">
-      {/* Depth without decoration — two soft lights and a top hairline. */}
+    <section className="relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-brand-from to-brand-to px-4 py-4 text-primary-foreground shadow-lg ring-1 ring-primary-foreground/10 sm:px-6 sm:py-5">
+      {/*
+       * Depth without decoration. Two soft lights and a top hairline, sized
+       * for a band rather than for a panel — the old pair were `size-80` on a
+       * box twice this tall, so on a short one both centres fall outside it
+       * and the gradient flattens into a wash.
+       */}
       <div
-        className="pointer-events-none absolute -top-32 -right-20 size-80 rounded-full bg-primary-foreground/15 blur-3xl"
+        className="pointer-events-none absolute -top-20 -right-12 size-56 rounded-full bg-primary-foreground/15 blur-3xl"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -bottom-40 -left-24 size-80 rounded-full bg-primary-foreground/10 blur-3xl"
+        className="pointer-events-none absolute -bottom-24 left-1/4 size-48 rounded-full bg-primary-foreground/10 blur-3xl"
         aria-hidden
       />
       <div
@@ -123,60 +159,38 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
         aria-hidden
       />
 
-      <div className="relative grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-10">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-            <h1 className="text-base font-semibold tracking-tight sm:text-lg">
+      <div className="relative">
+        {/*
+         * Who is reading, and what they start from. The actions sit up here
+         * rather than under the headline because that is where a page's own
+         * actions belong, and because it costs the banner no height at all:
+         * the identity line is one line whatever is beside it.
+         */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <h1 className="text-sm font-semibold tracking-tight sm:text-base">
               {greetingLine(name, now.getHours())}
             </h1>
             {role && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/15 px-2.5 py-0.5 text-[11px] font-medium ring-1 ring-primary-foreground/20">
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary-foreground/15 px-2 py-0.5 text-[11px] font-medium ring-1 ring-primary-foreground/20">
                 <role.icon className="size-3" aria-hidden />
                 {role.label}
               </span>
             )}
+            <span className="text-primary-foreground/35" aria-hidden>
+              •
+            </span>
+            <p className="truncate text-xs text-primary-foreground/70">{DAY_FORMAT.format(now)}</p>
           </div>
-          <p className="mt-1 text-xs text-primary-foreground/70">{DAY_FORMAT.format(now)}</p>
-
-          {headline && (
-            <>
-              <p className="mt-6 text-[11px] font-medium tracking-[0.14em] text-primary-foreground/70 uppercase">
-                {headline.label}
-              </p>
-              {/*
-               * A skeleton on the gradient rather than the shared one, which is
-               * built for a light card and disappears against this surface.
-               */}
-              {headline.value === undefined ? (
-                <div
-                  className="mt-2 h-12 w-40 animate-pulse rounded-lg bg-primary-foreground/20 sm:h-14"
-                  aria-hidden
-                />
-              ) : (
-                <p className="mt-1.5 text-5xl font-semibold tracking-tight tabular-nums sm:text-6xl">
-                  {headline.value.toLocaleString()}
-                </p>
-              )}
-              <p className="mt-2 max-w-md text-xs leading-relaxed text-pretty text-primary-foreground/70">
-                {headline.value === undefined
-                  ? 'Counting what has gone out.'
-                  : headline.value === 0
-                    ? 'Nothing has left the gate yet today. Everything filed and waiting is below.'
-                    : dashboard.can.delivery
-                      ? `Carried on ${trips?.today === 1 ? 'one trip' : `${(trips?.today ?? 0).toLocaleString()} trips`} so far today, across every vendor.`
-                      : 'Filed today. Everything waiting is below.'}
-              </p>
-            </>
-          )}
 
           {actions.length > 0 && (
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               {actions.map((action, index) => (
                 <Link
                   key={action.to}
                   to={action.to}
                   className={cn(
-                    'group inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-medium ring-1 transition outline-none',
+                    'group inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium ring-1 transition outline-none',
                     'focus-visible:ring-2 focus-visible:ring-primary-foreground/60',
                     // The first action is the one this operation does most, so
                     // it carries the weight and the rest sit behind glass.
@@ -197,17 +211,54 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
           )}
         </div>
 
-        {panels.length > 0 && (
-          <div
-            className={cn(
-              'grid gap-3 sm:grid-cols-3 lg:w-[30rem]',
-              panels.length === 1 && 'sm:grid-cols-1 lg:w-[16rem]',
-              panels.length === 2 && 'sm:grid-cols-2 lg:w-[22rem]',
+        {/*
+         * The measurements, as one band. The hairline is what makes it read as
+         * an instrument rather than as more of the greeting, and it is the
+         * only rule drawn on this surface, so it carries that job on its own.
+         */}
+        {(headline !== null || panels.length > 0) && (
+          <div className="mt-3.5 flex flex-wrap items-end gap-x-8 gap-y-4 border-t border-primary-foreground/15 pt-3.5">
+            {headline && (
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium tracking-[0.16em] text-primary-foreground/60 uppercase">
+                  {headline.label}
+                </p>
+                <div className="mt-0.5 flex items-baseline gap-2.5">
+                  {/*
+                   * A skeleton on the gradient rather than the shared one,
+                   * which is built for a light card and disappears against
+                   * this surface.
+                   */}
+                  {headline.value === undefined ? (
+                    <div
+                      className="h-9 w-20 animate-pulse rounded-lg bg-primary-foreground/20 sm:h-11"
+                      aria-hidden
+                    />
+                  ) : (
+                    <p className="text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl">
+                      {headline.value.toLocaleString()}
+                    </p>
+                  )}
+                  <p className="max-w-[13rem] text-[11px] leading-snug text-pretty text-primary-foreground/65">
+                    {note}
+                  </p>
+                </div>
+              </div>
             )}
-          >
-            {panels.map((panel) => (
-              <HeroPanel key={panel.label} panel={panel} />
-            ))}
+
+            {panels.length > 0 && (
+              <div
+                className={cn(
+                  'grid min-w-0 flex-1 gap-2 sm:grid-cols-3',
+                  panels.length === 1 && 'sm:grid-cols-1',
+                  panels.length === 2 && 'sm:grid-cols-2',
+                )}
+              >
+                {panels.map((panel) => (
+                  <HeroPanel key={panel.label} panel={panel} />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -233,36 +284,54 @@ interface Action {
  * One count, and a way into the module that owns it. A panel is a link
  * because the figure is the reason somebody would go there — a dashboard
  * whose numbers cannot be pressed is a poster.
+ *
+ * **It reads across rather than down**, which is what lets three of them sit
+ * inside the band: the icon, then the label over its note, then the figure at
+ * the end of the row. One layout serves every width — stacked on a phone,
+ * three abreast from `sm` — because a card that is wide and short is the same
+ * card in a narrow column and in a wide one.
+ *
+ * The note keeps its line while it is empty (`min-h-4`), or the card would
+ * grow by a line the moment its query answered and shunt the band down under
+ * somebody's cursor.
  */
 function HeroPanel({ panel }: { panel: Panel }) {
   return (
     <Link
       to={panel.to}
-      className="group rounded-2xl bg-primary-foreground/10 p-4 ring-1 ring-primary-foreground/15 transition outline-none hover:bg-primary-foreground/15 focus-visible:ring-2 focus-visible:ring-primary-foreground/60"
+      className="group flex items-center gap-2.5 rounded-xl bg-primary-foreground/10 px-2.5 py-2 ring-1 ring-primary-foreground/15 transition outline-none hover:bg-primary-foreground/20 focus-visible:ring-2 focus-visible:ring-primary-foreground/60"
     >
-      <p className="flex items-center gap-1.5 truncate text-[11px] font-medium tracking-wider text-primary-foreground/70 uppercase">
-        <panel.icon className="size-3.5 shrink-0" aria-hidden />
-        {panel.label}
-      </p>
+      <span
+        className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/15 ring-1 ring-primary-foreground/10"
+        aria-hidden
+      >
+        <panel.icon className="size-4" />
+      </span>
+
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[10px] font-medium tracking-wider text-primary-foreground/65 uppercase">
+          {panel.label}
+        </span>
+        <span className="block min-h-4 truncate text-[11px] leading-4 text-primary-foreground/60">
+          {panel.note}
+        </span>
+      </span>
 
       {panel.value === undefined ? (
-        <div
-          className="mt-2.5 h-7 w-12 animate-pulse rounded bg-primary-foreground/20"
+        <span
+          className="block h-6 w-7 shrink-0 animate-pulse rounded bg-primary-foreground/20"
           aria-hidden
         />
       ) : (
-        <p className="mt-2.5 truncate text-2xl font-semibold tabular-nums">
+        <span className="shrink-0 text-xl font-semibold tabular-nums sm:text-2xl">
           {panel.value.toLocaleString()}
-        </p>
+        </span>
       )}
 
-      <p className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-primary-foreground/65">
-        {panel.note}
-        <ArrowRight
-          className="size-3 shrink-0 opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100"
-          aria-hidden
-        />
-      </p>
+      <ArrowRight
+        className="size-3 shrink-0 opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100"
+        aria-hidden
+      />
     </Link>
   )
 }

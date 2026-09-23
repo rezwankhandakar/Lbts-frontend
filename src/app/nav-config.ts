@@ -1,5 +1,6 @@
 import {
   Building2,
+  History,
   Landmark,
   FileSpreadsheet,
   HardHat,
@@ -178,6 +179,28 @@ export const navSections: NavSection[] = [
         icon: ShieldCheck,
         accent: 'violet',
         roles: ['Admin'],
+      },
+      /**
+       * The activity journal: who did what, across every module.
+       *
+       * Under **System** rather than beside the operating modules, because it
+       * belongs to none of them — it is one append-only collection every
+       * service writes through, and the point of it is that "a vehicle was
+       * deleted" and "a cash entry was corrected" are the same kind of fact.
+       *
+       * Wider than the rest of System, which is Admin-only: a Manager keeps
+       * the books and a CEO oversees them, and both have reason to read what
+       * happened. It stops short of `OpEx` because the journal carries what
+       * Accounts carries — an amount, a vendor payment, a corrected entry —
+       * and that audience is exactly Accounts'. Presentation only; `RoleRoute`
+       * guards the URL and the API refuses the request either way.
+       */
+      {
+        label: 'Activity Logs',
+        path: '/activity',
+        icon: History,
+        accent: 'indigo',
+        roles: ['Admin', 'Manager', 'CEO'],
       },
       /**
        * The district and thana master list. Reference data rather than a

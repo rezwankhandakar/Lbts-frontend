@@ -1,4 +1,4 @@
-import { FileText, LayoutGrid, Navigation, Route, Truck, Users } from 'lucide-react'
+import { FileText, History, LayoutGrid, Navigation, Route, Truck, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { VENDOR_TABS } from '../types'
@@ -17,6 +17,7 @@ const TABS: Record<VendorTab, TabDef> = {
   assignments: { value: 'assignments', label: 'Assignments', icon: Route },
   documents: { value: 'documents', label: 'Documents', icon: FileText },
   trips: { value: 'trips', label: 'Trips', icon: Navigation },
+  activity: { value: 'activity', label: 'Activity', icon: History },
 }
 
 interface VendorTabsProps {
@@ -29,17 +30,17 @@ interface VendorTabsProps {
 }
 
 /**
- * The six tabs on a vendor.
+ * The seven tabs on a vendor.
  *
  * A real `tablist`, so the arrow keys move between tabs and a screen reader
  * announces which panel is showing — the same treatment the Challan and Gate
  * Pass workspaces give their two-pane switch.
  *
  * It **scrolls horizontally on a narrow screen** rather than wrapping onto two
- * rows or collapsing into a select. Six labels do not fit on a 360px phone, and
+ * rows or collapsing into a select. Seven labels do not fit on a 360px phone, and
  * of the three ways out, scrolling is the only one that keeps every destination
  * visible and one tap away: wrapping doubles the height of the chrome above the
- * content, and a select hides five of the six behind an interaction. The
+ * content, and a select hides six of the seven behind an interaction. The
  * scrollbar itself is hidden and the row is edge-to-edge, so it reads as a strip
  * that moves rather than as a broken layout.
  *

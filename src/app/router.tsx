@@ -2,6 +2,7 @@ import { lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/app-layout'
 import { ACCOUNTS_READ_ROLES } from '@/features/accounts/types'
+import { ACTIVITY_READ_ROLES } from '@/features/activity/types'
 import { BILL_READ_ROLES } from '@/features/bill/types'
 import { LABOUR_BILL_READ_ROLES } from '@/features/labour-bill/types'
 import {
@@ -122,6 +123,9 @@ const MyVendorPage = lazy(() =>
 const AdministrationPage = lazy(() =>
   import('@/pages/administration').then((m) => ({ default: m.AdministrationPage })),
 )
+const ActivityPage = lazy(() =>
+  import('@/pages/activity').then((m) => ({ default: m.ActivityPage })),
+)
 const ProfilePage = lazy(() => import('@/pages/profile').then((m) => ({ default: m.ProfilePage })))
 const NotFoundPage = lazy(() =>
   import('@/pages/not-found').then((m) => ({ default: m.NotFoundPage })),
@@ -218,6 +222,15 @@ const PRODUCT_RATE_ACCESS_REASON =
  */
 const VENDOR_ACCESS_REASON =
   'Vendors, their vehicles, their drivers and their compliance documents. Staff accounts see every vendor; a vendor account sees its own.'
+
+/**
+ * The journal spans every module, so it carries what Accounts carries — and
+ * takes Accounts' audience for that reason. There is no write boundary to
+ * express here, because nothing writes: rows are appended by services and by
+ * nothing a request can reach.
+ */
+const ACTIVITY_ACCESS_REASON =
+  'Activity Logs record who did what across every module, and are open to Admin, Manager and CEO accounts.'
 
 export function AppRouter() {
   return (
@@ -465,6 +478,23 @@ export function AppRouter() {
               still gets the shell, not a bare page. */}
           <Route element={<AdminRoute />}>
             <Route path="/administration" element={<AdministrationPage />} />
+          </Route>
+
+          {/* The activity journal. Wider than the rest of System — a Manager
+              keeps the books and a CEO oversees them, and both have reason to
+              read what happened — and narrower than the operating modules,
+              because it carries what Accounts carries. Read-only by
+              construction: the module has no write endpoint at all. */}
+          <Route
+            element={
+              <RoleRoute
+                roles={ACTIVITY_READ_ROLES}
+                area="Activity Logs"
+                reason={ACTIVITY_ACCESS_REASON}
+              />
+            }
+          >
+            <Route path="/activity" element={<ActivityPage />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />
