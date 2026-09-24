@@ -1,16 +1,22 @@
 /**
- * The journal's arithmetic: which day a row belongs to, and how a recorded
- * value reads.
+ * Which day a timestamped row belongs to, and how a recorded value reads.
+ *
+ * This was `features/activity/lib/activity-grouping.ts` until the notification
+ * feature wanted the same day headings on its own list. CLAUDE.md asks for a
+ * **move rather than a copy** when a second feature wants a piece, and a second
+ * copy of "which calendar is this evening in" is exactly the kind of decision
+ * that comes to disagree with the first — one list filing a Dhaka evening under
+ * today and the other under tomorrow, in the same shell, on the same screen.
  *
  * **This file imports nothing**, which is the point. `node --test` resolves
  * module specifiers the way Node does and knows nothing about the `@/` alias,
  * so anything tested directly has to be loadable without one — the rule
  * `page-ranges.ts` and `labour-bill-math.ts` already follow. `activity-meta.ts`
- * re-exports everything here, so callers import from one place and the
- * alias-free file owns the value.
+ * and `notification-meta.ts` both re-export from here, so callers import
+ * presentation from one place while the alias-free file owns the value.
  *
- * It is generic over `{ createdAt }` rather than typed to `ActivityRecord` for
- * the same reason: the record type reaches `@/lib/roles`, and a test that
+ * Every function is generic over `{ createdAt }` rather than typed to a record,
+ * for the same reason: either record type reaches `@/lib/roles`, and a test that
  * could not load the file would be a test nobody writes.
  */
 

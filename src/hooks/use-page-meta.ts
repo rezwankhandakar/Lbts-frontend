@@ -15,6 +15,13 @@ export interface PageMeta {
 const STANDALONE_PAGES: Record<string, PageMeta> = {
   '/profile': { title: 'Profile', section: 'Account' },
   /**
+   * Reached from the bell rather than the sidebar, for the reason `/profile` is
+   * reached from the account menu: what this account has been told belongs to the
+   * person, not to the business. A sidebar entry would also be a second way in
+   * for something already one press away.
+   */
+  '/notifications': { title: 'Notifications', section: 'Account' },
+  /**
    * A sub-route of a sidebar destination. Without this the nav match below
    * would announce it as plain "Gate Pass", which is true of the list and not
    * of the workspace you are filling in.

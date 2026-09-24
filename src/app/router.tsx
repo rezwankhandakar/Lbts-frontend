@@ -127,6 +127,9 @@ const ActivityPage = lazy(() =>
   import('@/pages/activity').then((m) => ({ default: m.ActivityPage })),
 )
 const ProfilePage = lazy(() => import('@/pages/profile').then((m) => ({ default: m.ProfilePage })))
+const NotificationsPage = lazy(() =>
+  import('@/pages/notifications').then((m) => ({ default: m.NotificationsPage })),
+)
 const NotFoundPage = lazy(() =>
   import('@/pages/not-found').then((m) => ({ default: m.NotFoundPage })),
 )
@@ -473,6 +476,20 @@ export function AppRouter() {
           {/* Reached from the account menu rather than the sidebar: it is
               every user's own account, not a destination in the business. */}
           <Route path="/profile" element={<ProfilePage />} />
+
+          {/* Reached from the bell rather than the sidebar, for the reason
+              /profile is reached from the account menu — it belongs to the
+              person rather than to the business.
+
+              **No RoleRoute, deliberately.** There is nothing here to guard:
+              every endpoint behind this page reads the caller off the verified
+              token and takes no user id, so two accounts of different roles
+              reach the same page and the server shows them two entirely
+              different inboxes. What keeps a Vendor account away from the
+              operating modules' messages is the audience chosen when each
+              message was written, which is stronger than a filter on the way
+              out — a message that was never addressed to them does not exist. */}
+          <Route path="/notifications" element={<NotificationsPage />} />
 
           {/* Admin-only. The guard nests inside the layout so a denied user
               still gets the shell, not a bare page. */}

@@ -1,13 +1,12 @@
-import { Bell, PanelLeft } from 'lucide-react'
+import { PanelLeft } from 'lucide-react'
 import { usePageMeta } from '@/hooks/use-page-meta'
 import { useSidebarStore } from '@/stores/use-sidebar-store'
 import { HEADER_ICON_BUTTON } from '@/components/layout/header-styles'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserMenu } from '@/components/layout/user-menu'
+import { NotificationBell } from '@/features/notification/components/notification-bell'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-
-const UNREAD_NOTIFICATIONS = 3
 
 interface AppHeaderProps {
   mobileOpen: boolean
@@ -65,18 +64,11 @@ export function AppHeader({ mobileOpen, onOpenMobileSidebar }: AppHeaderProps) {
       <div className="relative ml-auto flex items-center gap-0.5">
         <ThemeToggle />
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(HEADER_ICON_BUTTON, 'relative')}
-          aria-label={`Notifications, ${UNREAD_NOTIFICATIONS} unread`}
-        >
-          <Bell aria-hidden />
-          <span
-            className="absolute top-1.5 right-1.5 size-2 rounded-full bg-brand-amber ring-2 ring-background"
-            aria-hidden
-          />
-        </Button>
+        {/* The bell owns its own count, its own panel and its own polling. It
+            replaced a hard-coded "3" and a dot that was always lit — which is
+            worth remembering, because an always-lit badge is exactly what a
+            notification system has to avoid being. */}
+        <NotificationBell />
 
         <div className="mx-1.5 hidden h-5 w-px bg-border sm:block" aria-hidden />
 

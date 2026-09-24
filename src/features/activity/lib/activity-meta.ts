@@ -21,7 +21,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { daysAgo } from './activity-grouping'
+import { daysAgo } from '@/lib/day-grouping'
 import type {
   ActivityCategory,
   ActivityEntityType,
@@ -292,8 +292,10 @@ export function timeOf(iso: string): string {
 }
 
 /**
- * The arithmetic lives in `activity-grouping.ts` and is re-exported here, so
+ * The arithmetic lives in `@/lib/day-grouping` and is re-exported here, so
  * callers import presentation from one place while the alias-free file owns
- * the value and stays loadable by `node --test`.
+ * the value and stays loadable by `node --test`. It moved out of this feature
+ * when the notification list wanted the same day headings — a move rather than
+ * a copy, as CLAUDE.md asks.
  */
-export { actorInitials, changeValueText, dayKeyOf, groupByDay } from './activity-grouping'
+export { actorInitials, changeValueText, dayKeyOf, groupByDay } from '@/lib/day-grouping'

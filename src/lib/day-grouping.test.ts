@@ -6,7 +6,7 @@ import {
   dayKeyOf,
   daysAgo,
   groupByDay,
-} from './activity-grouping.ts'
+} from './day-grouping.ts'
 
 /**
  * The journal's client-side decisions.
