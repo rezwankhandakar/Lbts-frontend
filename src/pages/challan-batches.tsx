@@ -9,6 +9,7 @@ import { useBatchListParams } from '@/features/challan/hooks/use-batch-list-para
 import { useChallanBatches } from '@/features/challan/hooks/use-challans'
 import { canWriteChallans } from '@/features/challan/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { useT } from '@/lib/i18n'
 
 /**
  * Every source PDF, and how far through each one the operation got.
@@ -33,6 +34,8 @@ import { useCurrentRole } from '@/hooks/use-current-role'
  * page. This is the way in.
  */
 export function ChallanBatchesPage() {
+  const t = useT()
+
   const role = useCurrentRole()
   const canWrite = canWriteChallans(role)
 
@@ -60,16 +63,16 @@ export function ChallanBatchesPage() {
         className="mb-3 -ml-2 text-muted-foreground"
       >
         <ArrowLeft data-icon="inline-start" aria-hidden />
-        Challan records
+        {t('challan.recordsHeading')}
       </Button>
 
       <PageHeader
-        title="Source PDFs"
-        description="Every corporate PDF challans have been filed out of, and how far through each one the operation got. The files themselves are never stored — a batch is created by the first challan filed out of a file, and this is the only trace of it that survives."
+        title={t('challan.sourcePdfs')}
+        description={t('challan.sourcePdfsDescription')}
       />
 
       <section
-        aria-label="Source PDF batches"
+        aria-label={t('challan.batchesAria')}
         className="overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <BatchFilters
@@ -90,7 +93,7 @@ export function ChallanBatchesPage() {
           isLoading={query.isPending}
           isFetching={query.isFetching}
           isError={query.isError}
-          errorMessage={query.error?.message ?? 'Something went wrong.'}
+          errorMessage={query.error?.message ?? t('challan.somethingWrong')}
           isFiltered={isFiltered}
           canWrite={canWrite}
           onRetry={() => void query.refetch()}
@@ -102,7 +105,7 @@ export function ChallanBatchesPage() {
             meta={meta}
             onPageChange={setPage}
             isFetching={query.isFetching}
-            noun={['source PDF', 'source PDFs']}
+            nounKey="nouns.sourcePdf"
           />
         )}
       </section>

@@ -1,7 +1,8 @@
 import { FileCheck2, FilePen, HardHat, TriangleAlert, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatTaka } from '@/lib/format'
+import { formatNumber, formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { LabourBillFilterPatch, LabourBillListParams, LabourBillPageMeta } from '../types'
 
@@ -32,6 +33,8 @@ interface Tile {
  * on a status tile is an honest answer.
  */
 export function LabourBillOverview({ meta, isLoading, params, onChange }: LabourBillOverviewProps) {
+  const t = useT()
+
   if (isLoading || !meta) {
     return (
       <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-busy="true">
@@ -44,23 +47,26 @@ export function LabourBillOverview({ meta, isLoading, params, onChange }: Labour
 
   const tiles: Tile[] = [
     {
-      label: 'Labour charged',
+      label: t('labourBill.stats.charged'),
       value: formatTaka(meta.totalAmount),
-      hint: `${formatTaka(meta.labourTotal)} labour · ${formatTaka(meta.floorTotal)} floor`,
+      hint: t('labourBill.stats.labourAndFloor', {
+        labour: formatTaka(meta.labourTotal),
+        floor: formatTaka(meta.floorTotal),
+      }),
       icon: Wallet,
       chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
     },
     {
-      label: 'Labour bills',
-      value: meta.total.toLocaleString(),
-      hint: `${meta.totalQty.toLocaleString()} pcs handled`,
+      label: t('labourBill.stats.bills'),
+      value: formatNumber(meta.total),
+      hint: t('labourBill.stats.pcsHandled', { n: formatNumber(meta.totalQty) }),
       icon: HardHat,
       chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
     },
     {
-      label: 'Drafts',
-      value: meta.draftBills.toLocaleString(),
-      hint: 'still being prepared',
+      label: t('labourBill.stats.drafts'),
+      value: formatNumber(meta.draftBills),
+      hint: t('labourBill.stats.stillPreparing'),
       icon: FilePen,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
       filter: {
@@ -71,16 +77,16 @@ export function LabourBillOverview({ meta, isLoading, params, onChange }: Labour
     },
     meta.unpricedLines > 0
       ? {
-          label: 'Rows with no amount',
-          value: meta.unpricedLines.toLocaleString(),
-          hint: 'nothing typed, so nothing charged',
+          label: t('labourBill.stats.unpriced'),
+          value: formatNumber(meta.unpricedLines),
+          hint: t('labourBill.stats.nothingTyped'),
           icon: TriangleAlert,
           chip: 'bg-tone-orange/10 text-tone-orange ring-tone-orange/20',
         }
       : {
-          label: 'Finalized',
-          value: meta.finalizedBills.toLocaleString(),
-          hint: 'signed off and sent',
+          label: t('labourBill.stats.finalized'),
+          value: formatNumber(meta.finalizedBills),
+          hint: t('labourBill.stats.signedOff'),
           icon: FileCheck2,
           chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
           filter: {

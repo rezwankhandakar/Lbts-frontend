@@ -1,6 +1,8 @@
 import { CircleSlash, MapPinned, Sparkles, TriangleAlert } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useFormatters, useT } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { LocationStats as Stats } from '../types'
 
@@ -28,6 +30,9 @@ interface Tile {
  * from the running instance, never placeholders.
  */
 export function LocationStatsPanel({ stats, isLoading }: LocationStatsProps) {
+  const t = useT()
+  const format = useFormatters()
+
   if (isLoading || !stats) {
     return (
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true">
@@ -40,27 +45,31 @@ export function LocationStatsPanel({ stats, isLoading }: LocationStatsProps) {
 
   const tiles: Tile[] = [
     {
-      label: 'Locations in use',
+      label: t('location.stats.inUse'),
       hint: `${stats.districts} districts`,
       value: String(stats.active),
       icon: MapPinned,
       chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
     },
     {
-      label: 'Deactivated',
-      hint: 'Kept for the challans that reference them',
+      label: t('location.stats.deactivated'),
+      hint: t('location.stats.deactivatedHint'),
       value: String(stats.inactive),
       icon: CircleSlash,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
     },
     {
-      label: 'By location type',
-      hint: `${stats.byType.ISD} ISD · ${stats.byType['OSD-Metro']} Metro · ${stats.byType['OSD-Thana']} Thana`,
+      label: t('location.stats.byType'),
+      hint: t('location.stats.byTypeHint', {
+        isd: format.number(stats.byType.ISD),
+        metro: format.number(stats.byType['OSD-Metro']),
+        thana: format.number(stats.byType['OSD-Thana']),
+      }),
       value: String(stats.total),
       icon: MapPinned,
       chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
     },
-    assistedTile(stats),
+    assistedTile(stats, t),
   ]
 
   return (
@@ -96,13 +105,21 @@ export function LocationStatsPanel({ stats, isLoading }: LocationStatsProps) {
  * warning; paused after repeated failures; and working, with what it has done
  * since this instance started.
  */
-function assistedTile(stats: Stats): Tile {
+/**
+ * The assisted-resolution tile.
+ *
+ * Takes the translator rather than reaching for the store, the arrangement
+ * every other tolerant lookup in this codebase uses: the caller holds
+ * `useT()`, which is the subscription that makes the tile follow a language
+ * change.
+ */
+function assistedTile(stats: Stats, t: Translator): Tile {
   const { gemini } = stats
 
   if (!gemini.configured) {
     return {
-      label: 'Assisted resolution',
-      hint: 'Not configured. The master list answers on its own.',
+      label: t('location.stats.assisted'),
+      hint: t('location.stats.assistedOff'),
       value: 'Off',
       icon: Sparkles,
       chip: 'bg-muted text-muted-foreground ring-border',
@@ -111,16 +128,16 @@ function assistedTile(stats: Stats): Tile {
 
   if (gemini.pausedUntil) {
     return {
-      label: 'Assisted resolution',
-      hint: 'Paused after repeated failures. Locations are left for an administrator.',
-      value: 'Paused',
+      label: t('location.stats.assisted'),
+      hint: t('location.stats.assistedPaused'),
+      value: t('location.stats.paused'),
       icon: TriangleAlert,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
     }
   }
 
   return {
-    label: 'Assisted resolution',
+    label: t('location.stats.assisted'),
     hint: `${gemini.calls} call${gemini.calls === 1 ? '' : 's'} · ${gemini.cacheHits} cached · ${
       gemini.rejected + gemini.lowConfidence
     } declined · ${gemini.errors} failed`,

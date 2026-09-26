@@ -9,13 +9,20 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useFormatters, useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { UserStats } from '../types'
 
 interface StatDef {
   key: keyof UserStats
-  label: string
-  hint: string
+  /**
+   * Keys rather than words, so this table stays what it always was — which
+   * figure, which icon, which colour — and says nothing about which language
+   * it is read in.
+   */
+  labelKey: TranslationKey
+  hintKey: TranslationKey
   icon: LucideIcon
   chip: string
   /** Drawn only while the figure is non-zero — a queue that needs attention. */
@@ -25,30 +32,30 @@ interface StatDef {
 const STATS: StatDef[] = [
   {
     key: 'total',
-    label: 'Total users',
-    hint: 'Every account on record',
+    labelKey: 'administration.stats.total.label',
+    hintKey: 'administration.stats.total.hint',
     icon: UsersRound,
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
   },
   {
     key: 'pending',
-    label: 'Pending approval',
-    hint: 'Waiting on a decision',
+    labelKey: 'administration.stats.pending.label',
+    hintKey: 'administration.stats.pending.hint',
     icon: Clock,
     chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
     emphasis: 'ring-1 ring-tone-amber/30',
   },
   {
     key: 'active',
-    label: 'Active users',
-    hint: 'Approved and able to sign in',
+    labelKey: 'administration.stats.active.label',
+    hintKey: 'administration.stats.active.hint',
     icon: CircleCheck,
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
   },
   {
     key: 'suspended',
-    label: 'Suspended',
-    hint: 'Access withdrawn',
+    labelKey: 'administration.stats.suspended.label',
+    hintKey: 'administration.stats.suspended.hint',
     icon: CircleMinus,
     chip: 'bg-tone-orange/10 text-tone-orange ring-tone-orange/20',
   },
@@ -75,16 +82,19 @@ export function AdministrationStats({
   isError,
   onRetry,
 }: AdministrationStatsProps) {
+  const t = useT()
+  const format = useFormatters()
+
   if (isError) {
     return (
       <div className="mb-6 flex flex-col items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-center gap-2.5 text-sm text-muted-foreground">
           <TriangleAlert className="size-4 shrink-0 text-destructive" aria-hidden />
-          The account overview could not be loaded.
+          {t('administration.stats.overviewFailed')}
         </p>
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          Retry
+          {t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -106,7 +116,7 @@ export function AdministrationStats({
           >
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-medium tracking-wide text-muted-foreground">
-                {stat.label}
+                {t(stat.labelKey)}
               </p>
               <span
                 className={cn(
@@ -122,11 +132,11 @@ export function AdministrationStats({
               <Skeleton className="mt-3 h-8 w-14" />
             ) : (
               <p className="mt-2 text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                {value}
+                {format.number(value)}
               </p>
             )}
 
-            <p className="mt-2 text-[11px] text-muted-foreground/80">{stat.hint}</p>
+            <p className="mt-2 text-[11px] text-muted-foreground/80">{t(stat.hintKey)}</p>
           </div>
         )
       })}

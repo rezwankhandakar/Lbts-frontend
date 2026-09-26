@@ -2,6 +2,7 @@ import { CalendarClock, History, Siren, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { rangeFor } from '@/lib/date-ranges'
+import { useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ActivityFilterPatch, ActivityListParams, ActivityStats } from '../types'
 import { ActivityTrend } from './activity-trend'
@@ -37,6 +38,9 @@ interface Tile {
  * deliberate — those are jobs, these are measurements.
  */
 export function ActivityOverview({ stats, isLoading, params, onChange }: ActivityOverviewProps) {
+  const t = useT()
+  const format = useFormatters()
+
   if (isLoading || !stats) {
     return (
       <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)]" aria-busy="true">
@@ -55,19 +59,22 @@ export function ActivityOverview({ stats, isLoading, params, onChange }: Activit
 
   const tiles: Tile[] = [
     {
-      label: 'Events recorded',
-      value: stats.total.toLocaleString(),
+      label: t('activity.overview.recorded'),
+      value: format.number(stats.total),
       hint:
         stats.byModule.length > 0
-          ? `Most in ${stats.byModule[0]?.label} · ${stats.byModule[0]?.count.toLocaleString()}`
-          : 'Nothing matches these filters',
+          ? t('activity.overview.mostIn', {
+              module: stats.byModule[0]?.label ?? '',
+              count: format.number(stats.byModule[0]?.count ?? 0),
+            })
+          : t('activity.overview.noMatches'),
       icon: History,
       chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
     },
     {
-      label: 'Today',
-      value: stats.today.toLocaleString(),
-      hint: `${stats.week.toLocaleString()} in the last seven days`,
+      label: t('activity.overview.today'),
+      value: format.number(stats.today),
+      hint: t('activity.overview.lastSevenDays', { n: format.number(stats.week) }),
       icon: CalendarClock,
       chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
       filter: {
@@ -77,9 +84,9 @@ export function ActivityOverview({ stats, isLoading, params, onChange }: Activit
       },
     },
     {
-      label: 'Critical',
-      value: stats.critical.toLocaleString(),
-      hint: 'Deletions, access and money corrections',
+      label: t('activity.overview.critical'),
+      value: format.number(stats.critical),
+      hint: t('activity.overview.criticalHint'),
       icon: Siren,
       chip: 'bg-tone-rose/10 text-tone-rose ring-tone-rose/20',
       filter: {
@@ -89,12 +96,15 @@ export function ActivityOverview({ stats, isLoading, params, onChange }: Activit
       },
     },
     {
-      label: 'People',
-      value: stats.actors.toLocaleString(),
+      label: t('activity.overview.people'),
+      value: format.number(stats.actors),
       hint:
         stats.topActors.length > 0
-          ? `Busiest: ${stats.topActors[0]?.name} · ${stats.topActors[0]?.count.toLocaleString()}`
-          : 'Nobody in this range',
+          ? t('activity.overview.busiest', {
+              name: stats.topActors[0]?.name ?? '',
+              count: format.number(stats.topActors[0]?.count ?? 0),
+            })
+          : t('activity.overview.nobody'),
       icon: Users,
       chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
     },

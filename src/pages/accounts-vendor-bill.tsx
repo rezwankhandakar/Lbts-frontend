@@ -15,12 +15,15 @@ import { currentPeriod, parsePeriodParam, periodParam, taka } from '@/features/a
 import { canWriteAccounts } from '@/features/accounts/types'
 import type { Period } from '@/features/accounts/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { useT } from '@/lib/i18n'
 
 /**
  * One vendor's month. The month lives in the URL (`?month=2026-09`), because a
  * link to "what we owe Malek Transport for August" is worth sending somebody.
  */
 export function AccountsVendorBillPage() {
+  const t = useT()
+
   const { vendorId } = useParams<{ vendorId: string }>()
   const canWrite = canWriteAccounts(useCurrentRole())
   const [searchParams, setSearchParams] = useSearchParams()
@@ -32,13 +35,17 @@ export function AccountsVendorBillPage() {
 
   return (
     <AccountsShell
-      title={detail ? `${detail.vendor.name} · Trip bill` : 'Vendor trip bill'}
-      description="Every trip in the month with its rent and labour bill, the advances paid against them, and the monthly payments."
+      title={
+        detail
+          ? t('accounts.pages.vendorBill.title', { vendor: detail.vendor.name })
+          : t('accounts.pages.vendorBill.titleGeneric')
+      }
+      description={t('accounts.pages.vendorBill.description')}
       actions={
         <>
           <Button variant="outline" size="sm" render={<Link to={`/accounts/vendor-bills?month=${periodParam(period)}`} />}>
             <ArrowLeft data-icon="inline-start" aria-hidden />
-            All vendors
+            {t('accounts.pages.vendorBill.allVendors')}
           </Button>
           {detail && vendorId && (
             <VendorStatementButton vendorId={vendorId} vendorName={detail.vendor.name} period={period} detail={query.isPlaceholderData ? undefined : detail} />
@@ -60,12 +67,20 @@ export function AccountsVendorBillPage() {
 
           <div className="grid gap-5 xl:grid-cols-[1fr_22rem]">
             <div className="grid min-w-0 content-start gap-5">
-              <Panel title={`Trips · ${detail.period.label}`} description="Bills are entered on each trip's page; advances are paid from here.">
+              <Panel
+                title={t('accounts.pages.vendorBill.tripsTitle', { period: detail.period.label })}
+                description={t('accounts.pages.vendorBill.tripsHint')}
+              >
                 <VendorTripTable trips={detail.trips} canWrite={canWrite} />
               </Panel>
 
               <div className="grid gap-5 lg:grid-cols-2">
-                <Panel title="Trip advances" description={`${taka(detail.figures.advance)} against this month's trips`}>
+                <Panel
+                  title={t('accounts.pages.vendorBill.advancesTitle')}
+                  description={t('accounts.pages.vendorBill.advancesHint', {
+                    amount: taka(detail.figures.advance),
+                  })}
+                >
                   <EntryList
                     records={detail.advances}
                     isLoading={false}
@@ -77,7 +92,13 @@ export function AccountsVendorBillPage() {
                     emptyDescription="Use Advance on a trip to pay the vendor ahead of the bill."
                   />
                 </Panel>
-                <Panel title="Payments" description={`${taka(detail.figures.paid)} paid for ${detail.period.label}`}>
+                <Panel
+                  title={t('accounts.pages.vendorBill.paymentsTitle')}
+                  description={t('accounts.pages.vendorBill.paymentsHint', {
+                    amount: taka(detail.figures.paid),
+                    period: detail.period.label,
+                  })}
+                >
                   <EntryList
                     records={detail.payments}
                     isLoading={false}

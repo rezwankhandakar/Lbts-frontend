@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { saveBlob } from '@/lib/save-blob'
 import { exportActivity } from '../api/activity-api'
@@ -44,12 +45,12 @@ export function useActivityExport(params: ActivityListParams): ActivityExportCon
     }
 
     setIsExporting(true)
-    const toastId = toast.loading('Building the spreadsheet…')
+    const toastId = toast.loading(t('activity.export.buildingToast'))
 
     void exportActivity(params)
       .then(({ blob, filename }) => {
         saveBlob(blob, filename)
-        toast.success('Activity exported', { id: toastId })
+        toast.success(t('activity.export.exported'), { id: toastId })
         setIsConfirming(false)
       })
       .catch((error: ApiError) => {

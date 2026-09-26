@@ -6,6 +6,7 @@ import { LocationSelect } from '@/features/location/components/location-select'
 import type { LocationSelection } from '@/features/location/components/location-select'
 import { useLocationResolution } from '@/features/location/hooks/use-locations'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { useT } from '@/lib/i18n'
 
 interface ChallanLocationPanelProps {
   /** The transcribed text, live. Debounced here before anything is asked. */
@@ -47,6 +48,8 @@ export function ChallanLocationPanel({
   onPickLocation,
   disabled,
 }: ChallanLocationPanelProps) {
+  const t = useT()
+
   const [picking, setPicking] = useState(false)
   const [picked, setPicked] = useState<LocationSelection | null>(null)
 
@@ -90,9 +93,9 @@ export function ChallanLocationPanel({
           <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
           <div className="min-w-0">
             <p className="text-[13px] font-medium">
-              Location
+              {t('challan.location.heading')}
               <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">
-                Optional
+                {t('challan.location.optional')}
               </span>
             </p>
 
@@ -100,33 +103,39 @@ export function ChallanLocationPanel({
               {chosen ? (
                 <span className="flex flex-wrap items-center gap-1.5 text-foreground">
                   <CircleCheck className="size-3.5 text-tone-emerald" aria-hidden />
-                  {chosen.district} / {chosen.thana}
+                  {t('challan.location.districtThana', {
+                    district: chosen.district,
+                    thana: chosen.thana,
+                  })}
                   <LocationTypeBadge value={chosen.locationType} />
-                  <span className="text-muted-foreground">— chosen</span>
+                  <span className="text-muted-foreground">{t('challan.location.chosen')}</span>
                 </span>
               ) : resolution.isFetching ? (
                 <span className="flex items-center gap-1.5">
                   <Loader2 className="size-3.5 animate-spin" aria-hidden />
-                  Checking the location master list…
+                  {t('challan.location.checking')}
                 </span>
               ) : resolved ? (
                 <span className="flex flex-wrap items-center gap-1.5 text-foreground">
                   <CircleCheck className="size-3.5 text-tone-emerald" aria-hidden />
-                  {resolved.district} / {resolved.thana}
+                  {t('challan.location.districtThana', {
+                    district: resolved.district,
+                    thana: resolved.thana,
+                  })}
                   <LocationTypeBadge value={resolved.locationType} />
-                  <span className="text-muted-foreground">— from the master list</span>
+                  <span className="text-muted-foreground">
+                    {t('challan.location.fromMaster')}
+                  </span>
                 </span>
               ) : !hasText ? (
-                <span>Filled in automatically from the thana, district or address above.</span>
+                <span>{t('challan.location.autoFilled')}</span>
               ) : resolution.isError ? (
                 <span>
-                  The lookup could not run. The challan can still be filed; the location can be
-                  set later.
+                  {t('challan.location.lookupFailed')}
                 </span>
               ) : (
                 <span>
-                  {resolution.data?.message ??
-                    'Not determined yet. This challan can still be filed.'}
+                  {resolution.data?.message ?? t('challan.location.notDetermined')}
                 </span>
               )}
             </div>
@@ -143,7 +152,7 @@ export function ChallanLocationPanel({
               onClick={() => void resolution.refetch()}
             >
               <RefreshCcw data-icon="inline-start" aria-hidden />
-              Check again
+              {t('challan.location.checkAgain')}
             </Button>
           )}
 
@@ -154,7 +163,11 @@ export function ChallanLocationPanel({
             disabled={disabled}
             onClick={() => (locationId ? clearChoice() : setPicking((open) => !open))}
           >
-            {locationId ? 'Clear' : picking ? 'Close' : 'Choose'}
+            {locationId
+              ? t('challan.location.clear')
+              : picking
+                ? t('challan.location.close')
+                : t('challan.location.choose')}
           </Button>
         </div>
       </div>
@@ -174,8 +187,7 @@ export function ChallanLocationPanel({
           a normal outcome and not a reason to hold up a challan. */}
       <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-snug text-muted-foreground">
         <Info className="mt-px size-3 shrink-0" aria-hidden />
-        A challan files whether or not this is set. The thana and district you typed are stored
-        exactly as they are either way.
+        {t('challan.location.filesWithout')}
       </p>
     </div>
   )

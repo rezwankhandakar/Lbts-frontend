@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { formatNumber } from '@/lib/format'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import {
   createLabourBill,
@@ -59,7 +61,9 @@ export function useCreateLabourBill(): UseMutationResult<
   return useMutation({
     mutationFn: createLabourBill,
     onSuccess: (bill) => {
-      toast.success(`${bill.billNumber} opened`, { description: bill.periodLabel })
+      toast.success(t('labourBill.actions.opened', { bill: bill.billNumber }), {
+        description: bill.periodLabel,
+      })
       void invalidate()
     },
     onError: reportLabourBillError,
@@ -75,7 +79,7 @@ export function useUpdateLabourBill(): UseMutationResult<
   return useMutation({
     mutationFn: updateLabourBill,
     onSuccess: (bill) => {
-      toast.success(`${bill.billNumber} updated`)
+      toast.success(t('labourBill.actions.updated', { bill: bill.billNumber }))
       void invalidate()
     },
     onError: reportLabourBillError,
@@ -91,10 +95,13 @@ export function useDeleteLabourBill(): UseMutationResult<
   return useMutation({
     mutationFn: deleteLabourBill,
     onSuccess: (result) => {
-      toast.success(`${result.billNumber} deleted`, {
+      toast.success(t('labourBill.actions.deleted', { bill: result.billNumber }), {
         description:
           result.removed > 0
-            ? `${result.removed} ${result.removed === 1 ? 'row' : 'rows'} gone. Nothing on the Trip DO sheet changes.`
+            ? t('labourBill.actions.deletedNote', {
+                count: result.removed,
+                n: formatNumber(result.removed),
+              })
             : undefined,
       })
       void invalidate()
@@ -133,27 +140,42 @@ export function useScanOntoLabourBill(): UseMutationResult<
 
       const notes: string[] = []
       if (result.skipped.length > 0) {
-        notes.push(`${result.skipped.length} already on the sheet`)
+        notes.push(
+          t('labourBill.scan.skipped', {
+            count: result.skipped.length,
+            n: formatNumber(result.skipped.length),
+          }),
+        )
       }
       // Where the rows went, and what is still waiting. A challan routinely
       // goes out on more than one gate pass, so landing in two sections is
       // ordinary and worth saying rather than worth warning about.
       if (result.csds.length > 0) {
-        notes.push(`filed under ${result.csds.join(', ')}`)
+        notes.push(t('labourBill.scan.filedUnder', { csds: result.csds.join(', ') }))
       }
       if (result.withoutTripDo.length > 0) {
-        notes.push(`${result.withoutTripDo.join(', ')} waiting for a Trip DO`)
+        notes.push(t('labourBill.scan.waiting', { models: result.withoutTripDo.join(', ') }))
       }
 
       if (result.added.length === 0) {
-        toast.info(`${result.challanNumber} is already on ${result.billNumber}`, {
-          description: result.customerName || undefined,
-        })
+        toast.info(
+          t('labourBill.scan.alreadyOn', {
+            challan: result.challanNumber,
+            bill: result.billNumber,
+          }),
+          {
+            description: result.customerName || undefined,
+          },
+        )
         return
       }
 
       toast.success(
-        `${result.challanNumber}: ${result.added.length} ${result.added.length === 1 ? 'row' : 'rows'} added`,
+        t('labourBill.scan.added', {
+          challan: result.challanNumber,
+          count: result.added.length,
+          n: formatNumber(result.added.length),
+        }),
         { description: [result.customerName, ...notes].filter(Boolean).join(' · ') || undefined },
       )
     },
@@ -271,8 +293,12 @@ export function useRemoveLabourBillLines(): UseMutationResult<
     onSuccess: (result, variables) => {
       void invalidateCopies(variables.id)
       toast.success(
-        `${result.removed} ${result.removed === 1 ? 'row' : 'rows'} taken off ${result.billNumber}`,
-        { description: 'Nothing on the Trip DO sheet changes.' },
+        t('labourBill.actions.takenOff', {
+          count: result.removed,
+          n: formatNumber(result.removed),
+          bill: result.billNumber,
+        }),
+        { description: t('labourBill.confirm.nothingChanges') },
       )
       void invalidate()
     },
@@ -294,12 +320,15 @@ export function useRefreshLabourBill(): UseMutationResult<
       const unchanged = result.updated === 0 && result.removed === 0
       toast.success(
         unchanged
-          ? `${result.billNumber} already matches the Trip DO sheet`
-          : `${result.billNumber} refreshed from the Trip DO sheet`,
+          ? t('labourBill.actions.alreadyMatches', { bill: result.billNumber })
+          : t('labourBill.actions.refreshed', { bill: result.billNumber }),
         {
           description: unchanged
             ? undefined
-            : `${result.updated} re-read · ${result.removed} taken off · every amount kept`,
+            : t('labourBill.actions.refreshedNote', {
+                updated: formatNumber(result.updated),
+                removed: formatNumber(result.removed),
+              }),
         },
       )
       void invalidate()
@@ -313,8 +342,8 @@ export function useFinalizeLabourBill(): UseMutationResult<LabourBillRecord, Api
   return useMutation({
     mutationFn: finalizeLabourBill,
     onSuccess: (bill) => {
-      toast.success(`${bill.billNumber} finalized`, {
-        description: rowsAndChallans(bill.lineCount, bill.challanCount),
+      toast.success(t('labourBill.actions.finalized', { bill: bill.billNumber }), {
+        description: rowsAndChallans(bill.lineCount, bill.challanCount, t),
       })
       void invalidate()
     },
@@ -327,7 +356,9 @@ export function useReopenLabourBill(): UseMutationResult<LabourBillRecord, ApiEr
   return useMutation({
     mutationFn: reopenLabourBill,
     onSuccess: (bill) => {
-      toast.success(`${bill.billNumber} reopened`, { description: 'It is a draft again.' })
+      toast.success(t('labourBill.actions.reopened', { bill: bill.billNumber }), {
+        description: t('labourBill.actions.reopenedNote'),
+      })
       void invalidate()
     },
     onError: reportLabourBillError,

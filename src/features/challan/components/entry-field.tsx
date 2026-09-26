@@ -3,6 +3,8 @@ import type { UseFormRegisterReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { describedBy } from '../lib/field-messages'
 import type { ChallanSuggestionField } from '../types'
@@ -34,6 +36,12 @@ interface EntryFieldProps {
  * copying values out of a PDF needs to know *which* one is wrong. `aria-invalid`
  * and `aria-describedby` are wired here so every field gets them without each
  * caller remembering.
+ *
+ * It is also **the one place a validation message becomes words** — the
+ * arrangement `FormField` has in the auth forms and `EntryField` has in Gate
+ * Pass. The schema hands React Hook Form a translation key, this resolves it,
+ * and a key nothing knows resolves to itself, so a sentence the API wrote
+ * passes through untouched.
  */
 export function EntryField({
   id,
@@ -45,6 +53,8 @@ export function EntryField({
   action,
   children,
 }: EntryFieldProps) {
+  const t = useT()
+
   return (
     <div className={cn('space-y-1.5', wide && 'sm:col-span-2')}>
       <div className="flex min-h-5 items-center justify-between gap-3">
@@ -55,9 +65,11 @@ export function EntryField({
               *
             </span>
           )}
-          {required && <span className="sr-only">(required)</span>}
+          {required && <span className="sr-only">{t('common.labels.requiredSr')}</span>}
           {!required && (
-            <span className="ml-1 text-[11px] font-normal text-muted-foreground">Optional</span>
+            <span className="ml-1 text-[11px] font-normal text-muted-foreground">
+              {t('challan.entry.optional')}
+            </span>
           )}
         </Label>
 
@@ -68,7 +80,7 @@ export function EntryField({
 
       {error ? (
         <p id={`${id}-error`} role="alert" className="text-xs leading-snug text-destructive">
-          {error}
+          {t(error as TranslationKey)}
         </p>
       ) : hint ? (
         <p id={`${id}-hint`} className="text-xs leading-snug text-muted-foreground">

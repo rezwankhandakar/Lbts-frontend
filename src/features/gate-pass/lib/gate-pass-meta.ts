@@ -6,6 +6,8 @@ import {
   Undo2,
   type LucideIcon,
 } from 'lucide-react'
+import { formatCalendarDay, formatFileSize } from '@/lib/i18n'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import type { GatePassReferenceType, GatePassStatus } from '../types'
 
 /**
@@ -28,40 +30,37 @@ interface ToneClasses {
   chip: string
 }
 
-export interface GatePassStatusMeta extends ToneClasses {
+/** What a status says. `gatePassStatusMeta` resolves it. */
+export interface GatePassStatusMeta extends GatePassStatusPresentation {
   label: string
   description: string
+}
+
+/** The untranslatable half: icon and colour, and nothing it says. */
+interface GatePassStatusPresentation extends ToneClasses {
   icon: LucideIcon
 }
 
-export const GATE_PASS_STATUS_META: Record<GatePassStatus, GatePassStatusMeta> = {
+export const GATE_PASS_STATUS_META: Record<GatePassStatus, GatePassStatusPresentation> = {
   Draft: {
-    label: 'Draft',
-    description: 'Being prepared. Not yet part of the record.',
     icon: FileText,
     badge: 'border-border bg-muted text-muted-foreground',
     dot: 'bg-muted-foreground',
     chip: 'bg-muted text-muted-foreground ring-border',
   },
   Submitted: {
-    label: 'Submitted',
-    description: 'Awaiting verification against the physical document.',
     icon: Send,
     badge: 'border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo',
     dot: 'bg-tone-indigo',
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
   },
   Verified: {
-    label: 'Verified',
-    description: 'Checked against the scanned gate pass and accepted.',
     icon: BadgeCheck,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
   },
   Rejected: {
-    label: 'Rejected',
-    description: 'Sent back for correction. Fix it and submit again.',
     icon: Undo2,
     badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
     dot: 'bg-tone-rose',
@@ -70,9 +69,7 @@ export const GATE_PASS_STATUS_META: Record<GatePassStatus, GatePassStatusMeta> =
 }
 
 /** Neutral presentation for a value this client does not recognise. */
-const UNKNOWN: GatePassStatusMeta = {
-  label: 'Unknown',
-  description: 'Unrecognised status',
+const UNKNOWN: GatePassStatusPresentation = {
   icon: CircleSlash,
   badge: 'border-border bg-muted text-muted-foreground',
   dot: 'bg-muted-foreground',
@@ -87,27 +84,43 @@ function isGatePassStatus(value: string): value is GatePassStatus {
  * Tolerant lookup. A record written before this vocabulary was fixed still has
  * to render as something, rather than throwing on `undefined.badge`.
  */
-export function gatePassStatusMeta(value: string): GatePassStatusMeta {
-  return isGatePassStatus(value) ? GATE_PASS_STATUS_META[value] : { ...UNKNOWN, label: value || 'Unknown' }
+export function gatePassStatusMeta(value: string, t: Translator): GatePassStatusMeta {
+  if (isGatePassStatus(value)) {
+    return {
+      ...GATE_PASS_STATUS_META[value],
+      label: t(`gatePass.statuses.${value}.label` as TranslationKey),
+      description: t(`gatePass.statuses.${value}.description` as TranslationKey),
+    }
+  }
+
+  // An unrecognised value keeps its own raw string — it is data from the API.
+  return {
+    ...UNKNOWN,
+    label: value || t('gatePass.statuses.unknown.label'),
+    description: t('gatePass.statuses.unknown.description'),
+  }
 }
 
-export const REFERENCE_TYPE_LABELS: Record<GatePassReferenceType, string> = {
-  None: 'No reference',
-  Zone: 'Zone',
-  PO: 'PO',
+export const REFERENCE_TYPE_KEYS: Record<GatePassReferenceType, TranslationKey> = {
+  None: 'gatePass.referenceTypes.None',
+  Zone: 'gatePass.referenceTypes.Zone',
+  PO: 'gatePass.referenceTypes.PO',
 }
 
 /** "Zone CSD-07", "PO 627143140", or nothing at all. */
-export function referenceLabel(record: {
-  referenceType: GatePassReferenceType
-  zone: string | null
-  po: string | null
-}): string | null {
+export function referenceLabel(
+  record: {
+    referenceType: GatePassReferenceType
+    zone: string | null
+    po: string | null
+  },
+  t: Translator,
+): string | null {
   if (record.referenceType === 'Zone' && record.zone) {
-    return `Zone ${record.zone}`
+    return t('gatePass.zoneWith', { value: record.zone })
   }
   if (record.referenceType === 'PO' && record.po) {
-    return `PO ${record.po}`
+    return t('gatePass.poWith', { value: record.po })
   }
   return null
 }
@@ -117,14 +130,24 @@ export function referenceLabel(record: {
  * are. A list has room for a line, not a table, and the first product is what
  * somebody scanning for a delivery recognises.
  */
-export function itemSummary(record: { items: { productName: string; model: string }[] }): string {
+export function itemSummary(
+  record: { items: { productName: string; model: string }[] },
+  t: Translator,
+): string {
   const first = record.items[0]
   if (!first) {
-    return '—'
+    return '\u2014'
   }
 
   const rest = record.items.length - 1
-  return `${first.productName} (${first.model})${rest > 0 ? ` +${rest} more` : ''}`
+
+  return rest > 0
+    ? t('gatePass.itemSummaryMore', {
+        product: first.productName,
+        model: first.model,
+        count: rest,
+      })
+    : t('gatePass.itemSummary', { product: first.productName, model: first.model })
 }
 
 /**
@@ -135,19 +158,13 @@ export function itemSummary(record: { items: { productName: string; model: strin
  * as the 19th for anyone. Parsing the parts and formatting in UTC keeps the day
  * the day.
  */
-const TRIP_DATE_FORMAT = new Intl.DateTimeFormat(undefined, {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  timeZone: 'UTC',
-})
-
+/**
+ * A trip date is a **calendar day**, so it is read at UTC rather than in the
+ * viewer's own zone — the rule this module has always kept, now shared with
+ * every other day in the app through `lib/i18n/format.ts`.
+ */
 export function formatTripDate(value: string | null): string {
-  if (!value) {
-    return '—'
-  }
-  const date = new Date(`${value.slice(0, 10)}T00:00:00.000Z`)
-  return Number.isNaN(date.getTime()) ? value : TRIP_DATE_FORMAT.format(date)
+  return formatCalendarDay(value)
 }
 
 /** Today as YYYY-MM-DD in the viewer's own calendar, for date inputs. */
@@ -157,12 +174,7 @@ export function todayIso(): string {
   return local.toISOString().slice(0, 10)
 }
 
+/** Kept as this module's name for what is now one shared formatter. */
 export function formatBytes(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`
-  }
-  if (bytes < 1024 * 1024) {
-    return `${Math.round(bytes / 1024)} KB`
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  return formatFileSize(bytes)
 }

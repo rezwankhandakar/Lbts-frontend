@@ -14,21 +14,25 @@ import { canWriteAccounts } from '@/features/accounts/types'
 import type { AdvanceStatusFilter } from '@/features/accounts/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { countOf, useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
-const STATUS_OPTIONS: { value: AdvanceStatusFilter; label: string }[] = [
-  { value: 'outstanding', label: 'Outstanding' },
-  { value: 'Open', label: 'Untouched' },
-  { value: 'Partial', label: 'Partly settled' },
-  { value: 'Settled', label: 'Settled' },
-  { value: 'all', label: 'All' },
+const STATUS_OPTIONS: { value: AdvanceStatusFilter; labelKey: TranslationKey }[] = [
+  { value: 'outstanding', labelKey: 'accounts.pages.advances.outstanding' },
+  { value: 'Open', labelKey: 'accounts.pages.advances.untouched' },
+  { value: 'Partial', labelKey: 'accounts.pages.advances.partlySettled' },
+  { value: 'Settled', labelKey: 'accounts.pages.advances.settled' },
+  { value: 'all', labelKey: 'common.labels.all' },
 ]
 
 export function AccountsAdvancesPage() {
+  const t = useT()
+
   return (
     <AccountsShell
-      title="Advances"
-      description="Money given to anyone — staff, a driver, a contractor — until it comes back in cash. Trip advances to vendors are on Vendor Bills."
+      title={t('accounts.pages.advances.title')}
+      description={t('accounts.pages.advances.description')}
     >
       <AdvancesBody />
     </AccountsShell>
@@ -36,6 +40,8 @@ export function AccountsAdvancesPage() {
 }
 
 function AdvancesBody() {
+  const t = useT()
+
   const canWrite = canWriteAccounts(useCurrentRole())
   const dialog = useEntryDialog()
   const [status, setStatus] = useState<AdvanceStatusFilter>('outstanding')
@@ -48,9 +54,40 @@ function AdvancesBody() {
   return (
     <div className="grid gap-5">
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatTile label="Outstanding" value={taka(totals?.outstanding ?? 0)} hint={totals && `${totals.openCount} advances not settled`} icon={HandCoins} tone="amber" isLoading={query.isPending} />
-        <StatTile label="Given" value={taka(totals?.totalAmount ?? 0)} hint={totals && `${totals.total} advances in this view`} icon={Wallet} tone="indigo" isLoading={query.isPending} />
-        <StatTile label="Settled" value={taka(totals?.settledAmount ?? 0)} hint="Cash returned" icon={CircleCheckBig} tone="emerald" isLoading={query.isPending} />
+        <StatTile
+          label={t('accounts.pages.advances.outstanding')}
+          value={taka(totals?.outstanding ?? 0)}
+          hint={
+            totals &&
+            t('accounts.pages.advances.notSettled', {
+              advances: countOf(totals.openCount, 'nouns.advance', t),
+            })
+          }
+          icon={HandCoins}
+          tone="amber"
+          isLoading={query.isPending}
+        />
+        <StatTile
+          label={t('accounts.pages.advances.given')}
+          value={taka(totals?.totalAmount ?? 0)}
+          hint={
+            totals &&
+            t('accounts.pages.advances.inThisView', {
+              advances: countOf(totals.total, 'nouns.advance', t),
+            })
+          }
+          icon={Wallet}
+          tone="indigo"
+          isLoading={query.isPending}
+        />
+        <StatTile
+          label={t('accounts.pages.advances.settled')}
+          value={taka(totals?.settledAmount ?? 0)}
+          hint={t('accounts.pages.advances.cashReturned')}
+          icon={CircleCheckBig}
+          tone="emerald"
+          isLoading={query.isPending}
+        />
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -63,11 +100,15 @@ function AdvancesBody() {
               setSearch(event.target.value)
               setPage(1)
             }}
-            aria-label="Search by person, purpose, phone or number"
+            aria-label={t('accounts.pages.advances.searchAria')}
             className="pl-8.5"
           />
         </div>
-        <div role="radiogroup" aria-label="Status" className="flex w-fit flex-wrap gap-1 rounded-lg border bg-card p-0.5">
+        <div
+          role="radiogroup"
+          aria-label={t('accounts.pages.advances.statusAria')}
+          className="flex w-fit flex-wrap gap-1 rounded-lg border bg-card p-0.5"
+        >
           {STATUS_OPTIONS.map((option) => (
             <button
               key={option.value}
@@ -83,14 +124,14 @@ function AdvancesBody() {
                 status === option.value ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              {option.label}
+              {t(option.labelKey)}
             </button>
           ))}
         </div>
         {canWrite && (
           <Button className="lg:ml-auto" onClick={() => dialog.open({ kind: 'Advance' })}>
             <Plus data-icon="inline-start" aria-hidden />
-            Give advance
+            {t('accounts.kinds.Advance.action')}
           </Button>
         )}
       </div>
@@ -106,8 +147,14 @@ function AdvancesBody() {
       ) : query.data.records.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border bg-card px-4 py-16 text-center">
           <HandCoins className="size-7 text-muted-foreground" aria-hidden />
-          <p className="text-sm font-medium">{status === 'outstanding' ? 'No advance is outstanding' : 'No advance here'}</p>
-          <p className="text-xs text-muted-foreground">An advance stays listed until its cash is returned.</p>
+          <p className="text-sm font-medium">
+            {status === 'outstanding'
+              ? t('accounts.pages.advances.noneOutstanding')
+              : t('accounts.pages.advances.noneHere')}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {t('accounts.pages.advances.staysListed')}
+          </p>
         </div>
       ) : (
         <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -119,7 +166,7 @@ function AdvancesBody() {
 
       {query.data && query.data.meta.total > 0 && (
         <div className="overflow-hidden rounded-xl border bg-card">
-          <ListPagination meta={query.data.meta} onPageChange={setPage} isFetching={query.isFetching} noun={['advance', 'advances']} />
+          <ListPagination meta={query.data.meta} onPageChange={setPage} isFetching={query.isFetching} nounKey="nouns.advance" />
         </div>
       )}
     </div>

@@ -14,7 +14,8 @@ import { useChallanDocument } from '@/features/challan/hooks/use-challan-documen
 import { useChallan } from '@/features/challan/hooks/use-challans'
 import { canChangeChallan } from '@/features/challan/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
-import { formatDateTime } from '@/lib/format'
+import { formatNumber } from '@/lib/format'
+import { useFormatters, useT } from '@/lib/i18n'
 import { printDocument } from '@/lib/print-document'
 import { useAuthStore } from '@/stores/use-auth-store'
 
@@ -27,6 +28,9 @@ import { useAuthStore } from '@/stores/use-auth-store'
  * supports.
  */
 export function ChallanDetailsPage() {
+  const t = useT()
+  const format = useFormatters()
+
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -85,7 +89,7 @@ export function ChallanDetailsPage() {
 
     if (documentError) {
       setSearchParams({}, { replace: true })
-      toast.error('The challan document could not be loaded, so there is nothing to print.')
+      toast.error(t('challan.details.printFailed'))
       return
     }
 
@@ -100,7 +104,7 @@ export function ChallanDetailsPage() {
       setPrinted(record, true)
     }, 50)
     return () => window.clearTimeout(timer)
-  }, [wantsPrint, record, documentUrl, documentError, setSearchParams, setPrinted])
+  }, [wantsPrint, record, documentUrl, documentError, setSearchParams, setPrinted, t])
 
   if (query.isPending) {
     return <ChallanDetailsSkeleton />
@@ -112,16 +116,16 @@ export function ChallanDetailsPage() {
         <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
           <TriangleAlert className="size-5" aria-hidden />
         </div>
-        <h1 className="mt-4 text-lg font-semibold tracking-tight">Challan not found</h1>
+        <h1 className="mt-4 text-lg font-semibold tracking-tight">{t('challan.notFound')}</h1>
         <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-          {query.error?.message ?? 'It may have been deleted, or you may not have access to it.'}
+          {query.error?.message ?? t('challan.notFoundHint')}
         </p>
         <div className="mt-5 flex gap-2">
           <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
-            Try again
+            {t('common.actions.retry')}
           </Button>
           <Button size="sm" onClick={() => navigate('/challan')}>
-            Back to challans
+            {t('challan.backToList')}
           </Button>
         </div>
       </div>
@@ -129,6 +133,21 @@ export function ChallanDetailsPage() {
   }
 
   const canChange = canChangeChallan(role, record, currentUserId)
+
+  // One sentence, interpolated: the filer's name sits in a different place in
+  // the two languages, and a fragment appended in JSX can only be right in one.
+  const filedLine = record.submittedBy
+    ? t('challan.details.filedLineBy', {
+        sl: formatNumber(record.slNumber),
+        customer: record.customerName,
+        when: format.dateTime(record.submittedAt),
+        name: record.submittedBy.name,
+      })
+    : t('challan.details.filedLine', {
+        sl: formatNumber(record.slNumber),
+        customer: record.customerName,
+        when: format.dateTime(record.submittedAt),
+      })
 
   return (
     <div className="mx-auto w-full max-w-7xl">
@@ -141,7 +160,7 @@ export function ChallanDetailsPage() {
             onClick={() => navigate('/challan')}
           >
             <ArrowLeft data-icon="inline-start" aria-hidden />
-            All challans
+            {t('challan.allChallans')}
           </Button>
 
           <div className="flex flex-wrap items-center gap-2.5">
@@ -153,16 +172,14 @@ export function ChallanDetailsPage() {
           </div>
 
           <p className="mt-1.5 text-sm text-muted-foreground">
-            SL {record.slNumber} · {record.customerName} · filed{' '}
-            {formatDateTime(record.submittedAt)}
-            {record.submittedBy ? ` by ${record.submittedBy.name}` : ''}
+            {filedLine}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => actions.download(record)}>
             <Download data-icon="inline-start" aria-hidden />
-            Download
+            {t('common.actions.download')}
           </Button>
 
           {/* Disabled until the bytes are here: there is nothing to send to a
@@ -172,22 +189,22 @@ export function ChallanDetailsPage() {
             size="sm"
             onClick={print}
             disabled={!document.url}
-            title={document.url ? undefined : 'Waiting for the document'}
+            title={document.url ? undefined : t('challan.details.waitingForDocument')}
           >
             <Printer data-icon="inline-start" aria-hidden />
-            Print
+            {t('common.actions.print')}
           </Button>
 
           <Button variant="outline" size="sm" onClick={() => actions.openBatch(record)}>
             <Layers data-icon="inline-start" aria-hidden />
-            Batch
+            {t('challan.details.batchButton')}
           </Button>
 
           {canChange && (
             <>
               <Button variant="outline" size="sm" onClick={() => actions.edit(record)}>
                 <Pencil data-icon="inline-start" aria-hidden />
-                Correct
+                {t('challan.details.correct')}
               </Button>
               <Button
                 variant="outline"
@@ -196,7 +213,7 @@ export function ChallanDetailsPage() {
                 onClick={() => actions.openDelete(record)}
               >
                 <Trash2 data-icon="inline-start" aria-hidden />
-                Delete
+                {t('common.actions.delete')}
               </Button>
             </>
           )}
@@ -221,13 +238,15 @@ export function ChallanDetailsPage() {
         />
 
         <section
-          aria-label="Challan document"
+          aria-label={t('challan.details.documentAria')}
           className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card shadow-sm lg:sticky lg:top-0"
         >
           <header className="border-b bg-muted/30 px-4 py-3">
-            <h2 className="text-[13px] font-semibold tracking-tight">Generated challan document</h2>
+            <h2 className="text-[13px] font-semibold tracking-tight">
+              {t('challan.details.generatedDocument')}
+            </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              The original challan pages, then the LBTS back page with the barcode.
+              {t('challan.details.generatedDocumentHint')}
             </p>
           </header>
 

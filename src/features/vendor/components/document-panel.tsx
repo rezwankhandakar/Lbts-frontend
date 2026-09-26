@@ -418,7 +418,7 @@ export function DocumentPanel({
             meta={meta}
             onPageChange={setPage}
             isFetching={query.isFetching}
-            noun={['document', 'documents']}
+            nounKey="nouns.document"
           />
         )}
       </Panel>

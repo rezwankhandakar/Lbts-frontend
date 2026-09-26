@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { signedTaka, taka } from '../lib/accounts-meta'
 import type { ProfitLossReport } from '../types'
@@ -21,12 +22,17 @@ function Bar({ value, max, className }: { value: number; max: number; className:
  * the Excel bills asked; by expense name; and by vendor, largest first.
  */
 export function PlBreakdowns({ report, fromParam }: { report: ProfitLossReport; fromParam: string }) {
+  const t = useT()
+
   const topUnit = Math.max(0, ...report.incomeByUnit.map((row) => row.finalAmount))
   const topVendor = Math.max(0, ...report.costByVendor.map((row) => row.total))
 
   return (
     <div className="grid gap-5 lg:grid-cols-3">
-      <Panel title="Income by unit" description="Final bill, and what the audit changed">
+      <Panel
+        title={t('accounts.profit.incomeByUnit')}
+        description={t('accounts.profit.incomeByUnitHint')}
+      >
         {report.incomeByUnit.length === 0 ? (
           <Empty text="No final bill in this period." />
         ) : (
@@ -52,7 +58,10 @@ export function PlBreakdowns({ report, fromParam }: { report: ProfitLossReport; 
         )}
       </Panel>
 
-      <Panel title="Office expenses" description="By expense name">
+      <Panel
+        title={t('accounts.profit.officeExpenses')}
+        description={t('accounts.profit.officeExpensesHint')}
+      >
         {report.expenseByName.length === 0 ? (
           <Empty text="No office expense in this period." />
         ) : (
@@ -72,7 +81,10 @@ export function PlBreakdowns({ report, fromParam }: { report: ProfitLossReport; 
         )}
       </Panel>
 
-      <Panel title="Trip cost by vendor" description="Rent and labour bill">
+      <Panel
+        title={t('accounts.profit.tripCostByVendor')}
+        description={t('accounts.profit.tripCostHint')}
+      >
         {report.costByVendor.length === 0 ? (
           <Empty text="No trip in this period." />
         ) : (

@@ -2,6 +2,7 @@ import { ArrowLeft, ShieldX } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/use-auth-store'
+import { useT } from '@/lib/i18n'
 import { roleMeta } from '@/lib/roles'
 
 interface AccessDeniedProps {
@@ -24,8 +25,9 @@ interface AccessDeniedProps {
  * independently, so nothing here is load-bearing for security.
  */
 export function AccessDenied({ area, reason }: AccessDeniedProps) {
+  const t = useT()
   const profile = useAuthStore((state) => state.profile)
-  const meta = profile ? roleMeta(profile.role) : null
+  const meta = profile ? roleMeta(profile.role, t) : null
 
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-lg flex-col items-center justify-center px-2 py-16 text-center">
@@ -34,16 +36,16 @@ export function AccessDenied({ area, reason }: AccessDeniedProps) {
       </div>
 
       <h1 className="mt-6 text-xl font-semibold tracking-tight text-balance sm:text-2xl">
-        You don't have access to {area}
+        {t('shared.accessDenied.title', { area })}
       </h1>
       <p className="mt-2.5 text-sm leading-relaxed text-pretty text-muted-foreground">
-        {reason ?? `${area} is restricted to administrators.`} Ask an Admin if you believe you
-        should have access.
+        {reason ?? t('shared.accessDenied.restricted', { area })}{' '}
+        {t('shared.accessDenied.askAdmin')}
       </p>
 
       {meta && (
         <p className="mt-5 text-xs text-muted-foreground">
-          Signed in as{' '}
+          {t('shared.accessDenied.signedInAs')}{' '}
           <span className="font-medium text-foreground">{profile?.name ?? profile?.email}</span> ·{' '}
           <span className="font-medium text-foreground">{meta.label}</span>
         </p>
@@ -51,7 +53,7 @@ export function AccessDenied({ area, reason }: AccessDeniedProps) {
 
       <Button variant="outline" className="mt-7" render={<Link to="/" />}>
         <ArrowLeft data-icon="inline-start" aria-hidden />
-        Back to dashboard
+        {t('shared.accessDenied.backToDashboard')}
       </Button>
     </div>
   )

@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
+import { formatNumber } from '@/lib/format'
+import { t } from '@/lib/i18n'
 import { MergeDocumentsError, joinDocuments } from '../lib/merge-documents'
 import type { ScanBatch } from './use-scan-batch'
 
@@ -49,16 +51,25 @@ export function useJoinSheets(batch: ScanBatch): JoinSheets {
 
         batch.join(ids, joined)
 
-        toast.success(`${sheets.length} sheets joined`, {
-          description: `They are now one ${joined.pageCount}-page document, filed as one gate pass.`,
-        })
+        toast.success(
+          t('gatePass.toasts.sheetsJoined', {
+            count: sheets.length,
+            n: formatNumber(sheets.length),
+          }),
+          {
+            description: t('gatePass.toasts.sheetsJoinedNote', {
+              count: sheets.length,
+              pages: formatNumber(joined.pageCount),
+            }),
+          },
+        )
 
         return true
       } catch (error) {
         toast.error(
           error instanceof MergeDocumentsError
             ? error.message
-            : 'Those sheets could not be joined. Remove one, or scan the challan as a single PDF.',
+            : t('gatePass.toasts.joinFailed'),
         )
         return false
       } finally {

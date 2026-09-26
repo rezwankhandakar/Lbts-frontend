@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useSaveEntry, useSaveEntryVoucher } from '../hooks/use-accounts-mutations'
 import type { EntryDialogRequest } from '../hooks/use-entry-dialog'
-import { KIND_META, todayString } from '../lib/accounts-meta'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
+import { kindMeta, todayString } from '../lib/accounts-meta'
 import {
   draftFromEntry,
   emptyDraft,
@@ -28,10 +30,10 @@ import { VoucherField } from './voucher-field'
 import type { StagedVoucher } from './voucher-field'
 import { WalletField } from './wallet-field'
 
-const WALLET_LABEL: Partial<Record<EntryDraft['kind'], string>> = {
-  Deposit: 'Deposit into cash',
-  AdvanceReturn: 'Returned into cash',
-  Transfer: 'From cash wallet',
+const WALLET_LABEL_KEYS: Partial<Record<EntryDraft['kind'], TranslationKey>> = {
+  Deposit: 'accounts.form.depositInto',
+  AdvanceReturn: 'accounts.form.returnedInto',
+  Transfer: 'accounts.form.fromCashWallet',
 }
 
 /**
@@ -40,6 +42,8 @@ const WALLET_LABEL: Partial<Record<EntryDraft['kind'], string>> = {
  * are the same for every kind and sit in the same places.
  */
 export function EntryForm({ request, onDone }: { request: EntryDialogRequest; onDone: () => void }) {
+  const t = useT()
+
   const { entry } = request
   const [draft, setDraft] = useState<EntryDraft>(() =>
     entry ? draftFromEntry(entry) : emptyDraft(request.kind, todayString(), request.preset),
@@ -51,7 +55,7 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
   const save = useSaveEntry()
   const saveVoucher = useSaveEntryVoucher()
 
-  const meta = KIND_META[draft.kind]
+  const meta = kindMeta(draft.kind, t)
   const errors = touched ? validateDraft(draft) : {}
   const set = (patch: Partial<EntryDraft>) => setDraft((current) => ({ ...current, ...patch }))
 
@@ -104,7 +108,9 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
       <DialogHeader className="flex-row items-start gap-3">
         <KindIcon kind={draft.kind} className="size-10" />
         <div className="min-w-0">
-          <DialogTitle>{entry ? `Edit ${entry.entryNumber}` : meta.action}</DialogTitle>
+          <DialogTitle>
+            {entry ? t('accounts.form.editTitle', { entry: entry.entryNumber }) : meta.action}
+          </DialogTitle>
           <DialogDescription className="mt-1">{meta.description}</DialogDescription>
         </div>
       </DialogHeader>
@@ -112,13 +118,13 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
       <div className="grid gap-4 sm:grid-cols-[1fr_11rem]">
         <AmountWordsInput
           id="entry-amount"
-          label="Amount"
+          label={t('accounts.form.amount')}
           value={draft.amount}
           max={MAX_ACCOUNT_AMOUNT}
           error={errors.amount}
           onChange={(amount) => set({ amount })}
         />
-        <EntryField id="entry-date" label="Date" error={errors.date}>
+        <EntryField id="entry-date" label={t('accounts.form.date')} error={errors.date}>
           <Input
             id="entry-date"
             type="date"
@@ -134,7 +140,11 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
       {usesWallet(draft.kind) && (
         <WalletField
           id="entry-wallet"
-          label={againstWaltonBill ? 'Received into' : (WALLET_LABEL[draft.kind] ?? 'Paid from cash')}
+          label={
+            againstWaltonBill
+              ? t('accounts.form.receivedInto')
+              : t(WALLET_LABEL_KEYS[draft.kind] ?? 'accounts.form.paidFromCash')
+          }
           cashOnly={requiresCashWallet(draft.kind, againstWaltonBill)}
           // A labour payment arrives in the bank, so the field starts there.
           // A default rather than a restriction — every wallet stays in the list.
@@ -149,7 +159,7 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
       {draft.kind === 'Transfer' && (
         <WalletField
           id="entry-to-wallet"
-          label="To cash wallet"
+          label={t('accounts.form.toCashWallet')}
           cashOnly
           value={draft.toWalletId}
           error={errors.toWalletId}
@@ -159,7 +169,7 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
       )}
 
       <div className="grid gap-4 sm:grid-cols-[11rem_1fr]">
-        <EntryField id="entry-reference" label="Reference" optional>
+        <EntryField id="entry-reference" label={t('accounts.form.reference')} optional>
           <Input
             id="entry-reference"
             value={draft.reference}
@@ -168,7 +178,7 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
             onChange={(event) => set({ reference: event.target.value })}
           />
         </EntryField>
-        <EntryField id="entry-note" label="Note" optional>
+        <EntryField id="entry-note" label={t('accounts.form.note')} optional>
           <Textarea
             id="entry-note"
             rows={1}
@@ -194,15 +204,15 @@ export function EntryForm({ request, onDone }: { request: EntryDialogRequest; on
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone} disabled={busy}>
-          Cancel
+          {t('common.actions.cancel')}
         </Button>
         <Button type="submit" disabled={busy}>
           {busy && <Loader2 className="animate-spin" data-icon="inline-start" aria-hidden />}
           {saveVoucher.isPending
-            ? 'Uploading the voucher…'
+            ? t('accounts.form.uploadingVoucher')
             : entry
-              ? 'Save changes'
-              : `Save ${meta.label.toLowerCase()}`}
+              ? t('common.actions.saveChanges')
+              : t('accounts.form.saveKind', { kind: meta.label.toLowerCase() })}
         </Button>
       </DialogFooter>
     </form>

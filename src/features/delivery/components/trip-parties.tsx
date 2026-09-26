@@ -8,6 +8,7 @@ import { TripDriverCard } from './trip-driver-card'
 import { TripVehicleCard } from './trip-vehicle-card'
 import { TripVendorCard } from './trip-vendor-card'
 import { VehicleSearch } from './vehicle-search'
+import { useT } from '@/lib/i18n'
 
 interface TripPartiesProps {
   vehicle: TripVehicleOption | null
@@ -35,6 +36,8 @@ export function TripParties({
   canAddDriver,
   disabled,
 }: TripPartiesProps) {
+  const t = useT()
+
   const [dialog, setDialog] = useState<'pick' | 'add' | null>(null)
   const [changing, setChanging] = useState(false)
 
@@ -54,7 +57,7 @@ export function TripParties({
             onClick={() => setChanging(false)}
             className="text-xs font-medium text-primary hover:underline"
           >
-            Keep {vehicle?.vehicle.registrationNo}
+            {t('delivery.vehicle.keep', { plate: vehicle?.vehicle.registrationNo ?? '' })}
           </button>
         )}
       </div>

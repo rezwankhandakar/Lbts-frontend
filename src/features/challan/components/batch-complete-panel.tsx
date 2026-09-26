@@ -1,6 +1,8 @@
 import { CircleCheck, Download, Loader2, Printer, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
+import { countOf, useT } from '@/lib/i18n'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useBatchDownload, useBatchPrint } from '../hooks/use-challan-actions'
 import { useBatchPrinted } from '../hooks/use-challan-mutations'
@@ -31,6 +33,8 @@ interface BatchCompletePanelProps {
  * is what stops this panel from offering a button that would be refused.
  */
 export function BatchCompletePanel({ batchId, canChange }: BatchCompletePanelProps) {
+  const t = useT()
+
   const query = useChallanBatch(batchId)
   const batch = query.data ?? null
 
@@ -51,7 +55,10 @@ export function BatchCompletePanel({ batchId, canChange }: BatchCompletePanelPro
   const busy = print.isPrinting || download.isDownloading
 
   return (
-    <section aria-label="Batch actions" className="rounded-xl border bg-card p-4 shadow-sm">
+    <section
+      aria-label={t('challan.batch.actionsAria')}
+      className="rounded-xl border bg-card p-4 shadow-sm"
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-2.5">
           <span
@@ -71,26 +78,23 @@ export function BatchCompletePanel({ batchId, canChange }: BatchCompletePanelPro
           <div className="min-w-0">
             <p className="text-[13px] font-semibold">
               {batch.isComplete
-                ? `All ${batch.challanCount} ${batch.challanCount === 1 ? 'challan' : 'challans'} from this PDF are filed`
-                : 'This PDF is not finished yet'}
+                ? t('challan.batch.allFiled', {
+                    challans: countOf(batch.challanCount, 'nouns.challan', t),
+                  })
+                : t('challan.batch.notFinished')}
             </p>
             <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-              {batch.isComplete ? (
-                <>
-                  They can be printed as one document — each challan's pages followed by its LBTS
-                  back page, in the order the source file had them.
-                </>
-              ) : (
-                <>
-                  {batch.unassignedPages} {batch.unassignedPages === 1 ? 'page is' : 'pages are'}{' '}
-                  neither filed nor marked blank, so the set cannot be printed as one document yet.
-                </>
-              )}{' '}
+              {batch.isComplete
+                ? t('challan.batch.printableNote')
+                : t('challan.batch.notPrintableYet', {
+                    count: batch.unassignedPages,
+                    n: formatNumber(batch.unassignedPages),
+                  })}{' '}
               <Link
                 to={`/challan/batch/${batch.id}`}
                 className="font-medium text-foreground underline underline-offset-2"
               >
-                Open the batch
+                {t('challan.batch.openBatch')}
               </Link>
             </p>
           </div>
@@ -107,7 +111,7 @@ export function BatchCompletePanel({ batchId, canChange }: BatchCompletePanelPro
             ) : (
               <Printer data-icon="inline-start" aria-hidden />
             )}
-            {print.isPrinting ? 'Assembling…' : 'Print all challans'}
+            {print.isPrinting ? t('challan.batch.assembling') : t('challan.batch.printAll')}
           </Button>
 
           <Button
@@ -121,7 +125,7 @@ export function BatchCompletePanel({ batchId, canChange }: BatchCompletePanelPro
             ) : (
               <Download data-icon="inline-start" aria-hidden />
             )}
-            Download
+            {t('common.actions.download')}
           </Button>
         </div>
       </div>

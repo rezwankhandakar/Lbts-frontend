@@ -1,6 +1,8 @@
 import { Ban, Truck } from 'lucide-react'
 import type { VehicleSearchResult } from '../types'
+import { formatNumber } from '@/lib/format'
 import { VehicleResultItem } from './vehicle-result-item'
+import { useT } from '@/lib/i18n'
 
 export interface VehicleSearchResultsProps {
   listId: string
@@ -33,11 +35,13 @@ export function VehicleSearchResults({
   onHover,
   onChoose,
 }: VehicleSearchResultsProps) {
+  const t = useT()
+
   if (typed.length < 2) {
     return (
       <div className="flex items-center gap-3 rounded-lg border border-dashed px-4 py-6 text-sm text-muted-foreground">
         <Truck className="size-5 shrink-0 text-primary/70" aria-hidden />
-        The vehicle&apos;s vendor and its assigned driver fill in as soon as you choose it.
+        {t('delivery.vehicle.fillsIn')}
       </div>
     )
   }
@@ -48,7 +52,7 @@ export function VehicleSearchResults({
         role="alert"
         className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
       >
-        {errorMessage ?? 'The vehicle search failed.'}
+        {errorMessage ?? t('delivery.vehicle.searchFailed')}
       </p>
     )
   }
@@ -58,7 +62,7 @@ export function VehicleSearchResults({
   return (
     <div className="space-y-2" aria-busy={waiting}>
       {results.length > 0 ? (
-        <ul id={listId} role="listbox" aria-label="Matching vehicles" className="space-y-1">
+        <ul id={listId} role="listbox" aria-label={t('delivery.vehicle.matchesAria')} className="space-y-1">
           {results.map((option, index) => (
             <VehicleResultItem
               key={option.vehicle.id}
@@ -75,8 +79,7 @@ export function VehicleSearchResults({
         !waiting &&
         data && (
           <p className="rounded-lg border border-dashed px-4 py-5 text-center text-sm text-muted-foreground">
-            No vehicle that can take a trip matches{' '}
-            <span className="font-mono font-medium text-foreground">{query}</span>.
+            {t('delivery.vehicle.noMatch', { query })}
           </p>
         )
       )}
@@ -85,9 +88,10 @@ export function VehicleSearchResults({
         <div className="rounded-lg border bg-muted/30 px-3 py-2.5">
           <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <Ban className="size-3.5" aria-hidden />
-            {data.unavailableCount === 1
-              ? '1 matching vehicle cannot take a trip'
-              : `${data.unavailableCount} matching vehicles cannot take a trip`}
+            {t('delivery.vehicle.unavailable', {
+              count: data.unavailableCount,
+              n: formatNumber(data.unavailableCount),
+            })}
           </p>
           <ul className="mt-1.5 space-y-1">
             {data.unavailable.map((vehicle) => (

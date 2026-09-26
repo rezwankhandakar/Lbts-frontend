@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { productRateLabel } from '../hooks/use-product-rates'
 import type { ProductRateRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface DeleteProductRateDialogProps {
   record: ProductRateRecord | null
@@ -43,6 +44,8 @@ export function DeleteProductRateDialog({
   onOpenChange,
   onConfirm,
 }: DeleteProductRateDialogProps) {
+  const t = useT()
+
   if (!record) {
     return null
   }
@@ -51,23 +54,20 @@ export function DeleteProductRateDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Remove {productRateLabel(record)}?</AlertDialogTitle>
-          <AlertDialogDescription>
-            If no challan was ever charged from this row it is deleted outright. If some were, it is
-            deactivated instead and kept: their figures do not change either way, but the row is
-            what says where those figures came from. Either way it stops pricing new challans and
-            stops being offered as a product suggestion.
-          </AlertDialogDescription>
+          <AlertDialogTitle>
+            {t('productRate.remove.title', { label: productRateLabel(record) })}
+          </AlertDialogTitle>
+          <AlertDialogDescription>{t('productRate.remove.body')}</AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Keep it</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>{t('productRate.remove.keep')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isPending}
             className="bg-destructive/10 text-destructive hover:bg-destructive/20"
           >
-            {isPending ? 'Removing…' : 'Remove'}
+            {isPending ? t('productRate.remove.removing') : t('productRate.remove.confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

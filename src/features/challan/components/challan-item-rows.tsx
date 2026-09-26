@@ -9,6 +9,9 @@ import type {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { formatNumber } from '@/lib/format'
+import { countOf, useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ChallanFormValues } from '../schemas/challan-schemas'
 import { MAX_CHALLAN_ITEMS } from '../types'
@@ -53,6 +56,8 @@ export function ChallanItemRows({
   onRemove,
   disabled,
 }: ChallanItemRowsProps) {
+  const t = useT()
+
   const items = watch('items')
   const isFull = fields.length >= MAX_CHALLAN_ITEMS
 
@@ -78,11 +83,11 @@ export function ChallanItemRows({
             <li
               key={field.id}
               className="rounded-lg border bg-muted/20 p-3"
-              aria-label={`Product ${index + 1}`}
+              aria-label={t('challan.entry.productIndex', { n: formatNumber(index + 1) })}
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-                  Product {index + 1}
+                  {t('challan.entry.productIndex', { n: formatNumber(index + 1) })}
                 </span>
 
                 {/* Hidden rather than disabled on the last row: there is no
@@ -95,7 +100,9 @@ export function ChallanItemRows({
                     size="icon-xs"
                     disabled={disabled}
                     onClick={() => onRemove(index)}
-                    aria-label={`Remove product ${index + 1}`}
+                    aria-label={t('challan.entry.removeProduct', {
+                      n: formatNumber(index + 1),
+                    })}
                     className="text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 aria-hidden />
@@ -106,7 +113,8 @@ export function ChallanItemRows({
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_5.5rem]">
                 <div className="space-y-1">
                   <Label htmlFor={productId} className={LABEL}>
-                    Product<span className="text-destructive"> *</span>
+                    {t('challan.entry.productLabel')}
+                    <span className="text-destructive"> *</span>
                   </Label>
                   {/* Told what the model on this row is, so pasting a model
                       offers the rate card's own name for it. */}
@@ -126,7 +134,7 @@ export function ChallanItemRows({
                   <RowError message={rowErrors?.productName?.message} />
                   <BanglaConvertControl
                     value={productValue}
-                    label={`Product ${index + 1}`}
+                    label={t('challan.entry.productIndex', { n: formatNumber(index + 1) })}
                     disabled={disabled}
                     onApply={(value) =>
                       setValue(`items.${index}.productName`, value, {
@@ -139,7 +147,8 @@ export function ChallanItemRows({
 
                 <div className="space-y-1">
                   <Label htmlFor={modelId} className={LABEL}>
-                    Model<span className="text-destructive"> *</span>
+                    {t('challan.entry.modelLabel')}
+                    <span className="text-destructive"> *</span>
                   </Label>
                   <SuggestInput
                     id={modelId}
@@ -159,7 +168,8 @@ export function ChallanItemRows({
 
                 <div className="space-y-1">
                   <Label htmlFor={qtyId} className={LABEL}>
-                    Qty<span className="text-destructive"> *</span>
+                    {t('challan.entry.qtyLabel')}
+                    <span className="text-destructive"> *</span>
                   </Label>
                   <Input
                     id={qtyId}
@@ -181,7 +191,7 @@ export function ChallanItemRows({
 
       {listError && (
         <p role="alert" className="text-xs leading-snug text-destructive">
-          {listError}
+          {t(listError as TranslationKey)}
         </p>
       )}
 
@@ -194,32 +204,44 @@ export function ChallanItemRows({
           disabled={disabled || isFull}
         >
           <Plus data-icon="inline-start" aria-hidden />
-          Add another product
+          {t('challan.entry.addProduct')}
         </Button>
 
         <p className={cn('text-xs text-muted-foreground', total === 0 && 'invisible')}>
-          {fields.length} {fields.length === 1 ? 'row' : 'rows'} ·{' '}
-          <span className="font-medium text-foreground tabular-nums">{total}</span> total
+          {t('challan.entry.rowsTotal', {
+            rows: countOf(fields.length, 'nouns.row', t),
+            total: formatNumber(total),
+          })}
         </p>
       </div>
 
       {isFull && (
         <p className="text-xs text-muted-foreground">
-          That is as many products as one challan can carry.
+          {t('challan.entry.maxProducts')}
         </p>
       )}
     </div>
   )
 }
 
+/**
+ * One row cell's validation message.
+ *
+ * The message the schema handed React Hook Form is a translation key, so this
+ * is where it becomes words — the same arrangement `EntryField` has for the
+ * fields above. A key nothing knows resolves to itself, so a sentence the API
+ * wrote passes through untouched.
+ */
 function RowError({ message }: { message?: string }) {
+  const t = useT()
+
   if (!message) {
     return null
   }
 
   return (
     <p role="alert" className="text-xs leading-snug text-destructive">
-      {message}
+      {t(message as TranslationKey)}
     </p>
   )
 }

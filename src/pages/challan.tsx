@@ -14,6 +14,7 @@ import { canManageAnyChallan, canWriteChallans } from '@/features/challan/types'
 import type { ChallanListParams } from '@/features/challan/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { useAuthStore } from '@/stores/use-auth-store'
+import { useT } from '@/lib/i18n'
 
 /**
  * The challan records.
@@ -25,6 +26,8 @@ import { useAuthStore } from '@/stores/use-auth-store'
  * take the cluster down.
  */
 export function ChallanPage() {
+  const t = useT()
+
   const role = useCurrentRole()
   const currentUserId = useAuthStore((state) => state.profile?.id ?? null)
 
@@ -68,9 +71,9 @@ export function ChallanPage() {
     <div className="mx-auto w-full max-w-7xl">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">Challan</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('challan.title')}</h1>
           <p className="mt-1 max-w-xl text-sm text-pretty text-muted-foreground">
-            Every challan filed out of a corporate PDF — serial, barcode back page and document.
+            {t('challan.listSubtitle')}
           </p>
         </div>
 
@@ -84,13 +87,13 @@ export function ChallanPage() {
               read a challan — following a file's progress is not a write. */}
           <Button variant="outline" render={<Link to="/challan/batches" />}>
             <Layers data-icon="inline-start" aria-hidden />
-            Source PDFs
+            {t('challan.sourcePdfs')}
           </Button>
 
           {canWrite && (
             <Button render={<Link to="/challan/new" />}>
               <Plus data-icon="inline-start" aria-hidden />
-              Open a challan PDF
+              {t('challan.openChallanPdf')}
             </Button>
           )}
         </div>
@@ -104,7 +107,7 @@ export function ChallanPage() {
       />
 
       <section
-        aria-label="Challan records"
+        aria-label={t('challan.listAria')}
         className="overflow-hidden rounded-xl border bg-card shadow-xs"
       >
         <ChallanFilters
@@ -128,7 +131,7 @@ export function ChallanPage() {
           isLoading={query.isPending}
           isFetching={query.isFetching}
           isError={query.isError}
-          errorMessage={query.error?.message ?? 'Something went wrong.'}
+          errorMessage={query.error?.message ?? t('challan.somethingWrong')}
           isFiltered={list.isFiltered}
           onRetry={() => void query.refetch()}
           onReset={list.reset}

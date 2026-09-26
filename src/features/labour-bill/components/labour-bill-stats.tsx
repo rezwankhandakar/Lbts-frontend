@@ -1,6 +1,7 @@
 import { TriangleAlert } from 'lucide-react'
-import { formatTaka } from '@/lib/format'
+import { formatNumber, formatTaka } from '@/lib/format'
 import type { LabourBillRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 /**
  * The bill's figures in one strip: the amount first and largest, then what it
@@ -13,18 +14,20 @@ import type { LabourBillRecord } from '../types'
  * next thing to do.
  */
 export function LabourBillStats({ bill }: { bill: LabourBillRecord }) {
+  const t = useT()
+
   const counts: [string, string][] = [
-    ['Ven/Pulling/Labour', formatTaka(bill.labourTotal)],
-    ['Floor', formatTaka(bill.floorTotal)],
-    ['Rows', bill.lineCount.toLocaleString()],
-    ['Challans', bill.challanCount.toLocaleString()],
+    [t('labourBill.stats.labour'), formatTaka(bill.labourTotal)],
+    [t('labourBill.stats.floor'), formatTaka(bill.floorTotal)],
+    [t('labourBill.stats.rows'), formatNumber(bill.lineCount)],
+    [t('labourBill.stats.challans'), formatNumber(bill.challanCount)],
   ]
 
   return (
     <div className="relative grid border-t bg-card/60 sm:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))]">
       <div className="border-b px-5 py-4 sm:border-r sm:border-b-0 sm:px-6">
         <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-          Labour bill total
+          {t('labourBill.cardTotal')}
         </p>
         <p className="mt-0.5 text-3xl font-semibold tracking-tight tabular-nums">
           {formatTaka(bill.totalAmount)}
@@ -33,8 +36,10 @@ export function LabourBillStats({ bill }: { bill: LabourBillRecord }) {
           <p className="mt-1 inline-flex items-start gap-1 text-xs font-medium text-tone-amber">
             <TriangleAlert className="mt-px size-3.5 shrink-0" aria-hidden />
             <span className="text-pretty">
-              {bill.unpricedLines} {bill.unpricedLines === 1 ? 'row has' : 'rows have'} no amount yet
-              and {bill.unpricedLines === 1 ? 'adds' : 'add'} nothing
+              {t('labourBill.stats.unpricedNote', {
+                count: bill.unpricedLines,
+                n: formatNumber(bill.unpricedLines),
+              })}
             </span>
           </p>
         )}

@@ -5,7 +5,10 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { cn } from '@/lib/utils'
 import { useWallets } from '../hooks/use-accounts'
 import type { EntryFilterPatch } from '../hooks/use-entry-list-params'
-import { KIND_META } from '../lib/accounts-meta'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
+import type { EntryKind } from '../types'
+import { kindMeta } from '../lib/accounts-meta'
 import { ENTRY_KINDS } from '../types'
 import type { EntryKindFilter, EntryListParams } from '../types'
 
@@ -18,16 +21,18 @@ interface CashBookToolbarProps {
   showKind?: boolean
 }
 
-const DIRECTIONS: { value: EntryKindFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'in', label: 'Money in' },
-  { value: 'out', label: 'Money out' },
+const DIRECTIONS: { value: EntryKindFilter; labelKey: TranslationKey }[] = [
+  { value: 'all', labelKey: 'accounts.filters.anyDirection' },
+  { value: 'in', labelKey: 'accounts.filters.moneyIn' },
+  { value: 'out', labelKey: 'accounts.filters.moneyOut' },
 ]
 
 const ANY = 'any'
 
 /** Search, direction, kind, wallet and a date range — every one applied server-side. */
 export function CashBookToolbar({ params, onChange, onReset, isFiltered, showKind = true }: CashBookToolbarProps) {
+  const t = useT()
+
   const wallets = useWallets()
   const isKind = (ENTRY_KINDS as readonly string[]).includes(params.kind)
 
@@ -40,13 +45,13 @@ export function CashBookToolbar({ params, onChange, onReset, isFiltered, showKin
             type="search"
             value={params.search}
             onChange={(event) => onChange({ search: event.target.value })}
-            aria-label="Search by number, person, vendor, trip, reference or note"
+            aria-label={t('accounts.filters.searchAria')}
             className="pl-8.5"
           />
         </div>
 
         {showKind && (
-          <div role="radiogroup" aria-label="Direction" className="grid grid-cols-3 rounded-lg border bg-card p-0.5 sm:inline-flex sm:w-fit">
+          <div role="radiogroup" aria-label={t('accounts.filters.directionAria')} className="grid grid-cols-3 rounded-lg border bg-card p-0.5 sm:inline-flex sm:w-fit">
             {DIRECTIONS.map((option) => (
               <button
                 key={option.value}
@@ -59,7 +64,7 @@ export function CashBookToolbar({ params, onChange, onReset, isFiltered, showKin
                   params.kind === option.value ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground',
                 )}
               >
-                {option.label}
+                {t(option.labelKey)}
               </button>
             ))}
           </div>
@@ -69,15 +74,21 @@ export function CashBookToolbar({ params, onChange, onReset, isFiltered, showKin
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center lg:ml-auto">
           {showKind && (
             <Select value={isKind ? params.kind : ANY} onValueChange={(value) => onChange({ kind: value === ANY || !value ? 'all' : (value as EntryKindFilter) })}>
-              <SelectTrigger className="h-8 w-full sm:w-[10.5rem]" aria-label="Entry type">
-                <SelectValue>{(value: string) => (value === ANY ? 'Any type' : KIND_META[value as keyof typeof KIND_META].label)}</SelectValue>
+              <SelectTrigger className="h-8 w-full sm:w-[10.5rem]" aria-label={t('accounts.filters.kindAria')}>
+                <SelectValue>
+                  {(value: string) =>
+                    value === ANY
+                      ? t('accounts.filters.anyKind')
+                      : kindMeta(value as EntryKind, t).label
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value={ANY}>Any type</SelectItem>
+                  <SelectItem value={ANY}>{t('accounts.filters.anyKind')}</SelectItem>
                   {ENTRY_KINDS.filter((kind) => kind !== 'AdvanceAdjust').map((kind) => (
                     <SelectItem key={kind} value={kind}>
-                      {KIND_META[kind].label}
+                      {kindMeta(kind, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -86,14 +97,19 @@ export function CashBookToolbar({ params, onChange, onReset, isFiltered, showKin
           )}
 
           <Select value={params.walletId || ANY} onValueChange={(value) => onChange({ walletId: value === ANY || !value ? '' : String(value) })}>
-            <SelectTrigger className={cn('h-8 w-full sm:w-[10.5rem]', !showKind && 'col-span-2 sm:col-auto')} aria-label="Wallet">
+            <SelectTrigger className={cn('h-8 w-full sm:w-[10.5rem]', !showKind && 'col-span-2 sm:col-auto')} aria-label={t('accounts.filters.walletAria')}>
               <SelectValue>
-                {(value: string) => (value === ANY ? 'Every wallet' : (wallets.data?.find((wallet) => wallet.id === value)?.name ?? 'Wallet'))}
+                {(value: string) =>
+                  value === ANY
+                    ? t('accounts.filters.everyWallet')
+                    : (wallets.data?.find((wallet) => wallet.id === value)?.name ??
+                      t('accounts.filters.wallet'))
+                }
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value={ANY}>Every wallet</SelectItem>
+                <SelectItem value={ANY}>{t('accounts.filters.everyWallet')}</SelectItem>
                 {wallets.data?.map((wallet) => (
                   <SelectItem key={wallet.id} value={wallet.id}>
                     {wallet.name}
@@ -105,9 +121,9 @@ export function CashBookToolbar({ params, onChange, onReset, isFiltered, showKin
 
           {/* The dates take the whole row on a phone: two fixed boxes side by side overflow a 360px screen, and half a date is not a date. */}
           <div className="col-span-2 flex min-w-0 items-center gap-1.5 sm:col-auto">
-            <Input type="date" value={params.from} max={params.to || undefined} onChange={(event) => onChange({ from: event.target.value })} aria-label="From date" className="h-8 w-full min-w-0 sm:w-[9.5rem]" />
+            <Input type="date" value={params.from} max={params.to || undefined} onChange={(event) => onChange({ from: event.target.value })} aria-label={t('accounts.filters.fromDate')} className="h-8 w-full min-w-0 sm:w-[9.5rem]" />
             <span className="shrink-0 text-xs text-muted-foreground">to</span>
-            <Input type="date" value={params.to} min={params.from || undefined} onChange={(event) => onChange({ to: event.target.value })} aria-label="To date" className="h-8 w-full min-w-0 sm:w-[9.5rem]" />
+            <Input type="date" value={params.to} min={params.from || undefined} onChange={(event) => onChange({ to: event.target.value })} aria-label={t('accounts.filters.toDate')} className="h-8 w-full min-w-0 sm:w-[9.5rem]" />
           </div>
 
           {isFiltered && (

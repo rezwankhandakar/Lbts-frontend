@@ -13,13 +13,16 @@ import {
 } from '@/components/ui/select'
 import {
   ACCEPTED_DOCUMENT_ATTRIBUTE,
-  DOCUMENT_RULES_HINT,
+  documentRulesHint,
   validateDocumentFile,
 } from '../lib/gate-pass-document'
 import { SCAN_RESOLUTIONS } from '@/lib/scanner-agent'
 import type { ScanColorMode, ScanResolution, ScanSource } from '@/lib/scanner-agent'
 import type { ScannerState } from '@/lib/scanner-messages'
 import type { ScannerSettings } from '@/hooks/use-scanner'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 interface ScanControlsProps {
   state: ScannerState
@@ -32,15 +35,15 @@ interface ScanControlsProps {
   onFilePicked: (file: File) => void
 }
 
-const SOURCE_LABELS: Record<ScanSource, string> = {
-  flatbed: 'Flatbed glass',
-  feeder: 'Document feeder',
+const SOURCE_KEYS: Record<ScanSource, TranslationKey> = {
+  flatbed: 'gatePass.scanner.flatbed',
+  feeder: 'gatePass.scanner.feeder',
 }
 
-const COLOR_LABELS: Record<ScanColorMode, string> = {
-  color: 'Colour',
-  grayscale: 'Greyscale',
-  blackwhite: 'Black & white',
+const COLOR_KEYS: Record<ScanColorMode, TranslationKey> = {
+  color: 'gatePass.scanner.colorModes.color',
+  grayscale: 'gatePass.scanner.colorModes.grayscale',
+  blackwhite: 'gatePass.scanner.colorModes.blackwhite',
 }
 
 const TRIGGER = 'h-8 w-full'
@@ -63,6 +66,8 @@ export function ScanControls({
   onCancel,
   onFilePicked,
 }: ScanControlsProps) {
+  const t = useT()
+
   const inputRef = useRef<HTMLInputElement>(null)
   const isScanning = state === 'scanning' || state === 'processing'
 
@@ -73,7 +78,7 @@ export function ScanControls({
 
     const problem = validateDocumentFile(file)
     if (problem) {
-      toast.error('That file cannot be used', { description: problem })
+      toast.error(t('gatePass.scanner.fileRejected'), { description: problem })
       return
     }
 
@@ -85,24 +90,24 @@ export function ScanControls({
       <div className="grid gap-2.5 sm:grid-cols-3">
         <div className="space-y-1">
           <Label htmlFor="scan-source" className="text-xs text-muted-foreground">
-            Source
+            {t('gatePass.scanner.source')}
           </Label>
           <Select
             value={settings.source}
             onValueChange={(value) => onSettingsChange({ source: value as ScanSource })}
           >
             <SelectTrigger id="scan-source" className={TRIGGER} disabled={isScanning}>
-              <SelectValue>{() => SOURCE_LABELS[settings.source]}</SelectValue>
+              <SelectValue>{() => t(SOURCE_KEYS[settings.source])}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="flatbed">{SOURCE_LABELS.flatbed}</SelectItem>
+                <SelectItem value="flatbed">{t(SOURCE_KEYS.flatbed)}</SelectItem>
                 {/* Offered only when the device reported one, rather than
                     letting an operator choose a tray that is not there. */}
                 {hasFeeder && (
                   <SelectItem value="feeder">
                     <Layers className="size-3.5" aria-hidden />
-                    {SOURCE_LABELS.feeder}
+                    {t(SOURCE_KEYS.feeder)}
                   </SelectItem>
                 )}
               </SelectGroup>
@@ -112,7 +117,7 @@ export function ScanControls({
 
         <div className="space-y-1">
           <Label htmlFor="scan-resolution" className="text-xs text-muted-foreground">
-            Resolution
+            {t('gatePass.scanner.resolution')}
           </Label>
           <Select
             value={String(settings.resolution)}
@@ -123,13 +128,15 @@ export function ScanControls({
             }
           >
             <SelectTrigger id="scan-resolution" className={TRIGGER} disabled={isScanning}>
-              <SelectValue>{() => `${settings.resolution} dpi`}</SelectValue>
+              <SelectValue>
+              {() => t('gatePass.scanner.dpi', { n: formatNumber(settings.resolution) })}
+            </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 {SCAN_RESOLUTIONS.map((dpi) => (
                   <SelectItem key={dpi} value={String(dpi)}>
-                    {dpi} dpi
+                    {t('gatePass.scanner.dpi', { n: formatNumber(dpi) })}
                   </SelectItem>
                 ))}
               </SelectGroup>
@@ -139,20 +146,20 @@ export function ScanControls({
 
         <div className="space-y-1">
           <Label htmlFor="scan-color" className="text-xs text-muted-foreground">
-            Colour
+            {t('gatePass.scanner.colour')}
           </Label>
           <Select
             value={settings.colorMode}
             onValueChange={(value) => onSettingsChange({ colorMode: value as ScanColorMode })}
           >
             <SelectTrigger id="scan-color" className={TRIGGER} disabled={isScanning}>
-              <SelectValue>{() => COLOR_LABELS[settings.colorMode]}</SelectValue>
+              <SelectValue>{() => t(COLOR_KEYS[settings.colorMode])}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {(Object.keys(COLOR_LABELS) as ScanColorMode[]).map((mode) => (
+                {(Object.keys(COLOR_KEYS) as ScanColorMode[]).map((mode) => (
                   <SelectItem key={mode} value={mode}>
-                    {COLOR_LABELS[mode]}
+                    {t(COLOR_KEYS[mode])}
                   </SelectItem>
                 ))}
               </SelectGroup>
@@ -165,12 +172,12 @@ export function ScanControls({
         {isScanning ? (
           <Button variant="outline" size="lg" onClick={onCancel} className="flex-1">
             <Square data-icon="inline-start" aria-hidden />
-            Stop scanning
+            {t('gatePass.scanner.stop')}
           </Button>
         ) : (
           <Button size="lg" onClick={onScan} disabled={!canScan} className="flex-1">
             <ScanLine data-icon="inline-start" aria-hidden />
-            Scan gate pass
+            {t('gatePass.scanner.scan')}
           </Button>
         )}
 
@@ -181,7 +188,7 @@ export function ScanControls({
           disabled={isScanning}
         >
           <FileUp data-icon="inline-start" aria-hidden />
-          Attach a file
+          {t('common.actions.attachFile')}
         </Button>
 
         <input
@@ -199,7 +206,7 @@ export function ScanControls({
         />
       </div>
 
-      <p className="text-[11px] leading-snug text-muted-foreground">{DOCUMENT_RULES_HINT}</p>
+      <p className="text-[11px] leading-snug text-muted-foreground">{documentRulesHint()}</p>
     </div>
   )
 }

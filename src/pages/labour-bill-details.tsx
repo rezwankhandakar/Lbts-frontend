@@ -22,6 +22,8 @@ import { useLabourBillPage } from '@/features/labour-bill/hooks/use-labour-bill-
 import { canReviewLabourBill, canWriteLabourBill } from '@/features/labour-bill/types'
 import { useBarcodeWedge } from '@/hooks/use-barcode-wedge'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 /**
  * One labour bill: its month, its figures, and the sheet itself — laid out
@@ -33,6 +35,8 @@ import { useCurrentRole } from '@/hooks/use-current-role'
  * read-only rather than merely discouraged.
  */
 export function LabourBillDetailsPage() {
+  const t = useT()
+
   const { id = '' } = useParams()
   const role = useCurrentRole()
   const canWrite = canWriteLabourBill(role)
@@ -94,23 +98,34 @@ export function LabourBillDetailsPage() {
         />
 
         <section
-          aria-label="Labour bill sheet"
+          aria-label={t('labourBill.sheetAria')}
           className="overflow-hidden rounded-xl border bg-card shadow-sm"
         >
           <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
             <div>
-              <h2 className="text-sm font-semibold">Labour bill sheet</h2>
+              <h2 className="text-sm font-semibold">{t('labourBill.sheetHeading')}</h2>
               <p className="text-xs text-pretty text-muted-foreground">
                 {canEdit
-                  ? 'Exactly what the Excel file carries — a section per CSD, one SL per challan, one row per model. The tinted cells are yours to type; Enter saves, Escape puts it back.'
-                  : 'Exactly what the Excel file carries — a section per CSD, one SL per challan, one row per model.'}
+                  ? t('labourBill.details.sheetHint')
+                  : t('labourBill.details.sheetHintReadOnly')}
               </p>
             </div>
             {lineCount > 0 && (
               <p className="text-xs text-muted-foreground tabular-nums">
-                {lineCount} {lineCount === 1 ? 'row' : 'rows'} · {bill.challanCount}{' '}
-                {bill.challanCount === 1 ? 'challan' : 'challans'} · {groups.length}{' '}
-                {groups.length === 1 ? 'section' : 'sections'}
+                {t('labourBill.stats.sheetSummary', {
+                  rows: t('labourBill.stats.rowCount', {
+                    count: lineCount,
+                    n: formatNumber(lineCount),
+                  }),
+                  challans: t('labourBill.stats.challanCount', {
+                    count: bill.challanCount,
+                    n: formatNumber(bill.challanCount),
+                  }),
+                  sections: t('labourBill.stats.sectionCount', {
+                    count: groups.length,
+                    n: formatNumber(groups.length),
+                  }),
+                })}
               </p>
             )}
           </div>

@@ -2,7 +2,8 @@ import { ChevronRight, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { formatBytes } from '../lib/challan-meta'
-import { formatDateTime, formatRelative } from '@/lib/format'
+import { formatNumber } from '@/lib/format'
+import { useFormatters, useT } from '@/lib/i18n'
 import type { ChallanBatchRecord } from '../types'
 import { ChallanBatchStatusBadge } from './challan-status-badge'
 
@@ -26,6 +27,9 @@ interface BatchTableProps {
  * refuses.
  */
 export function BatchTable({ records }: BatchTableProps) {
+  const t = useT()
+  const format = useFormatters()
+
   return (
     <ul className="divide-y">
       {records.map((batch) => (
@@ -40,11 +44,15 @@ export function BatchTable({ records }: BatchTableProps) {
               </p>
 
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {batch.challanCount} filed · {batch.assignedPages}/{batch.sourcePageCount} pages
+                {t('challan.batch.filedCount', { n: formatNumber(batch.challanCount) })} ·{' '}
+                {t('challan.batch.pagesOf', {
+                  assigned: formatNumber(batch.assignedPages),
+                  total: formatNumber(batch.sourcePageCount),
+                })}
                 {batch.sourceFileSize ? ` · ${formatBytes(batch.sourceFileSize)}` : ''}
                 {' · '}
-                <span title={formatDateTime(batch.createdAt)}>
-                  {formatRelative(batch.createdAt)}
+                <span title={format.dateTime(batch.createdAt)}>
+                  {format.relative(batch.createdAt)}
                 </span>
                 {batch.createdBy ? ` · ${batch.createdBy.name}` : ''}
               </p>
@@ -54,8 +62,10 @@ export function BatchTable({ records }: BatchTableProps) {
                   completed batch says nothing here — its badge already has. */}
               {!batch.isComplete && batch.unassignedPages > 0 && (
                 <p className="mt-0.5 text-xs text-tone-amber">
-                  {batch.unassignedPages}{' '}
-                  {batch.unassignedPages === 1 ? 'page' : 'pages'} still unaccounted for
+                  {t('challan.batch.unaccounted', {
+                    count: batch.unassignedPages,
+                    n: formatNumber(batch.unassignedPages),
+                  })}
                 </p>
               )}
             </div>
@@ -73,10 +83,13 @@ export function BatchTable({ records }: BatchTableProps) {
               >
                 <Printer className="size-3.5" aria-hidden />
                 {batch.isPrinted
-                  ? 'Printed'
+                  ? t('challan.printMark.printed')
                   : batch.printedChallanCount > 0
-                    ? `${batch.printedChallanCount}/${batch.challanCount} printed`
-                    : 'Not printed'}
+                    ? t('challan.batch.printedOfShort', {
+                        printed: formatNumber(batch.printedChallanCount),
+                        total: formatNumber(batch.challanCount),
+                      })
+                    : t('challan.batch.notPrinted')}
               </span>
             )}
 

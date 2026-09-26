@@ -2,6 +2,8 @@ import { useCallback, useMemo, useState } from 'react'
 import { ArrowLeft, ScanLine } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
+import { useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useGatePassDocument } from '../hooks/use-gate-pass-document'
 import { useGatePassWorkspace } from '../hooks/use-gate-pass-workspace'
@@ -77,6 +79,9 @@ function blankEntry(): GatePassFormValues {
  * form and moves to the next sheet. That loop is the job.
  */
 export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
+  const t = useT()
+  const format = useFormatters()
+
   const navigate = useNavigate()
 
   const batch = useScanBatch()
@@ -256,13 +261,16 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
 
   const primaryLabel = !initialRecord
     ? batch.isBatch
-      ? `Submit sheet ${batch.activePosition} of ${batch.total}`
-      : 'Submit gate pass'
+      ? t('gatePass.submit.sheetOf', {
+          position: formatNumber(batch.activePosition),
+          total: formatNumber(batch.total),
+        })
+      : t('gatePass.submit.gatePass')
     : willReverify
-      ? 'Save and re-verify'
+      ? t('gatePass.submit.saveReverify')
       : isFiled
-        ? 'Save changes'
-        : 'Resubmit'
+        ? t('gatePass.submit.saveChanges')
+        : t('gatePass.submit.resubmit')
 
   return (
     <div className="relative mx-auto flex w-full max-w-[100rem] flex-col">
@@ -270,23 +278,25 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-              {initialRecord ? 'Correct gate pass' : 'New gate pass'}
+              {initialRecord ? t('gatePass.correctGatePass') : t('gatePass.newGatePass')}
             </h1>
             {record && <GatePassStatusBadge status={record.status} />}
           </div>
           <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
             {initialRecord
-              ? `${initialRecord.gatePassId} · check every field against the scan, then ${
-                  isFiled ? 'save the correction' : 'submit'
-                }.`
-              : 'Scan the whole stack in one pass, then enter each sheet against the image beside it.'}
+              ? t('gatePass.workspace.correctHint', {
+                  gatePass: initialRecord.gatePassId,
+                  verb: isFiled
+                    ? t('gatePass.workspace.verbSave')
+                    : t('gatePass.workspace.verbSubmit'),
+                })
+              : t('gatePass.workspace.newHint')}
           </p>
 
           {willReverify && (
             <p className="mt-2 max-w-2xl rounded-lg border border-tone-amber/25 bg-tone-amber/5 px-3 py-2 text-xs leading-relaxed text-pretty">
-              <span className="font-semibold">This gate pass has been verified.</span> That
-              verification was against what it says now, so saving a correction — to the values or
-              to the scan — returns it to a reviewer to be checked again.
+              <span className="font-semibold">{t('gatePass.workspace.verifiedTitle')}</span>{' '}
+              {t('gatePass.workspace.verifiedBody')}
             </p>
           )}
         </div>
@@ -294,12 +304,14 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
         <div className="flex shrink-0 items-center gap-2">
           {workspace.lastSavedAt && (
             <p className="hidden text-xs text-muted-foreground sm:block">
-              Saved {workspace.lastSavedAt.toLocaleTimeString(undefined, { timeStyle: 'short' })}
+              {t('gatePass.workspace.savedAt', {
+                time: format.time(workspace.lastSavedAt.toISOString()),
+              })}
             </p>
           )}
           <Button variant="outline" size="sm" onClick={() => navigate('/gate-pass')}>
             <ArrowLeft data-icon="inline-start" aria-hidden />
-            All gate passes
+            {t('gatePass.allGatePasses')}
           </Button>
         </div>
       </header>
@@ -316,7 +328,7 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
 
       <div className="grid min-h-0 gap-4 lg:grid-cols-2 lg:items-start xl:gap-6">
         <section
-          aria-label="Gate pass details"
+          aria-label={t('gatePass.workspace.detailsAria')}
           className={cn(
             'overflow-hidden rounded-xl border bg-card shadow-sm',
             pane === 'form' ? 'block' : 'hidden',
@@ -330,7 +342,7 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
             isBusy={workspace.isBusy || joining.isJoining}
             blockedReason={
               hasUnjoinedSheets
-                ? `Join the ${stagedSheets} scanned sheets into one document first, or remove the ones that do not belong.`
+                ? t('gatePass.footer.blocked', { n: formatNumber(stagedSheets) })
                 : null
             }
             canSaveDraft={!record || record.status === 'Draft'}
@@ -369,7 +381,7 @@ export function GatePassWorkspace({ initialRecord }: GatePassWorkspaceProps) {
             onClick={() => setPane('form')}
           >
             <ScanLine data-icon="inline-start" aria-hidden />
-            Back to the details
+            {t('gatePass.workspace.backToDetails')}
           </Button>
         </div>
       </div>

@@ -9,6 +9,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import type { LocationRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface DeleteLocationDialogProps {
   record: LocationRecord | null
@@ -38,6 +39,8 @@ export function DeleteLocationDialog({
   onOpenChange,
   onConfirm,
 }: DeleteLocationDialogProps) {
+  const t = useT()
+
   if (!record) {
     return null
   }
@@ -58,13 +61,13 @@ export function DeleteLocationDialog({
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Keep it</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>{t('location.remove.keep')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isPending}
             className="bg-destructive/10 text-destructive hover:bg-destructive/20"
           >
-            {isPending ? 'Removing…' : 'Remove'}
+            {isPending ? t('location.remove.removing') : t('location.remove.confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

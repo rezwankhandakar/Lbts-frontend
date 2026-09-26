@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { comparePeriods, signedTaka, taka } from '../lib/accounts-meta'
 import type { Period, VendorMonthFigures, VendorMonthHistory } from '../types'
@@ -12,13 +13,19 @@ interface VendorHistoryProps {
 
 /** Every month this vendor has worked, and the running position across all of them. */
 export function VendorHistory({ history, allTime, period, onSelect }: VendorHistoryProps) {
+  const t = useT()
+
   return (
     <Panel
-      title="Month by month"
-      description={`All time: ${taka(allTime.totalBill)} billed · ${taka(allTime.advance + allTime.paid)} settled · ${signedTaka(allTime.due)} due`}
+      title={t('accounts.vendorBill.monthByMonth')}
+      description={t('accounts.vendorBill.allTime', {
+        billed: taka(allTime.totalBill),
+        settled: taka(allTime.advance + allTime.paid),
+        due: signedTaka(allTime.due),
+      })}
     >
       {history.length === 0 ? (
-        <p className="px-4 py-8 text-center text-sm text-muted-foreground">No month on record yet.</p>
+        <p className="px-4 py-8 text-center text-sm text-muted-foreground">{t('accounts.vendorBill.noMonthYet')}</p>
       ) : (
         <ul className="max-h-[26rem] divide-y overflow-y-auto">
           {history.map((month) => {

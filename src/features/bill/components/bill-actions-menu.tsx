@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { BillRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 export type BillDialog = 'edit' | 'finalize' | 'reopen' | 'delete' | null
 
@@ -26,6 +27,8 @@ interface BillActionsMenuProps {
  * will never be allowed — and the menu is not drawn at all when nothing is left.
  */
 export function BillActionsMenu({ bill, canWrite, canReview, isRefreshing, onOpen, onRefresh }: BillActionsMenuProps) {
+  const t = useT()
+
   const isDraft = bill.status === 'Draft'
   const canPrepare = isDraft && canWrite
 
@@ -44,11 +47,11 @@ export function BillActionsMenu({ bill, canWrite, canReview, isRefreshing, onOpe
           <>
             <DropdownMenuItem onClick={() => onOpen('edit')}>
               <Pencil aria-hidden />
-              Edit month, unit or note
+              {t('bill.menu.edit')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onRefresh} disabled={isRefreshing}>
               <RefreshCcw aria-hidden />
-              Refresh from Trip DO sheet
+              {t('bill.menu.refresh')}
             </DropdownMenuItem>
           </>
         )}
@@ -59,12 +62,12 @@ export function BillActionsMenu({ bill, canWrite, canReview, isRefreshing, onOpe
             {isDraft ? (
               <DropdownMenuItem onClick={() => onOpen('finalize')}>
                 <FileCheck2 aria-hidden />
-                Finalize bill
+                {t('bill.menu.finalize')}
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem onClick={() => onOpen('reopen')}>
                 <LockOpen aria-hidden />
-                Reopen as draft
+                {t('bill.menu.reopen')}
               </DropdownMenuItem>
             )}
           </>
@@ -75,7 +78,7 @@ export function BillActionsMenu({ bill, canWrite, canReview, isRefreshing, onOpe
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={() => onOpen('delete')}>
               <Trash2 aria-hidden />
-              Delete bill
+              {t('bill.menu.delete')}
             </DropdownMenuItem>
           </>
         )}

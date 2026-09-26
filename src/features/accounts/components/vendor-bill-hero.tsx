@@ -2,6 +2,7 @@ import { ExternalLink, Phone, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { VendorAvatar } from '@/features/vendor/components/vendor-identity'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useEntryDialog } from '../hooks/use-entry-dialog'
 import { signedTaka, taka } from '../lib/accounts-meta'
@@ -14,13 +15,15 @@ import { VendorBillBadge } from './account-atoms'
  * exactly what the vendor will ask about.
  */
 export function VendorBillHero({ detail, canWrite }: { detail: VendorBillDetail; canWrite: boolean }) {
+  const t = useT()
+
   const dialog = useEntryDialog()
   const { vendor, figures, period } = detail
 
   const steps = [
-    { label: 'Trip rent', value: taka(figures.tripRent) },
-    { label: 'Labour bill', value: taka(figures.labourBill), op: '+' },
-    { label: 'Trip advances', value: taka(figures.advance), op: '−' },
+    { label: t('accounts.profit.tripRent'), value: taka(figures.tripRent) },
+    { label: t('accounts.profit.labourBill'), value: taka(figures.labourBill), op: '+' },
+    { label: t('accounts.vendorBill.tripAdvances'), value: taka(figures.advance), op: '−' },
     { label: 'Paid', value: taka(figures.paid), op: '−' },
   ]
 
@@ -43,7 +46,7 @@ export function VendorBillHero({ detail, canWrite }: { detail: VendorBillDetail;
                 </span>
               )}
               <Link to={`/vendors/${vendor.id}`} className="flex items-center gap-1 hover:text-primary">
-                Vendor profile
+                {t('accounts.vendorBill.vendorProfile')}
                 <ExternalLink className="size-3" aria-hidden />
               </Link>
             </p>
@@ -62,7 +65,7 @@ export function VendorBillHero({ detail, canWrite }: { detail: VendorBillDetail;
             }
           >
             <Wallet data-icon="inline-start" aria-hidden />
-            Pay {taka(figures.due)}
+            {t('accounts.vendorBill.pay', { amount: taka(figures.due) })}
           </Button>
         )}
       </div>
@@ -80,7 +83,13 @@ export function VendorBillHero({ detail, canWrite }: { detail: VendorBillDetail;
         <div className={cn('col-span-2 px-4 py-3 sm:col-span-1 sm:px-5', figures.due > 0 ? 'bg-tone-rose/5' : 'bg-tone-emerald/5')}>
           <dt className="text-xs text-muted-foreground">
             <span className="mr-1 font-semibold">=</span>
-            {figures.due < 0 ? 'Overpaid' : 'Due'} · {period.label}
+            {t('accounts.vendorBill.dueAndPeriod', {
+              state:
+                figures.due < 0
+                  ? t('accounts.vendorBill.overpaid')
+                  : t('accounts.vendorBill.due'),
+              period: period.label,
+            })}
           </dt>
           <dd className={cn('mt-1 text-xl font-semibold tabular-nums', figures.due > 0 ? 'text-tone-rose' : 'text-tone-emerald')}>
             {signedTaka(Math.abs(figures.due))}

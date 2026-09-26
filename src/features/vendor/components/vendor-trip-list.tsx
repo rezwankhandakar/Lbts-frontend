@@ -7,12 +7,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { TripStatusBadge } from '@/features/delivery/components/delivery-badges'
-import { plural, shortTripNumber, taka } from '@/features/delivery/lib/delivery-meta'
+import { shortTripNumber, taka } from '@/features/delivery/lib/delivery-meta'
 import { formatDay } from '../lib/vendor-meta'
 import type { VendorTripRecord } from '../types'
 import { VendorTripCards } from './vendor-trip-cards'
 import { netOf, tripProgress } from '../lib/trip-figures'
 import { TripCharge } from './vendor-trip-list-parts'
+import { countOf, useT } from '@/lib/i18n'
 
 interface VendorTripListProps {
   records: VendorTripRecord[]
@@ -30,6 +31,8 @@ const MONEY = 'text-right whitespace-nowrap tabular-nums'
  * month, so those are the monthly bill's, above.
  */
 export function VendorTripList({ records, onOpen }: VendorTripListProps) {
+  const t = useT()
+
   return (
     <>
       <div className="hidden overflow-x-auto xl:block">
@@ -74,7 +77,7 @@ export function VendorTripList({ records, onOpen }: VendorTripListProps) {
                   <span className="text-xs text-muted-foreground">{trip.driverName}</span>
                 </TableCell>
                 <TableCell className="text-[13px] whitespace-nowrap">
-                  {plural(trip.challanCount, 'challan')}
+                  {countOf(trip.challanCount, 'nouns.challan', t)}
                   <span className="block text-xs text-muted-foreground">
                     {trip.totalQty} pcs
                     {trip.returnedQty > 0 && (

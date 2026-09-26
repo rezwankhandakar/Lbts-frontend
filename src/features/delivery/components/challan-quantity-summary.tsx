@@ -1,4 +1,5 @@
 import { Boxes, Undo2 } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { tallyProducts } from '../lib/cart'
 
@@ -35,6 +36,8 @@ export function ChallanQuantitySummary({
   returned = [],
   className,
 }: ChallanQuantitySummaryProps) {
+  const t = useT()
+
   const tally = tallyProducts(lines)
   const returnedQty = returned.reduce((sum, line) => sum + line.qty, 0)
 
@@ -48,14 +51,14 @@ export function ChallanQuantitySummary({
 
   return (
     <section
-      aria-label="Challan quantity"
+      aria-label={t('delivery.dispatch.challanQuantityAria')}
       className={cn('overflow-hidden rounded-xl border bg-card shadow-sm', className)}
     >
       <header className="flex items-center gap-2.5 border-b bg-gradient-to-r from-primary/10 to-transparent px-4 py-2.5">
         <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Boxes className="size-4" aria-hidden />
         </span>
-        <h3 className="text-sm font-semibold tracking-tight">Product Summary</h3>
+        <h3 className="text-sm font-semibold tracking-tight">{t('delivery.dispatch.productSummary')}</h3>
         <span className="ml-auto text-xs text-muted-foreground">
           {tally.products} {tally.products === 1 ? 'product' : 'products'}
         </span>
@@ -96,7 +99,7 @@ export function ChallanQuantitySummary({
       </ul>
 
       <footer className="flex items-baseline gap-3 border-t bg-muted/30 px-4 py-2.5">
-        <p className="flex-1 text-sm font-medium">Total product</p>
+        <p className="flex-1 text-sm font-medium">{t('delivery.dispatch.totalProduct')}</p>
         {returnedQty > 0 && (
           <p className="text-xs text-muted-foreground">
             <span className="font-semibold text-tone-rose tabular-nums">{returnedQty}</span> returned

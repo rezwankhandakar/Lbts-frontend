@@ -2,13 +2,16 @@ import { Boxes, CalendarDays, FileStack, Layers, RefreshCcw, TriangleAlert } fro
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ChallanStats as Stats } from '../types'
 
 interface StatDef {
   key: keyof Stats
-  label: string
-  hint: string
+  labelKey: TranslationKey
+  hintKey: TranslationKey
   icon: LucideIcon
   chip: string
   /** Drawn only while the figure is non-zero — a queue that needs attention. */
@@ -18,30 +21,30 @@ interface StatDef {
 const STATS: StatDef[] = [
   {
     key: 'today',
-    label: "Today's challans",
-    hint: 'Filed since midnight',
+    labelKey: 'challan.stats.todayLabel',
+    hintKey: 'challan.stats.todayHint',
     icon: CalendarDays,
     chip: 'bg-tone-indigo/10 text-tone-indigo',
   },
   {
     key: 'total',
-    label: 'Challans on record',
-    hint: 'Every challan ever filed',
+    labelKey: 'challan.stats.total',
+    hintKey: 'challan.stats.totalHint',
     icon: FileStack,
     chip: 'bg-tone-cyan/10 text-tone-cyan',
   },
   {
     key: 'batchesProcessing',
-    label: 'Batches in progress',
-    hint: 'Source PDFs with pages unfiled',
+    labelKey: 'challan.stats.batches',
+    hintKey: 'challan.stats.batchesHint',
     icon: Layers,
     chip: 'bg-tone-amber/10 text-tone-amber',
     attention: true,
   },
   {
     key: 'totalQty',
-    label: 'Total quantity',
-    hint: 'Units across every challan',
+    labelKey: 'challan.stats.quantity',
+    hintKey: 'challan.stats.quantityHint',
     icon: Boxes,
     chip: 'bg-tone-emerald/10 text-tone-emerald',
   },
@@ -67,16 +70,18 @@ interface ChallanStatsProps {
  * that means somebody should go and look at something.
  */
 export function ChallanStats({ stats, isLoading, isError, onRetry }: ChallanStatsProps) {
+  const t = useT()
+
   if (isError) {
     return (
       <div className="mb-5 flex flex-col items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-center gap-2.5 text-sm text-muted-foreground">
           <TriangleAlert className="size-4 shrink-0 text-destructive" aria-hidden />
-          The challan overview could not be loaded.
+          {t('challan.stats.loadFailed')}
         </p>
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          Retry
+          {t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -108,21 +113,26 @@ export function ChallanStats({ stats, isLoading, isError, onRetry }: ChallanStat
               >
                 <Icon className="size-3.5" aria-hidden />
               </span>
-              <p className="truncate text-xs font-medium text-muted-foreground">{stat.label}</p>
+              <p className="truncate text-xs font-medium text-muted-foreground">
+                {t(stat.labelKey)}
+              </p>
             </div>
 
             {isLoading || value === undefined ? (
               <Skeleton className="h-7 w-14" />
             ) : (
               <p className="flex items-center gap-2 text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-[1.75rem]">
-                {value.toLocaleString()}
+                {formatNumber(value)}
                 {needsAttention && (
-                  <span className="size-2 rounded-full bg-tone-amber" aria-label="Needs attention" />
+                  <span
+                    className="size-2 rounded-full bg-tone-amber"
+                    aria-label={t('challan.stats.needsAttention')}
+                  />
                 )}
               </p>
             )}
 
-            <p className="truncate text-[11px] text-muted-foreground/80">{stat.hint}</p>
+            <p className="truncate text-[11px] text-muted-foreground/80">{t(stat.hintKey)}</p>
           </div>
         )
       })}

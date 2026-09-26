@@ -15,13 +15,21 @@ import {
   Truck,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { TranslationKey } from '@/lib/i18n'
 import type { UserRole } from '@/lib/roles'
 
 /** Keys into the coordinated accent palette defined in `src/index.css`. */
 export type NavAccent = 'indigo' | 'cyan' | 'violet' | 'emerald' | 'amber'
 
 export interface NavItem {
-  label: string
+  /**
+   * A translation key rather than a label. The sidebar, the header title and
+   * the dashboard's module strip all render this, and each one would otherwise
+   * have to remember to translate it — so the key is what the config carries
+   * and `t()` is what every consumer calls. Typed as `TranslationKey`, so a
+   * destination added later cannot ship pointing at a key nobody wrote.
+   */
+  labelKey: TranslationKey
   path: string
   icon: LucideIcon
   /** Gives each destination a stable colour identity for fast scanning. */
@@ -36,7 +44,7 @@ export interface NavItem {
 
 export interface NavSection {
   /** Rendered as a small uppercase label above the group. */
-  label: string
+  labelKey: TranslationKey
   items: NavItem[]
 }
 
@@ -46,9 +54,9 @@ export interface NavSection {
  */
 export const navSections: NavSection[] = [
   {
-    label: 'Main',
+    labelKey: 'nav.sections.Main',
     items: [
-      { label: 'Dashboard', path: '/', icon: LayoutDashboard, accent: 'indigo' },
+      { labelKey: 'nav.items.dashboard', path: '/', icon: LayoutDashboard, accent: 'indigo' },
       /**
        * Gate Pass is hidden from Vendor accounts: it is the transport
        * service's own operating record, not something an external supplier
@@ -56,7 +64,7 @@ export const navSections: NavSection[] = [
        * the API refuses the request either way.
        */
       {
-        label: 'Gate Pass',
+        labelKey: 'nav.items.gatePass',
         path: '/gate-pass',
         icon: ScanLine,
         accent: 'cyan',
@@ -70,7 +78,7 @@ export const navSections: NavSection[] = [
        * request either way.
        */
       {
-        label: 'Challan',
+        labelKey: 'nav.items.challan',
         path: '/challan',
         icon: ReceiptText,
         accent: 'violet',
@@ -83,7 +91,7 @@ export const navSections: NavSection[] = [
        * the API are what refuse.
        */
       {
-        label: 'Delivery',
+        labelKey: 'nav.items.delivery',
         path: '/delivery',
         icon: PackageCheck,
         accent: 'amber',
@@ -96,7 +104,7 @@ export const navSections: NavSection[] = [
        * API are what refuse.
        */
       {
-        label: 'Trip DO',
+        labelKey: 'nav.items.tripDo',
         path: '/trip-do',
         icon: FileSpreadsheet,
         accent: 'indigo',
@@ -108,7 +116,7 @@ export const navSections: NavSection[] = [
        * `RoleRoute` and the API are what refuse.
        */
       {
-        label: 'Excel Bill',
+        labelKey: 'nav.items.excelBill',
         path: '/bills',
         icon: Receipt,
         accent: 'emerald',
@@ -122,7 +130,7 @@ export const navSections: NavSection[] = [
        * API are what refuse.
        */
       {
-        label: 'Labour Bill',
+        labelKey: 'nav.items.labourBill',
         path: '/labour-bills',
         icon: HardHat,
         accent: 'amber',
@@ -135,7 +143,7 @@ export const navSections: NavSection[] = [
        * a Vendor is in no set. Presentation only; `RoleRoute` and the API refuse.
        */
       {
-        label: 'Accounts',
+        labelKey: 'nav.items.accounts',
         path: '/accounts',
         icon: Landmark,
         accent: 'violet',
@@ -155,14 +163,14 @@ export const navSections: NavSection[] = [
        * anything here.
        */
       {
-        label: 'Vendors',
+        labelKey: 'nav.items.vendors',
         path: '/vendors',
         icon: Building2,
         accent: 'emerald',
         roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
       },
       {
-        label: 'My Vendor',
+        labelKey: 'nav.items.myVendor',
         path: '/my-vendor',
         icon: Truck,
         accent: 'emerald',
@@ -171,10 +179,10 @@ export const navSections: NavSection[] = [
     ],
   },
   {
-    label: 'System',
+    labelKey: 'nav.sections.System',
     items: [
       {
-        label: 'Administration',
+        labelKey: 'nav.items.administration',
         path: '/administration',
         icon: ShieldCheck,
         accent: 'violet',
@@ -196,7 +204,7 @@ export const navSections: NavSection[] = [
        * guards the URL and the API refuses the request either way.
        */
       {
-        label: 'Activity Logs',
+        labelKey: 'nav.items.activityLogs',
         path: '/activity',
         icon: History,
         accent: 'indigo',
@@ -217,7 +225,7 @@ export const navSections: NavSection[] = [
        * `features/location/types`.
        */
       {
-        label: 'Locations',
+        labelKey: 'nav.items.locations',
         path: '/locations',
         icon: MapPinned,
         accent: 'cyan',
@@ -234,7 +242,7 @@ export const navSections: NavSection[] = [
        * audience, so a rate still fills in for whoever files the challan.
        */
       {
-        label: 'Product Rates',
+        labelKey: 'nav.items.productRates',
         path: '/product-rates',
         icon: Tags,
         accent: 'emerald',

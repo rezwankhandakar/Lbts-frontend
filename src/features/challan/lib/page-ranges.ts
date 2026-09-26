@@ -35,22 +35,34 @@ export interface ClaimedRange extends PageRange {
   challanNumber: string
 }
 
+/**
+ * What a problem's sentence needs, as raw values.
+ *
+ * This file imports nothing, so it cannot resolve a message — and it must not.
+ * "pages 4–6 already belong to LBTS-CH-2026-000004" is one sentence in English
+ * and a differently ordered one in Bangla, so the key travels with its values
+ * and `rangeProblemText` in `challan-meta.ts` is where it becomes words.
+ */
+export interface ProblemValues {
+  readonly [key: string]: number | string
+}
+
 export type RangeProblem =
-  | { code: 'not-a-page'; message: string }
-  | { code: 'reversed'; message: string }
-  | { code: 'out-of-bounds'; message: string }
-  | { code: 'too-many-pages'; message: string }
-  | { code: 'overlap'; message: string; conflicts: ClaimedRange[] }
+  | { code: 'not-a-page'; messageKey: string; values?: ProblemValues }
+  | { code: 'reversed'; messageKey: string; values?: ProblemValues }
+  | { code: 'out-of-bounds'; messageKey: string; values?: ProblemValues }
+  | { code: 'too-many-pages'; messageKey: string; values?: ProblemValues }
+  | {
+      code: 'overlap'
+      messageKey: string
+      values?: ProblemValues
+      /** The range asked for, so its own half of the sentence can be built. */
+      range: PageRange
+      conflicts: ClaimedRange[]
+    }
 
 export function pageCountOf(range: PageRange): number {
   return range.endPage - range.startPage + 1
-}
-
-/** "page 4" or "pages 4–6", for a sentence a person reads. */
-export function describeRange(range: PageRange): string {
-  return range.startPage === range.endPage
-    ? `page ${range.startPage}`
-    : `pages ${range.startPage}\u2013${range.endPage}`
 }
 
 /**
@@ -66,39 +78,42 @@ export function checkRange(range: PageRange, sourcePageCount: number): RangeProb
   const { startPage, endPage } = range
 
   if (!Number.isInteger(startPage) || !Number.isInteger(endPage)) {
-    return { code: 'not-a-page', message: 'A page number has to be a whole number.' }
+    return { code: 'not-a-page', messageKey: 'challan.pageRange.notAWholeNumber' }
   }
 
   if (startPage < 1) {
-    return { code: 'not-a-page', message: 'The first page of a challan is page 1 or later.' }
+    return { code: 'not-a-page', messageKey: 'challan.pageRange.firstPageAtLeastOne' }
   }
 
   if (endPage < startPage) {
-    return { code: 'reversed', message: 'The last page comes before the first page.' }
+    return { code: 'reversed', messageKey: 'challan.pageRange.reversed' }
   }
 
   if (!Number.isInteger(sourcePageCount) || sourcePageCount < 1) {
-    return { code: 'out-of-bounds', message: 'The source PDF has no pages to select from.' }
+    return { code: 'out-of-bounds', messageKey: 'challan.pageRange.noPages' }
   }
 
   if (sourcePageCount > MAX_SOURCE_PAGES) {
     return {
       code: 'out-of-bounds',
-      message: `That PDF has ${sourcePageCount} pages. This workspace handles up to ${MAX_SOURCE_PAGES}.`,
+      messageKey: 'challan.pageRange.sourceTooLong',
+      values: { pages: sourcePageCount, max: MAX_SOURCE_PAGES },
     }
   }
 
   if (endPage > sourcePageCount) {
     return {
       code: 'out-of-bounds',
-      message: `The source PDF ends at page ${sourcePageCount}.`,
+      messageKey: 'challan.pageRange.endsAt',
+      values: { last: sourcePageCount },
     }
   }
 
   if (pageCountOf(range) > MAX_CHALLAN_PAGES) {
     return {
       code: 'too-many-pages',
-      message: `That is ${pageCountOf(range)} pages for one challan. The limit is ${MAX_CHALLAN_PAGES}.`,
+      messageKey: 'challan.pageRange.tooManyForOne',
+      values: { pages: pageCountOf(range), max: MAX_CHALLAN_PAGES },
     }
   }
 
@@ -136,9 +151,12 @@ export function checkRangeAgainst(
   if (conflicts.length > 0) {
     return {
       code: 'overlap',
-      message: `${describeRange(range)} already belong${
-        pageCountOf(range) === 1 ? 's' : ''
-      } to ${conflicts.map((conflict) => conflict.challanNumber).join(', ')}.`,
+      messageKey: 'challan.pageRange.overlap',
+      values: {
+        count: pageCountOf(range),
+        challans: conflicts.map((conflict) => conflict.challanNumber).join(', '),
+      },
+      range,
       conflicts,
     }
   }

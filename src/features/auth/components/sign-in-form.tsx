@@ -6,6 +6,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { signInSchema } from '../auth-schemas'
 import type { SignInValues } from '../auth-schemas'
 import { isDismissedPopup, toAuthMessage } from '../firebase-errors'
@@ -21,6 +23,7 @@ interface LocationState {
 }
 
 export function SignInForm() {
+  const t = useT()
   const navigate = useNavigate()
   const location = useLocation()
   const { signInWithEmail, signInWithGoogle } = useAuthActions()
@@ -41,12 +44,12 @@ export function SignInForm() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await signInWithEmail(values.email, values.password)
-      toast.success('Welcome back!')
+      toast.success(t('auth.signIn.welcomeBack'))
       navigate(redirectTo, { replace: true })
     } catch (error) {
       const message = toAuthMessage(error)
       setError('root', { message })
-      toast.error(message)
+      toast.error(t(message as TranslationKey))
     }
   })
 
@@ -54,11 +57,11 @@ export function SignInForm() {
     setGoogleBusy(true)
     try {
       await signInWithGoogle()
-      toast.success('Welcome back!')
+      toast.success(t('auth.signIn.welcomeBack'))
       navigate(redirectTo, { replace: true })
     } catch (error) {
       if (!isDismissedPopup(error)) {
-        toast.error(toAuthMessage(error))
+        toast.error(t(toAuthMessage(error) as TranslationKey))
       }
     } finally {
       setGoogleBusy(false)
@@ -69,18 +72,18 @@ export function SignInForm() {
 
   return (
     <div className="space-y-5">
-      <GoogleButton onClick={onGoogle} disabled={busy} label="Sign in with Google" />
-      <AuthDivider label="or continue with email" />
+      <GoogleButton onClick={onGoogle} disabled={busy} label={t('auth.signIn.googleButton')} />
+      <AuthDivider label={t('auth.signIn.divider')} />
 
       <form onSubmit={onSubmit} noValidate className="space-y-4">
         <AuthError message={errors.root?.message} />
 
-        <FormField id="email" label="Email" error={errors.email?.message}>
+        <FormField id="email" label={t('auth.signIn.emailLabel')} error={errors.email?.message}>
           <Input
             id="email"
             type="email"
             autoComplete="email"
-            placeholder="you@company.com"
+            placeholder={t('auth.signIn.emailPlaceholder')}
             className="h-10"
             aria-invalid={Boolean(errors.email)}
             {...register('email')}
@@ -89,21 +92,21 @@ export function SignInForm() {
 
         <FormField
           id="password"
-          label="Password"
+          label={t('auth.signIn.passwordLabel')}
           error={errors.password?.message}
           action={
             <Link
               to="/forgot-password"
               className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
             >
-              Forgot password?
+              {t('auth.signIn.forgotPassword')}
             </Link>
           }
         >
           <PasswordInput
             id="password"
             autoComplete="current-password"
-            placeholder="Enter your password"
+            placeholder={t('auth.signIn.passwordPlaceholder')}
             aria-invalid={Boolean(errors.password)}
             {...register('password')}
           />
@@ -115,7 +118,7 @@ export function SignInForm() {
           disabled={busy}
         >
           {isSubmitting && <Loader2 className="size-4 animate-spin" aria-hidden />}
-          {isSubmitting ? 'Signing in…' : 'Sign in'}
+          {isSubmitting ? t('auth.signIn.submitting') : t('auth.signIn.submit')}
         </Button>
       </form>
     </div>

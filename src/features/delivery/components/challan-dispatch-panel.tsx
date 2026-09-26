@@ -4,10 +4,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { formatDay } from '@/features/vendor/lib/vendor-meta'
 import { cn } from '@/lib/utils'
 import { useChallanDispatch } from '../hooks/use-deliveries'
-import { plural, shortTripNumber, tripStatusMeta } from '../lib/delivery-meta'
+import { shortTripNumber, tripStatusMeta } from '../lib/delivery-meta'
 import type { ChallanDispatchDetail } from '../types'
 import { DispatchCorrections, DispatchReturns } from './challan-dispatch-notes'
 import { TripStatusBadge } from './delivery-badges'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * What happened to a challan's goods, on the challan's own page.
@@ -37,12 +38,14 @@ export function ChallanDispatchPanel({ challanId }: { challanId: string }) {
 }
 
 function DispatchBody({ detail }: { detail: ChallanDispatchDetail }) {
+  const t = useT()
+
   const sent = detail.dispatched > 0
   const returned = detail.returns.reduce((sum, entry) => sum + entry.qty, 0)
   const summary = [
     sent
       ? `${detail.dispatched} of ${detail.ordered} pieces sent`
-      : 'Nothing on this challan has been delivered yet',
+      : t('delivery.dispatch.nothingDelivered'),
     returned > 0 ? `${returned} came back` : null,
     sent && detail.remaining > 0 ? `${detail.remaining} still to go` : null,
   ]
@@ -50,7 +53,7 @@ function DispatchBody({ detail }: { detail: ChallanDispatchDetail }) {
     .join(' · ')
 
   return (
-    <section aria-label="Dispatch" className="overflow-hidden rounded-xl border bg-card shadow-sm">
+    <section aria-label={t('delivery.dispatch.panelAria')} className="overflow-hidden rounded-xl border bg-card shadow-sm">
       <header className="flex flex-wrap items-center gap-3 border-b bg-muted/30 px-4 py-3 sm:px-5">
         <span
           className={cn(
@@ -65,7 +68,7 @@ function DispatchBody({ detail }: { detail: ChallanDispatchDetail }) {
         </span>
 
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold tracking-tight">Dispatch</h2>
+          <h2 className="text-sm font-semibold tracking-tight">{t('delivery.dispatch.heading')}</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">{summary}</p>
         </div>
       </header>
@@ -102,7 +105,7 @@ function DispatchBody({ detail }: { detail: ChallanDispatchDetail }) {
       {detail.trips.length > 0 && (
         <ul className="divide-y border-t">
           {detail.trips.map((trip) => {
-            const Icon = tripStatusMeta(trip.status).icon
+            const Icon = tripStatusMeta(trip.status, t).icon
 
             return (
               <li key={trip.id}>
@@ -120,7 +123,7 @@ function DispatchBody({ detail }: { detail: ChallanDispatchDetail }) {
                     </p>
                   </div>
                   <span className="shrink-0 text-right text-xs tabular-nums">
-                    <span className="font-semibold">{plural(trip.qty, 'pc', 'pcs')}</span>
+                    <span className="font-semibold">{countOf(trip.qty, 'nouns.pc', t)}</span>
                     {trip.returnedQty > 0 && (
                       <span className="block text-[11px] text-tone-rose">
                         {trip.returnedQty} came back

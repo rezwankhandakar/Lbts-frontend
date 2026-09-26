@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { USER_ACTIONS, primaryActionFor } from '../administration-actions'
 import type { UserActionId } from '../administration-actions'
-import { formatDate } from '@/lib/format'
+import { useFormatters, useT } from '@/lib/i18n'
 import type { AdminUser } from '../types'
 import { UserActionMenu } from './user-action-menu'
 import { UserIdentity } from './user-identity'
@@ -28,6 +28,9 @@ export function UserCards({
   onChangeRole,
   onAction,
 }: UserCardsProps) {
+  const t = useT()
+  const format = useFormatters()
+
   return (
     <ul className="divide-y">
       {users.map((user) => {
@@ -46,7 +49,7 @@ export function UserCards({
                 onClick={() => onViewDetails(user)}
               >
                 <UserIdentity user={user} isSelf={isSelf} emailClassName="" />
-                <span className="sr-only">View details</span>
+                <span className="sr-only">{t('administration.viewDetails')}</span>
               </button>
 
               <UserActionMenu
@@ -62,7 +65,7 @@ export function UserCards({
               <UserRoleBadge role={user.role} />
               <UserStatusBadge status={user.status} />
               <span className="ml-auto text-[11px] whitespace-nowrap text-muted-foreground">
-                Joined {formatDate(user.createdAt)}
+                {t('administration.joined', { date: format.date(user.createdAt) })}
               </span>
             </div>
 
@@ -73,7 +76,7 @@ export function UserCards({
                 className="mt-3 w-full text-tone-emerald hover:bg-tone-emerald/10 hover:text-tone-emerald"
                 onClick={() => onAction(user, primary)}
               >
-                {USER_ACTIONS[primary].label}
+                {t(USER_ACTIONS[primary].labelKey)}
               </Button>
             )}
           </li>

@@ -8,6 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { LabourBillRecord, LabourSignedCopySection } from '../types'
 import { useLabourSignedCopies } from '../hooks/use-labour-bill-signed-copies'
@@ -18,8 +21,14 @@ interface SignedCopiesDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-function copies(count: number): string {
-  return `${count} ${count === 1 ? 'signed copy' : 'signed copies'}`
+/** "3 signed copies" — a counted noun, so it is a message rather than a join. */
+function copies(count: number, t: Translator): string {
+  return t('labourBill.copies.count', { count, n: formatNumber(count) })
+}
+
+/** "2 challans", the same way. */
+function challans(count: number, t: Translator): string {
+  return t('labourBill.stats.challanCount', { count, n: formatNumber(count) })
 }
 
 /**
@@ -43,30 +52,41 @@ function copies(count: number): string {
  * because that one *is* a write.
  */
 export function SignedCopiesDialog({ bill, open, onOpenChange }: SignedCopiesDialogProps) {
+  const t = useT()
+
   const { list, isLoading, busy, isBusy, print, download } = useLabourSignedCopies()
 
   const sections = (list?.sections ?? []).filter((section) => section.challans.length > 0)
   const hasCopies = (list?.copyCount ?? 0) > 0
   const overMax = (list?.copyCount ?? 0) > (list?.maxPerDownload ?? Infinity)
 
+  const summary = () => {
+    if (isLoading) {
+      return t('labourBill.details.readingBack')
+    }
+    if (!list || list.challanCount === 0) {
+      return t('labourBill.copies.nothingToPrint')
+    }
+    const values = {
+      copies: copies(list.copyCount, t),
+      withCopy: formatNumber(list.withCopy),
+      challans: challans(list.challanCount, t),
+      period: bill.periodLabel,
+    }
+    return list.withoutCopy > 0
+      ? t('labourBill.copies.summaryWaiting', {
+          ...values,
+          waiting: formatNumber(list.withoutCopy),
+        })
+      : t('labourBill.copies.summary', values)
+  }
+
   return (
     <Dialog open={open} onOpenChange={(next) => !isBusy && onOpenChange(next)}>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Signed copies for {bill.billNumber}</DialogTitle>
-          <DialogDescription>
-            {isLoading
-              ? 'Reading what has come back…'
-              : !list || list.challanCount === 0
-                ? 'Nothing has been scanned onto this bill yet, so there is no paper to print.'
-                : `${copies(list.copyCount)} for ${list.withCopy} of ${list.challanCount} ${
-                    list.challanCount === 1 ? 'challan' : 'challans'
-                  } on ${bill.periodLabel}${
-                    list.withoutCopy > 0
-                      ? ` — ${list.withoutCopy} still waiting, and the file simply leaves those out.`
-                      : '.'
-                  }`}
-          </DialogDescription>
+          <DialogTitle>{t('labourBill.copies.title', { bill: bill.billNumber })}</DialogTitle>
+          <DialogDescription>{summary()}</DialogDescription>
         </DialogHeader>
 
         {list && list.challanCount > 0 && (
@@ -84,9 +104,10 @@ export function SignedCopiesDialog({ bill, open, onOpenChange }: SignedCopiesDia
 
             {overMax && (
               <p className="rounded-lg border border-tone-amber/30 bg-tone-amber/5 px-3 py-2 text-xs text-pretty">
-                {copies(list.copyCount)} is more than the {list.maxPerDownload} one file can hold —
-                every copy is merged in memory. Print a CSD section at a time instead, which is how
-                the bills go out anyway.
+                {t('labourBill.copies.overMax', {
+                  copies: copies(list.copyCount, t),
+                  max: formatNumber(list.maxPerDownload),
+                })}
               </p>
             )}
           </div>
@@ -94,7 +115,7 @@ export function SignedCopiesDialog({ bill, open, onOpenChange }: SignedCopiesDia
 
         <DialogFooter className="sm:justify-between">
           <Button variant="ghost" disabled={isBusy} onClick={() => onOpenChange(false)}>
-            Close
+            {t('common.actions.close')}
           </Button>
 
           <span className="flex gap-2">
@@ -104,7 +125,7 @@ export function SignedCopiesDialog({ bill, open, onOpenChange }: SignedCopiesDia
               onClick={() => download()}
             >
               <Download data-icon="inline-start" aria-hidden />
-              Download all
+              {t('labourBill.copies.downloadAll')}
             </Button>
             <Button disabled={!hasCopies || isBusy || overMax} onClick={() => print()}>
               {busy === 'all' ? (
@@ -112,7 +133,7 @@ export function SignedCopiesDialog({ bill, open, onOpenChange }: SignedCopiesDia
               ) : (
                 <Printer data-icon="inline-start" aria-hidden />
               )}
-              {busy === 'all' ? 'Collecting…' : 'Print all'}
+              {busy === 'all' ? t('labourBill.copies.collecting') : t('labourBill.copies.printAll')}
             </Button>
           </span>
         </DialogFooter>
@@ -131,9 +152,31 @@ interface SectionRowProps {
 
 /** One CSD's own bill, and the paper that goes with it. */
 function SectionRow({ section, busy, disabled, onPrint, onDownload }: SectionRowProps) {
+  const t = useT()
+
   const Icon = section.isPending ? CircleDashed : Warehouse
   const isBusy = busy === section.key
   const empty = section.copyCount === 0
+
+  const line = () => {
+    if (empty) {
+      return t('labourBill.copies.noneYet', {
+        count: section.challans.length,
+        n: formatNumber(section.challans.length),
+      })
+    }
+    const values = {
+      copies: copies(section.copyCount, t),
+      withCopy: formatNumber(section.withCopy),
+      challans: challans(section.challans.length, t),
+    }
+    return section.withoutCopy > 0
+      ? t('labourBill.copies.sectionSummaryWaiting', {
+          ...values,
+          waiting: formatNumber(section.withoutCopy),
+        })
+      : t('labourBill.copies.sectionSummary', values)
+  }
 
   return (
     <div
@@ -152,15 +195,7 @@ function SectionRow({ section, busy, disabled, onPrint, onDownload }: SectionRow
           <Icon className="size-4 shrink-0" aria-hidden />
           {section.label}
         </span>
-        <span className="mt-0.5 block text-xs text-muted-foreground">
-          {empty
-            ? `No signed copy yet for any of its ${section.challans.length} ${
-                section.challans.length === 1 ? 'challan' : 'challans'
-              }`
-            : `${copies(section.copyCount)} · ${section.withCopy} of ${section.challans.length} ${
-                section.challans.length === 1 ? 'challan' : 'challans'
-              }${section.withoutCopy > 0 ? ` · ${section.withoutCopy} waiting` : ''}`}
-        </span>
+        <span className="mt-0.5 block text-xs text-muted-foreground">{line()}</span>
       </span>
 
       <Button
@@ -168,24 +203,24 @@ function SectionRow({ section, busy, disabled, onPrint, onDownload }: SectionRow
         size="sm"
         disabled={empty || disabled}
         onClick={onDownload}
-        aria-label={`Download the signed copies for ${section.label}`}
+        aria-label={t('labourBill.copies.downloadAria', { section: section.label })}
       >
         <Download data-icon="inline-start" aria-hidden />
-        Save
+        {t('common.actions.save')}
       </Button>
       <Button
         variant="outline"
         size="sm"
         disabled={empty || disabled}
         onClick={onPrint}
-        aria-label={`Print the signed copies for ${section.label}`}
+        aria-label={t('labourBill.copies.printAria', { section: section.label })}
       >
         {isBusy ? (
           <Loader2 className="animate-spin" data-icon="inline-start" aria-hidden />
         ) : (
           <FileSignature data-icon="inline-start" aria-hidden />
         )}
-        {isBusy ? 'Collecting…' : 'Print'}
+        {isBusy ? t('labourBill.copies.collecting') : t('labourBill.copies.print')}
       </Button>
     </div>
   )

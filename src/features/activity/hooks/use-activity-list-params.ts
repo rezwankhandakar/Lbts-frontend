@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
-import { QUICK_RANGE_LABELS, quickRangeFor, rangeFor } from '@/lib/date-ranges'
+import { QUICK_RANGE_KEYS, quickRangeFor, rangeFor } from '@/lib/date-ranges'
 import type { QuickRange } from '@/lib/date-ranges'
 import type { ActivityFilterPatch, ActivityListParams } from '../types'
 
@@ -120,4 +120,4 @@ export function useActivityListParams(): ActivityListParamsController {
   }
 }
 
-export { PAGE_SIZE as ACTIVITY_PAGE_SIZE, QUICK_RANGE_LABELS }
+export { PAGE_SIZE as ACTIVITY_PAGE_SIZE, QUICK_RANGE_KEYS }

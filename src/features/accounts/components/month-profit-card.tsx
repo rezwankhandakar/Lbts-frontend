@@ -2,6 +2,7 @@ import { ArrowRight, TrendingDown, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { signedTaka, taka } from '../lib/accounts-meta'
 import type { ProfitLossMonth } from '../types'
@@ -13,27 +14,29 @@ import { Panel } from './account-atoms'
  * a loss that has not happened.
  */
 export function MonthProfitCard({ month }: { month: ProfitLossMonth | undefined }) {
+  const t = useT()
+
   if (!month) {
     return <Skeleton className="h-72 rounded-xl" />
   }
 
   const lines = [
-    { label: 'Walton final bill', value: month.finalBillIncome, strong: true },
-    { label: 'Walton labour bill', value: month.waltonLabourIncome, strong: true },
-    { label: 'Trip rent', value: -month.tripRent },
-    { label: 'Labour bill', value: -month.labourBill },
-    { label: 'Office expenses', value: -month.officeExpense },
+    { label: t('accounts.profit.finalBillIncome'), value: month.finalBillIncome, strong: true },
+    { label: t('accounts.profit.labourIncome'), value: month.waltonLabourIncome, strong: true },
+    { label: t('accounts.profit.tripRent'), value: -month.tripRent },
+    { label: t('accounts.profit.labourBill'), value: -month.labourBill },
+    { label: t('accounts.profit.officeExpenses'), value: -month.officeExpense },
   ]
   const isProfit = month.profit >= 0
   const Trend = isProfit ? TrendingUp : TrendingDown
 
   return (
     <Panel
-      title={`Profit & loss · ${month.label}`}
-      description="What Walton was billed, against every operational cost."
+      title={t('accounts.profit.title', { period: month.label })}
+      description={t('accounts.profit.description')}
       action={
         <Button variant="ghost" size="sm" render={<Link to="/accounts/profit-loss" />}>
-          Full report
+          {t('accounts.profit.fullReport')}
           <ArrowRight data-icon="inline-end" aria-hidden />
         </Button>
       }
@@ -41,7 +44,7 @@ export function MonthProfitCard({ month }: { month: ProfitLossMonth | undefined 
       <div className="grid gap-4 p-4 sm:p-5">
         {month.finalBillCount === 0 && (
           <p className="rounded-lg bg-tone-amber/10 px-3 py-2 text-xs text-tone-amber">
-            No Walton final bill is entered for this month yet
+            {t('accounts.profit.noFinalBillYet')}
             {month.pendingSubmitted > 0 && ` — Excel bills ask for ${taka(month.pendingSubmitted)}`}.
           </p>
         )}

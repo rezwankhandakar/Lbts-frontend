@@ -2,6 +2,8 @@ import { Link2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { RowSelection } from '../hooks/use-row-selection'
 import { bulkLinkProblem } from '../lib/link-target'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 interface BulkLinkBarProps {
   selection: RowSelection
@@ -18,6 +20,8 @@ interface BulkLinkBarProps {
  * one Trip DO, before anybody presses anything.
  */
 export function BulkLinkBar({ selection, onLink }: BulkLinkBarProps) {
+  const t = useT()
+
   if (selection.count === 0) {
     return null
   }
@@ -29,7 +33,7 @@ export function BulkLinkBar({ selection, onLink }: BulkLinkBarProps) {
     <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
       <div
         role="region"
-        aria-label="Ticked rows"
+        aria-label={t('tripDo.assign.tickedRows')}
         className="pointer-events-auto flex max-w-full animate-in flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border bg-popover px-4 py-2.5 text-popover-foreground shadow-xl ring-1 ring-foreground/5 duration-200 fade-in-0 slide-in-from-bottom-3"
       >
         <span className="flex items-center gap-2 text-[13px]">
@@ -49,16 +53,18 @@ export function BulkLinkBar({ selection, onLink }: BulkLinkBarProps) {
           {models.join(', ')}
         </span>
 
-        {problem && <span className="max-w-xs text-xs text-tone-amber">{problem}</span>}
+        {problem && (
+          <span className="max-w-xs text-xs text-tone-amber">{t(problem as TranslationKey)}</span>
+        )}
 
         <span className="flex items-center gap-1.5">
           <Button size="sm" onClick={onLink} disabled={Boolean(problem)}>
             <Link2 data-icon="inline-start" aria-hidden />
-            Set Trip DO
+            {t('tripDo.setTripDo')}
           </Button>
           <Button variant="ghost" size="sm" onClick={selection.clear}>
             <X data-icon="inline-start" aria-hidden />
-            Clear
+            {t('common.actions.clear')}
           </Button>
         </span>
       </div>

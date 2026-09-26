@@ -37,13 +37,18 @@ export type CarriedField = (typeof CARRIED_FIELDS)[number]
 /** The five values, as the last gate pass left them. */
 export type CarriedValues = Record<CarriedField, string>
 
-/** What each tick box calls its field, when it names it out loud. */
-export const CARRIED_LABELS: Record<CarriedField, string> = {
-  tripDate: 'Trip date',
-  csd: 'CSD',
-  unit: 'Unit',
-  customerName: 'Customer name',
-  vehicleNo: 'Vehicle number',
+/**
+ * What each tick box calls its field, when it names it out loud.
+ *
+ * Keys rather than words, so this file stays import-free — the same reason the
+ * field list itself lives here.
+ */
+export const CARRIED_LABEL_KEYS: Record<CarriedField, string> = {
+  tripDate: 'gatePass.fields.tripDate',
+  csd: 'gatePass.fields.csd',
+  unit: 'gatePass.fields.unit',
+  customerName: 'gatePass.fields.customerName',
+  vehicleNo: 'gatePass.fields.vehicleNo',
 }
 
 /**

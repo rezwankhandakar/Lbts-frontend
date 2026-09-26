@@ -6,6 +6,7 @@ import { useResumeBatch } from '../hooks/use-resume-batch'
 import { ChallanWorkspaceSession } from './challan-workspace-session'
 import { ResumeBatchPanel, ResumeBatchUnavailable } from './resume-batch-panel'
 import { SourcePdfDropzone } from './source-pdf-dropzone'
+import { useT } from '@/lib/i18n'
 
 /**
  * The way into the Challan Entry workspace: which PDF, and which batch.
@@ -24,6 +25,8 @@ import { SourcePdfDropzone } from './source-pdf-dropzone'
  * the batch changes so no queue is ever inherited by the wrong document.
  */
 export function ChallanWorkspace() {
+  const t = useT()
+
   const navigate = useNavigate()
   const pdf = usePdfSource()
   const resume = useResumeBatch()
@@ -37,7 +40,7 @@ export function ChallanWorkspace() {
   if (resume.isPending) {
     return (
       <div className="mx-auto w-full max-w-2xl py-6" aria-busy="true">
-        <span className="sr-only">Loading the batch</span>
+        <span className="sr-only">{t('challan.batch.loadingWorkspace')}</span>
         <Skeleton className="h-36 rounded-xl" />
         <Skeleton className="mt-4 h-72 rounded-xl" />
       </div>

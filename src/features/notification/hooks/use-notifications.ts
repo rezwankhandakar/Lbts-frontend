@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { formatNumber, t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { useAuthStore } from '@/stores/use-auth-store'
 import {
@@ -243,7 +244,9 @@ export function useMarkAllRead(): UseMutationResult<
     onSuccess: ({ updated }) => {
       void queryClient.invalidateQueries({ queryKey: notificationKeys.all })
       if (updated > 0) {
-        toast.success(`${updated} ${updated === 1 ? 'notification' : 'notifications'} marked read`)
+        toast.success(
+          t('notification.toasts.markedRead', { count: updated, n: formatNumber(updated) }),
+        )
       }
     },
     onError: reportNotificationError,
@@ -276,8 +279,8 @@ export function useClearRead(): UseMutationResult<{ removed: number }, ApiError,
       void queryClient.invalidateQueries({ queryKey: notificationKeys.all })
       toast.success(
         removed === 0
-          ? 'There was nothing read to clear'
-          : `${removed} read ${removed === 1 ? 'notification' : 'notifications'} cleared`,
+          ? t('notification.toasts.nothingToClear')
+          : t('notification.toasts.cleared', { count: removed, n: formatNumber(removed) }),
       )
     },
     onError: reportNotificationError,
@@ -298,10 +301,11 @@ export function useSaveNotificationPreferences(): UseMutationResult<
       queryClient.setQueryData(notificationKeys.preferences(), preferences)
       toast.success(
         preferences.mutedCategories.length === 0
-          ? 'You will hear about everything'
-          : `${preferences.mutedCategories.length} ${
-              preferences.mutedCategories.length === 1 ? 'category' : 'categories'
-            } switched off`,
+          ? t('notification.toasts.hearEverything')
+          : t('notification.toasts.switchedOff', {
+              count: preferences.mutedCategories.length,
+              n: formatNumber(preferences.mutedCategories.length),
+            }),
         {
           /**
            * Said out loud because it is the one thing about a mute that surprises
@@ -309,7 +313,7 @@ export function useSaveNotificationPreferences(): UseMutationResult<
            * Muting at delivery is what keeps the badge and the list agreeing with
            * each other — see `withoutMuted` on the server.
            */
-          description: 'This applies to new notifications. What is already here stays.',
+          description: t('notification.toasts.appliesToNew'),
         },
       )
     },

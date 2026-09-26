@@ -1,12 +1,15 @@
 import { Check, FileText, Layers, SkipForward } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useT } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { BatchItem, BatchItemStatus } from '../hooks/use-scan-batch'
 
 interface StatusStyle {
   ring: string
   badge: string
-  label: string
+  labelKey: TranslationKey
 }
 
 /**
@@ -17,22 +20,22 @@ const STATUS_STYLES: Record<BatchItemStatus, StatusStyle> = {
   pending: {
     ring: 'ring-border',
     badge: 'bg-muted text-muted-foreground',
-    label: 'Not entered yet',
+    labelKey: 'gatePass.tray.sheetStatuses.pending',
   },
   submitted: {
     ring: 'ring-tone-emerald/50',
     badge: 'bg-tone-emerald text-background',
-    label: 'Submitted',
+    labelKey: 'gatePass.tray.sheetStatuses.submitted',
   },
   draft: {
     ring: 'ring-tone-amber/50',
     badge: 'bg-tone-amber text-background',
-    label: 'Saved as a draft',
+    labelKey: 'gatePass.tray.sheetStatuses.draft',
   },
   skipped: {
     ring: 'ring-border',
     badge: 'bg-muted-foreground text-background',
-    label: 'Skipped',
+    labelKey: 'gatePass.tray.sheetStatuses.skipped',
   },
 }
 
@@ -66,15 +69,32 @@ export function ScanSheetTile({
   isSelectable,
   onClick,
 }: ScanSheetTileProps) {
+  const t = useT()
+
   const style = STATUS_STYLES[item.status]
   const isJoining = isSelected !== null
   const isJoined = item.parts.length > 0
 
-  const label = item.gatePassId ?? (isJoined ? `${item.pageCount} pages` : `Sheet ${position}`)
+  const status = t(style.labelKey)
+
+  const label =
+    item.gatePassId ??
+    (isJoined
+      ? t('gatePass.scanner.pageCount', {
+          count: item.pageCount,
+          n: formatNumber(item.pageCount),
+        })
+      : t('gatePass.tray.tileSheet', { n: formatNumber(position) }))
 
   const description = isJoined
-    ? `${item.parts.length} sheets joined into one gate pass · ${style.label}`
-    : `Sheet ${position} · ${style.label}`
+    ? t('gatePass.tray.tileJoined', {
+        sheets: t('gatePass.scanner.sheetsJoined', {
+          count: item.parts.length,
+          n: formatNumber(item.parts.length),
+        }),
+        status,
+      })
+    : t('gatePass.tray.tileDescription', { n: formatNumber(position), status })
 
   return (
     <Tooltip>
@@ -145,7 +165,7 @@ export function ScanSheetTile({
       <TooltipContent>
         {description}
         {item.gatePassId ? ` · ${item.gatePassId}` : ''}
-        {isJoining && !isSelectable ? ' · already filed, cannot be joined' : ''}
+        {isJoining && !isSelectable ? t('gatePass.tray.tileAlreadyFiled') : ''}
       </TooltipContent>
     </Tooltip>
   )

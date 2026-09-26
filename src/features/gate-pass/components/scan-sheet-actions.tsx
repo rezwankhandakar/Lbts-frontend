@@ -1,6 +1,8 @@
 import { SkipForward, Split, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
 import type { BatchItem } from '../hooks/use-scan-batch'
+import { useT } from '@/lib/i18n'
 
 interface ScanSheetActionsProps {
   item: BatchItem
@@ -34,15 +36,24 @@ export function ScanSheetActions({
   onSkip,
   onRemove,
 }: ScanSheetActionsProps) {
+  const t = useT()
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 sm:px-5">
       <p className="text-xs text-muted-foreground">
-        {singleDocument ? 'Showing sheet ' : 'Entering sheet '}
-        <span className="font-medium text-foreground">{position}</span> of {total}
+        {t(singleDocument ? 'gatePass.tray.showingSheet' : 'gatePass.tray.enteringSheet', {
+          position: formatNumber(position),
+          total: formatNumber(total),
+        })}
         {item.parts.length > 0 && (
           <>
             {' · '}
-            <span className="font-medium text-foreground">{item.parts.length} sheets joined</span>
+            <span className="font-medium text-foreground">
+              {t('gatePass.scanner.sheetsJoined', {
+                count: item.parts.length,
+                n: formatNumber(item.parts.length),
+              })}
+            </span>
           </>
         )}
       </p>
@@ -57,7 +68,7 @@ export function ScanSheetActions({
             disabled={busy}
           >
             <Split data-icon="inline-start" aria-hidden />
-            Separate again
+            {t('gatePass.tray.separate')}
           </Button>
         )}
 
@@ -70,7 +81,7 @@ export function ScanSheetActions({
             disabled={busy}
           >
             <SkipForward data-icon="inline-start" aria-hidden />
-            Skip this sheet
+            {t('gatePass.tray.skip')}
           </Button>
         )}
 
@@ -82,7 +93,7 @@ export function ScanSheetActions({
           disabled={busy}
         >
           <Trash2 data-icon="inline-start" aria-hidden />
-          Discard
+          {t('gatePass.tray.discard')}
         </Button>
       </div>
     </div>

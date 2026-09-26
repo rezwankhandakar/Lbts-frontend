@@ -9,7 +9,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { formatTaka } from '@/lib/format'
+import { formatNumber, formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { BillRecord } from '../types'
 import type { RemoveTarget } from './bill-sheet-row'
@@ -37,6 +38,8 @@ function Confirm({
   onCancel,
   onConfirm,
 }: ConfirmProps) {
+  const t = useT()
+
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && !isPending && onCancel()}>
       <AlertDialogContent>
@@ -45,7 +48,7 @@ function Confirm({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>{t('common.actions.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isPending}
@@ -69,46 +72,73 @@ interface BillDialogProps {
 
 /** Signing a bill off. Reads back the figure being signed, and what is missing from it. */
 export function FinalizeBillDialog({ bill, ...props }: BillDialogProps) {
+  const t = useT()
+
   return (
     <Confirm
       {...props}
-      title={`Finalize ${bill.billNumber}?`}
-      confirmLabel="Finalize bill"
-      pendingLabel="Finalizing…"
-      description={
-        <>
-          {formatTaka(bill.totalAmount)} for {bill.tripDoCount} Trip DO ({bill.lineCount} rows, {bill.totalQty} pcs),
-          unit {bill.unit}, {bill.periodLabel}. Once finalized, rows cannot be added or taken off until an Admin or
-          Manager reopens it.
-          {bill.unpricedLines > 0 &&
-            ` ${bill.unpricedLines} ${bill.unpricedLines === 1 ? 'row has' : 'rows have'} no rate and add nothing to the total.`}
-        </>
-      }
+      title={t('bill.confirm.finalizeTitle', { bill: bill.billNumber })}
+      confirmLabel={t('bill.confirm.finalize')}
+      pendingLabel={t('bill.actions.finalizing')}
+      description={[
+        t('bill.confirm.finalizeBody', {
+          amount: formatTaka(bill.totalAmount),
+          tripDos: t('bill.stats.tripDoCount', {
+            count: bill.tripDoCount,
+            n: formatNumber(bill.tripDoCount),
+          }),
+          rows: t('common.pagination.rows', {
+            count: bill.lineCount,
+            n: formatNumber(bill.lineCount),
+          }),
+          pcs: t('bill.stats.piecesCount', {
+            count: bill.totalQty,
+            n: formatNumber(bill.totalQty),
+          }),
+          unit: bill.unit,
+          period: bill.periodLabel,
+        }),
+        bill.unpricedLines > 0
+          ? t('bill.confirm.unpricedNote', {
+              count: bill.unpricedLines,
+              n: formatNumber(bill.unpricedLines),
+            })
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     />
   )
 }
 
 export function ReopenBillDialog({ bill, ...props }: BillDialogProps) {
+  const t = useT()
+
   return (
     <Confirm
       {...props}
-      title={`Reopen ${bill.billNumber}?`}
-      confirmLabel="Reopen as draft"
-      pendingLabel="Reopening…"
-      description="It becomes a draft again, so rows can be added, taken off and refreshed from the Trip DO sheet. If the finalized file has already been sent, whoever received it will need the corrected one."
+      title={t('bill.confirm.reopenTitle', { bill: bill.billNumber })}
+      confirmLabel={t('bill.confirm.reopen')}
+      pendingLabel={t('bill.actions.reopening')}
+      description={t('bill.actions.reopenDescription')}
     />
   )
 }
 
 export function DeleteBillDialog({ bill, ...props }: BillDialogProps) {
+  const t = useT()
+
   return (
     <Confirm
       {...props}
       destructive
-      title={`Delete ${bill.billNumber}?`}
-      confirmLabel="Delete bill"
-      pendingLabel="Deleting…"
-      description={`Its ${bill.lineCount} ${bill.lineCount === 1 ? 'row goes' : 'rows go'} back to the Trip DO sheet unbilled, and the challans and gate passes behind them are marked accordingly. The bill number is not reused.`}
+      title={t('bill.confirm.deleteTitle', { bill: bill.billNumber })}
+      confirmLabel={t('bill.confirm.deleteBill')}
+      pendingLabel={t('bill.actions.deleting')}
+      description={t('bill.confirm.deleteDescription', {
+        count: bill.lineCount,
+        n: formatNumber(bill.lineCount),
+      })}
     />
   )
 }
@@ -121,16 +151,24 @@ interface RemoveLinesDialogProps {
 }
 
 export function RemoveLinesDialog({ target, ...props }: RemoveLinesDialogProps) {
+  const t = useT()
+
   const count = target?.lineIds.length ?? 0
   return (
     <Confirm
       {...props}
       open={target !== null}
       destructive
-      title={`Take ${target?.label ?? 'these rows'} off the bill?`}
-      confirmLabel={count === 1 ? 'Take row off' : `Take ${count} rows off`}
-      pendingLabel="Taking off…"
-      description={`${count} ${count === 1 ? 'row goes' : 'rows go'} back to the Trip DO sheet unbilled, free to add to this bill again or to another.`}
+      title={t('bill.confirm.removeTitle', {
+        label: target?.label ?? t('bill.confirm.theseRows'),
+      })}
+      confirmLabel={
+        count === 1
+          ? t('bill.confirm.takeRowOff')
+          : t('bill.confirm.takeRowsOff', { count: formatNumber(count) })
+      }
+      pendingLabel={t('bill.actions.takingOff')}
+      description={t('bill.confirm.removeDescription', { count, n: formatNumber(count) })}
     />
   )
 }

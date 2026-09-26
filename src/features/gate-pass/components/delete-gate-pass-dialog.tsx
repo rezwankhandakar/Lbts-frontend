@@ -8,7 +8,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { gatePassStatusMeta } from '../lib/gate-pass-meta'
 import type { GatePassRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface DeleteGatePassDialogProps {
   record: GatePassRecord | null
@@ -37,6 +39,8 @@ export function DeleteGatePassDialog({
   onOpenChange,
   onConfirm,
 }: DeleteGatePassDialogProps) {
+  const t = useT()
+
   if (!record) {
     return null
   }
@@ -47,22 +51,32 @@ export function DeleteGatePassDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {record.gatePassId}?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t('gatePass.remove.title', { gatePass: record.gatePassId })}
+          </AlertDialogTitle>
           <AlertDialogDescription>
             {isDraft
-              ? 'This draft and its scanned document are removed permanently. Nothing that has been submitted is affected.'
-              : `This ${record.status.toLowerCase()} gate pass and its scanned document are removed permanently, and it leaves every list and count it appears in. This cannot be undone.`}
+              ? t('gatePass.remove.draftBody')
+              : t('gatePass.remove.filedBody', {
+                  status: gatePassStatusMeta(record.status, t).label.toLocaleLowerCase(),
+                })}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Keep it</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>
+            {t('gatePass.remove.keepIt')}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isPending}
             className="bg-destructive/10 text-destructive hover:bg-destructive/20"
           >
-            {isPending ? 'Deleting…' : isDraft ? 'Delete draft' : 'Delete gate pass'}
+            {isPending
+              ? t('gatePass.remove.deleting')
+              : isDraft
+                ? t('gatePass.remove.deleteDraft')
+                : t('gatePass.remove.deleteGatePass')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

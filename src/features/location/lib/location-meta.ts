@@ -1,5 +1,6 @@
 import { Building2, CircleHelp, MapPinCheck, Route, ScanSearch, Warehouse } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import { LOCATION_TYPES } from '../types'
 import type { LocationSource, LocationStatus, LocationType } from '../types'
 
@@ -20,32 +21,38 @@ interface ToneClasses {
   chip: string
 }
 
+/**
+ * A location type as the UI renders it. `label` and `description` are
+ * **already translated** — the lookups below take a `Translator` and resolve
+ * them, the arrangement `lib/roles.ts` uses and for the same reason: demanding
+ * the translator makes the caller hold `useT()`, which is the subscription
+ * that makes a badge follow a language change.
+ */
 export interface LocationTypeMeta extends ToneClasses {
   label: string
   description: string
   icon: LucideIcon
 }
 
-export const LOCATION_TYPE_META: Record<LocationType, LocationTypeMeta> = {
+/** The untranslatable half: what a value looks like, and nothing it says. */
+interface LocationPresentation extends ToneClasses {
+  icon: LucideIcon
+}
+
+export const LOCATION_TYPE_META: Record<LocationType, LocationPresentation> = {
   ISD: {
-    label: 'ISD',
-    description: 'Inside the metropolitan delivery area.',
     icon: Building2,
     badge: 'border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo',
     dot: 'bg-tone-indigo',
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
   },
   'OSD-Metro': {
-    label: 'OSD-Metro',
-    description: 'Outside the delivery area, in a metropolitan or sadar thana.',
     icon: Warehouse,
     badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
     dot: 'bg-tone-cyan',
     chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
   },
   'OSD-Thana': {
-    label: 'OSD-Thana',
-    description: 'Outside the delivery area, in an upazila thana.',
     icon: Route,
     badge: 'border-tone-violet/25 bg-tone-violet/10 text-tone-violet',
     dot: 'bg-tone-violet',
@@ -54,17 +61,27 @@ export const LOCATION_TYPE_META: Record<LocationType, LocationTypeMeta> = {
 }
 
 /** Defensive: a value written before this set existed must still render. */
-export function locationTypeMeta(value: string): LocationTypeMeta {
-  return (
-    LOCATION_TYPE_META[value as LocationType] ?? {
-      label: value || 'Unknown',
-      description: 'Not one of the recognised location types.',
-      icon: CircleHelp,
-      badge: 'border-border bg-muted text-muted-foreground',
-      dot: 'bg-muted-foreground',
-      chip: 'bg-muted text-muted-foreground ring-border',
+export function locationTypeMeta(value: string, t: Translator): LocationTypeMeta {
+  const known = LOCATION_TYPE_META[value as LocationType]
+
+  if (known) {
+    return {
+      ...known,
+      label: t(`location.types.${value as LocationType}.label` as TranslationKey),
+      description: t(`location.types.${value as LocationType}.description` as TranslationKey),
     }
-  )
+  }
+
+  return {
+    // An unrecognised value keeps its own raw string: it is data from the API,
+    // and the honest thing to show is what was actually stored.
+    label: value || t('location.types.unknown.label'),
+    description: t('location.types.unknown.description'),
+    icon: CircleHelp,
+    badge: 'border-border bg-muted text-muted-foreground',
+    dot: 'bg-muted-foreground',
+    chip: 'bg-muted text-muted-foreground ring-border',
+  }
 }
 
 export interface LocationStatusMeta extends ToneClasses {
@@ -86,18 +103,14 @@ export interface LocationStatusMeta extends ToneClasses {
  * location simply is not known, and the challan was filed perfectly well
  * without it.
  */
-export const LOCATION_STATUS_META: Record<LocationStatus, LocationStatusMeta> = {
+export const LOCATION_STATUS_META: Record<LocationStatus, LocationPresentation> = {
   Verified: {
-    label: 'Location set',
-    description: 'Matched to the location master list.',
     icon: MapPinCheck,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
   },
   Pending: {
-    label: 'Location pending',
-    description: 'Not determined yet. An administrator can set it at any time.',
     icon: CircleHelp,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     dot: 'bg-tone-amber',
@@ -105,8 +118,14 @@ export const LOCATION_STATUS_META: Record<LocationStatus, LocationStatusMeta> = 
   },
 }
 
-export function locationStatusMeta(value: string): LocationStatusMeta {
-  return LOCATION_STATUS_META[value as LocationStatus] ?? LOCATION_STATUS_META.Pending
+export function locationStatusMeta(value: string, t: Translator): LocationStatusMeta {
+  const status: LocationStatus = value === 'Verified' ? 'Verified' : 'Pending'
+
+  return {
+    ...LOCATION_STATUS_META[status],
+    label: t(`location.statuses.${status}.label` as TranslationKey),
+    description: t(`location.statuses.${status}.description` as TranslationKey),
+  }
 }
 
 /**
@@ -121,8 +140,8 @@ export function locationStatusMeta(value: string): LocationStatusMeta {
  * on a list where both appear, and not destructive-toned: an inferred match is
  * usually right, and colouring it as an error would teach people to ignore it.
  */
-export const LOCATION_REVIEW_META: ToneClasses & { label: string; icon: LucideIcon } = {
-  label: 'Unconfirmed',
+export const LOCATION_REVIEW_META: ToneClasses & { labelKey: TranslationKey; icon: LucideIcon } = {
+  labelKey: 'location.review',
   icon: ScanSearch,
   badge: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
   dot: 'bg-tone-orange',
@@ -136,16 +155,17 @@ export const LOCATION_REVIEW_META: ToneClasses & { label: string; icon: LucideIc
  * does not need to know which tier of a matcher answered — they need to know
  * whether the location is set. Somebody investigating a wrong one does.
  */
-export const LOCATION_SOURCE_LABELS: Record<LocationSource, string> = {
-  master_exact: 'Matched the master list exactly',
-  master_normalized: 'Matched the master list after normalising the spelling',
-  master_fuzzy: 'Matched the nearest master entry',
-  gemini_assisted: 'Chosen from master entries with assistance',
-  admin_manual: 'Set by hand',
+const LOCATION_SOURCE_KEYS: Record<LocationSource, TranslationKey> = {
+  master_exact: 'location.sources.master_exact',
+  master_normalized: 'location.sources.master_normalized',
+  master_fuzzy: 'location.sources.master_fuzzy',
+  gemini_assisted: 'location.sources.gemini_assisted',
+  admin_manual: 'location.sources.admin_manual',
 }
 
-export function locationSourceLabel(value: string): string {
-  return LOCATION_SOURCE_LABELS[value as LocationSource] ?? 'Set from the master list'
+export function locationSourceLabel(value: string, t: Translator): string {
+  const key = LOCATION_SOURCE_KEYS[value as LocationSource]
+  return key ? t(key) : t('location.sources.unknown')
 }
 
 /** "Dhaka / Mirpur Model", the way a location is written everywhere in the UI. */

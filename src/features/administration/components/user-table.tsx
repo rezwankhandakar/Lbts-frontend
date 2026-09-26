@@ -10,7 +10,7 @@ import {
 import { cn } from '@/lib/utils'
 import { USER_ACTIONS, primaryActionFor } from '../administration-actions'
 import type { UserActionId } from '../administration-actions'
-import { formatDate } from '@/lib/format'
+import { useFormatters, useT } from '@/lib/i18n'
 import type { AdminUser } from '../types'
 import { UserActionMenu } from './user-action-menu'
 import { UserIdentity } from './user-identity'
@@ -42,17 +42,24 @@ export function UserTable({
   onChangeRole,
   onAction,
 }: UserTableProps) {
+  const t = useT()
+  const format = useFormatters()
+
   return (
     <Table>
       <TableHeader>
         <TableRow className="bg-muted/40 hover:bg-muted/40">
-          <TableHead className={HEAD}>User</TableHead>
-          <TableHead className={cn(HEAD, 'hidden xl:table-cell')}>Email</TableHead>
-          <TableHead className={HEAD}>Role</TableHead>
-          <TableHead className={HEAD}>Account status</TableHead>
-          <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>Created</TableHead>
+          <TableHead className={HEAD}>{t('administration.table.user')}</TableHead>
+          <TableHead className={cn(HEAD, 'hidden xl:table-cell')}>
+              {t('administration.table.email')}
+            </TableHead>
+          <TableHead className={HEAD}>{t('administration.table.role')}</TableHead>
+          <TableHead className={HEAD}>{t('administration.table.accountStatus')}</TableHead>
+          <TableHead className={cn(HEAD, 'hidden lg:table-cell')}>
+              {t('administration.table.created')}
+            </TableHead>
           <TableHead className={cn(HEAD, 'text-right')}>
-            <span className="sr-only">Actions</span>
+            <span className="sr-only">{t('administration.table.actions')}</span>
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -84,7 +91,7 @@ export function UserTable({
                   }}
                 >
                   <UserIdentity user={user} isSelf={isSelf} />
-                  <span className="sr-only">View details</span>
+                  <span className="sr-only">{t('administration.viewDetails')}</span>
                 </button>
               </TableCell>
 
@@ -101,7 +108,7 @@ export function UserTable({
               </TableCell>
 
               <TableCell className="hidden px-4 py-3 text-[13px] whitespace-nowrap text-muted-foreground lg:table-cell">
-                {formatDate(user.createdAt)}
+                {format.date(user.createdAt)}
               </TableCell>
 
               <TableCell
@@ -116,7 +123,7 @@ export function UserTable({
                       className="hidden text-tone-emerald hover:bg-tone-emerald/10 hover:text-tone-emerald sm:inline-flex"
                       onClick={() => onAction(user, primary)}
                     >
-                      {USER_ACTIONS[primary].label}
+                      {t(USER_ACTIONS[primary].labelKey)}
                     </Button>
                   )}
                   <UserActionMenu

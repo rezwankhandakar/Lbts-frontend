@@ -1,6 +1,8 @@
 import { Paperclip } from 'lucide-react'
 import { BillingFlag } from '@/features/bill/components/bill-badges'
 import { ProductStatusBadge } from '@/features/trip-do/components/trip-do-badges'
+import { useT } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { formatTripDate } from '../lib/gate-pass-meta'
 import type { GatePassListRecord } from '../types'
@@ -44,6 +46,8 @@ function Truncated({ value, width, strong }: { value: string; width: string; str
  * row. Pressing the row opens the gate pass; the actions cell does not.
  */
 export function GatePassSheetRow({ line, actions, onOpen }: GatePassSheetRowProps) {
+  const t = useT()
+
   const { record, index, banded } = line
   const item = record.items[index]
   const delivery = record.lineDelivery[index] ?? { linkedQty: 0, deliveredQty: 0, status: 'Unlinked' }
@@ -76,7 +80,9 @@ export function GatePassSheetRow({ line, actions, onOpen }: GatePassSheetRowProp
           </span>
           <span className="flex items-center gap-1 font-mono text-[10.5px] text-muted-foreground">
             {record.gatePassId}
-            {record.document && <Paperclip className="size-2.5" aria-label="Has a scanned document" />}
+            {record.document && (
+              <Paperclip className="size-2.5" aria-label={t('gatePass.hasDocument')} />
+            )}
           </span>
         </button>
       </td>
@@ -88,7 +94,10 @@ export function GatePassSheetRow({ line, actions, onOpen }: GatePassSheetRowProp
           <ProductStatusBadge status={delivery.status} />
           {delivery.linkedQty > 0 && (
             <span className="text-[10.5px] text-muted-foreground tabular-nums">
-              {delivered}/{item.qty} delivered
+              {t('gatePass.stats.deliveredOf', {
+                delivered: formatNumber(delivered),
+                total: formatNumber(item.qty),
+              })}
             </span>
           )}
         </span>
@@ -106,7 +115,9 @@ export function GatePassSheetRow({ line, actions, onOpen }: GatePassSheetRowProp
         <Truncated value={item.productName} width="max-w-[12rem]" strong />
       </td>
       <td className={cn(CELL, 'font-mono text-[12px]')}>{item.model || <Dash />}</td>
-      <td className={cn(CELL, 'text-right text-[13px] font-semibold tabular-nums')}>{item.qty}</td>
+      <td className={cn(CELL, 'text-right text-[13px] font-semibold tabular-nums')}>
+        {formatNumber(item.qty)}
+      </td>
       <td className={CELL}>
         <span className="flex flex-col items-start gap-1">
           <GatePassStatusBadge status={record.status} />

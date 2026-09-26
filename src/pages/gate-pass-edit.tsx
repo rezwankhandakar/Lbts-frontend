@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { GatePassWorkspace } from '@/features/gate-pass/components/gate-pass-workspace'
 import { GatePassDetailsSkeleton } from '@/features/gate-pass/components/gate-pass-details-skeleton'
 import { useGatePass } from '@/features/gate-pass/hooks/use-gate-passes'
+import { useT } from '@/lib/i18n'
 
 /**
  * Correcting a gate pass, in whatever state it has reached — a draft being
@@ -17,6 +18,8 @@ import { useGatePass } from '@/features/gate-pass/hooks/use-gate-passes'
  * it is the server's decision, and it refuses a record that is not theirs.
  */
 export function GatePassEditPage() {
+  const t = useT()
+
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const query = useGatePass(id)
@@ -31,12 +34,12 @@ export function GatePassEditPage() {
         <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
           <TriangleAlert className="size-5" aria-hidden />
         </div>
-        <h1 className="mt-4 text-lg font-semibold tracking-tight">Gate pass not found</h1>
+        <h1 className="mt-4 text-lg font-semibold tracking-tight">{t('gatePass.notFound')}</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          {query.error?.message ?? 'It may have been deleted, or you may not have access to it.'}
+          {query.error?.message ?? t('gatePass.notFoundHint')}
         </p>
         <Button variant="outline" size="sm" className="mt-5" onClick={() => navigate('/gate-pass')}>
-          Back to gate passes
+          {t('gatePass.backToList')}
         </Button>
       </div>
     )

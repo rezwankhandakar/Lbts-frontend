@@ -1,7 +1,14 @@
 import { Loader2, Printer, RefreshCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { SCANNER_STATE_COPY, SCANNER_TONES } from '@/lib/scanner-messages'
+import {
+  SCANNER_STATE_COPY,
+  SCANNER_TONES,
+  scannerDescriptionKey,
+  scannerTitleKey,
+} from '@/lib/scanner-messages'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import type { ScannerState } from '@/lib/scanner-messages'
 import type { ScannerDevice } from '@/lib/scanner-agent'
 
@@ -22,6 +29,7 @@ interface ScannerStatusProps {
  * what keeps an HRESULT from appearing in front of somebody loading paper.
  */
 export function ScannerStatus({ state, device, pages, onRetry }: ScannerStatusProps) {
+  const t = useT()
   const copy = SCANNER_STATE_COPY[state]
   const tone = SCANNER_TONES[copy.tone]
 
@@ -55,31 +63,31 @@ export function ScannerStatus({ state, device, pages, onRetry }: ScannerStatusPr
             {/* The status is the one thing on this page that changes without
                 the operator doing anything, so it is announced. */}
             <h2 className="text-[13px] font-semibold tracking-tight" aria-live="polite">
-              {copy.title}
+              {t(scannerTitleKey(state))}
               {state === 'scanning' && pages > 0 && (
                 <span className="ml-1 font-normal text-muted-foreground">
-                  · page {pages + 1}
+                  · {t('gatePass.scanner.page', { n: formatNumber(pages + 1) })}
                 </span>
               )}
             </h2>
           </div>
 
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{copy.description}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t(scannerDescriptionKey(state))}</p>
 
           {/* Naming the machine is what turns "scanner ready" into something
               an operator with two scanners can trust. */}
           {device && (state === 'ready' || state === 'completed') && (
             <p className="mt-1.5 truncate text-xs text-muted-foreground">
               <span className="font-medium text-foreground">{device.description || device.name}</span>
-              {device.hasFeeder && <span> · flatbed and feeder</span>}
+              {device.hasFeeder && <span> · {t('gatePass.scanner.bothSources')}</span>}
             </p>
           )}
         </div>
 
-        {copy.retryLabel && (
+        {copy.retryLabelKey && (
           <Button variant="outline" size="sm" onClick={onRetry} className="shrink-0">
             <RefreshCcw data-icon="inline-start" aria-hidden />
-            {copy.retryLabel}
+            {t(copy.retryLabelKey)}
           </Button>
         )}
       </div>

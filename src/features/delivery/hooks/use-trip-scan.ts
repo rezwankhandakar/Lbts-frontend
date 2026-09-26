@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { scanTripManifest } from '../api/delivery-api'
 import { normalizeScan } from '@/lib/barcode-wedge'
@@ -39,12 +40,15 @@ export function useTripScan(currentTripId?: string) {
 
         const label = shortTripNumber(trip.tripNumber)
         if (trip.id === currentTripId) {
-          toast.info(`${label} is already open`)
+          toast.info(t('delivery.receipt.tripAlreadyOpen', { trip: label }))
           return
         }
 
-        toast.success(`${label} · ${trip.vendor.name}`, {
-          description: `${trip.vehicle.registrationNo} · ${trip.driver.name}`,
+        toast.success(t('delivery.receipt.tripOpened', { trip: label, vendor: trip.vendor.name }), {
+          description: t('delivery.finder.tripOpenedNote', {
+            plate: trip.vehicle.registrationNo,
+            driver: trip.driver.name,
+          }),
         })
         navigate(`/delivery/${trip.id}`)
       } catch (error) {

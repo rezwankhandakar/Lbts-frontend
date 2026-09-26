@@ -13,9 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { QUICK_RANGE_LABELS, quickRangeFor, rangeFor } from '@/lib/date-ranges'
+import { QUICK_RANGE_KEYS, quickRangeFor, rangeFor } from '@/lib/date-ranges'
 import { GATE_PASS_REFERENCE_TYPES } from '../types'
 import type { FilterPatch, GatePassListParams, ReferenceTypeFilter } from '../types'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 interface GatePassFiltersProps {
   params: GatePassListParams
@@ -61,6 +63,8 @@ export function GatePassFilters({
   canFilterByOwner,
   currentUserId,
 }: GatePassFiltersProps) {
+  const t = useT()
+
   const [expanded, setExpanded] = useState(false)
 
   const advancedCount =
@@ -87,8 +91,8 @@ export function GatePassFilters({
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="Gate pass, DO, customer, vehicle, model"
-              aria-label="Search gate passes"
+              placeholder={t('gatePass.filters.searchPlaceholder')}
+              aria-label={t('gatePass.filters.searchAria')}
               className="pl-8.5"
             />
           </div>
@@ -102,7 +106,7 @@ export function GatePassFilters({
               aria-controls="gate-pass-advanced-filters"
             >
               <SlidersHorizontal data-icon="inline-start" aria-hidden />
-              More filters
+              {t('common.actions.moreFilters')}
               {advancedCount > 0 && (
                 <Badge variant="secondary" className="ml-1">
                   {advancedCount}
@@ -122,13 +126,13 @@ export function GatePassFilters({
               disabled={!canExport || isExporting}
             >
               <FileSpreadsheet data-icon="inline-start" aria-hidden />
-              Export
+              {t('gatePass.exportDialog.trigger')}
             </Button>
 
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
           </div>
@@ -147,12 +151,15 @@ export function GatePassFilters({
                 onChange(option === 'all' ? { from: '', to: '' } : rangeFor(option))
               }
             >
-              {QUICK_RANGE_LABELS[option]}
+              {t(QUICK_RANGE_KEYS[option] as TranslationKey)}
             </Button>
           ))}
           {quick === 'custom' && (
             <span className="text-xs text-muted-foreground">
-              {params.from || '…'} to {params.to || '…'}
+              {t('gatePass.filters.customRange', {
+                from: params.from || t('gatePass.filters.unset'),
+                to: params.to || t('gatePass.filters.unset'),
+              })}
             </span>
           )}
         </div>
@@ -181,7 +188,7 @@ export function GatePassFilters({
           id="gate-pass-advanced-filters"
           className="grid gap-3 border-t bg-muted/20 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-4"
         >
-          <FilterField id="filter-from" label="Trip date from">
+          <FilterField id="filter-from" label={t('gatePass.filters.dateFrom')}>
             <Input
               id="filter-from"
               type="date"
@@ -190,7 +197,7 @@ export function GatePassFilters({
             />
           </FilterField>
 
-          <FilterField id="filter-to" label="Trip date to">
+          <FilterField id="filter-to" label={t('gatePass.filters.dateTo')}>
             <Input
               id="filter-to"
               type="date"
@@ -199,23 +206,27 @@ export function GatePassFilters({
             />
           </FilterField>
 
-          <FilterField id="filter-bill" label="Bill">
+          <FilterField id="filter-bill" label={t('gatePass.filters.bill')}>
             <BillingFilterSelect id="filter-bill" value={params.bill} onChange={(bill) => onChange({ bill })} />
           </FilterField>
 
-          <FilterField id="filter-reference-type" label="Reference type">
+          <FilterField id="filter-reference-type" label={t('gatePass.filters.referenceType')}>
             <Select
               value={params.referenceType}
               onValueChange={(value) => onChange({ referenceType: value as ReferenceTypeFilter })}
             >
               <SelectTrigger id="filter-reference-type" className="w-full">
                 <SelectValue>
-                  {(value) => (typeof value === 'string' && value !== 'all' ? value : 'Any')}
+                  {(value) =>
+                    typeof value === 'string' && value !== 'all'
+                      ? value
+                      : t('gatePass.filters.any')
+                  }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any</SelectItem>
+                  <SelectItem value="all">{t('gatePass.filters.any')}</SelectItem>
                   {GATE_PASS_REFERENCE_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
@@ -226,25 +237,27 @@ export function GatePassFilters({
             </Select>
           </FilterField>
 
-          <FilterField id="filter-reference" label="Zone or PO">
+          <FilterField id="filter-reference" label={t('gatePass.filters.reference')}>
             <Input
               id="filter-reference"
               value={params.reference}
               onChange={(event) => onChange({ reference: event.target.value })}
-              placeholder="CSD-07 or 627143140"
+              placeholder={t('gatePass.filters.referencePlaceholder')}
               autoComplete="off"
             />
           </FilterField>
 
           {canFilterByOwner && currentUserId && (
-            <FilterField id="filter-owner" label="Created by">
+            <FilterField id="filter-owner" label={t('gatePass.filters.createdBy')}>
               <Button
                 id="filter-owner"
                 variant={params.createdBy ? 'secondary' : 'outline'}
                 className="w-full justify-start"
                 onClick={() => onChange({ createdBy: params.createdBy ? '' : currentUserId })}
               >
-                {params.createdBy ? 'Only mine' : 'Everyone'}
+                {params.createdBy
+                  ? t('gatePass.filters.onlyMine')
+                  : t('gatePass.filters.everyone')}
               </Button>
             </FilterField>
           )}

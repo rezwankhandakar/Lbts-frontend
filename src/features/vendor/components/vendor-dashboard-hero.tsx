@@ -1,10 +1,11 @@
 import { ArrowRight, CalendarDays, PackageCheck, Truck } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { VENDOR_STATUS_META as BILL_STATUS_META } from '@/features/accounts/lib/accounts-meta'
-import { plural, taka } from '@/features/delivery/lib/delivery-meta'
+import { vendorStatusMeta } from '@/features/accounts/lib/accounts-meta'
+import { taka } from '@/features/delivery/lib/delivery-meta'
 import { formatDay } from '../lib/vendor-meta'
 import type { VendorDashboard } from '../types'
 import { VendorAvatar } from './vendor-identity'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * The vendor's month, as the first thing they see.
@@ -25,8 +26,10 @@ import { VendorAvatar } from './vendor-identity'
  * Accounts balance hero uses — so it reads as the page's headline in either.
  */
 export function VendorDashboardHero({ dashboard }: { dashboard: VendorDashboard }) {
+  const t = useT()
+
   const { vendor, bill, figures } = dashboard
-  const status = BILL_STATUS_META[bill.status] ?? BILL_STATUS_META['No Bill']
+  const status = vendorStatusMeta(bill.status ?? 'No Bill', t)
 
   /**
    * Three different sentences, not one with a sign in front of it.
@@ -74,7 +77,7 @@ export function VendorDashboardHero({ dashboard }: { dashboard: VendorDashboard 
                 {figures.lifetime.since && (
                   <span className="font-sans">
                     {' · '}
-                    {plural(figures.lifetime.trips, 'trip')} since{' '}
+                    {countOf(figures.lifetime.trips, 'nouns.trip', t)} since{' '}
                     {formatDay(figures.lifetime.since)}
                   </span>
                 )}
@@ -102,7 +105,7 @@ export function VendorDashboardHero({ dashboard }: { dashboard: VendorDashboard 
             </span>
             {bill.blankBills > 0 && (
               <span className="inline-flex items-center rounded-full bg-primary-foreground/15 px-3 py-1 text-xs ring-1 ring-primary-foreground/20">
-                {plural(bill.blankBills, 'trip')} without a full bill
+                {countOf(bill.blankBills, 'nouns.trip', t)} without a full bill
               </span>
             )}
           </div>
@@ -129,7 +132,7 @@ export function VendorDashboardHero({ dashboard }: { dashboard: VendorDashboard 
           <Panel
             icon={CalendarDays}
             label={bill.label}
-            primary={plural(figures.month.trips, 'trip')}
+            primary={countOf(figures.month.trips, 'nouns.trip', t)}
             secondary={`${figures.month.qty.toLocaleString()} pcs carried`}
             share={figures.month.deliveryRate}
             note={
@@ -141,7 +144,7 @@ export function VendorDashboardHero({ dashboard }: { dashboard: VendorDashboard 
           <Panel
             icon={Truck}
             label="Today"
-            primary={plural(figures.todayTrips, 'trip')}
+            primary={countOf(figures.todayTrips, 'nouns.trip', t)}
             secondary={`${figures.todayQty.toLocaleString()} pcs`}
             // The date under "Today" is not decoration: it is what says whose
             // day this is, on a page whose every other figure is a month.

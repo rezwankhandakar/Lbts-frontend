@@ -2,6 +2,7 @@ import { ChevronDown, Phone, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useEntry } from '../hooks/use-accounts'
 import { useEntryDialog } from '../hooks/use-entry-dialog'
@@ -18,6 +19,8 @@ import { EntryList } from './entry-list'
  * history is fetched only when somebody opens it.
  */
 export function AdvanceCard({ advance, canWrite }: { advance: EntryRecord; canWrite: boolean }) {
+  const t = useT()
+
   const dialog = useEntryDialog()
   const [expanded, setExpanded] = useState(false)
   const detail = useEntry(expanded ? advance.id : null)
@@ -38,7 +41,7 @@ export function AdvanceCard({ advance, canWrite }: { advance: EntryRecord; canWr
             <h3 className="truncate text-sm font-semibold">{advance.party}</h3>
             {advance.settlementStatus && <SettlementBadge status={advance.settlementStatus} />}
           </div>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">{advance.purpose || 'No purpose noted'}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{advance.purpose || t('accounts.advance.noPurpose')}</p>
           <p className="mt-1 flex flex-wrap items-center gap-x-2.5 text-[11px] text-muted-foreground">
             <span>{formatDay(advance.date)}</span>
             <span className="font-mono">{advance.entryNumber}</span>
@@ -59,7 +62,7 @@ export function AdvanceCard({ advance, canWrite }: { advance: EntryRecord; canWr
             {taka(advance.settledAmount)} settled of {taka(advance.amount)}
           </span>
           <span className={cn('text-lg font-semibold tabular-nums', open ? 'text-tone-amber' : 'text-tone-emerald')}>
-            {open ? taka(advance.outstanding) : 'Settled'}
+            {open ? taka(advance.outstanding) : t('accounts.advance.settled')}
           </span>
         </div>
         <ProgressBar value={advance.settledAmount} max={advance.amount} tone={open ? 'amber' : 'emerald'} />
@@ -69,7 +72,7 @@ export function AdvanceCard({ advance, canWrite }: { advance: EntryRecord; canWr
         {canWrite && open && (
           <Button size="sm" variant="outline" onClick={returnCash}>
             <RotateCcw data-icon="inline-start" aria-hidden />
-            Cash returned
+            {t('accounts.advance.cashReturned')}
           </Button>
         )}
         <Button
@@ -79,7 +82,7 @@ export function AdvanceCard({ advance, canWrite }: { advance: EntryRecord; canWr
           aria-expanded={expanded}
           onClick={() => setExpanded((value) => !value)}
         >
-          History
+          {t('accounts.advance.history')}
           <ChevronDown data-icon="inline-end" className={cn('transition', expanded && 'rotate-180')} aria-hidden />
         </Button>
       </div>

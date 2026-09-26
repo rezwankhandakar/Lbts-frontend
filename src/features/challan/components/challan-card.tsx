@@ -1,10 +1,11 @@
 import { MapPin, Phone } from 'lucide-react'
-import { formatAmount, formatDate } from '@/lib/format'
+import { BLANK, formatAmount, formatNumber } from '@/lib/format'
 import type { ChallanRecord } from '../types'
 import { ChallanActionMenu } from './challan-action-menu'
 import type { ChallanActions } from './challan-action-menu'
 import { ChallanRecordFlags, DeliveryProgressBar, ReturnFlags } from './challan-card-cells'
 import { ChallanStatusBadge, DispatchBadge } from './challan-status-badge'
+import { countOf, useFormatters, useT } from '@/lib/i18n'
 
 interface ChallanCardProps {
   record: ChallanRecord
@@ -31,13 +32,16 @@ interface ChallanCardProps {
  * click from reaching the card underneath it.
  */
 export function ChallanCard({ record, actions, onOpen }: ChallanCardProps) {
+  const t = useT()
+  const format = useFormatters()
+
   const district = record.resolvedLocation?.district || record.district
   const thana = record.resolvedLocation?.thana || record.thana
 
   return (
     <li
       onClick={() => onOpen(record)}
-      aria-label={`Challan ${record.challanNumber}`}
+      aria-label={t('challan.list.challanAria', { challan: record.challanNumber })}
       className="flex h-full cursor-pointer flex-col rounded-xl border bg-card shadow-xs transition-shadow focus-within:ring-2 focus-within:ring-ring/50 hover:shadow-sm"
     >
       <header className="flex items-start gap-3 border-b px-4 py-3">
@@ -54,10 +58,10 @@ export function ChallanCard({ record, actions, onOpen }: ChallanCardProps) {
               {record.challanNumber}
             </button>
             <span className="text-[11px] text-muted-foreground tabular-nums">
-              SL {record.slNumber}
+              {t('challan.pages.slWith', { sl: formatNumber(record.slNumber) })}
             </span>
             <span className="text-[11px] text-muted-foreground">
-              {formatDate(record.submittedAt)}
+              {format.date(record.submittedAt)}
             </span>
           </div>
 
@@ -70,7 +74,9 @@ export function ChallanCard({ record, actions, onOpen }: ChallanCardProps) {
         </div>
 
         <div className="flex shrink-0 items-start gap-1">
-          <p className="mt-0.5 text-sm font-semibold tabular-nums">{record.totalQty} pcs</p>
+          <p className="mt-0.5 text-sm font-semibold tabular-nums">
+            {countOf(record.totalQty, 'nouns.pc', t)}
+          </p>
           <div onClick={(event) => event.stopPropagation()}>
             <ChallanActionMenu record={record} actions={actions} />
           </div>
@@ -81,20 +87,22 @@ export function ChallanCard({ record, actions, onOpen }: ChallanCardProps) {
         <p className="flex items-start gap-1.5">
           <MapPin className="mt-px size-3.5 shrink-0" aria-hidden />
           <span className="min-w-0 wrap-break-word">
-            {record.deliveryAddress || '—'}
+            {record.deliveryAddress || BLANK}
             {/* Labelled halves rather than one joined string: a blank thana and
                 a blank district are different gaps, and the card is where
                 somebody notices which one is missing. */}
             <span className="block">
-              Thana: <span className="text-foreground">{thana || '—'}</span> · District:{' '}
-              <span className="text-foreground">{district || '—'}</span>
+              {t('challan.list.thanaDistrict', {
+                thana: thana || BLANK,
+                district: district || BLANK,
+              })}
             </span>
           </span>
         </p>
         <p className="flex items-center gap-1.5">
           <Phone className="size-3.5 shrink-0" aria-hidden />
           <span className="font-medium text-foreground tabular-nums">
-            {record.receiverMobile || '—'}
+            {record.receiverMobile || BLANK}
           </span>
         </p>
       </div>

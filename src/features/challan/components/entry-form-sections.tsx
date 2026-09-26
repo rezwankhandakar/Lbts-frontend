@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import type { CarryControls } from '@/hooks/use-carry-over'
 import type { CarriedField } from '../lib/carried-fields'
+import { useT } from '@/lib/i18n'
 import type { ChallanFormValues } from '../schemas/challan-schemas'
 import { CarryToggle } from './carry-toggle'
 import { ChallanLocationPanel } from './challan-location-panel'
@@ -94,11 +95,13 @@ export function CustomerFields({
   setValue,
   disabled,
 }: SectionProps) {
+  const t = useT()
+
   return (
     <FieldGrid>
       <ChallanTextField
         id="customerName"
-        label="Customer name"
+        label={t('challan.entry.customerName')}
         required
         wide
         bangla
@@ -113,7 +116,7 @@ export function CustomerFields({
 
       <ChallanTextField
         id="deliveryAddress"
-        label="Delivery address"
+        label={t('challan.entry.deliveryAddress')}
         required
         wide
         bangla
@@ -122,7 +125,7 @@ export function CustomerFields({
         value={watch('deliveryAddress')}
         onSetValue={setter(setValue, 'deliveryAddress')}
         error={errors.deliveryAddress?.message}
-        hint="House, road and area exactly as printed. Thana and district go below."
+        hint={t('challan.entry.addressHint')}
         disabled={disabled}
       />
 
@@ -132,27 +135,27 @@ export function CustomerFields({
           record than a blank, because nothing downstream can tell. */}
       <ChallanTextField
         id="thana"
-        label="Thana"
+        label={t('challan.entry.thana')}
         bangla
         suggest="thana"
         registration={register('thana')}
         value={watch('thana')}
         onSetValue={setter(setValue, 'thana')}
         error={errors.thana?.message}
-        hint="Exactly as printed, if the challan gives one."
+        hint={t('challan.entry.thanaHint')}
         disabled={disabled}
       />
 
       <ChallanTextField
         id="district"
-        label="District"
+        label={t('challan.entry.district')}
         bangla
         suggest="district"
         registration={register('district')}
         value={watch('district')}
         onSetValue={setter(setValue, 'district')}
         error={errors.district?.message}
-        hint="Leave blank if the challan does not say."
+        hint={t('challan.entry.districtHint')}
         disabled={disabled}
       />
 
@@ -185,24 +188,26 @@ export function ContactFields({
   setValue,
   disabled,
 }: SectionProps) {
+  const t = useT()
+
   return (
     <FieldGrid>
       <ChallanTextField
         id="receiverMobile"
-        label="Receiver mobile"
+        label={t('challan.entry.receiverMobile')}
         required
         inputMode="tel"
         registration={register('receiverMobile')}
         value={watch('receiverMobile')}
         onSetValue={setter(setValue, 'receiverMobile')}
         error={errors.receiverMobile?.message}
-        hint="01712345678, or with +880. Stored in the local eleven-digit form."
+        hint={t('challan.entry.receiverHint')}
         disabled={disabled}
       />
 
       <ChallanTextField
         id="senderMobile"
-        label="Sender mobile"
+        label={t('challan.entry.senderMobile')}
         inputMode="tel"
         registration={register('senderMobile')}
         value={watch('senderMobile')}
@@ -213,14 +218,14 @@ export function ContactFields({
 
       <ChallanTextField
         id="zonePo"
-        label="Zone / PO"
+        label={t('challan.entry.zonePo')}
         wide
         suggest="zonePo"
         registration={register('zonePo')}
         value={watch('zonePo')}
         onSetValue={setter(setValue, 'zonePo')}
         error={errors.zonePo?.message}
-        hint="Copied as one value, exactly as the challan prints it."
+        hint={t('challan.entry.zonePoHint')}
         action={<CarryToggle carry={carry} field="zonePo" />}
         disabled={disabled}
       />

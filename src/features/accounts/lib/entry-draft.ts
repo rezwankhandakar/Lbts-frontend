@@ -2,7 +2,11 @@
  * The entry form as data: what a half-filled form holds, what is still missing,
  * and the body the API is sent for each kind.
  *
- * Import-free, so `node --test` loads it directly. The vocabulary the form
+ * Import-free, so `node --test` loads it directly — which is also why every
+ * validation message here is a **translation key** rather than a sentence:
+ * there is no translator to call, and `EntryField` resolves it where it is
+ * drawn, exactly as the auth forms and Gate Pass do.
+ * The vocabulary the form
  * needs is declared here and re-exported from `../types`, which is the
  * direction CLAUDE.md sets for a tested file: the alias-free file owns it.
  * Mirrors `LBTS-Backend/src/modules/accounts/accounts.constants.ts` and
@@ -148,36 +152,40 @@ export function movesMoneyOut(kind: EntryKind): boolean {
 export function validateDraft(draft: EntryDraft): DraftErrors {
   const errors: DraftErrors = {}
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.date)) errors.date = 'Choose a date.'
-  if (draft.amount === null || draft.amount < 1) errors.amount = 'Enter an amount.'
-  else if (draft.amount > MAX_ACCOUNT_AMOUNT) errors.amount = 'That amount is too large.'
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.date)) errors.date = 'accounts.validation.dateRequired'
+  if (draft.amount === null || draft.amount < 1) errors.amount = 'accounts.validation.amountRequired'
+  else if (draft.amount > MAX_ACCOUNT_AMOUNT) errors.amount = 'accounts.validation.amountTooLarge'
   if (usesWallet(draft.kind) && !draft.walletId) {
-    errors.walletId = draft.kind === 'Transfer' ? 'Choose the wallet the money leaves.' : 'Choose a wallet.'
+    errors.walletId =
+      draft.kind === 'Transfer'
+        ? 'accounts.validation.walletFromRequired'
+        : 'accounts.validation.walletRequired'
   }
 
   switch (draft.kind) {
     case 'Transfer':
-      if (!draft.toWalletId) errors.toWalletId = 'Choose the wallet the money goes to.'
-      else if (draft.toWalletId === draft.walletId) errors.toWalletId = 'Choose a different wallet.'
+      if (!draft.toWalletId) errors.toWalletId = 'accounts.validation.walletToRequired'
+      else if (draft.toWalletId === draft.walletId)
+        errors.toWalletId = 'accounts.validation.walletDifferent'
       break
     case 'Expense':
-      if (!draft.expenseName.trim()) errors.expenseName = 'Write what the expense was for.'
+      if (!draft.expenseName.trim()) errors.expenseName = 'accounts.validation.expenseFor'
       break
     case 'Advance':
-      if (!draft.party.trim()) errors.party = 'Say who the advance was given to.'
+      if (!draft.party.trim()) errors.party = 'accounts.validation.advanceGivenTo'
       break
     case 'AdvanceReturn':
-      if (!draft.advanceId) errors.advanceId = 'Choose the advance being returned.'
+      if (!draft.advanceId) errors.advanceId = 'accounts.validation.advanceReturnRequired'
       break
     case 'AdvanceAdjust':
-      if (!draft.advanceId) errors.advanceId = 'Choose the advance being adjusted.'
-      if (!draft.expenseName.trim()) errors.expenseName = 'Write what it was spent on.'
+      if (!draft.advanceId) errors.advanceId = 'accounts.validation.advanceAdjustRequired'
+      if (!draft.expenseName.trim()) errors.expenseName = 'accounts.validation.expenseSpentOn'
       break
     case 'TripAdvance':
-      if (!draft.tripId) errors.tripId = 'Choose the trip the advance is for.'
+      if (!draft.tripId) errors.tripId = 'accounts.validation.tripRequired'
       break
     case 'VendorPayment':
-      if (!draft.vendorId) errors.vendorId = 'Choose the vendor being paid.'
+      if (!draft.vendorId) errors.vendorId = 'accounts.validation.vendorRequired'
       break
     case 'Deposit':
       break

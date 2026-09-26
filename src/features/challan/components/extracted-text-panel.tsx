@@ -4,6 +4,7 @@ import type { PDFDocumentProxy } from 'pdfjs-dist'
 import { Button } from '@/components/ui/button'
 import { extractText } from '../lib/pdf-source'
 import type { PageRange } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface ExtractedTextPanelProps {
   doc: PDFDocumentProxy
@@ -24,6 +25,8 @@ interface ExtractedTextPanelProps {
  * the whole module is built around anyway.
  */
 export function ExtractedTextPanel({ doc, range }: ExtractedTextPanelProps) {
+  const t = useT()
+
   const [text, setText] = useState<string | null>(null)
   const [isReading, setIsReading] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -64,7 +67,7 @@ export function ExtractedTextPanel({ doc, range }: ExtractedTextPanelProps) {
           ) : (
             <FileSearch data-icon="inline-start" aria-hidden />
           )}
-          {text === null ? 'Read the text on these pages' : 'Read again'}
+          {text === null ? t('challan.extracted.read') : t('challan.extracted.readAgain')}
         </Button>
 
         {text ? (
@@ -74,7 +77,7 @@ export function ExtractedTextPanel({ doc, range }: ExtractedTextPanelProps) {
             ) : (
               <Copy data-icon="inline-start" aria-hidden />
             )}
-            {copied ? 'Copied' : 'Copy all'}
+            {copied ? t('challan.extracted.copied') : t('challan.extracted.copyAll')}
           </Button>
         ) : null}
       </div>
@@ -83,15 +86,14 @@ export function ExtractedTextPanel({ doc, range }: ExtractedTextPanelProps) {
         <div className="mt-2" aria-live="polite">
           {text.length === 0 ? (
             <p className="text-xs leading-snug text-muted-foreground">
-              No selectable text on these pages — this challan is a scanned image. Read it from the
-              page above and type the values in.
+              {t('challan.extracted.noText')}
             </p>
           ) : (
             <textarea
               readOnly
               value={text}
               rows={6}
-              aria-label="Text found on these pages"
+              aria-label={t('challan.extracted.textAria')}
               className="w-full resize-y rounded-lg border bg-card p-2 font-mono text-[11px] leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           )}

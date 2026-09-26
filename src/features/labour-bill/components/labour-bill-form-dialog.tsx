@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useCreateLabourBill, useUpdateLabourBill } from '../hooks/use-labour-bill-mutations'
 import { useLabourBillCompanies } from '../hooks/use-labour-bills'
@@ -42,6 +43,8 @@ export function LabourBillFormDialog({ open, onOpenChange, bill = null }: Labour
 }
 
 function LabourBillForm({ bill, onDone }: { bill: LabourBillRecord | null; onDone: () => void }) {
+  const t = useT()
+
   const navigate = useNavigate()
   const now = new Date()
   const [month, setMonth] = useState(bill?.month ?? now.getMonth() + 1)
@@ -72,11 +75,15 @@ function LabourBillForm({ bill, onDone }: { bill: LabourBillRecord | null; onDon
   return (
     <form onSubmit={submit} className="grid gap-5" noValidate>
       <DialogHeader>
-        <DialogTitle>{bill ? `Edit ${bill.billNumber}` : 'Open a labour bill'}</DialogTitle>
+        <DialogTitle>
+          {bill
+            ? t('labourBill.form.editTitle', { bill: bill.billNumber })
+            : t('labourBill.form.openTitle')}
+        </DialogTitle>
         <DialogDescription>
           {bill
-            ? 'Correct the billing month, the company or the note. The bill number stays.'
-            : 'Choose the month, then scan the challans in. Every model becomes its own row, and the sheet files each one under its own CSD by itself.'}
+            ? t('labourBill.form.editDescription')
+            : t('labourBill.list.emptyHint')}
         </DialogDescription>
       </DialogHeader>
 
@@ -84,7 +91,10 @@ function LabourBillForm({ bill, onDone }: { bill: LabourBillRecord | null; onDon
 
       <div className="grid gap-1.5">
         <Label htmlFor="labour-company">
-          Company <span className="font-normal text-muted-foreground">(optional)</span>
+          {t('labourBill.form.company')}{' '}
+          <span className="font-normal text-muted-foreground">
+            {t('common.labels.optionalSuffix')}
+          </span>
         </Label>
         <Input
           id="labour-company"
@@ -99,7 +109,7 @@ function LabourBillForm({ bill, onDone }: { bill: LabourBillRecord | null; onDon
           {companies.data?.map((option) => <option key={option} value={option} />)}
         </datalist>
         {companies.data && companies.data.length > 0 && (
-          <div className="flex flex-wrap gap-1.5" aria-label="Companies on record">
+          <div className="flex flex-wrap gap-1.5" aria-label={t('labourBill.toolbar.companiesAria')}>
             {companies.data.slice(0, 8).map((option) => (
               <button
                 key={option}
@@ -119,14 +129,16 @@ function LabourBillForm({ bill, onDone }: { bill: LabourBillRecord | null; onDon
           </div>
         )}
         <p id="labour-company-hint" className="text-xs text-muted-foreground">
-          What goes in the sheet&rsquo;s Unit column. It fills in each row as it is scanned and stays
-          editable there; leave it blank and a row takes the unit off its own gate pass.
+          {t('labourBill.form.companyHint')}
         </p>
       </div>
 
       <div className="grid gap-1.5">
         <Label htmlFor="labour-note">
-          Note <span className="font-normal text-muted-foreground">(optional)</span>
+          {t('common.labels.note')}{' '}
+          <span className="font-normal text-muted-foreground">
+            {t('common.labels.optionalSuffix')}
+          </span>
         </Label>
         <Textarea
           id="labour-note"
@@ -139,11 +151,11 @@ function LabourBillForm({ bill, onDone }: { bill: LabourBillRecord | null; onDon
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone} disabled={isPending}>
-          Cancel
+          {t('common.actions.cancel')}
         </Button>
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="animate-spin" data-icon="inline-start" aria-hidden />}
-          {bill ? 'Save changes' : 'Open labour bill'}
+          {bill ? t('common.actions.saveChanges') : t('labourBill.form.openBill')}
         </Button>
       </DialogFooter>
     </form>

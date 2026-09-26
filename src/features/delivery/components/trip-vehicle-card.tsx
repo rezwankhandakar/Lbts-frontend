@@ -8,6 +8,7 @@ import {
 import { VehicleAvatar } from '@/features/vendor/components/vendor-identity'
 import { shortTripNumber } from '../lib/delivery-meta'
 import type { TripVehicleOption } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface TripVehicleCardProps {
   option: TripVehicleOption
@@ -24,6 +25,8 @@ interface TripVehicleCardProps {
  * reason to hold a lorry that is legally on the road today.
  */
 export function TripVehicleCard({ option, onChange, disabled }: TripVehicleCardProps) {
+  const t = useT()
+
   const { vehicle, openTrips, blocker } = option
   const description = [vehicle.brand, vehicle.model].filter(Boolean).join(' ')
 
@@ -39,7 +42,7 @@ export function TripVehicleCard({ option, onChange, disabled }: TripVehicleCardP
 
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-            Vehicle
+            {t('delivery.vehicle.heading')}
           </p>
           <p className="mt-0.5 font-mono text-xl font-bold tracking-tight wrap-break-word sm:text-2xl">
             {vehicle.registrationNo}
@@ -65,7 +68,7 @@ export function TripVehicleCard({ option, onChange, disabled }: TripVehicleCardP
           className="self-start"
         >
           <ArrowLeftRight data-icon="inline-start" aria-hidden />
-          Change vehicle
+          {t('delivery.vehicle.change')}
         </Button>
       </div>
 
@@ -73,7 +76,7 @@ export function TripVehicleCard({ option, onChange, disabled }: TripVehicleCardP
         <p className="mt-3 flex items-start gap-2 rounded-lg bg-tone-amber/10 px-3 py-2 text-xs text-tone-amber">
           <Route className="mt-px size-3.5 shrink-0" aria-hidden />
           <span>
-            Already on{' '}
+            {t('delivery.vehicle.alreadyOn')}{' '}
             {openTrips
               .map((trip) => `${shortTripNumber(trip.tripNumber)} (${trip.status})`)
               .join(', ')}
@@ -90,8 +93,7 @@ export function TripVehicleCard({ option, onChange, disabled }: TripVehicleCardP
         >
           <TriangleAlert className="mt-px size-3.5 shrink-0" aria-hidden />
           <span>
-            This vehicle cannot take a trip now. {blocker} Choose another vehicle from the same
-            vendor.
+            {t('delivery.vehicle.cannotTakeTrip', { reason: blocker })}
           </span>
         </p>
       )}

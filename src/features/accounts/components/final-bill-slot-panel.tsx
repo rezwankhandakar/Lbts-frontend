@@ -1,5 +1,6 @@
 import { FileSpreadsheet, Loader2, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { signedTaka, taka } from '../lib/accounts-meta'
 import type { FinalBillSlot } from '../types'
@@ -18,11 +19,15 @@ interface FinalBillSlotPanelProps {
  * audit made is on screen while the final figure is typed.
  */
 export function FinalBillSlotPanel({ slot, isFetching, finalAmount, editingId }: FinalBillSlotPanelProps) {
+  const t = useT()
+
   if (!slot) {
     return (
       <div className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-3 text-xs text-muted-foreground">
         {isFetching ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <FileSpreadsheet className="size-3.5" aria-hidden />}
-        {isFetching ? 'Looking up the Excel bills…' : 'Enter the unit to see its Excel bills for the month.'}
+        {isFetching
+          ? t('accounts.finalBill.lookingUp')
+          : t('accounts.finalBill.enterUnitFirst')}
       </div>
     )
   }
@@ -40,7 +45,7 @@ export function FinalBillSlotPanel({ slot, isFetching, finalAmount, editingId }:
       )}
 
       <div className="flex items-center justify-between gap-3 text-xs">
-        <span className="text-muted-foreground">Excel bills submitted</span>
+        <span className="text-muted-foreground">{t('accounts.finalBill.submitted')}</span>
         <span className="font-semibold tabular-nums">{slot.excelBills.length > 0 ? taka(slot.submittedAmount) : 'None'}</span>
       </div>
 
@@ -65,9 +70,9 @@ export function FinalBillSlotPanel({ slot, isFetching, finalAmount, editingId }:
 
       {difference !== null && slot.excelBills.length > 0 && (
         <div className="flex items-center justify-between gap-3 border-t pt-2 text-xs">
-          <span className="text-muted-foreground">Audit difference</span>
+          <span className="text-muted-foreground">{t('accounts.finalBill.auditDifference')}</span>
           <span className={cn('font-semibold tabular-nums', difference < 0 ? 'text-tone-rose' : difference > 0 ? 'text-tone-emerald' : '')}>
-            {difference === 0 ? 'No change' : signedTaka(difference)}
+            {difference === 0 ? t('accounts.finalBill.noChange') : signedTaka(difference)}
           </span>
         </div>
       )}

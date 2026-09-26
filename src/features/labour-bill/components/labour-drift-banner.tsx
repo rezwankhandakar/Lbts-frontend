@@ -1,5 +1,7 @@
 import { RefreshCcw, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 interface LabourDriftBannerProps {
   drift: { changed: number; missing: number }
@@ -25,16 +27,34 @@ export function LabourDriftBanner({
   isRefreshing,
   onRefresh,
 }: LabourDriftBannerProps) {
+  const t = useT()
+
   const total = drift.changed + drift.missing
   if (total === 0) {
     return null
   }
 
-  const parts = [
-    drift.changed > 0 && `${drift.changed} ${drift.changed === 1 ? 'row has' : 'rows have'} changed`,
-    drift.missing > 0 &&
-      `${drift.missing} ${drift.missing === 1 ? 'row is' : 'rows are'} no longer on the sheet`,
-  ].filter(Boolean)
+  /*
+   * Two clauses and a joiner, each its own message. English agrees the verb
+   * with the count on both sides of the "and"; assembling that from fragments
+   * in JSX would be a sentence only English could come out of.
+   */
+  const changed =
+    drift.changed > 0
+      ? t('labourBill.details.driftChanged', {
+          count: drift.changed,
+          n: formatNumber(drift.changed),
+        })
+      : ''
+  const missing =
+    drift.missing > 0
+      ? t('labourBill.details.driftMissing', {
+          count: drift.missing,
+          n: formatNumber(drift.missing),
+        })
+      : ''
+  const summary =
+    changed && missing ? t('labourBill.details.driftBoth', { changed, missing }) : changed || missing
 
   return (
     <div
@@ -45,12 +65,14 @@ export function LabourDriftBanner({
         <TriangleAlert className="size-4.5" aria-hidden />
       </span>
       <div className="flex-1 text-sm">
-        <p className="font-medium">The Trip DO sheet has moved since these rows were scanned in</p>
+        <p className="font-medium">{t('labourBill.details.driftTitle')}</p>
         <p className="mt-0.5 text-pretty text-muted-foreground">
-          {parts.join(' and ')}.{' '}
-          {isDraft
-            ? 'Refresh to re-read the sheet — every amount you have typed is kept, rows that are gone are taken off, and a row that has just learned its CSD moves into that section. A labour bill cannot be finalized until it matches.'
-            : 'This bill is finalized, so it keeps what it charged. Reopen it to bring it up to date.'}
+          {t('labourBill.details.driftSentence', {
+            summary,
+            hint: isDraft
+              ? t('labourBill.details.driftHint')
+              : t('labourBill.details.finalizedHint'),
+          })}
         </p>
       </div>
       {isDraft && canRefresh && (
@@ -66,7 +88,7 @@ export function LabourDriftBanner({
             data-icon="inline-start"
             aria-hidden
           />
-          {isRefreshing ? 'Refreshing…' : 'Refresh from Trip DO'}
+          {isRefreshing ? t('labourBill.details.refreshing') : t('labourBill.details.refresh')}
         </Button>
       )}
     </div>

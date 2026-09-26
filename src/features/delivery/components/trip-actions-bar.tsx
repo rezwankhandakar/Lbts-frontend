@@ -4,6 +4,7 @@ import type { TripActions } from '../hooks/use-trip-actions'
 import { printManifest } from '../lib/print-manifest'
 import { tripIsEditable } from '../types'
 import type { TripRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 /**
  * What can be done to the trip on screen: print it for the driver, correct it
@@ -16,6 +17,8 @@ import type { TripRecord } from '../types'
  * proves it — so the bar has nothing to step.
  */
 export function TripActionsBar({ trip, actions }: { trip: TripRecord; actions: TripActions }) {
+  const t = useT()
+
   const canChange = actions.canChange(trip)
   const editable = tripIsEditable(trip.status)
 
@@ -23,7 +26,7 @@ export function TripActionsBar({ trip, actions }: { trip: TripRecord; actions: T
     <>
       <Button variant="outline" onClick={() => printManifest(trip)}>
         <Printer data-icon="inline-start" aria-hidden />
-        Print manifest
+        {t('delivery.trip.printManifest')}
       </Button>
 
       {canChange && editable && (
@@ -34,7 +37,7 @@ export function TripActionsBar({ trip, actions }: { trip: TripRecord; actions: T
       )}
 
       {canChange && editable && (
-        <Button variant="destructive" onClick={() => actions.askDelete(trip)} aria-label="Delete trip">
+        <Button variant="destructive" onClick={() => actions.askDelete(trip)} aria-label={t('delivery.trip.deleteTrip')}>
           <Trash2 aria-hidden />
         </Button>
       )}

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { LocationRecord } from '../types'
 import { LocationTypeBadge } from './location-badges'
@@ -39,18 +40,20 @@ export function LocationTable({
   onToggleActive,
   onDelete,
 }: LocationTableProps) {
+  const t = useT()
+
   return (
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>District</TableHead>
-            <TableHead>Thana</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead className="hidden md:table-cell">Source</TableHead>
-            <TableHead className="hidden lg:table-cell">Updated</TableHead>
+            <TableHead>{t('location.table.district')}</TableHead>
+            <TableHead>{t('location.table.thana')}</TableHead>
+            <TableHead>{t('location.table.location')}</TableHead>
+            <TableHead className="hidden md:table-cell">{t('location.table.source')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('location.table.updated')}</TableHead>
             <TableHead className="w-10">
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t('location.table.actions')}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -64,7 +67,7 @@ export function LocationTable({
                 <span>{record.thana}</span>
                 {!record.isActive && (
                   <span className="ml-2 rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
-                    Inactive
+                    {t('location.inactive')}
                   </span>
                 )}
               </TableCell>
@@ -74,7 +77,9 @@ export function LocationTable({
               </TableCell>
 
               <TableCell className="hidden text-xs text-muted-foreground md:table-cell">
-                {record.isSeeded ? 'Supplied list' : (record.createdBy?.name ?? 'Added by hand')}
+                {record.isSeeded
+                  ? t('location.table.suppliedList')
+                  : (record.createdBy?.name ?? t('location.table.addedByHand'))}
               </TableCell>
 
               <TableCell className="hidden text-xs whitespace-nowrap text-muted-foreground lg:table-cell">
@@ -105,14 +110,14 @@ export function LocationTable({
 
                       <DropdownMenuItem onClick={() => onToggleActive(record)}>
                         {record.isActive ? <PowerOff aria-hidden /> : <Power aria-hidden />}
-                        {record.isActive ? 'Deactivate' : 'Reactivate'}
+                        {record.isActive ? t('location.deactivate') : t('location.reactivate')}
                       </DropdownMenuItem>
 
                       <DropdownMenuSeparator />
 
                       <DropdownMenuItem variant="destructive" onClick={() => onDelete(record)}>
                         <Trash2 aria-hidden />
-                        Delete
+                        {t('common.actions.delete')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

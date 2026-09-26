@@ -1,6 +1,7 @@
 import { ArrowDownLeft, CircleDashed, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useEntryDialog } from '../hooks/use-entry-dialog'
 import { taka } from '../lib/accounts-meta'
@@ -24,6 +25,8 @@ interface LabourCsdCardProps {
  * actually is.
  */
 export function LabourCsdCard({ month, csd, canWrite }: LabourCsdCardProps) {
+  const t = useT()
+
   const dialog = useEntryDialog()
 
   return (
@@ -51,11 +54,11 @@ export function LabourCsdCard({ month, csd, canWrite }: LabourCsdCardProps) {
 
       <dl className="grid grid-cols-2 gap-x-3 gap-y-2 px-4 text-sm">
         <div>
-          <dt className="text-xs text-muted-foreground">Received</dt>
+          <dt className="text-xs text-muted-foreground">{t('accounts.labour.received')}</dt>
           <dd className="tabular-nums">{csd.isPending ? '—' : taka(csd.receivedAmount)}</dd>
         </div>
         <div className="text-right">
-          <dt className="text-xs text-muted-foreground">Billed</dt>
+          <dt className="text-xs text-muted-foreground">{t('accounts.labour.billed')}</dt>
           <dd className="text-lg leading-tight font-semibold tabular-nums">{taka(csd.billedAmount)}</dd>
         </div>
         <div className="col-span-2 flex items-center justify-between rounded-md bg-muted/40 px-2.5 py-1.5 text-xs">
@@ -73,7 +76,11 @@ export function LabourCsdCard({ month, csd, canWrite }: LabourCsdCardProps) {
         <div className="grid gap-1.5 px-4 pt-3">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{taka(csd.receivedAmount)} received</span>
-            <span>{csd.outstanding > 0 ? `${taka(csd.outstanding)} left` : 'Fully received'}</span>
+            <span>
+              {csd.outstanding > 0
+                ? t('accounts.finalBill.amountLeft', { amount: taka(csd.outstanding) })
+                : t('accounts.finalBill.fullyReceived')}
+            </span>
           </div>
           <ProgressBar
             value={csd.receivedAmount}
@@ -96,10 +103,9 @@ export function LabourCsdCard({ month, csd, canWrite }: LabourCsdCardProps) {
 
         {csd.isPending ? (
           <p className="text-[11px] text-pretty text-muted-foreground">
-            These rows are waiting for a Trip DO, so they belong to no CSD and nobody has been billed
-            for them yet. Set it on the{' '}
+            {t('accounts.labour.pendingRows')} Set it on the{' '}
             <Link to="/trip-do" className="font-medium text-primary hover:underline">
-              Trip DO sheet
+              {t('accounts.labour.tripDoSheet')}
             </Link>
             , and they move into their own CSD by themselves.
           </p>
@@ -122,7 +128,7 @@ export function LabourCsdCard({ month, csd, canWrite }: LabourCsdCardProps) {
               }
             >
               <ArrowDownLeft data-icon="inline-start" aria-hidden />
-              Record payment received
+              {t('accounts.finalBill.recordPayment')}
             </Button>
           )
         )}

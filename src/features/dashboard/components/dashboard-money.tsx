@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TrendChart } from '@/features/accounts/components/trend-chart'
 import { signedTaka, taka } from '@/features/accounts/lib/accounts-meta'
+import { useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { DashboardData } from '../types'
 
@@ -38,6 +39,8 @@ import type { DashboardData } from '../types'
  * page would contradict, and opening Accounts from here finds it already warm.
  */
 export function DashboardMoney({ dashboard }: { dashboard: DashboardData }) {
+  const t = useT()
+  const format = useFormatters()
   const query = dashboard.accounts
   const overview = query.data
 
@@ -55,14 +58,14 @@ export function DashboardMoney({ dashboard }: { dashboard: DashboardData }) {
         </span>
         <div className="min-w-0 flex-1">
           <h2 id="money-heading" className="text-[13px] font-semibold tracking-tight">
-            Money
+            {t('dashboard.money.heading')}
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Cash in hand, what is owed either way, and how the months are running.
+            {t('dashboard.money.subtitle')}
           </p>
         </div>
         <Button variant="ghost" size="sm" render={<Link to="/accounts" />} className="shrink-0">
-          Open
+          {t('common.actions.open')}
           <ArrowRight data-icon="inline-end" aria-hidden />
         </Button>
       </header>
@@ -71,11 +74,11 @@ export function DashboardMoney({ dashboard }: { dashboard: DashboardData }) {
         <div className="flex flex-col items-start gap-3 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <p className="flex items-start gap-2.5 text-sm text-muted-foreground">
             <TriangleAlert className="mt-px size-4 shrink-0 text-destructive" aria-hidden />
-            The money summary could not be loaded.
+            {t('dashboard.money.loadFailed')}
           </p>
           <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
             <RefreshCcw data-icon="inline-start" aria-hidden />
-            Try again
+            {t('common.actions.retry')}
           </Button>
         </div>
       ) : (
@@ -89,7 +92,7 @@ export function DashboardMoney({ dashboard }: { dashboard: DashboardData }) {
              */}
             <div className="rounded-xl border bg-muted/30 p-4">
               <p className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
-                Cash balance
+                {t('dashboard.money.cashBalance')}
               </p>
               {overview === undefined ? (
                 <Skeleton className="mt-2 h-9 w-36" />
@@ -100,21 +103,24 @@ export function DashboardMoney({ dashboard }: { dashboard: DashboardData }) {
               )}
               <p className="mt-1.5 text-[11px] text-muted-foreground">
                 {overview
-                  ? `Across ${overview.cash.wallets.length === 1 ? 'one cash wallet' : `${overview.cash.wallets.length} cash wallets`} — bank and mobile are not added in.`
-                  : 'Cash wallets only.'}
+                  ? t('dashboard.money.acrossWallets', {
+                      count: overview.cash.wallets.length,
+                      n: format.number(overview.cash.wallets.length),
+                    })
+                  : t('dashboard.money.cashWalletsOnly')}
               </p>
 
               {overview && (
                 <dl className="mt-3.5 grid grid-cols-2 gap-3 border-t pt-3">
                   <Flow
                     icon={ArrowDownLeft}
-                    label={`In · ${overview.period.label}`}
+                    label={t('dashboard.money.in', { period: overview.period.label })}
                     value={taka(overview.cash.thisMonth.moneyIn)}
                     className="text-tone-emerald"
                   />
                   <Flow
                     icon={ArrowUpRight}
-                    label={`Out · ${overview.period.label}`}
+                    label={t('dashboard.money.out', { period: overview.period.label })}
                     value={taka(overview.cash.thisMonth.moneyOut)}
                     className="text-tone-rose"
                   />
@@ -125,7 +131,9 @@ export function DashboardMoney({ dashboard }: { dashboard: DashboardData }) {
             <div className="grid gap-2">
               <MoneyLink
                 to="/accounts/profit-loss"
-                label={`Profit · ${overview?.period.label ?? 'this month'}`}
+                label={t('dashboard.money.profit', {
+                  period: overview?.period.label ?? t('dashboard.money.thisMonth'),
+                })}
                 value={overview && signedTaka(overview.profitLoss.profit)}
                 className={
                   overview && overview.profitLoss.profit < 0 ? 'text-tone-rose' : 'text-tone-emerald'
@@ -133,31 +141,45 @@ export function DashboardMoney({ dashboard }: { dashboard: DashboardData }) {
                 note={
                   overview
                     ? overview.profitLoss.margin === null
-                      ? 'No income booked for this month yet'
-                      : `${overview.profitLoss.margin}% margin on what has been billed`
+                      ? t('dashboard.money.noIncomeYet')
+                      : t('dashboard.money.margin', {
+                          margin: format.number(overview.profitLoss.margin),
+                        })
                     : undefined
                 }
               />
               <MoneyLink
                 to="/accounts/vendor-bills"
-                label="Owed to vendors"
+                label={t('dashboard.money.owedToVendors')}
                 value={overview && taka(overview.vendorDue.total)}
                 className="text-tone-amber"
                 note={
                   overview
                     ? overview.vendorDue.vendors === 0
-                      ? 'Every vendor month is settled'
-                      : `Across ${overview.vendorDue.vendors === 1 ? 'one vendor' : `${overview.vendorDue.vendors} vendors`}`
+                      ? t('dashboard.money.everyVendorSettled')
+                      : t('dashboard.money.acrossVendors', {
+                          count: overview.vendorDue.vendors,
+                          n: format.number(overview.vendorDue.vendors),
+                        })
                     : undefined
                 }
               />
               <MoneyLink
                 to="/accounts/final-bills"
-                label="To come in from Walton"
+                label={t('dashboard.money.toComeIn')}
                 value={overview && taka(overview.receivable.outstanding)}
                 note={
                   overview
-                    ? `${overview.receivable.finalBills} final ${overview.receivable.finalBills === 1 ? 'bill' : 'bills'} · ${overview.receivable.labourCsds} labour ${overview.receivable.labourCsds === 1 ? 'CSD' : 'CSDs'}`
+                    ? t('dashboard.money.receivableNote', {
+                        bills: t('dashboard.money.finalBills', {
+                          count: overview.receivable.finalBills,
+                          n: format.number(overview.receivable.finalBills),
+                        }),
+                        csds: t('dashboard.money.labourCsds', {
+                          count: overview.receivable.labourCsds,
+                          n: format.number(overview.receivable.labourCsds),
+                        }),
+                      })
                     : undefined
                 }
               />
@@ -167,11 +189,12 @@ export function DashboardMoney({ dashboard }: { dashboard: DashboardData }) {
           <div className="min-w-0 lg:col-span-3">
             <div className="flex items-center gap-2">
               <TrendingUp className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-              <h3 className="text-[13px] font-semibold tracking-tight">Income against cost</h3>
+              <h3 className="text-[13px] font-semibold tracking-tight">
+                {t('dashboard.money.incomeAgainstCost')}
+              </h3>
             </div>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Costs are accrued by trip month, not by when a vendor was paid. A month whose final
-              bill has not been audited is not counted.
+              {t('dashboard.money.incomeAgainstCostNote')}
             </p>
 
             <div className="mt-4">

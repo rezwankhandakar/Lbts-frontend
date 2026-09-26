@@ -10,7 +10,9 @@ import { useUpdateChallan } from '@/features/challan/hooks/use-challan-mutations
 import { useChallan } from '@/features/challan/hooks/use-challans'
 import { toFormValues } from '@/features/challan/schemas/challan-schemas'
 import { formatRange } from '@/features/challan/lib/challan-meta'
+import { formatNumber } from '@/lib/format'
 import { printDocument } from '@/lib/print-document'
+import { useT } from '@/lib/i18n'
 
 /**
  * Correcting a filed challan.
@@ -31,6 +33,8 @@ import { printDocument } from '@/lib/print-document'
  * know that will not know to reprint.
  */
 export function ChallanEditPage() {
+  const t = useT()
+
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
@@ -80,22 +84,26 @@ export function ChallanEditPage() {
           </div>
 
           <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
-            {record.challanNumber} · SL {record.slNumber} · check every field against the pages
-            beside it.
+            {t('challan.details.editSubtitle', {
+              challan: record.challanNumber,
+              sl: formatNumber(record.slNumber),
+            })}
           </p>
 
           <p className="mt-2 flex max-w-2xl items-start gap-2 rounded-lg border border-tone-amber/25 bg-tone-amber/5 px-3 py-2 text-xs leading-relaxed">
             <Info className="mt-0.5 size-3.5 shrink-0 text-tone-amber" aria-hidden />
             <span>
-              <span className="font-semibold">Saving regenerates the document.</span> The back page
-              is redrawn from what you save, and the stored PDF is replaced — the SL number, challan
-              number and barcode stay the same. Any copy printed before now shows the old details,
-              so reprint it if it is already in circulation. The page range (
-              {formatRange({
-                startPage: record.sourcePageStart,
-                endPage: record.sourcePageEnd,
-              })}{' '}
-              of {record.sourceFileName}) cannot be changed here — the source PDF was never stored.
+              <span className="font-semibold">{t('challan.details.regenerates')}</span>{' '}
+              {t('challan.details.regeneratesNote', {
+                range: formatRange(
+                  {
+                    startPage: record.sourcePageStart,
+                    endPage: record.sourcePageEnd,
+                  },
+                  t,
+                ),
+                file: record.sourceFileName,
+              })}
             </span>
           </p>
         </div>
@@ -109,9 +117,9 @@ export function ChallanEditPage() {
           <ChallanEntryForm
             defaultValues={toFormValues(record)}
             isBusy={update.isPending}
-            submitLabel="Save and regenerate"
+            submitLabel={t('challan.details.saveAndRegenerate')}
             secondaryAction={{
-              label: 'Cancel',
+              label: t('common.actions.cancel'),
               onClick: () => navigate(`/challan/${record.id}`),
             }}
             onSubmit={(values) =>

@@ -1,7 +1,7 @@
 import { BadgeCheck, CalendarClock, Clock3, Fingerprint, ShieldCheck, UserCog } from 'lucide-react'
 import { UserRoleBadge } from '@/components/shared/user-role-badge'
 import { UserStatusBadge } from '@/components/shared/user-status-badge'
-import { formatDateTime, formatRelative, formatSmartDateTime } from '@/lib/format'
+import { useFormatters, useT } from '@/lib/i18n'
 import { roleMeta, statusMeta } from '@/lib/roles'
 import { cn } from '@/lib/utils'
 import type { UserProfile } from '@/stores/use-auth-store'
@@ -23,33 +23,35 @@ interface AccountInformationCardProps {
  * ever suggesting the page could change it.
  */
 export function AccountInformationCard({ profile }: AccountInformationCardProps) {
-  const role = roleMeta(profile.role)
-  const status = statusMeta(profile.status)
+  const t = useT()
+  const format = useFormatters()
+  const role = roleMeta(profile.role, t)
+  const status = statusMeta(profile.status, t)
 
   return (
     <SectionCard
       icon={ShieldCheck}
       tone="violet"
-      title="Account information"
-      description="Managed by the system"
-      footnote="Your role and account status are set by an administrator and cannot be changed from this page."
+      title={t('profile.account.title')}
+      description={t('profile.account.description')}
+      footnote={t('profile.account.footnote')}
     >
       <dl>
         <InfoRow
           icon={Fingerprint}
-          label="User ID"
+          label={t('profile.account.userId')}
           control="locked"
-          hint="Quote this when contacting an administrator."
-          action={<CopyButton value={profile.id} label="user ID" />}
+          hint={t('profile.account.userIdHint')}
+          action={<CopyButton value={profile.id} label={t('profile.account.userIdLabel')} />}
         >
           <span className="font-mono text-xs break-all">{profile.id}</span>
         </InfoRow>
 
         <InfoRow
           icon={UserCog}
-          label="Role"
+          label={t('common.labels.role')}
           control="locked"
-          controlHint="Assigned by an administrator"
+          controlHint={t('profile.account.assignedByAdmin')}
           hint={role.description}
         >
           <UserRoleBadge role={profile.role} />
@@ -57,9 +59,9 @@ export function AccountInformationCard({ profile }: AccountInformationCardProps)
 
         <InfoRow
           icon={ShieldCheck}
-          label="Account status"
+          label={t('administration.table.accountStatus')}
           control="locked"
-          controlHint="Set by an administrator"
+          controlHint={t('profile.account.setByAdmin')}
           hint={status.description}
         >
           <UserStatusBadge status={profile.status} />
@@ -67,9 +69,9 @@ export function AccountInformationCard({ profile }: AccountInformationCardProps)
 
         <InfoRow
           icon={BadgeCheck}
-          label="Email verification"
+          label={t('profile.account.emailVerification')}
           control="locked"
-          controlHint="Confirmed by the sign-in provider"
+          controlHint={t('profile.account.confirmedByProvider')}
         >
           <span
             className={cn(
@@ -86,23 +88,31 @@ export function AccountInformationCard({ profile }: AccountInformationCardProps)
               )}
               aria-hidden
             />
-            {profile.emailVerified ? 'Verified' : 'Not verified'}
+            {profile.emailVerified
+              ? t('profile.account.verified')
+              : t('profile.account.notVerified')}
           </span>
         </InfoRow>
 
-        <InfoRow icon={CalendarClock} label="Member since" hint={formatRelative(profile.createdAt)}>
-          {formatDateTime(profile.createdAt)}
+        <InfoRow
+          icon={CalendarClock}
+          label={t('profile.account.memberSince')}
+          hint={format.relative(profile.createdAt)}
+        >
+          {format.dateTime(profile.createdAt)}
         </InfoRow>
 
         <InfoRow
           icon={Clock3}
-          label="Last sign-in"
-          hint={profile.lastLoginAt ? formatRelative(profile.lastLoginAt) : undefined}
+          label={t('profile.account.lastSignIn')}
+          hint={profile.lastLoginAt ? format.relative(profile.lastLoginAt) : undefined}
         >
           {profile.lastLoginAt ? (
-            formatSmartDateTime(profile.lastLoginAt)
+            format.smartDateTime(profile.lastLoginAt)
           ) : (
-            <span className="text-muted-foreground/70 italic">Not available</span>
+            <span className="text-muted-foreground/70 italic">
+              {t('common.states.notAvailable')}
+            </span>
           )}
         </InfoRow>
       </dl>

@@ -1,3 +1,5 @@
+import type { Translator } from '@/lib/i18n'
+
 /**
  * Client-side image rules. These mirror `LBTS-Backend/src/middlewares/upload.ts`
  * exactly, and for one reason only: to fail in the browser before a 5 MB
@@ -12,20 +14,25 @@ export const ACCEPTED_IMAGE_ATTRIBUTE = ACCEPTED_IMAGE_TYPES.join(',')
 
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
-export const IMAGE_RULES_HINT = 'JPG, PNG or WEBP · up to 5 MB'
-
-/** Returns a message to show the user, or null when the file is acceptable. */
-export function validateImageFile(file: File): string | null {
+/**
+ * Why a file was refused, as a message already fit to show — or null when the
+ * file is acceptable.
+ *
+ * Takes the translator for the reason `providerLabels` does: the caller holds
+ * `useT()`, and this is called from an event handler where the result goes
+ * straight into a toast.
+ */
+export function validateImageFile(file: File, t: Translator): string | null {
   if (!(ACCEPTED_IMAGE_TYPES as readonly string[]).includes(file.type)) {
-    return 'That file type is not supported. Choose a JPG, PNG or WEBP image.'
+    return t('profile.photo.badType')
   }
 
   if (file.size > MAX_IMAGE_BYTES) {
-    return `That image is ${formatBytes(file.size)}. The limit is 5 MB.`
+    return t('profile.photo.tooLarge', { size: formatBytes(file.size) })
   }
 
   if (file.size === 0) {
-    return 'That file is empty. Choose a different image.'
+    return t('profile.photo.empty')
   }
 
   return null

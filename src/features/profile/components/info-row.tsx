@@ -1,6 +1,7 @@
 import { Lock, PencilLine } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface InfoRowProps {
@@ -39,7 +40,12 @@ export function InfoRow({
   control,
   controlHint,
 }: InfoRowProps) {
-  const markerLabel = control === 'editable' ? 'You can change this' : (controlHint ?? 'Read-only')
+  const t = useT()
+
+  const markerLabel =
+    control === 'editable'
+      ? t('profile.infoRow.editable')
+      : (controlHint ?? t('profile.infoRow.readOnly'))
 
   return (
     <div className="flex items-start gap-3 border-b border-border/60 py-3.5 last:border-0">
@@ -55,7 +61,11 @@ export function InfoRow({
           {label}
         </dt>
         <dd className="mt-1 text-[13.5px] leading-snug break-words">
-          {children ?? <span className="text-muted-foreground/70 italic">Not provided</span>}
+          {children ?? (
+            <span className="text-muted-foreground/70 italic">
+              {t('profile.infoRow.notProvided')}
+            </span>
+          )}
         </dd>
         {hint ? (
           <p className="mt-1 text-[11.5px] leading-snug text-muted-foreground">{hint}</p>

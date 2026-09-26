@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useQuery } from '@tanstack/react-query'
 import type { UseQueryResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { printDocument } from '@/lib/print-document'
 import { saveBlob } from '@/lib/save-blob'
@@ -87,7 +88,7 @@ export function useLabourBillSignedCopyActions(
   useEffect(() => revoke, [revoke])
 
   const run = useCallback(
-    (csd: string | undefined, then: (blob: Blob, filename: string) => void, verb: string) => {
+    (csd: string | undefined, then: (blob: Blob, filename: string) => void, done: string) => {
       // `'all'` cannot collide with a section: a key is `comparisonKey` of the
       // CSD, so it is upper case or — for the pending section — empty.
       const marker = csd ?? 'all'
@@ -96,12 +97,12 @@ export function useLabourBillSignedCopyActions(
       }
 
       setBusy(marker)
-      const toastId = toast.loading('Collecting the signed copies…')
+      const toastId = toast.loading(t('labourBill.copies.collectingToast'))
 
       void downloadLabourBillSignedCopies({ id, csd })
         .then(({ blob, filename }) => {
           then(blob, filename)
-          toast.success(`Signed copies ${verb}`, { id: toastId, description: filename })
+          toast.success(done, { id: toastId, description: filename })
         })
         .catch((error: ApiError) => {
           toast.dismiss(toastId)
@@ -122,13 +123,13 @@ export function useLabourBillSignedCopyActions(
           urlRef.current = url
           printDocument(url, 'application/pdf')
         },
-        'sent to the printer',
+        t('labourBill.copies.printed'),
       ),
     [revoke, run],
   )
 
   const download = useCallback(
-    (csd?: string) => run(csd, (blob, filename) => saveBlob(blob, filename), 'downloaded'),
+    (csd?: string) => run(csd, (blob, filename) => saveBlob(blob, filename), t('labourBill.copies.downloaded')),
     [run],
   )
 

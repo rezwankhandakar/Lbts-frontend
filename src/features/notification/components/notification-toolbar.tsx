@@ -10,8 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { NOTIFICATION_MODULE_META } from '../lib/notification-meta'
+import { NOTIFICATION_MODULE_META, notificationModuleMeta } from '../lib/notification-meta'
 import { NOTIFICATION_MODULES } from '../types'
 import type {
   NotificationListParams,
@@ -38,10 +40,10 @@ interface NotificationToolbarProps {
   onOpenPreferences: () => void
 }
 
-const STATES: { value: NotificationState; label: string }[] = [
-  { value: 'all', label: 'Everything' },
-  { value: 'unread', label: 'Unread' },
-  { value: 'read', label: 'Read' },
+const STATES: { value: NotificationState; labelKey: TranslationKey }[] = [
+  { value: 'all', labelKey: 'notification.toolbar.everything' },
+  { value: 'unread', labelKey: 'notification.toolbar.unread' },
+  { value: 'read', labelKey: 'notification.toolbar.read' },
 ]
 
 /**
@@ -74,6 +76,8 @@ export function NotificationToolbar({
   onClearRead,
   onOpenPreferences,
 }: NotificationToolbarProps) {
+  const t = useT()
+
   const [showMore, setShowMore] = useState(false)
 
   /** Filters living behind the disclosure, so it can say how many are on. */
@@ -96,8 +100,8 @@ export function NotificationToolbar({
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="What it says, or which record"
-              aria-label="Search notifications"
+              placeholder={t('notification.toolbar.searchPlaceholder')}
+              aria-label={t('notification.toolbar.searchAria')}
               className="pl-8.5"
             />
           </div>
@@ -107,16 +111,19 @@ export function NotificationToolbar({
               value={params.state}
               onValueChange={(value) => onChange({ state: value as NotificationState })}
             >
-              <SelectTrigger className="h-8 w-full sm:w-36" aria-label="Filter by read state">
+              <SelectTrigger className="h-8 w-full sm:w-36" aria-label={t('notification.toolbar.stateAria')}>
                 <SelectValue>
-                  {(value) => STATES.find((state) => state.value === value)?.label ?? 'Everything'}
+                  {(value) => {
+                    const state = STATES.find((entry) => entry.value === value)
+                    return state ? t(state.labelKey) : t('notification.toolbar.everything')
+                  }}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
                   {STATES.map((state) => (
                     <SelectItem key={state.value} value={state.value}>
-                      {state.label}
+                      {t(state.labelKey)}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -127,15 +134,19 @@ export function NotificationToolbar({
               value={params.module}
               onValueChange={(value) => onChange({ module: value as NotificationModule | 'all' })}
             >
-              <SelectTrigger className="h-8 w-full sm:w-44" aria-label="Filter by module">
+              <SelectTrigger className="h-8 w-full sm:w-44" aria-label={t('notification.toolbar.moduleAria')}>
                 <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
                 <SelectValue>
-                  {(value) => (value === 'all' || !value ? 'Every module' : String(value))}
+                  {(value) =>
+                    value === 'all' || !value
+                      ? t('notification.toolbar.everyModule')
+                      : notificationModuleMeta(String(value), t).label
+                  }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Every module</SelectItem>
+                  <SelectItem value="all">{t('notification.toolbar.everyModule')}</SelectItem>
                   {NOTIFICATION_MODULES.map((module) => (
                     <SelectItem key={module} value={module}>
                       <span
@@ -145,7 +156,7 @@ export function NotificationToolbar({
                         )}
                         aria-hidden
                       />
-                      {NOTIFICATION_MODULE_META[module].label}
+                      {notificationModuleMeta(module, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -171,7 +182,7 @@ export function NotificationToolbar({
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
           </div>

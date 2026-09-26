@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { signedTaka, taka } from '../lib/accounts-meta'
 import type { EntryListTotals } from '../types'
@@ -9,16 +10,30 @@ import type { EntryListTotals } from '../types'
  * of a cash book somebody reconciles against the box or the bank.
  */
 export function EntryTotals({ totals }: { totals: EntryListTotals | undefined }) {
+  const t = useT()
+
   if (!totals) {
     return <Skeleton className="h-10 w-full rounded-lg" />
   }
 
   const figures = [
-    ...(totals.openingBalance !== null ? [{ label: 'Opening', value: signedTaka(totals.openingBalance), className: '' }] : []),
-    { label: 'Money in', value: taka(totals.moneyIn), className: 'text-tone-emerald' },
-    { label: 'Money out', value: taka(totals.moneyOut), className: 'text-tone-rose' },
+    ...(totals.openingBalance !== null
+      ? [
+          {
+            label: t('accounts.list.opening'),
+            value: signedTaka(totals.openingBalance),
+            className: '',
+          },
+        ]
+      : []),
+    { label: t('accounts.totals.moneyIn'), value: taka(totals.moneyIn), className: 'text-tone-emerald' },
+    { label: t('accounts.totals.moneyOut'), value: taka(totals.moneyOut), className: 'text-tone-rose' },
     totals.closingBalance !== null
-      ? { label: 'Closing', value: signedTaka(totals.closingBalance), className: 'font-semibold' }
+      ? {
+          label: t('accounts.list.closing'),
+          value: signedTaka(totals.closingBalance),
+          className: 'font-semibold',
+        }
       : { label: 'Net', value: signedTaka(totals.moneyIn - totals.moneyOut), className: 'font-semibold' },
   ]
 

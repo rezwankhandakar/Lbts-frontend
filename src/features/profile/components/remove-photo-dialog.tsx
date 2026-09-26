@@ -10,6 +10,7 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { useT } from '@/lib/i18n'
 
 interface RemovePhotoDialogProps {
   open: boolean
@@ -31,6 +32,8 @@ export function RemovePhotoDialog({
   onOpenChange,
   onConfirm,
 }: RemovePhotoDialogProps) {
+  const t = useT()
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="sm:max-w-md">
@@ -38,17 +41,14 @@ export function RemovePhotoDialog({
           <AlertDialogMedia className="bg-destructive/10 text-destructive">
             <Trash2 aria-hidden />
           </AlertDialogMedia>
-          <AlertDialogTitle>Remove profile photo?</AlertDialogTitle>
-          <AlertDialogDescription>
-            The stored image is deleted permanently. Your avatar goes back to your initials, and you
-            can upload a new photo at any time.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t('profile.photo.removeTitle')}</AlertDialogTitle>
+          <AlertDialogDescription>{t('profile.photo.removeBody')}</AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>{t('common.actions.cancel')}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" disabled={isPending} onClick={onConfirm}>
-            {isPending ? 'Removing…' : 'Remove photo'}
+            {isPending ? t('profile.photo.removing') : t('profile.photo.removeConfirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

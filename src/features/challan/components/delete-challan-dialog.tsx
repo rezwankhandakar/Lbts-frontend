@@ -8,6 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { formatRange } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
 
@@ -40,36 +42,46 @@ export function DeleteChallanDialog({
   onOpenChange,
   onConfirm,
 }: DeleteChallanDialogProps) {
+  const t = useT()
+
   if (!record) {
     return null
   }
 
-  const range = formatRange({
-    startPage: record.sourcePageStart,
-    endPage: record.sourcePageEnd,
-  })
+  const range = formatRange(
+    {
+      startPage: record.sourcePageStart,
+      endPage: record.sourcePageEnd,
+    },
+    t,
+  )
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {record.challanNumber}?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t('challan.remove.title', { challan: record.challanNumber })}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            This challan and its generated PDF are removed permanently, and SL {record.slNumber} is
-            not reissued. {range} of {record.sourceFileName} become unassigned again, so the batch
-            they came from re-opens and can no longer be downloaded as a finished set. This cannot
-            be undone.
+            {t('challan.remove.body', {
+              sl: formatNumber(record.slNumber),
+              range,
+              file: record.sourceFileName,
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Keep it</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>
+            {t('challan.remove.keepIt')}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isPending}
             className="bg-destructive/10 text-destructive hover:bg-destructive/20"
           >
-            {isPending ? 'Deleting…' : 'Delete challan'}
+            {isPending ? t('challan.remove.deleting') : t('challan.remove.confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

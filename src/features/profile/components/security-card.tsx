@@ -2,6 +2,7 @@ import { BadgeCheck, KeyRound, Loader2, MailCheck, ShieldAlert, Send } from 'luc
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { UserProfile } from '@/stores/use-auth-store'
 import { useEmailVerification } from '../use-email-verification'
@@ -73,6 +74,8 @@ export function SecurityCard({
   canChangePassword,
   onChangePassword,
 }: SecurityCardProps) {
+  const t = useT()
+  const format = useFormatters()
   const verification = useEmailVerification()
   const cooling = verification.cooldown > 0
 
@@ -80,31 +83,31 @@ export function SecurityCard({
     <SectionCard
       icon={KeyRound}
       tone="emerald"
-      title="Security"
-      description="How you sign in to LBTS"
+      title={t('profile.security.title')}
+      description={t('profile.security.description')}
       footnote={
         providers.length > 0
-          ? `Sign-in method: ${providers.join(', ')}. Passwords are stored by the authentication provider, never by LBTS.`
-          : 'Passwords are stored by the authentication provider, never by LBTS.'
+          ? t('profile.security.footnoteWithProviders', { providers: providers.join(', ') })
+          : t('profile.security.footnote')
       }
     >
       <div>
         <SecurityItem
           icon={KeyRound}
-          title="Password"
+          title={t('profile.security.password')}
           description={
             canChangePassword ? (
               <>
                 <span className="font-mono tracking-widest" aria-hidden>
                   ••••••••••
                 </span>
-                <span className="sr-only">Your password is hidden.</span>
-                <span className="mt-0.5 block">
-                  You will be asked for your current password to confirm the change.
-                </span>
+                <span className="sr-only">{t('profile.security.passwordHidden')}</span>
+                <span className="mt-0.5 block">{t('profile.security.passwordConfirmNote')}</span>
               </>
             ) : (
-              `Your credential is held by ${providers.join(' and ') || 'your sign-in provider'}. Change it there, and it changes here.`
+              t('profile.security.credentialElsewhere', {
+                providers: providers.join(' + ') || t('profile.security.yourProvider'),
+              })
             )
           }
           action={
@@ -116,12 +119,12 @@ export function SecurityCard({
                 onClick={onChangePassword}
               >
                 <KeyRound data-icon="inline-start" aria-hidden />
-                Change password
+                {t('profile.security.changePassword')}
               </Button>
             ) : (
               <span className="inline-flex items-center gap-1.5 rounded-full border bg-muted/60 px-2.5 py-1 text-xs font-medium text-muted-foreground">
                 <ShieldAlert className="size-3.5" aria-hidden />
-                Managed externally
+                {t('profile.security.managedExternally')}
               </span>
             )
           }
@@ -130,17 +133,21 @@ export function SecurityCard({
         <SecurityItem
           icon={profile.emailVerified ? BadgeCheck : MailCheck}
           tone={profile.emailVerified ? 'positive' : 'warning'}
-          title={profile.emailVerified ? 'Email verified' : 'Email not verified'}
+          title={
+            profile.emailVerified
+              ? t('profile.security.emailVerified')
+              : t('profile.security.emailNotVerified')
+          }
           description={
             profile.emailVerified
-              ? `${profile.email} is confirmed. Password resets and account notices reach you.`
-              : `We could not confirm ${profile.email} yet. Verify it so password resets can reach you.`
+              ? t('profile.security.emailConfirmed', { email: profile.email })
+              : t('profile.security.emailUnconfirmed', { email: profile.email })
           }
           action={
             profile.emailVerified ? (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-tone-emerald/25 bg-tone-emerald/10 px-2.5 py-1 text-xs font-semibold text-tone-emerald">
                 <BadgeCheck className="size-3.5" aria-hidden />
-                Verified
+                {t('profile.security.verified')}
               </span>
             ) : (
               <Button
@@ -155,7 +162,11 @@ export function SecurityCard({
                 ) : (
                   <Send data-icon="inline-start" aria-hidden />
                 )}
-                {cooling ? `Resend in ${verification.cooldown}s` : 'Send verification email'}
+                {cooling
+                  ? t('profile.security.resendIn', {
+                      seconds: format.number(verification.cooldown),
+                    })
+                  : t('profile.security.sendVerification')}
               </Button>
             )
           }

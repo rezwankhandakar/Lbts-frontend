@@ -1,16 +1,19 @@
 import { HandCoins, TriangleAlert, Truck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useEntryDialog } from '../hooks/use-entry-dialog'
 import { formatDay, signedTaka, taka } from '../lib/accounts-meta'
 import type { VendorBillTrip } from '../types'
 
 function Blank() {
+  const t = useT()
+
   return (
     <span className="inline-flex items-center gap-1 text-xs text-tone-amber">
       <TriangleAlert className="size-3" aria-hidden />
-      Not entered
+      {t('accounts.trip.notEntered')}
     </span>
   )
 }
@@ -24,13 +27,15 @@ function Blank() {
  * readable on a phone at any scroll offset.
  */
 export function VendorTripTable({ trips, canWrite }: { trips: VendorBillTrip[]; canWrite: boolean }) {
+  const t = useT()
+
   const dialog = useEntryDialog()
 
   if (trips.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
         <Truck className="size-6 text-muted-foreground" aria-hidden />
-        <p className="text-sm text-muted-foreground">No trip ran for this vendor in the month.</p>
+        <p className="text-sm text-muted-foreground">{t('accounts.trip.noneThisMonth')}</p>
       </div>
     )
   }
@@ -60,13 +65,13 @@ export function VendorTripTable({ trips, canWrite }: { trips: VendorBillTrip[]; 
         <table className="w-full min-w-[46rem] text-sm">
           <thead>
             <tr className="border-b text-left text-xs text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">Trip</th>
-              <th className="px-2 py-2.5 text-right font-medium">Trip rent</th>
-              <th className="px-2 py-2.5 text-right font-medium">Labour</th>
-              <th className="px-2 py-2.5 text-right font-medium">Bill</th>
-              <th className="px-2 py-2.5 text-right font-medium">Advance</th>
+              <th className="px-4 py-2.5 font-medium">{t('accounts.trip.label')}</th>
+              <th className="px-2 py-2.5 text-right font-medium">{t('accounts.profit.tripRent')}</th>
+              <th className="px-2 py-2.5 text-right font-medium">{t('accounts.profit.labour')}</th>
+              <th className="px-2 py-2.5 text-right font-medium">{t('accounts.trip.bill')}</th>
+              <th className="px-2 py-2.5 text-right font-medium">{t('accounts.trip.advance')}</th>
               <th className="px-2 py-2.5 text-right font-medium">Net</th>
-              {canWrite && <th className="px-4 py-2.5" aria-label="Actions" />}
+              {canWrite && <th className="px-4 py-2.5" aria-label={t('accounts.list.actions')} />}
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -91,7 +96,7 @@ export function VendorTripTable({ trips, canWrite }: { trips: VendorBillTrip[]; 
                   <td className="px-4 py-2.5 text-right">
                     <Button variant="outline" size="sm" onClick={() => advance(trip)}>
                       <HandCoins data-icon="inline-start" aria-hidden />
-                      Advance
+                      {t('accounts.trip.advance')}
                     </Button>
                   </td>
                 )}
@@ -132,15 +137,15 @@ export function VendorTripTable({ trips, canWrite }: { trips: VendorBillTrip[]; 
 
             <dl className="grid grid-cols-3 gap-2 text-xs">
               <div>
-                <dt className="text-muted-foreground">Trip rent</dt>
+                <dt className="text-muted-foreground">{t('accounts.profit.tripRent')}</dt>
                 <dd className="font-medium tabular-nums">{trip.tripRent === null ? <Blank /> : taka(trip.tripRent)}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Labour</dt>
+                <dt className="text-muted-foreground">{t('accounts.profit.labour')}</dt>
                 <dd className="font-medium tabular-nums">{trip.labourBill === null ? <Blank /> : taka(trip.labourBill)}</dd>
               </div>
               <div className="text-right">
-                <dt className="text-muted-foreground">Advance</dt>
+                <dt className="text-muted-foreground">{t('accounts.trip.advance')}</dt>
                 <dd className="font-medium tabular-nums">{trip.advance > 0 ? taka(trip.advance) : '—'}</dd>
               </div>
             </dl>
@@ -148,7 +153,7 @@ export function VendorTripTable({ trips, canWrite }: { trips: VendorBillTrip[]; 
             {canWrite && (
               <Button variant="outline" size="sm" className="w-full" onClick={() => advance(trip)}>
                 <HandCoins data-icon="inline-start" aria-hidden />
-                Advance against this trip
+                {t('accounts.trip.advanceAgainst')}
               </Button>
             )}
           </li>

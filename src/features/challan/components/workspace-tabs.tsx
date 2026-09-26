@@ -1,4 +1,6 @@
 import { FileText, PencilLine } from 'lucide-react'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 export type WorkspacePane = 'pdf' | 'form'
@@ -10,9 +12,9 @@ interface WorkspaceTabsProps {
   hasEntry: boolean
 }
 
-const TABS: { value: WorkspacePane; label: string; icon: typeof FileText }[] = [
-  { value: 'pdf', label: 'PDF', icon: FileText },
-  { value: 'form', label: 'Entry', icon: PencilLine },
+const TABS: { value: WorkspacePane; labelKey: TranslationKey; icon: typeof FileText }[] = [
+  { value: 'pdf', labelKey: 'challan.pdf.tabPdf', icon: FileText },
+  { value: 'form', labelKey: 'challan.pdf.tabEntry', icon: PencilLine },
 ]
 
 /**
@@ -28,10 +30,12 @@ const TABS: { value: WorkspacePane; label: string; icon: typeof FileText }[] = [
  * same reason.
  */
 export function WorkspaceTabs({ value, onChange, hasEntry }: WorkspaceTabsProps) {
+  const t = useT()
+
   return (
     <div
       role="tablist"
-      aria-label="Challan workspace"
+      aria-label={t('challan.pdf.workspaceTabsAria')}
       className="grid grid-cols-2 gap-1 rounded-lg border bg-card p-1 lg:hidden"
       onKeyDown={(event) => {
         if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
@@ -61,7 +65,7 @@ export function WorkspaceTabs({ value, onChange, hasEntry }: WorkspaceTabsProps)
             )}
           >
             <tab.icon className="size-4" aria-hidden />
-            {tab.label}
+            {t(tab.labelKey)}
             {tab.value === 'form' && hasEntry && (
               <span className="size-1.5 rounded-full bg-tone-emerald" aria-hidden />
             )}

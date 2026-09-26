@@ -10,10 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useBillUnits } from '../hooks/use-bills'
 import { billYearOptions } from '../lib/bill-meta'
-import { MONTH_NAMES } from '../types'
+import { monthName, monthNames } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import type { BillFilterPatch, BillListParams, BillStatusFilter } from '../types'
 
 interface BillListToolbarProps {
@@ -24,16 +26,18 @@ interface BillListToolbarProps {
   summary?: ReactNode
 }
 
-const STATUS_OPTIONS: { value: BillStatusFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'Draft', label: 'Drafts' },
-  { value: 'Finalized', label: 'Finalized' },
+const STATUS_OPTIONS: { value: BillStatusFilter; labelKey: TranslationKey }[] = [
+  { value: 'all', labelKey: 'bill.toolbar.all' },
+  { value: 'Draft', labelKey: 'bill.toolbar.drafts' },
+  { value: 'Finalized', labelKey: 'bill.toolbar.finalized' },
 ]
 
 const ANY = 'any'
 
 /** Search, status, period and unit — every one applied server-side. */
 export function BillListToolbar({ params, onChange, onReset, isFiltered, summary }: BillListToolbarProps) {
+  const t = useT()
+
   const units = useBillUnits(true)
   const years = billYearOptions(params.year ?? new Date().getFullYear()).reverse()
 
@@ -49,12 +53,12 @@ export function BillListToolbar({ params, onChange, onReset, isFiltered, summary
             type="search"
             value={params.search}
             onChange={(event) => onChange({ search: event.target.value })}
-            aria-label="Search bills by number, unit or note"
+            aria-label={t('bill.toolbar.searchAria')}
             className="pl-8.5"
           />
         </div>
 
-        <div role="radiogroup" aria-label="Bill status" className="inline-flex w-fit rounded-lg border bg-card p-0.5">
+        <div role="radiogroup" aria-label={t('bill.toolbar.statusAria')} className="inline-flex w-fit rounded-lg border bg-card p-0.5">
           {STATUS_OPTIONS.map((option) => (
             <button
               key={option.value}
@@ -69,7 +73,7 @@ export function BillListToolbar({ params, onChange, onReset, isFiltered, summary
                   : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              {option.label}
+              {t(option.labelKey)}
             </button>
           ))}
         </div>
@@ -80,15 +84,19 @@ export function BillListToolbar({ params, onChange, onReset, isFiltered, summary
             value={params.month === null ? ANY : String(params.month)}
             onValueChange={(value) => onChange({ month: value === ANY ? null : Number(value) })}
           >
-            <SelectTrigger className="h-8 w-[8.5rem]" aria-label="Billing month">
+            <SelectTrigger className="h-8 w-[8.5rem]" aria-label={t('bill.toolbar.monthAria')}>
               <SelectValue>
-                {(value) => (value === ANY || !value ? 'Any month' : MONTH_NAMES[Number(value) - 1])}
+                {(value) =>
+                  value === ANY || !value
+                    ? t('bill.toolbar.anyMonth')
+                    : monthName(Number(value))
+                }
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value={ANY}>Any month</SelectItem>
-                {MONTH_NAMES.map((name, index) => (
+                <SelectItem value={ANY}>{t('bill.toolbar.anyMonth')}</SelectItem>
+                {monthNames().map((name, index) => (
                   <SelectItem key={name} value={String(index + 1)}>
                     {name}
                   </SelectItem>
@@ -101,12 +109,14 @@ export function BillListToolbar({ params, onChange, onReset, isFiltered, summary
             value={params.year === null ? ANY : String(params.year)}
             onValueChange={(value) => onChange({ year: value === ANY ? null : Number(value) })}
           >
-            <SelectTrigger className="h-8 w-[7rem]" aria-label="Billing year">
-              <SelectValue>{(value) => (value === ANY || !value ? 'Any year' : String(value))}</SelectValue>
+            <SelectTrigger className="h-8 w-[7rem]" aria-label={t('bill.toolbar.yearAria')}>
+              <SelectValue>
+                {(value) => (value === ANY || !value ? t('bill.toolbar.anyYear') : String(value))}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value={ANY}>Any year</SelectItem>
+                <SelectItem value={ANY}>{t('bill.toolbar.anyYear')}</SelectItem>
                 {years.map((year) => (
                   <SelectItem key={year} value={String(year)}>
                     {year}
@@ -125,7 +135,7 @@ export function BillListToolbar({ params, onChange, onReset, isFiltered, summary
               value={params.unit}
               list="bill-filter-units"
               onChange={(event) => onChange({ unit: event.target.value })}
-              aria-label="Unit"
+              aria-label={t('bill.toolbar.unitAria')}
               autoComplete="off"
               className="h-8 w-[7.5rem] pl-8 font-mono uppercase"
             />
@@ -137,7 +147,7 @@ export function BillListToolbar({ params, onChange, onReset, isFiltered, summary
           {isFiltered && (
             <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
               <X data-icon="inline-start" aria-hidden />
-              Clear
+              {t('common.actions.clear')}
             </Button>
           )}
         </div>

@@ -2,9 +2,10 @@ import { TriangleAlert } from 'lucide-react'
 import { useEffect } from 'react'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useWallets } from '../hooks/use-accounts'
-import { WALLET_KIND_LABEL, taka } from '../lib/accounts-meta'
+import { taka, walletKindLabel } from '../lib/accounts-meta'
 import type { WalletKind } from '../types'
 import { EntryField } from './entry-field'
+import { useT } from '@/lib/i18n'
 
 interface WalletFieldProps {
   id: string
@@ -49,6 +50,8 @@ export function WalletField({
   preferKind,
   onChange,
 }: WalletFieldProps) {
+  const t = useT()
+
   const wallets = useWallets()
   const options = (wallets.data ?? []).filter(
     (wallet) => (wallet.isActive || wallet.id === value) && wallet.id !== exclude && (!cashOnly || wallet.kind === 'Cash'),
@@ -78,13 +81,15 @@ export function WalletField({
         {selected.name} holds {taka(selected.balance + ownAmount)} — this takes it to {taka(after)}.
       </span>
     ) : selected ? (
-      `${cashOnly ? 'Cash balance' : 'Balance'} ${taka(selected.balance)}`
+      cashOnly
+        ? t('accounts.wallet.cashBalance', { amount: taka(selected.balance) })
+        : t('accounts.wallet.balance', { amount: taka(selected.balance) })
     ) : wallets.isPending ? (
-      'Loading wallets…'
+      t('accounts.wallet.loading')
     ) : cashOnly && options.length === 0 ? (
-      <span className="text-tone-amber">No cash wallet is open. Add one on the Wallets tab.</span>
+      <span className="text-tone-amber">{t('accounts.wallet.noCashWallet')}</span>
     ) : cashOnly ? (
-      'Cash wallets only.'
+      t('accounts.wallet.cashOnly')
     ) : undefined
 
   return (
@@ -94,7 +99,7 @@ export function WalletField({
           <SelectValue>
             {(current: string | null) => {
               const wallet = wallets.data?.find((option) => option.id === current)
-              return wallet ? wallet.name : <span className="text-muted-foreground">{cashOnly ? 'Choose a cash wallet' : 'Choose a wallet'}</span>
+              return wallet ? wallet.name : <span className="text-muted-foreground">{cashOnly ? t('accounts.wallet.chooseCash') : t('accounts.wallet.choose')}</span>
             }}
           </SelectValue>
         </SelectTrigger>
@@ -105,7 +110,9 @@ export function WalletField({
                 <span className="flex min-w-0 flex-1 items-center justify-between gap-4">
                   <span className="truncate">
                     {wallet.name}
-                    <span className="ml-1.5 text-xs text-muted-foreground">{WALLET_KIND_LABEL[wallet.kind]}</span>
+                    <span className="ml-1.5 text-xs text-muted-foreground">
+                      {walletKindLabel(wallet.kind, t)}
+                    </span>
                   </span>
                   <span className="text-xs font-medium tabular-nums">{taka(wallet.balance)}</span>
                 </span>

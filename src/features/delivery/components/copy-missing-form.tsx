@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { MAX_COPY_MISSING_REASON } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface CopyMissingFormProps {
   busy: boolean
@@ -17,21 +18,23 @@ interface CopyMissingFormProps {
  * somebody asks about later — so it says what it does and keeps a reason.
  */
 export function CopyMissingForm({ busy, onConfirm, onCancel }: CopyMissingFormProps) {
+  const t = useT()
+
   const [reason, setReason] = useState('')
 
   return (
     <div className="space-y-2.5 rounded-lg border border-tone-orange/25 bg-tone-orange/5 p-3">
       <div>
-        <p className="text-sm font-medium">Complete without the signed copy?</p>
+        <p className="text-sm font-medium">{t('delivery.copy.missingTitle')}</p>
         <p className="text-xs text-muted-foreground">
-          Only when the copy is lost. The delivery shows <strong>Copy missing</strong>, and scanning
-          the copy later replaces that mark.
+          {t('delivery.copy.missingHint', { badge: t('delivery.copy.missingBadge') })}
         </p>
       </div>
 
       <div className="space-y-1">
         <Label htmlFor="copy-missing-reason" className="text-xs">
-          What happened? <span className="text-muted-foreground">(optional)</span>
+          {t('delivery.copy.whatHappened')}{' '}
+          <span className="text-muted-foreground">{t('common.labels.optionalSuffix')}</span>
         </Label>
         <Input
           id="copy-missing-reason"
@@ -51,10 +54,10 @@ export function CopyMissingForm({ busy, onConfirm, onCancel }: CopyMissingFormPr
       <div className="flex flex-wrap gap-2">
         <Button type="button" size="sm" disabled={busy} onClick={() => onConfirm(reason.trim())}>
           {busy && <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />}
-          Complete without copy
+          {t('delivery.copy.completeWithout')}
         </Button>
         <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={onCancel}>
-          Cancel
+          {t('common.actions.cancel')}
         </Button>
       </div>
     </div>

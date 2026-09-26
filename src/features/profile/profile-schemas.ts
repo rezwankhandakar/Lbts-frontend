@@ -6,6 +6,13 @@ import * as z from 'zod'
  * made, and so the messages read the same on both sides. Change one, change
  * both.
  *
+ * The messages are translation keys, for the reason `auth-schemas.ts` gives:
+ * a schema is evaluated once and cannot re-run for a language change, so
+ * `FormField` resolves them where they are drawn. The password rules reach
+ * into `auth.validation` deliberately — they are the *same* rules
+ * `signUpSchema` enforces, and two copies of a wording is how the two forms
+ * come to disagree about what a valid password is.
+ *
  * Neither schema carries `role`, `status` or `email`. Those are not omitted by
  * accident — the profile module has no path to them at all.
  */
@@ -15,15 +22,15 @@ export const editProfileSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, 'Name must be at least 2 characters')
-    .max(80, 'Name must be 80 characters or fewer'),
+    .min(2, 'profile.validation.nameTooShort')
+    .max(80, 'profile.validation.nameTooLong'),
   /** Optional. An empty field is how the number is cleared. */
   phone: z
     .string()
     .trim()
-    .max(24, 'Phone number must be 24 characters or fewer')
+    .max(24, 'profile.validation.phoneTooLong')
     .refine((value) => value.length === 0 || PHONE_PATTERN.test(value), {
-      message: 'Enter a valid phone number, for example +880 1712 345678',
+      message: 'profile.validation.phoneInvalid',
     }),
 })
 
@@ -34,21 +41,21 @@ export const editProfileSchema = z.object({
  */
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, 'Enter your current password'),
+    currentPassword: z.string().min(1, 'profile.validation.currentRequired'),
     newPassword: z
       .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[a-z]/, 'Include at least one lowercase letter')
-      .regex(/[A-Z]/, 'Include at least one uppercase letter')
-      .regex(/[0-9]/, 'Include at least one number'),
-    confirmPassword: z.string().min(1, 'Confirm your new password'),
+      .min(8, 'auth.validation.passwordTooShort')
+      .regex(/[a-z]/, 'auth.validation.needsLowercase')
+      .regex(/[A-Z]/, 'auth.validation.needsUppercase')
+      .regex(/[0-9]/, 'auth.validation.needsNumber'),
+    confirmPassword: z.string().min(1, 'profile.validation.confirmRequired'),
   })
   .refine((values) => values.newPassword === values.confirmPassword, {
-    message: 'Passwords do not match',
+    message: 'auth.validation.passwordsDoNotMatch',
     path: ['confirmPassword'],
   })
   .refine((values) => values.newPassword !== values.currentPassword, {
-    message: 'Choose a password you have not used here before',
+    message: 'profile.validation.sameAsOld',
     path: ['newPassword'],
   })
 

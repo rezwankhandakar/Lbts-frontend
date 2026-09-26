@@ -1,5 +1,5 @@
 import { Printer, PrinterCheck } from 'lucide-react'
-import { formatDateTime } from '@/lib/format'
+import { useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ChallanRecord } from '../types'
 
@@ -27,6 +27,9 @@ interface ChallanPrintMarkProps {
  * a follow-up question goes.
  */
 export function ChallanPrintMark({ record, className }: ChallanPrintMarkProps) {
+  const t = useT()
+  const format = useFormatters()
+
   if (!record.printedAt) {
     return (
       <span
@@ -36,12 +39,15 @@ export function ChallanPrintMark({ record, className }: ChallanPrintMarkProps) {
         )}
       >
         <Printer className="size-3 shrink-0" aria-hidden />
-        Not printed
+        {t('challan.printMark.notPrinted')}
       </span>
     )
   }
 
-  const printedBy = record.printedBy ? ` by ${record.printedBy.name}` : ''
+  const when = format.dateTime(record.printedAt)
+  const title = record.printedBy
+    ? t('challan.printMark.printedAtBy', { when, name: record.printedBy.name })
+    : t('challan.printMark.printedAt', { when })
 
   return (
     <span
@@ -49,10 +55,10 @@ export function ChallanPrintMark({ record, className }: ChallanPrintMarkProps) {
         'inline-flex items-center gap-1.5 rounded-full border border-tone-violet/25 bg-tone-violet/10 px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-tone-violet',
         className,
       )}
-      title={`Printed ${formatDateTime(record.printedAt)}${printedBy}`}
+      title={title}
     >
       <PrinterCheck className="size-3 shrink-0" aria-hidden />
-      Printed
+      {t('challan.printMark.printed')}
     </span>
   )
 }

@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { notificationModuleMeta } from '../lib/notification-meta'
 import type { NotificationRecord } from '../types'
@@ -14,7 +15,9 @@ import type { NotificationRecord } from '../types'
  * cannot afford one. So the sentence says what actually found it.
  */
 export function NotificationItemMeta({ record }: { record: NotificationRecord }) {
-  const module = notificationModuleMeta(record.module)
+  const t = useT()
+
+  const module = notificationModuleMeta(record.module, t)
 
   return (
     <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
@@ -37,11 +40,15 @@ export function NotificationItemMeta({ record }: { record: NotificationRecord })
       </span>
       {record.actor ? (
         <span className="truncate">
-          {record.actor.name}
-          {record.actor.role ? ` (${record.actor.role})` : ''}
+          {record.actor.role
+            ? t('notification.item.actorWithRole', {
+                name: record.actor.name,
+                role: record.actor.role,
+              })
+            : record.actor.name}
         </span>
       ) : (
-        <span>Found by the compliance check</span>
+        <span>{t('notification.item.foundByCheck')}</span>
       )}
     </div>
   )

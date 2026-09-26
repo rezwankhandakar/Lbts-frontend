@@ -10,6 +10,7 @@ import { useLabourReceivable } from '@/features/accounts/hooks/use-accounts'
 import { taka } from '@/features/accounts/lib/accounts-meta'
 import { canWriteAccounts } from '@/features/accounts/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { useT } from '@/lib/i18n'
 
 /**
  * One month's labour claim, split into the cards it is actually paid on.
@@ -19,18 +20,20 @@ import { useCurrentRole } from '@/hooks/use-current-role'
  * is owed — there is no second copy to refresh and nothing that can drift.
  */
 export function AccountsLabourBillPage() {
+  const t = useT()
+
   const { id = '' } = useParams()
   const canWrite = canWriteAccounts(useCurrentRole())
   const query = useLabourReceivable(id)
 
   return (
     <AccountsShell
-      title="Walton Labour Bill"
-      description="Each CSD of this month is settled on its own, so each has its own card. What it is owed comes off the labour bill sheet; what has arrived is the payments recorded here."
+      title={t('accounts.pages.labourBill.title')}
+      description={t('accounts.pages.labourBill.monthDescription')}
       actions={
         <Link to="/accounts/labour-bills" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
           <ArrowLeft data-icon="inline-start" aria-hidden />
-          All months
+          {t('accounts.pages.labourBill.allMonths')}
         </Link>
       }
     >
@@ -61,6 +64,8 @@ function LabourBillBody({
   detail: NonNullable<ReturnType<typeof useLabourReceivable>['data']>
   canWrite: boolean
 }) {
+  const t = useT()
+
   const { month, receipts } = detail
   const payable = month.csds.filter((csd) => csd.canReceive)
 
@@ -75,30 +80,30 @@ function LabourBillBody({
           tone="indigo"
         />
         <StatTile
-          label="Received"
+          label={t('accounts.pages.labourBill.received')}
           value={taka(month.receivedAmount)}
           hint={`${receipts.length} ${receipts.length === 1 ? 'payment' : 'payments'}`}
           icon={Wallet}
           tone="emerald"
         />
         <StatTile
-          label="Still to receive"
+          label={t('accounts.pages.labourBill.stillToReceive')}
           value={taka(month.outstanding)}
           hint="Across this month's CSDs"
           icon={HandCoins}
           tone="amber"
         />
         <StatTile
-          label="Open the sheet"
+          label={t('accounts.pages.labourBill.openSheet')}
           value={`${payable.length} ${payable.length === 1 ? 'CSD' : 'CSDs'}`}
-          hint="See the rows behind these figures"
+          hint={t('accounts.pages.labourBill.openSheetHint')}
           icon={ExternalLink}
           tone="violet"
           to={`/labour-bills/${month.id}`}
         />
       </div>
 
-      <section aria-label="CSDs" className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section aria-label={t('accounts.pages.labourBill.csdsAria')} className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-3">
         {month.csds.map((csd) => (
           <LabourCsdCard key={csd.key || 'pending'} month={month} csd={csd} canWrite={canWrite} />
         ))}
@@ -107,9 +112,9 @@ function LabourBillBody({
       {month.csds.length === 0 && (
         <div className="flex flex-col items-center gap-2 rounded-xl border bg-card px-4 py-16 text-center">
           <HardHat className="size-7 text-muted-foreground" aria-hidden />
-          <p className="text-sm font-medium">Nothing on this month&rsquo;s labour bill yet</p>
+          <p className="text-sm font-medium">{t('accounts.pages.labourBill.nothingYet')}</p>
           <p className="max-w-md text-xs text-muted-foreground">
-            Scan the challans onto{' '}
+            {t('accounts.pages.labourBill.scanOnto')}{' '}
             <Link to={`/labour-bills/${month.id}`} className="font-medium text-primary hover:underline">
               {month.billNumber}
             </Link>
@@ -118,7 +123,10 @@ function LabourBillBody({
         </div>
       )}
 
-      <Panel title="Payments received" description="Every Walton payment recorded against a CSD of this month.">
+      <Panel
+        title={t('accounts.pages.labourBill.paymentsReceived')}
+        description={t('accounts.pages.labourBill.paymentsHint')}
+      >
         <EntryList
           records={receipts}
           isLoading={false}

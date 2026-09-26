@@ -1,4 +1,5 @@
 import { gatePassProductStatusMeta } from '@/features/trip-do/lib/trip-do-meta'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import { sameFilterValue } from '@/lib/column-filters'
 import type { ColumnFilterValue } from '@/lib/column-filters'
 import type { GatePassColumnFilters, GatePassColumnId, GatePassListRecord } from '../types'
@@ -12,35 +13,44 @@ import { formatTripDate, gatePassStatusMeta } from './gate-pass-meta'
 
 export interface GatePassSheetColumn {
   id: GatePassColumnId
-  label: string
+  labelKey: TranslationKey
   className?: string
 }
 
+/**
+ * The sheet's columns, as keys rather than words: this is the screen, and the
+ * `.xlsx` the office sends is built server-side with the headings it has
+ * always had.
+ */
 export const GATE_PASS_COLUMNS: GatePassSheetColumn[] = [
-  { id: 'tripDate', label: 'Trip Date' },
-  { id: 'delivery', label: 'Delivery Status' },
-  { id: 'csd', label: 'CSD' },
-  { id: 'unit', label: 'Unit' },
-  { id: 'vehicle', label: 'Vehicle' },
-  { id: 'customer', label: 'Customer' },
-  { id: 'product', label: 'Product' },
-  { id: 'model', label: 'Model' },
-  { id: 'qty', label: 'QTY', className: 'text-right' },
-  { id: 'status', label: 'Status' },
+  { id: 'tripDate', labelKey: 'gatePass.columns.tripDate' },
+  { id: 'delivery', labelKey: 'gatePass.columns.delivery' },
+  { id: 'csd', labelKey: 'gatePass.columns.csd' },
+  { id: 'unit', labelKey: 'gatePass.columns.unit' },
+  { id: 'vehicle', labelKey: 'gatePass.columns.vehicle' },
+  { id: 'customer', labelKey: 'gatePass.columns.customer' },
+  { id: 'product', labelKey: 'gatePass.columns.product' },
+  { id: 'model', labelKey: 'gatePass.columns.model' },
+  { id: 'qty', labelKey: 'gatePass.columns.qty', className: 'text-right' },
+  { id: 'status', labelKey: 'gatePass.columns.status' },
 ]
 
 /** A dropdown value as the cell in its column draws it. */
-export function gatePassColumnLabel(column: GatePassColumnId, value: ColumnFilterValue): string {
+export function gatePassColumnLabel(
+  column: GatePassColumnId,
+  value: ColumnFilterValue,
+  t: Translator,
+): string {
   if (value === null || value === '') {
-    return '(Blanks)'
+    return t('common.states.blanks')
   }
   switch (column) {
     case 'tripDate':
       return formatTripDate(String(value))
     case 'delivery':
-      return gatePassProductStatusMeta(String(value)).label
+      return gatePassProductStatusMeta(String(value), t).label
     case 'status':
-      return gatePassStatusMeta(String(value)).label
+      return gatePassStatusMeta(String(value), t).label
     default:
       return String(value)
   }

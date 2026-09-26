@@ -1,6 +1,7 @@
 import { TriangleAlert } from 'lucide-react'
 import { formatTaka } from '@/lib/format'
 import type { BillRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 /**
  * The bill's figures in one strip: the amount first and largest, then the
@@ -8,17 +9,19 @@ import type { BillRecord } from '../types'
  * and a total that silently omits rows is a figure somebody would invoice on.
  */
 export function BillStats({ bill }: { bill: BillRecord }) {
+  const t = useT()
+
   const counts: [string, number][] = [
-    ['Trip DO', bill.tripDoCount],
-    ['Rows', bill.lineCount],
-    ['Pieces', bill.totalQty],
-    ['Challans', bill.challanCount],
+    [t('bill.stats.tripDo'), bill.tripDoCount],
+    [t('bill.stats.rows'), bill.lineCount],
+    [t('bill.stats.pieces'), bill.totalQty],
+    [t('bill.stats.challans'), bill.challanCount],
   ]
 
   return (
     <div className="relative grid border-t bg-card/60 sm:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))]">
       <div className="border-b px-5 py-4 sm:border-r sm:border-b-0 sm:px-6">
-        <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Bill amount</p>
+        <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{t('bill.billAmount')}</p>
         <p className="mt-0.5 text-3xl font-semibold tracking-tight tabular-nums">{formatTaka(bill.totalAmount)}</p>
         {bill.unpricedLines > 0 && (
           <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-tone-amber">

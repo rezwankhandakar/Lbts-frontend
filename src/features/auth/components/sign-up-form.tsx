@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { signUpSchema } from '../auth-schemas'
 import type { SignUpValues } from '../auth-schemas'
 import { isDismissedPopup, toAuthMessage } from '../firebase-errors'
@@ -20,6 +22,7 @@ import { PasswordInput } from './password-input'
 import { PasswordStrength } from './password-strength'
 
 export function SignUpForm() {
+  const t = useT()
   const navigate = useNavigate()
   const { signUpWithEmail, signInWithGoogle } = useAuthActions()
   const [googleBusy, setGoogleBusy] = useState(false)
@@ -46,12 +49,12 @@ export function SignUpForm() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       await signUpWithEmail(values.name, values.email, values.password)
-      toast.success('Account created. Welcome to LBTS!')
+      toast.success(t('auth.signUp.created'))
       navigate('/', { replace: true })
     } catch (error) {
       const message = toAuthMessage(error)
       setError('root', { message })
-      toast.error(message)
+      toast.error(t(message as TranslationKey))
     }
   })
 
@@ -59,11 +62,11 @@ export function SignUpForm() {
     setGoogleBusy(true)
     try {
       await signInWithGoogle()
-      toast.success('Account ready. Welcome to LBTS!')
+      toast.success(t('auth.signUp.ready'))
       navigate('/', { replace: true })
     } catch (error) {
       if (!isDismissedPopup(error)) {
-        toast.error(toAuthMessage(error))
+        toast.error(t(toAuthMessage(error) as TranslationKey))
       }
     } finally {
       setGoogleBusy(false)
@@ -74,29 +77,29 @@ export function SignUpForm() {
 
   return (
     <div className="space-y-5">
-      <GoogleButton onClick={onGoogle} disabled={busy} label="Sign up with Google" />
-      <AuthDivider label="or sign up with email" />
+      <GoogleButton onClick={onGoogle} disabled={busy} label={t('auth.signUp.googleButton')} />
+      <AuthDivider label={t('auth.signUp.divider')} />
 
       <form onSubmit={onSubmit} noValidate className="space-y-4">
         <AuthError message={errors.root?.message} />
 
-        <FormField id="name" label="Full name" error={errors.name?.message}>
+        <FormField id="name" label={t('auth.signUp.nameLabel')} error={errors.name?.message}>
           <Input
             id="name"
             autoComplete="name"
-            placeholder="Your full name"
+            placeholder={t('auth.signUp.namePlaceholder')}
             className="h-10"
             aria-invalid={Boolean(errors.name)}
             {...register('name')}
           />
         </FormField>
 
-        <FormField id="email" label="Work email" error={errors.email?.message}>
+        <FormField id="email" label={t('auth.signUp.emailLabel')} error={errors.email?.message}>
           <Input
             id="email"
             type="email"
             autoComplete="email"
-            placeholder="you@company.com"
+            placeholder={t('auth.signIn.emailPlaceholder')}
             className="h-10"
             aria-invalid={Boolean(errors.email)}
             {...register('email')}
@@ -104,11 +107,11 @@ export function SignUpForm() {
         </FormField>
 
         <div className="space-y-2">
-          <FormField id="password" label="Password" error={errors.password?.message}>
+          <FormField id="password" label={t('auth.signUp.passwordLabel')} error={errors.password?.message}>
             <PasswordInput
               id="password"
               autoComplete="new-password"
-              placeholder="At least 8 characters"
+              placeholder={t('auth.signUp.passwordPlaceholder')}
               aria-invalid={Boolean(errors.password)}
               {...register('password')}
             />
@@ -118,13 +121,13 @@ export function SignUpForm() {
 
         <FormField
           id="confirmPassword"
-          label="Confirm password"
+          label={t('auth.signUp.confirmLabel')}
           error={errors.confirmPassword?.message}
         >
           <PasswordInput
             id="confirmPassword"
             autoComplete="new-password"
-            placeholder="Re-enter your password"
+            placeholder={t('auth.signUp.confirmPlaceholder')}
             aria-invalid={Boolean(errors.confirmPassword)}
             {...register('confirmPassword')}
           />
@@ -149,8 +152,12 @@ export function SignUpForm() {
               htmlFor="acceptTerms"
               className="text-[13px] leading-snug font-normal text-muted-foreground"
             >
-              I agree to the <span className="font-medium text-foreground">Terms of Service</span>{' '}
-              and <span className="font-medium text-foreground">Privacy Policy</span>
+              {t('auth.signUp.termsBefore')}{' '}
+              <span className="font-medium text-foreground">
+                {t('auth.signUp.termsOfService')}
+              </span>{' '}
+              {t('auth.signUp.termsAnd')}{' '}
+              <span className="font-medium text-foreground">{t('auth.signUp.privacyPolicy')}</span>
             </Label>
           </div>
           {errors.acceptTerms?.message && (
@@ -166,15 +173,15 @@ export function SignUpForm() {
           disabled={busy}
         >
           {isSubmitting && <Loader2 className="size-4 animate-spin" aria-hidden />}
-          {isSubmitting ? 'Creating account…' : 'Create account'}
+          {isSubmitting ? t('auth.signUp.submitting') : t('auth.signUp.submit')}
         </Button>
 
         <div className="flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2 text-xs leading-snug text-muted-foreground">
           <Info className="mt-px size-3.5 shrink-0" aria-hidden />
           <span>
-            New accounts are created with the{' '}
-            <span className="font-medium text-foreground">User</span> role. An administrator can
-            change this later.
+            {t('auth.signUp.roleNoticeBefore')}{' '}
+            <span className="font-medium text-foreground">{t('auth.signUp.roleNoticeRole')}</span>{' '}
+            {t('auth.signUp.roleNoticeAfter')}
           </span>
         </div>
       </form>

@@ -1,6 +1,7 @@
 import { Building2, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { formatRelative, formatTaka } from '@/lib/format'
+import { formatNumber, formatRelative, formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { labourBillStatusMeta, shortMonth } from '../lib/labour-bill-meta'
 import type { LabourBillRecord } from '../types'
@@ -11,11 +12,13 @@ import { LabourBillStatusBadge } from './labour-bill-badges'
  * and the three counts somebody checks a bill by before opening it.
  */
 export function LabourBillCard({ bill }: { bill: LabourBillRecord }) {
-  const status = labourBillStatusMeta(bill.status)
+  const t = useT()
+
+  const status = labourBillStatusMeta(bill.status, t)
   const counts: [string, number][] = [
-    ['Challans', bill.challanCount],
-    ['Rows', bill.lineCount],
-    ['Pcs', bill.totalQty],
+    [t('labourBill.stats.challans'), bill.challanCount],
+    [t('labourBill.stats.rows'), bill.lineCount],
+    [t('labourBill.stats.pcs'), bill.totalQty],
   ]
 
   return (
@@ -52,13 +55,16 @@ export function LabourBillCard({ bill }: { bill: LabourBillRecord }) {
 
       <div className="px-4">
         <span className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-          Labour bill total
+          {t('labourBill.cardTotal')}
         </span>
         <span className="block text-2xl font-semibold tracking-tight tabular-nums">
           {formatTaka(bill.totalAmount)}
         </span>
         <span className="block text-[11.5px] text-muted-foreground">
-          {formatTaka(bill.labourTotal)} labour · {formatTaka(bill.floorTotal)} floor
+          {t('labourBill.stats.labourAndFloor', {
+            labour: formatTaka(bill.labourTotal),
+            floor: formatTaka(bill.floorTotal),
+          })}
         </span>
       </div>
 
@@ -68,19 +74,24 @@ export function LabourBillCard({ bill }: { bill: LabourBillRecord }) {
             <dt className="text-[10.5px] font-medium tracking-wide text-muted-foreground uppercase">
               {label}
             </dt>
-            <dd className="text-sm font-semibold tabular-nums">{value.toLocaleString()}</dd>
+            <dd className="text-sm font-semibold tabular-nums">{formatNumber(value)}</dd>
           </div>
         ))}
       </dl>
 
       <div className="flex items-center justify-between gap-2 px-4 py-2.5 text-[11.5px] text-muted-foreground">
         <span className="truncate">
-          {bill.createdBy ? `${bill.createdBy.name} · ` : ''}updated {formatRelative(bill.updatedAt)}
+          {bill.createdBy
+            ? t('labourBill.stats.updatedBy', {
+                name: bill.createdBy.name,
+                when: formatRelative(bill.updatedAt),
+              })
+            : t('labourBill.stats.updated', { when: formatRelative(bill.updatedAt) })}
         </span>
         {bill.unpricedLines > 0 && (
           <span className="inline-flex shrink-0 items-center gap-1 font-medium text-tone-amber">
             <TriangleAlert className="size-3" aria-hidden />
-            {bill.unpricedLines} blank
+            {t('labourBill.stats.blank', { n: formatNumber(bill.unpricedLines) })}
           </span>
         )}
       </div>

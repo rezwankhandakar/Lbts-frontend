@@ -17,6 +17,7 @@ import { FormField } from '@/features/auth/components/form-field'
 import type { UserProfile } from '@/stores/use-auth-store'
 import { editProfileSchema } from '../profile-schemas'
 import type { EditProfileValues } from '../profile-schemas'
+import { useT } from '@/lib/i18n'
 import { useUpdateProfile } from '../use-profile'
 import { AvatarUploader } from './avatar-uploader'
 
@@ -36,6 +37,7 @@ interface EditProfileDialogProps {
  * disabled input still suggests a value that could be sent.
  */
 export function EditProfileDialog({ profile, open, onOpenChange }: EditProfileDialogProps) {
+  const t = useT()
   const update = useUpdateProfile()
 
   const {
@@ -88,10 +90,8 @@ export function EditProfileDialog({ profile, open, onOpenChange }: EditProfileDi
     >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
-          <DialogDescription>
-            Update how you appear across LBTS. Your role and account status are not affected.
-          </DialogDescription>
+          <DialogTitle>{t('profile.edit.title')}</DialogTitle>
+          <DialogDescription>{t('profile.edit.description')}</DialogDescription>
         </DialogHeader>
 
         <div className="rounded-xl border bg-muted/30 p-3">
@@ -101,11 +101,11 @@ export function EditProfileDialog({ profile, open, onOpenChange }: EditProfileDi
         <form onSubmit={onSubmit} noValidate className="space-y-4">
           <AuthError message={errors.root?.message} />
 
-          <FormField id="profile-name" label="Full name" error={errors.name?.message}>
+          <FormField id="profile-name" label={t('profile.personal.fullName')} error={errors.name?.message}>
             <Input
               id="profile-name"
               autoComplete="name"
-              placeholder="Your full name"
+              placeholder={t('profile.edit.namePlaceholder')}
               className="h-10"
               disabled={busy}
               aria-invalid={Boolean(errors.name)}
@@ -115,15 +115,15 @@ export function EditProfileDialog({ profile, open, onOpenChange }: EditProfileDi
 
           <FormField
             id="profile-phone"
-            label="Phone number"
+            label={t('profile.personal.phoneNumber')}
             error={errors.phone?.message}
-            hint="Optional. Leave empty to remove the number on file."
+            hint={t('profile.edit.phoneHint')}
           >
             <Input
               id="profile-phone"
               type="tel"
               autoComplete="tel"
-              placeholder="+880 1712 345678"
+              placeholder={t('profile.edit.phonePlaceholder')}
               className="h-10"
               disabled={busy}
               aria-invalid={Boolean(errors.phone)}
@@ -134,9 +134,8 @@ export function EditProfileDialog({ profile, open, onOpenChange }: EditProfileDi
           <div className="flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2 text-xs leading-snug text-muted-foreground">
             <Lock className="mt-px size-3.5 shrink-0" aria-hidden />
             <span>
-              <span className="font-medium text-foreground">{profile.email}</span> is managed by the
-              sign-in provider, and your role is set by an administrator. Neither can be changed
-              here.
+              <span className="font-medium text-foreground">{profile.email}</span>{' '}
+              {t('profile.edit.lockedNoticeBefore')}
             </span>
           </div>
 
@@ -147,11 +146,11 @@ export function EditProfileDialog({ profile, open, onOpenChange }: EditProfileDi
               disabled={busy}
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" disabled={busy || !isDirty}>
               {busy && <Loader2 className="size-4 animate-spin" aria-hidden />}
-              {busy ? 'Saving…' : 'Save changes'}
+              {busy ? t('profile.edit.saving') : t('common.actions.saveChanges')}
             </Button>
           </DialogFooter>
         </form>

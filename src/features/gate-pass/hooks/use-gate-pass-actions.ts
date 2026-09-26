@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
 import { fetchGatePassDocument } from '../api/gate-pass-api'
+import { t } from '@/lib/i18n'
 import { saveBlob } from '@/lib/save-blob'
 import type { ReviewDecision } from '../components/review-dialog'
 import type { GatePassRecord } from '../types'
@@ -112,14 +113,14 @@ export function useGatePassActions({
       return
     }
 
-    const toastId = toast.loading('Preparing the document…')
+    const toastId = toast.loading(t('gatePass.toasts.preparing'))
 
     try {
       const blob = await fetchGatePassDocument(record.id)
       const extension = record.document.originalName.split('.').pop()?.toLowerCase() ?? 'pdf'
 
       saveBlob(blob, `${record.gatePassId}.${extension}`)
-      toast.success('Document downloaded', { id: toastId })
+      toast.success(t('gatePass.toasts.documentDownloaded'), { id: toastId })
     } catch (error) {
       toast.dismiss(toastId)
       reportGatePassError(error as ApiError)

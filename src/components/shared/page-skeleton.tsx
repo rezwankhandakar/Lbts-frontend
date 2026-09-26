@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 
 /**
  * Suspense fallback for lazily loaded routes. Renders inside <main>, so the
@@ -6,9 +7,11 @@ import { Skeleton } from '@/components/ui/skeleton'
  * mirrors PageHeader + EmptyState, so the swap does not shift the layout.
  */
 export function PageSkeleton() {
+  const t = useT()
+
   return (
     <div className="mx-auto w-full max-w-5xl" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading page</span>
+      <span className="sr-only">{t('shell.loadingPage')}</span>
       <div className="mb-6 space-y-2.5">
         <Skeleton className="h-7 w-44" />
         <Skeleton className="h-4 w-full max-w-md" />

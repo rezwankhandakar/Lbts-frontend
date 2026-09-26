@@ -1,6 +1,8 @@
 import { CheckCheck, ExternalLink, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { BatchItem } from '../hooks/use-scan-batch'
 
@@ -18,12 +20,14 @@ interface BatchCompleteProps {
  * to catch a sheet that was skipped by accident.
  */
 export function BatchComplete({ items, onScanAnother }: BatchCompleteProps) {
+  const t = useT()
+
   const filed = items.filter((item) => item.gatePassId !== null)
   const skipped = items.filter((item) => item.status === 'skipped')
 
   return (
     <section
-      aria-label="Batch complete"
+      aria-label={t('gatePass.batch.ariaLabel')}
       className="overflow-hidden rounded-xl border bg-card shadow-sm"
     >
       <header className="flex items-start gap-3 border-b bg-muted/30 px-4 py-3.5 sm:px-5">
@@ -36,12 +40,18 @@ export function BatchComplete({ items, onScanAnother }: BatchCompleteProps) {
 
         <div className="min-w-0 flex-1">
           <h2 className="text-[15px] font-semibold tracking-tight">
-            {filed.length} of {items.length} sheets filed
+            {t('gatePass.batch.filedOf', {
+              filed: formatNumber(filed.length),
+              total: formatNumber(items.length),
+            })}
           </h2>
           <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
             {skipped.length > 0
-              ? `${skipped.length} ${skipped.length === 1 ? 'sheet was' : 'sheets were'} skipped and not recorded.`
-              : 'Every scanned sheet is now a gate pass.'}
+              ? t('gatePass.batch.skippedNote', {
+                  count: skipped.length,
+                  n: formatNumber(skipped.length),
+                })
+              : t('gatePass.batch.allFiled')}
           </p>
         </div>
       </header>
@@ -51,7 +61,7 @@ export function BatchComplete({ items, onScanAnother }: BatchCompleteProps) {
           <li key={item.id} className="flex items-center justify-between gap-3 px-4 py-2.5 sm:px-5">
             <div className="flex min-w-0 items-center gap-3">
               <span className="w-14 shrink-0 text-xs text-muted-foreground">
-                Sheet {index + 1}
+                {t('gatePass.batch.sheetN', { n: formatNumber(index + 1) })}
               </span>
 
               <span
@@ -61,9 +71,13 @@ export function BatchComplete({ items, onScanAnother }: BatchCompleteProps) {
                 )}
               >
                 {item.gatePassId ??
-                  (item.status === 'skipped' ? 'Skipped' : 'Not entered')}
+                  (item.status === 'skipped'
+                    ? t('gatePass.batch.skipped')
+                    : t('gatePass.batch.notEntered'))}
                 {item.status === 'draft' && (
-                  <span className="ml-1.5 text-xs font-normal text-tone-amber">draft</span>
+                  <span className="ml-1.5 text-xs font-normal text-tone-amber">
+                    {t('gatePass.batch.draft')}
+                  </span>
                 )}
               </span>
             </div>
@@ -75,7 +89,7 @@ export function BatchComplete({ items, onScanAnother }: BatchCompleteProps) {
                 className="shrink-0"
                 render={<Link to={`/gate-pass/${item.recordId}`} />}
               >
-                Open
+                {t('gatePass.batch.open')}
                 <ExternalLink data-icon="inline-end" aria-hidden />
               </Button>
             )}
@@ -85,12 +99,12 @@ export function BatchComplete({ items, onScanAnother }: BatchCompleteProps) {
 
       <footer className="flex flex-col gap-2 border-t bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <Button variant="outline" size="sm" render={<Link to="/gate-pass" />}>
-          View all gate passes
+          {t('gatePass.batch.viewAll')}
         </Button>
 
         <Button size="sm" onClick={onScanAnother}>
           <Layers data-icon="inline-start" aria-hidden />
-          Scan the next stack
+          {t('gatePass.batch.scanNext')}
         </Button>
       </footer>
     </section>

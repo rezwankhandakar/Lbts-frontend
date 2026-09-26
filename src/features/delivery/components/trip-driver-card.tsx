@@ -7,6 +7,7 @@ import {
 import { DriverAvatar } from '@/features/vendor/components/vendor-identity'
 import type { TripDriverChoice } from '../hooks/use-trip-workspace'
 import type { TripDriverRef } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface TripDriverCardProps {
   driver: TripDriverChoice | null
@@ -36,6 +37,8 @@ export function TripDriverCard({
   canAdd,
   disabled,
 }: TripDriverCardProps) {
+  const t = useT()
+
   const isOverride = driver !== null && assigned !== null && driver.id !== assigned.id
   const canRestore = isOverride && assigned?.blocker === null
 
@@ -43,10 +46,12 @@ export function TripDriverCard({
     <div className="flex h-full flex-col rounded-xl border bg-card p-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[11px] font-semibold tracking-wide text-tone-indigo uppercase">
-          {isOverride ? 'Driver for this trip' : 'Driver'}
+          {isOverride ? t('delivery.driver.forThisTrip') : t('delivery.driver.heading')}
         </p>
         {driver && !isOverride && assigned && (
-          <span className="text-[11px] text-muted-foreground">Assigned to this vehicle</span>
+          <span className="text-[11px] text-muted-foreground">
+            {t('delivery.driver.assignedToVehicle')}
+          </span>
         )}
       </div>
 
@@ -66,7 +71,7 @@ export function TripDriverCard({
       {driver && (
         <dl className="mt-3 grid gap-1.5 text-xs">
           <div className="flex items-center justify-between gap-2">
-            <dt className="text-muted-foreground">Mobile</dt>
+            <dt className="text-muted-foreground">{t('delivery.driver.mobile')}</dt>
             <dd>
               <a
                 href={`tel:${driver.mobile}`}
@@ -78,9 +83,9 @@ export function TripDriverCard({
             </dd>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <dt className="text-muted-foreground">Licence</dt>
+            <dt className="text-muted-foreground">{t('delivery.driver.licence')}</dt>
             <dd className="flex min-w-0 items-center gap-1.5">
-              <span className="truncate font-mono">{driver.licenseNumber || 'Not recorded'}</span>
+              <span className="truncate font-mono">{driver.licenseNumber || t('delivery.driver.notRecorded')}</span>
               {driver.licenceStatus && <DocumentStatusBadge value={driver.licenceStatus} />}
             </dd>
           </div>
@@ -107,17 +112,17 @@ export function TripDriverCard({
       <div className="mt-auto flex flex-wrap gap-2 pt-3">
         <Button type="button" variant="outline" size="sm" onClick={onChange} disabled={disabled}>
           <ArrowLeftRight data-icon="inline-start" aria-hidden />
-          {driver ? 'Change driver' : 'Choose driver'}
+          {driver ? t('delivery.driver.change') : t('delivery.driver.choose')}
         </Button>
         {canAdd && (
           <Button type="button" variant="ghost" size="sm" onClick={onAdd} disabled={disabled}>
             <UserPlus data-icon="inline-start" aria-hidden />
-            Add new driver
+            {t('delivery.driver.addNew')}
           </Button>
         )}
         {canRestore && (
           <Button type="button" variant="link" size="sm" onClick={onUseAssigned} disabled={disabled}>
-            Use {assigned?.name}
+            {t('delivery.driver.useAssigned', { name: assigned?.name ?? '' })}
           </Button>
         )}
       </div>
@@ -126,18 +131,20 @@ export function TripDriverCard({
 }
 
 function EmptyDriver({ assigned }: { assigned: TripDriverRef | null }) {
+  const t = useT()
+
   return (
     <div className="mt-2 flex items-start gap-3 rounded-lg border border-dashed p-3">
       <UserRoundX className="mt-0.5 size-5 shrink-0 text-tone-amber" aria-hidden />
       <p className="text-xs leading-snug text-muted-foreground">
         {assigned ? (
-          <>
-            <span className="font-medium text-foreground">{assigned.name}</span> is assigned to this
-            vehicle but cannot drive — {assigned.blocker?.replace(/^The driver is /, 'they are ')}{' '}
-            Choose another driver for this trip.
-          </>
+          t('delivery.driver.assignedButBlocked', {
+            name: assigned.name,
+            reason: assigned.blocker ?? '',
+            advice: t('delivery.driver.chooseAnother'),
+          })
         ) : (
-          'This vehicle has no assigned driver. Choose who drives this trip, or add a new driver.'
+          t('delivery.driver.noneAssigned')
         )}
       </p>
     </div>

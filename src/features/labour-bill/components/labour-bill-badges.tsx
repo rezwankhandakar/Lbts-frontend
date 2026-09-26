@@ -1,4 +1,5 @@
 import { CircleDashed, Link2Off, TriangleAlert } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { labourBillStatusMeta } from '../lib/labour-bill-meta'
 import type { LabourLineDrift } from '../types'
@@ -8,7 +9,9 @@ const PILL =
 
 /** Draft or Finalized. */
 export function LabourBillStatusBadge({ status, className }: { status: string; className?: string }) {
-  const meta = labourBillStatusMeta(status)
+  const t = useT()
+
+  const meta = labourBillStatusMeta(status, t)
   return (
     <span className={cn(PILL, meta.badge, className)} title={meta.description}>
       <span className={cn('size-1.5 shrink-0 rounded-full', meta.dot)} aria-hidden />
@@ -23,18 +26,20 @@ export function LabourBillStatusBadge({ status, className }: { status: string; c
  * settled row would be a mark nobody reads.
  */
 export function LabourDriftMark({ drift }: { drift: LabourLineDrift }) {
+  const t = useT()
+
   if (drift === 'none') {
     return null
   }
   return drift === 'changed' ? (
     <TriangleAlert
       className="size-3.5 shrink-0 text-tone-amber"
-      aria-label="Changed on the Trip DO sheet since it was scanned in — Refresh to re-read it"
+      aria-label={t('labourBill.details.changedAria')}
     />
   ) : (
     <Link2Off
       className="size-3.5 shrink-0 text-tone-rose"
-      aria-label="No longer on the Trip DO sheet — Refresh takes it off"
+      aria-label={t('labourBill.details.goneAria')}
     />
   )
 }
@@ -45,13 +50,15 @@ export function LabourDriftMark({ drift }: { drift: LabourLineDrift }) {
  * reads as a transcription somebody forgot rather than as work still to do.
  */
 export function NoTripDoChip() {
+  const t = useT()
+
   return (
     <span
       className="inline-flex items-center gap-1 rounded-md border border-tone-amber/25 bg-tone-amber/10 px-1.5 py-px text-[10.5px] font-medium text-tone-amber"
-      title="This challan line has no Trip DO yet. Link its gate pass on the Trip DO sheet, then Refresh."
+      title={t('labourBill.fields.noTripDo')}
     >
       <CircleDashed className="size-3" aria-hidden />
-      No Trip DO
+      {t('labourBill.noTripDoChip')}
     </span>
   )
 }

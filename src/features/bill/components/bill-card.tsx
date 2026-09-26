@@ -1,6 +1,7 @@
 import { TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatRelative, formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { billStatusMeta, shortMonth } from '../lib/bill-meta'
 import type { BillRecord } from '../types'
@@ -11,7 +12,9 @@ import { BillStatusBadge } from './bill-badges'
  * three counts somebody checks a bill by before opening it.
  */
 export function BillCard({ bill }: { bill: BillRecord }) {
-  const status = billStatusMeta(bill.status)
+  const t = useT()
+
+  const status = billStatusMeta(bill.status, t)
   const counts: [string, number][] = [
     ['Trip DO', bill.tripDoCount],
     ['Rows', bill.lineCount],
@@ -54,7 +57,9 @@ export function BillCard({ bill }: { bill: BillRecord }) {
       </div>
 
       <div className="px-4">
-        <span className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Bill amount</span>
+        <span className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+          {t('bill.billAmount')}
+        </span>
         <span className="block text-2xl font-semibold tracking-tight tabular-nums">
           {formatTaka(bill.totalAmount)}
         </span>

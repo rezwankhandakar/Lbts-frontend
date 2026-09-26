@@ -10,6 +10,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { MAX_SPLIT_PARTS, evenParts, splitProblem } from '../lib/split-parts'
 import type { TripDoRowRecord } from '../types'
@@ -58,6 +60,8 @@ function SplitBody({
   onCancel: () => void
   onConfirm: (parts: number[]) => void
 }) {
+  const t = useT()
+
   const [parts, setParts] = useState(() => evenParts(row.qty, 2))
   const problem = splitProblem(parts, row.qty)
   const presets = [2, 3, 4].filter((count) => count <= row.qty)
@@ -68,18 +72,18 @@ function SplitBody({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Split quantity</DialogTitle>
+        <DialogTitle>{t('tripDo.split.title')}</DialogTitle>
         <DialogDescription>
           {row.productName} · <span className="font-mono">{row.model}</span> · {row.qty} pcs on{' '}
           {row.challanNumber}.{' '}
           {row.link
             ? `Every part keeps Trip DO ${row.link.tripDo}; change a part's Trip DO afterwards.`
-            : 'Each part can then be given its own Trip DO.'}
+            : t('tripDo.split.description')}
         </DialogDescription>
       </DialogHeader>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-xs text-muted-foreground">Evenly into</span>
+        <span className="text-xs text-muted-foreground">{t('tripDo.split.evenlyInto')}</span>
         {presets.map((count) => (
           <Button
             key={count}
@@ -141,7 +145,7 @@ function SplitBody({
           disabled={parts.length >= Math.min(MAX_SPLIT_PARTS, row.qty)}
         >
           <Plus data-icon="inline-start" aria-hidden />
-          Add part
+          {t('tripDo.split.addPart')}
         </Button>
         <p
           className={cn(
@@ -151,16 +155,20 @@ function SplitBody({
           aria-live="polite"
         >
           {problem ? <TriangleAlert className="size-3.5" aria-hidden /> : <CircleCheck className="size-3.5" aria-hidden />}
-          {problem ?? `${parts.join(' + ')} = ${row.qty}`}
+          {problem
+            ? t(problem.key as TranslationKey, problem.values)
+            : `${parts.join(' + ')} = ${row.qty}`}
         </p>
       </div>
 
       <DialogFooter>
         <Button variant="outline" onClick={onCancel} disabled={isPending}>
-          Cancel
+          {t('common.actions.cancel')}
         </Button>
         <Button onClick={() => onConfirm(parts)} disabled={Boolean(problem) || isPending}>
-          {isPending ? 'Splitting…' : `Split into ${parts.length}`}
+          {isPending
+            ? t('tripDo.split.splitting')
+            : t('tripDo.split.splitInto', { parts: parts.length })}
         </Button>
       </DialogFooter>
     </>

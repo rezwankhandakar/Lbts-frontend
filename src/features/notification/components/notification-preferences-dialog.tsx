@@ -15,6 +15,7 @@ import {
 import { NOTIFICATION_CATEGORIES } from '../types'
 import type { NotificationCategory } from '../types'
 import { NotificationPreferenceRow } from './notification-preference-row'
+import { useT } from '@/lib/i18n'
 
 interface NotificationPreferencesDialogProps {
   open: boolean
@@ -45,6 +46,8 @@ export function NotificationPreferencesDialog({
   open,
   onOpenChange,
 }: NotificationPreferencesDialogProps) {
+  const t = useT()
+
   const preferences = useNotificationPreferences()
   const save = useSaveNotificationPreferences()
 
@@ -97,7 +100,7 @@ export function NotificationPreferencesDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Notification settings</DialogTitle>
+          <DialogTitle>{t('notification.preferences.title')}</DialogTitle>
           <DialogDescription>
             Choose what reaches the bell. This changes what arrives from now on —
             anything already in your list stays where it is.
@@ -114,9 +117,11 @@ export function NotificationPreferencesDialog({
 
         {preferences.isError && (
           <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
-            <p className="text-[13px] font-medium text-destructive">Could not load your settings</p>
+            <p className="text-[13px] font-medium text-destructive">
+              {t('notification.preferences.loadFailed')}
+            </p>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-              {preferences.error?.message ?? 'Something went wrong.'}
+              {preferences.error?.message ?? t('errors.generic')}
             </p>
           </div>
         )}
@@ -142,14 +147,16 @@ export function NotificationPreferencesDialog({
 
         <DialogFooter>
           <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
           <Button
             size="sm"
             disabled={!dirty || save.isPending}
             onClick={() => save.mutate(draft, { onSuccess: () => onOpenChange(false) })}
           >
-            {save.isPending ? 'Saving…' : 'Save settings'}
+            {save.isPending
+              ? t('notification.preferences.saving')
+              : t('notification.preferences.save')}
           </Button>
         </DialogFooter>
       </DialogContent>

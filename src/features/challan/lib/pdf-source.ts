@@ -1,6 +1,8 @@
 import * as pdfjs from 'pdfjs-dist'
 import type { PDFDocumentProxy, RenderTask, TextLayer } from 'pdfjs-dist'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import { formatNumber } from '@/lib/format'
+import { t } from '@/lib/i18n'
 import { MAX_SOURCE_FILE_BYTES, MAX_SOURCE_PAGES } from '../types'
 
 /**
@@ -80,20 +82,20 @@ function hasPdfSignature(bytes: Uint8Array): boolean {
  */
 export async function openSourcePdf(file: File): Promise<SourcePdf> {
   if (file.size === 0) {
-    throw new SourcePdfError('That file is empty. Choose the PDF again.')
+    throw new SourcePdfError(t('challan.source.empty'))
   }
 
   if (file.size > MAX_SOURCE_FILE_BYTES) {
     const limit = Math.round(MAX_SOURCE_FILE_BYTES / (1024 * 1024))
     throw new SourcePdfError(
-      `That PDF is ${formatBytes(file.size)}. This workspace opens files up to ${limit} MB.`,
+      t('challan.source.tooLarge', { size: formatBytes(file.size), limit: formatNumber(limit) }),
     )
   }
 
   const bytes = new Uint8Array(await file.arrayBuffer())
 
   if (!hasPdfSignature(bytes)) {
-    throw new SourcePdfError('That file is not a PDF. Choose the challan PDF from WhatsApp.')
+    throw new SourcePdfError(t('challan.source.notPdf'))
   }
 
   let doc: PDFDocumentProxy
@@ -107,17 +109,20 @@ export async function openSourcePdf(file: File): Promise<SourcePdf> {
 
     if (message.toLowerCase().includes('password')) {
       throw new SourcePdfError(
-        'That PDF is password protected. Remove the protection and open it again.',
+        t('challan.source.passwordProtected'),
       )
     }
 
-    throw new SourcePdfError('That PDF could not be opened. It may be damaged.')
+    throw new SourcePdfError(t('challan.source.damaged'))
   }
 
   if (doc.numPages > MAX_SOURCE_PAGES) {
     await doc.loadingTask.destroy()
     throw new SourcePdfError(
-      `That PDF has ${doc.numPages} pages. This workspace handles up to ${MAX_SOURCE_PAGES}.`,
+      t('challan.source.tooManyPages', {
+        pages: formatNumber(doc.numPages),
+        max: formatNumber(MAX_SOURCE_PAGES),
+      }),
     )
   }
 
@@ -353,7 +358,11 @@ export async function extractPageRange(
 
   if (startPage < 1 || endPage > total || endPage < startPage) {
     throw new SourcePdfError(
-      `Pages ${startPage}–${endPage} are not inside this PDF, which has ${total}.`,
+      t('challan.source.rangeOutside', {
+        from: formatNumber(startPage),
+        to: formatNumber(endPage),
+        total: formatNumber(total),
+      }),
     )
   }
 

@@ -2,6 +2,7 @@ import { Plus, RefreshCcw, Route, SearchX, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { TripActions } from '../hooks/use-trip-actions'
 import type { TripRecord } from '../types'
@@ -38,6 +39,8 @@ export function TripDirectory({
   onRetry,
   onReset,
 }: TripDirectoryProps) {
+  const t = useT()
+
   if (isLoading) {
     return (
       <div className="space-y-2 p-4" aria-busy="true">
@@ -52,11 +55,11 @@ export function TripDirectory({
     return (
       <div className="flex flex-col items-center px-6 py-14 text-center">
         <TriangleAlert className="size-6 text-destructive" aria-hidden />
-        <p className="mt-3 text-sm font-medium">The trips could not be loaded</p>
+        <p className="mt-3 text-sm font-medium">{t('delivery.list.loadFailed')}</p>
         <p className="mt-1 max-w-sm text-xs text-muted-foreground">{errorMessage}</p>
         <Button variant="outline" size="sm" className="mt-4" onClick={onRetry}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          Try again
+          {t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -69,22 +72,22 @@ export function TripDirectory({
           {isFiltered ? <SearchX className="size-5" aria-hidden /> : <Route className="size-5" aria-hidden />}
         </span>
         <p className="mt-3 text-sm font-semibold">
-          {isFiltered ? 'No trip matches these filters' : 'No deliveries yet'}
+          {isFiltered ? t('delivery.list.noMatches') : t('delivery.list.empty')}
         </p>
         <p className="mt-1 max-w-sm text-xs text-muted-foreground">
           {isFiltered
-            ? 'Clear a filter or search for something else.'
-            : 'A trip is created when a vehicle, its driver and the challans on it are confirmed.'}
+            ? t('delivery.list.filteredHint')
+            : t('delivery.list.emptyHint')}
         </p>
         {isFiltered ? (
           <Button variant="outline" size="sm" className="mt-4" onClick={onReset}>
-            Clear filters
+            {t('common.actions.clearFilters')}
           </Button>
         ) : (
           canWrite && (
             <Button size="sm" className="mt-4" render={<Link to="/delivery/new" />}>
               <Plus data-icon="inline-start" aria-hidden />
-              Create the first delivery
+              {t('delivery.list.createFirst')}
             </Button>
           )
         )}

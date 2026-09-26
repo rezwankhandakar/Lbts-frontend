@@ -1,5 +1,7 @@
 import { PackageCheck, PackageX } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
+import { formatNumber, formatPercent } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { PageMeta } from '../types'
 
@@ -17,6 +19,8 @@ interface GatePassDeliveryCardsProps {
  * out again. A piece no challan has been linked to yet is not delivered.
  */
 export function GatePassDeliveryCards({ meta, isLoading, isFiltered }: GatePassDeliveryCardsProps) {
+  const t = useT()
+
   if (isLoading || !meta) {
     return (
       <div className="mb-4 grid gap-3 sm:grid-cols-2" aria-busy="true">
@@ -28,22 +32,28 @@ export function GatePassDeliveryCards({ meta, isLoading, isFiltered }: GatePassD
 
   const total = meta.totalQty
   const percent = total > 0 ? Math.round((meta.deliveredQty / total) * 100) : 0
-  const scope = isFiltered ? 'on the gate passes these filters match' : 'on every gate pass'
+  const scope = isFiltered
+    ? t('gatePass.stats.scopeFiltered')
+    : t('gatePass.stats.scopeAll')
 
   const cards = [
     {
-      label: 'Delivered Qty',
+      label: t('gatePass.stats.delivered'),
       value: meta.deliveredQty,
-      hint: `${percent}% of ${total.toLocaleString()} pcs ${scope}`,
+      hint: t('gatePass.stats.deliveredHint', {
+        percent: formatPercent(percent),
+        total: formatNumber(total),
+        scope,
+      }),
       icon: PackageCheck,
       chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
       bar: 'bg-tone-emerald',
       width: percent,
     },
     {
-      label: 'Not Delivered Qty',
+      label: t('gatePass.stats.notDelivered'),
       value: meta.notDeliveredQty,
-      hint: `${100 - percent}% still to deliver, or not on a challan yet`,
+      hint: t('gatePass.stats.notDeliveredHint', { percent: formatPercent(100 - percent) }),
       icon: PackageX,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
       bar: 'bg-tone-amber',
@@ -62,8 +72,10 @@ export function GatePassDeliveryCards({ meta, isLoading, isFiltered }: GatePassD
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium tracking-wide text-muted-foreground">{card.label}</p>
               <p className="mt-1 text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                {card.value.toLocaleString()}
-                <span className="ml-1.5 text-sm font-medium text-muted-foreground">pcs</span>
+                {formatNumber(card.value)}
+                <span className="ml-1.5 text-sm font-medium text-muted-foreground">
+                  {t('gatePass.stats.pcs')}
+                </span>
               </p>
               <p className="mt-2 truncate text-[11px] text-muted-foreground">{card.hint}</p>
             </div>

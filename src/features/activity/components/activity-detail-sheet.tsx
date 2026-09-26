@@ -9,6 +9,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { formatDateTime, formatRelative } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { categoryMeta, entityLabel, moduleMeta, recordPath, severityMeta } from '../lib/activity-meta'
 import type { ActivityRecord } from '../types'
@@ -58,9 +59,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * every detail on it.
  */
 export function ActivityDetailSheet({ record, onClose }: ActivityDetailSheetProps) {
-  const module = record ? moduleMeta(record.module) : null
-  const category = record ? categoryMeta(record.category) : null
-  const severity = record ? severityMeta(record.severity) : null
+  const t = useT()
+
+  const module = record ? moduleMeta(record.module, t) : null
+  const category = record ? categoryMeta(record.category, t) : null
+  const severity = record ? severityMeta(record.severity, t) : null
   const path = record ? recordPath(record) : null
   const CategoryIcon = category?.icon
 
@@ -120,19 +123,19 @@ export function ActivityDetailSheet({ record, onClose }: ActivityDetailSheetProp
                 {record.summary}
               </p>
 
-              <Section title="What it touched">
+              <Section title={t('activity.detail.touched')}>
                 <dl className="divide-y">
-                  <Field label={entityLabel(record.entityType)}>
+                  <Field label={entityLabel(record.entityType, t)}>
                     <span className="font-mono">{record.entityLabel || '—'}</span>
                   </Field>
-                  <Field label="Done by">
+                  <Field label={t('activity.detail.doneBy')}>
                     <ActivityActor
                       actor={record.actor}
                       variant="full"
                       className="justify-end"
                     />
                   </Field>
-                  <Field label="When">{formatDateTime(record.createdAt)}</Field>
+                  <Field label={t('activity.detail.when')}>{formatDateTime(record.createdAt)}</Field>
                 </dl>
 
                 {/* Only where the id genuinely is the URL — see `recordPath`.
@@ -142,12 +145,12 @@ export function ActivityDetailSheet({ record, onClose }: ActivityDetailSheetProp
                 {path && (
                   <Button variant="outline" size="sm" className="w-full" render={<Link to={path} />}>
                     <ExternalLink data-icon="inline-start" aria-hidden />
-                    Open the {entityLabel(record.entityType).toLowerCase()}
+                    Open the {entityLabel(record.entityType, t).toLowerCase()}
                   </Button>
                 )}
               </Section>
 
-              <Section title="What changed">
+              <Section title={t('activity.detail.changed')}>
                 <ActivityChanges changes={record.changes} />
               </Section>
 
@@ -157,19 +160,19 @@ export function ActivityDetailSheet({ record, onClose }: ActivityDetailSheetProp
                 or matching a row to a support report, needs exactly this, and
                 a page that hides it sends them to the database instead.
               */}
-              <Section title="Reference">
+              <Section title={t('activity.detail.reference')}>
                 <dl className="divide-y">
-                  <Field label="Action">
+                  <Field label={t('activity.detail.action')}>
                     <span className="font-mono text-xs text-muted-foreground">{record.action}</span>
                   </Field>
-                  <Field label="Event id">
+                  <Field label={t('activity.detail.eventId')}>
                     <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground">
                       <Fingerprint className="size-3 shrink-0" aria-hidden />
                       {record.id}
                     </span>
                   </Field>
                   {record.entityId && (
-                    <Field label="Record id">
+                    <Field label={t('activity.detail.recordId')}>
                       <span className="font-mono text-xs text-muted-foreground">
                         {record.entityId}
                       </span>

@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { NOTIFICATION_CATEGORY_META } from '../lib/notification-meta'
+import { notificationCategoryMeta } from '../lib/notification-meta'
 import { NOTIFICATION_CATEGORIES, NOTIFICATION_PRIORITIES } from '../types'
 import type {
   NotificationCategory,
@@ -15,6 +15,7 @@ import type {
   NotificationVocabularyEntry,
 } from '../types'
 import type { NotificationFilterPatch } from '../hooks/use-notification-params'
+import { useT } from '@/lib/i18n'
 
 interface NotificationFilterRowProps {
   params: NotificationListParams
@@ -23,9 +24,9 @@ interface NotificationFilterRowProps {
 }
 
 const PRIORITY_LABELS: Record<NotificationPriority, string> = {
-  info: 'For information',
-  attention: 'Needs attention',
-  urgent: 'Urgent',
+  info: 'notification.priorities.info',
+  attention: 'notification.priorities.attention',
+  urgent: 'notification.priorities.urgent',
 }
 
 /**
@@ -46,27 +47,29 @@ export function NotificationFilterRow({
   vocabulary,
   onChange,
 }: NotificationFilterRowProps) {
+  const t = useT()
+
   return (
     <div className="grid gap-2 border-t pt-3 sm:grid-cols-2 lg:grid-cols-3">
       <Select
         value={params.category}
         onValueChange={(value) => onChange({ category: value as NotificationCategory | 'all' })}
       >
-        <SelectTrigger className="h-8 w-full" aria-label="Filter by kind">
+        <SelectTrigger className="h-8 w-full" aria-label={t('notification.toolbar.kindAria')}>
           <SelectValue>
             {(value) =>
               value === 'all' || !value
-                ? 'Every kind'
-                : NOTIFICATION_CATEGORY_META[value as NotificationCategory].label
+                ? t('notification.toolbar.everyKind')
+                : notificationCategoryMeta(value as NotificationCategory, t).label
             }
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value="all">Every kind</SelectItem>
+            <SelectItem value="all">{t('notification.toolbar.everyKind')}</SelectItem>
             {NOTIFICATION_CATEGORIES.map((category) => (
               <SelectItem key={category} value={category}>
-                {NOTIFICATION_CATEGORY_META[category].label}
+                {notificationCategoryMeta(category, t).label}
               </SelectItem>
             ))}
           </SelectGroup>
@@ -77,18 +80,18 @@ export function NotificationFilterRow({
         value={params.priority}
         onValueChange={(value) => onChange({ priority: value as NotificationPriority | 'all' })}
       >
-        <SelectTrigger className="h-8 w-full" aria-label="Filter by priority">
+        <SelectTrigger className="h-8 w-full" aria-label={t('notification.toolbar.priorityAria')}>
           <SelectValue>
             {(value) =>
               value === 'all' || !value
-                ? 'Any priority'
+                ? t('notification.toolbar.anyPriority')
                 : PRIORITY_LABELS[value as NotificationPriority]
             }
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value="all">Any priority</SelectItem>
+            <SelectItem value="all">{t('notification.toolbar.anyPriority')}</SelectItem>
             {NOTIFICATION_PRIORITIES.map((priority) => (
               <SelectItem key={priority} value={priority}>
                 {PRIORITY_LABELS[priority]}
@@ -99,18 +102,18 @@ export function NotificationFilterRow({
       </Select>
 
       <Select value={params.event} onValueChange={(value) => onChange({ event: value || 'all' })}>
-        <SelectTrigger className="h-8 w-full" aria-label="Filter by exact notification">
+        <SelectTrigger className="h-8 w-full" aria-label={t('notification.toolbar.eventAria')}>
           <SelectValue>
             {(value) =>
               value === 'all' || !value
-                ? 'Any notification'
-                : (vocabulary.find((entry) => entry.event === value)?.label ?? 'Any notification')
+                ? t('notification.toolbar.anyNotification')
+                : (vocabulary.find((entry) => entry.event === value)?.label ?? t('notification.toolbar.anyNotification'))
             }
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectItem value="all">Any notification</SelectItem>
+            <SelectItem value="all">{t('notification.toolbar.anyNotification')}</SelectItem>
             {vocabulary.map((entry) => (
               <SelectItem key={entry.event} value={entry.event}>
                 {entry.label}

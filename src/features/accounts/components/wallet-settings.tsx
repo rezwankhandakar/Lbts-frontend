@@ -11,10 +11,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/features/vendor/components/confirm-dialog'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useWallets } from '../hooks/use-accounts'
 import { useDeleteWallet, useSaveWallet } from '../hooks/use-accounts-mutations'
-import { WALLET_KIND_LABEL, formatDay, signedTaka, taka } from '../lib/accounts-meta'
+import { formatDay, signedTaka, taka, walletKindLabel } from '../lib/accounts-meta'
 import type { WalletKind, WalletRecord } from '../types'
 import { Panel } from './account-atoms'
 import { WalletDialog } from './wallet-dialog'
@@ -23,6 +24,8 @@ const ICONS: Record<WalletKind, typeof Wallet> = { Cash: Wallet, Bank: Landmark,
 
 /** Every wallet with its balance. Closing keeps the history; deleting is offered for one never used. */
 export function WalletSettings({ canWrite }: { canWrite: boolean }) {
+  const t = useT()
+
   const wallets = useWallets()
   const save = useSaveWallet()
   const remove = useDeleteWallet()
@@ -32,13 +35,13 @@ export function WalletSettings({ canWrite }: { canWrite: boolean }) {
 
   return (
     <Panel
-      title="Wallets"
-      description="Every transaction runs through cash. Bank and mobile wallets only receive Walton bill payments."
+      title={t('accounts.wallet.title')}
+      description={t('accounts.wallet.description')}
       action={
         canWrite && (
           <Button size="sm" onClick={() => setCreating(true)}>
             <Plus data-icon="inline-start" aria-hidden />
-            Add wallet
+            {t('accounts.wallet.add')}
           </Button>
         )
       }
@@ -60,7 +63,7 @@ export function WalletSettings({ canWrite }: { canWrite: boolean }) {
                       {wallet.name}
                     </Link>
                     <p className="truncate text-xs text-muted-foreground">
-                      {WALLET_KIND_LABEL[wallet.kind]}
+                      {walletKindLabel(wallet.kind, t)}
                       {wallet.kind !== 'Cash' && ' · Walton payments only'}
                       {wallet.accountNumber && ` · ${wallet.accountNumber}`}
                       {!wallet.isActive && ' · Closed'}
@@ -68,7 +71,7 @@ export function WalletSettings({ canWrite }: { canWrite: boolean }) {
                   </div>
                   {canWrite && (
                     <DropdownMenu>
-                      <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={`Actions for ${wallet.name}`} />}>
+                      <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t('accounts.wallet.actionsFor', { name: wallet.name })} />}>
                         <MoreHorizontal aria-hidden />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="min-w-40">
@@ -78,7 +81,7 @@ export function WalletSettings({ canWrite }: { canWrite: boolean }) {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => save.mutate({ id: wallet.id, input: { isActive: !wallet.isActive } })}>
                           {wallet.isActive ? <Archive aria-hidden /> : <ArchiveRestore aria-hidden />}
-                          {wallet.isActive ? 'Close wallet' : 'Reopen wallet'}
+                          {wallet.isActive ? t('accounts.wallet.close') : t('accounts.wallet.reopen')}
                         </DropdownMenuItem>
                         {wallet.entryCount === 0 && (
                           <>
@@ -117,10 +120,12 @@ export function WalletSettings({ canWrite }: { canWrite: boolean }) {
       <ConfirmDialog
         open={deleting !== null}
         isPending={remove.isPending}
-        title={`Delete ${deleting?.name ?? 'wallet'}?`}
-        description="Nothing was ever recorded against it, so it is removed outright."
-        confirmLabel="Delete wallet"
-        pendingLabel="Deleting…"
+        title={t('accounts.wallet.deleteTitle', {
+          name: deleting?.name ?? t('accounts.wallet.title'),
+        })}
+        description={t('accounts.wallet.deleteDescription')}
+        confirmLabel={t('accounts.wallet.deleteConfirm')}
+        pendingLabel={t('common.states.deleting')}
         onOpenChange={(open) => !open && setDeleting(null)}
         onConfirm={() => deleting && remove.mutate(deleting.id, { onSuccess: () => setDeleting(null) })}
       />

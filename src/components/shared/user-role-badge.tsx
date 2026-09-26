@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { roleMeta } from '@/lib/roles'
 import { cn } from '@/lib/utils'
 
@@ -11,7 +12,8 @@ interface UserRoleBadgeProps {
  * icon and the word carry the meaning for anyone who cannot use it.
  */
 export function UserRoleBadge({ role, className }: UserRoleBadgeProps) {
-  const meta = roleMeta(role)
+  const t = useT()
+  const meta = roleMeta(role, t)
   const Icon = meta.icon
 
   return (

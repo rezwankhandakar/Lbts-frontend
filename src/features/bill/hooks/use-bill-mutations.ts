@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
+import { formatNumber } from '@/lib/format'
+import { t } from '@/lib/i18n'
 import {
   addBillLines,
   createBill,
@@ -36,7 +38,7 @@ export function useCreateBill(): UseMutationResult<BillRecord, ApiError, BillInp
   return useMutation({
     mutationFn: createBill,
     onSuccess: (bill) => {
-      toast.success(`${bill.billNumber} opened`, { description: `Unit ${bill.unit} · ${bill.periodLabel}` })
+      toast.success(t('bill.actions.opened', { bill: bill.billNumber }), { description: t('bill.actions.openedNote', { unit: bill.unit, period: bill.periodLabel }) })
       void invalidate()
     },
     onError: reportBillError,
@@ -52,7 +54,7 @@ export function useUpdateBill(): UseMutationResult<
   return useMutation({
     mutationFn: updateBill,
     onSuccess: (bill) => {
-      toast.success(`${bill.billNumber} updated`)
+      toast.success(t('bill.actions.updated', { bill: bill.billNumber }))
       void invalidate()
     },
     onError: reportBillError,
@@ -64,10 +66,13 @@ export function useDeleteBill(): UseMutationResult<{ billNumber: string; release
   return useMutation({
     mutationFn: deleteBill,
     onSuccess: (result) => {
-      toast.success(`${result.billNumber} deleted`, {
+      toast.success(t('bill.actions.deleted', { bill: result.billNumber }), {
         description:
           result.released > 0
-            ? `${result.released} Trip DO ${result.released === 1 ? 'row is' : 'rows are'} free to bill again.`
+            ? t('bill.actions.releasedNote', {
+              count: result.released,
+              n: formatNumber(result.released),
+            })
             : undefined,
       })
       void invalidate()
@@ -86,11 +91,15 @@ export function useAddBillLines(): UseMutationResult<
     mutationFn: addBillLines,
     onSuccess: (result) => {
       if (result.added === 0) {
-        toast.info(`Already on ${result.billNumber}`)
+        toast.info(t('bill.actions.alreadyOn', { bill: result.billNumber }))
       } else {
-        toast.success(`${result.added} ${result.added === 1 ? 'row' : 'rows'} added to ${result.billNumber}`, {
+        toast.success(t('bill.actions.added', {
+          count: result.added,
+          n: formatNumber(result.added),
+          bill: result.billNumber,
+        }), {
           description: `${result.tripDoCount} Trip DO${result.tripDoCount === 1 ? '' : 's'}${
-            result.skipped > 0 ? ` · ${result.skipped} already on the bill` : ''
+            result.skipped > 0 ? ` ${t('bill.actions.skippedNote', { n: formatNumber(result.skipped) })}` : ''
           }`,
         })
       }
@@ -109,7 +118,11 @@ export function useRemoveBillLines(): UseMutationResult<
   return useMutation({
     mutationFn: removeBillLines,
     onSuccess: (result) => {
-      toast.success(`${result.removed} ${result.removed === 1 ? 'row' : 'rows'} taken off ${result.billNumber}`, {
+      toast.success(t('bill.actions.takenOff', {
+          count: result.removed,
+          n: formatNumber(result.removed),
+          bill: result.billNumber,
+        }), {
         description: 'They are free to bill again.',
       })
       void invalidate()
@@ -127,8 +140,11 @@ export function useRefreshBill(): UseMutationResult<
   return useMutation({
     mutationFn: refreshBill,
     onSuccess: (result) => {
-      toast.success(`${result.billNumber} refreshed from the Trip DO sheet`, {
-        description: `${result.updated} updated · ${result.removed} taken off`,
+      toast.success(t('bill.actions.refreshed', { bill: result.billNumber }), {
+        description: t('bill.actions.refreshedNote', {
+          updated: formatNumber(result.updated),
+          removed: formatNumber(result.removed),
+        }),
       })
       void invalidate()
     },
@@ -141,7 +157,7 @@ export function useFinalizeBill(): UseMutationResult<BillRecord, ApiError, strin
   return useMutation({
     mutationFn: finalizeBill,
     onSuccess: (bill) => {
-      toast.success(`${bill.billNumber} finalized`)
+      toast.success(t('bill.actions.finalized', { bill: bill.billNumber }))
       void invalidate()
     },
     onError: reportBillError,
@@ -153,7 +169,7 @@ export function useReopenBill(): UseMutationResult<BillRecord, ApiError, string>
   return useMutation({
     mutationFn: reopenBill,
     onSuccess: (bill) => {
-      toast.success(`${bill.billNumber} reopened`, { description: 'It is a draft again.' })
+      toast.success(t('bill.actions.reopened', { bill: bill.billNumber }), { description: 'It is a draft again.' })
       void invalidate()
     },
     onError: reportBillError,

@@ -10,6 +10,7 @@ import {
 import type { TripCart } from '../hooks/use-trip-cart'
 import type { CartChallan } from '../types'
 import type { CartCardDialog } from './cart-challan-card'
+import { useT } from '@/lib/i18n'
 
 interface CartChallanMenuProps {
   challan: CartChallan
@@ -28,11 +29,13 @@ interface CartChallanMenuProps {
  * belongs where those consequences are explained.
  */
 export function CartChallanMenu({ challan, cart, onOpenDialog }: CartChallanMenuProps) {
+  const t = useT()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon-sm" aria-label={`Actions for ${challan.challanNumber}`}>
+          <Button variant="ghost" size="icon-sm" aria-label={t('delivery.cart.actionsAria', { challan: challan.challanNumber })}>
             <EllipsisVertical aria-hidden />
           </Button>
         }
@@ -40,32 +43,32 @@ export function CartChallanMenu({ challan, cart, onOpenDialog }: CartChallanMenu
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuItem onClick={() => onOpenDialog({ kind: 'party', challanId: challan.challanId })}>
           <UserRoundPen aria-hidden />
-          Edit delivery details
+          {t('delivery.cart.editDetails')}
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={challan.sources.length === 0}
           onClick={() => onOpenDialog({ kind: 'split', challanId: challan.challanId })}
         >
           <Scissors aria-hidden />
-          Split across trips
+          {t('delivery.cart.splitAcross')}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => window.open(`/challan/${challan.challanId}`, '_blank', 'noopener')}
         >
           <ExternalLink aria-hidden />
-          Open the challan
+          {t('delivery.cart.openChallan')}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => window.open(`/challan/${challan.challanId}/edit`, '_blank', 'noopener')}
         >
           <FilePenLine aria-hidden />
-          Correct the filed challan
+          {t('delivery.cart.correctChallan')}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={() => cart.remove(challan.challanId)}>
           <X aria-hidden />
-          Remove from this trip
+          {t('delivery.cart.removeFromTrip')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

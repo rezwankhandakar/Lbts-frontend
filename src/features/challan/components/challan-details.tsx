@@ -16,11 +16,12 @@ import {
   LocationTypeBadge,
 } from '@/features/location/components/location-badges'
 import { locationSourceLabel } from '@/features/location/lib/location-meta'
-import { formatDateTime } from '@/lib/format'
+import { BLANK, formatNumber } from '@/lib/format'
 import { formatBytes, formatRange } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
 import { ChallanDispatchPanel } from '@/features/delivery/components/challan-dispatch-panel'
 import { ChallanGoodsTable } from './challan-goods-table'
+import { countOf, useFormatters, useT } from '@/lib/i18n'
 
 interface ChallanDetailsProps {
   record: ChallanRecord
@@ -44,27 +45,39 @@ interface ChallanDetailsProps {
  * keep in step.
  */
 export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
+  const t = useT()
+  const format = useFormatters()
+
   const location = record.resolvedLocation
+
+  const printedText = !record.printedAt
+    ? t('challan.details.notYet')
+    : record.printedBy
+      ? t('challan.printMark.printedAtBy', {
+          when: format.dateTime(record.printedAt),
+          name: record.printedBy.name,
+        })
+      : format.dateTime(record.printedAt)
 
   return (
     <div className="space-y-4">
       <Section
         icon={ScanBarcode}
-        title="Identifiers"
-        description="Allocated by LBTS when this challan was filed."
+        title={t('challan.details.identifiers')}
+        description={t('challan.details.identifiersHint')}
       >
         <dl className="grid gap-4 sm:grid-cols-2">
           <div>
             <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-              SL number
+              {t('challan.details.slNumber')}
             </dt>
             <dd className="mt-0.5 text-2xl leading-tight font-semibold tabular-nums">
-              {record.slNumber}
+              {formatNumber(record.slNumber)}
             </dd>
           </div>
           <div className="min-w-0">
             <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-              Challan number
+              {t('challan.details.challanNumber')}
             </dt>
             <dd className="mt-0.5 truncate text-2xl leading-tight font-semibold">
               {record.challanNumber}
@@ -73,25 +86,24 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
         </dl>
 
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-          The challan number is what the barcode on the back page encodes, so a scanner and a person
-          reading the page get the same value.
+          {t('challan.details.barcodeNote')}
         </p>
       </Section>
 
       <Section
         icon={MapPin}
-        title="Customer and delivery"
-        description="As transcribed from the challan."
+        title={t('challan.details.customerAndDelivery')}
+        description={t('challan.details.asTranscribed')}
       >
         <Rows
           rows={[
-            ['Customer', record.customerName],
-            ['Delivery address', record.deliveryAddress],
+            [t('challan.details.customer'), record.customerName],
+            [t('challan.details.deliveryAddress'), record.deliveryAddress],
             // As transcribed, and never rewritten by resolution: what the paper
             // said is a fact about the paper, and it is what the back page
             // prints. Where the system decided that is sits below.
-            ['Thana', record.thana || '—'],
-            ['District', record.district || '—'],
+            [t('challan.details.thana'), record.thana || BLANK],
+            [t('challan.details.district'), record.district || BLANK],
           ]}
         />
       </Section>
@@ -111,23 +123,30 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
        */}
       <Section
         icon={MapPinned}
-        title="Location"
-        description="Matched against the location master list. Optional — a challan files without it."
+        title={t('challan.details.location')}
+        description={t('challan.details.locationHint')}
       >
         {location ? (
           <>
             <Rows
               rows={[
-                ['District', location.district],
-                ['Thana', location.thana],
+                [t('challan.details.district'), location.district],
+                [t('challan.details.thana'), location.thana],
               ]}
             />
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <LocationTypeBadge value={location.locationType} />
               <span className="text-xs text-muted-foreground">
-                {locationSourceLabel(location.source)}
-                {location.resolvedBy ? ` by ${location.resolvedBy.name}` : ''} ·{' '}
-                {formatDateTime(location.resolvedAt)}
+                {location.resolvedBy
+                  ? t('challan.details.resolvedByAt', {
+                      source: locationSourceLabel(location.source, t),
+                      name: location.resolvedBy.name,
+                      when: format.dateTime(location.resolvedAt),
+                    })
+                  : t('challan.details.resolvedAt', {
+                      source: locationSourceLabel(location.source, t),
+                      when: format.dateTime(location.resolvedAt),
+                    })}
               </span>
             </div>
           </>
@@ -135,9 +154,7 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
           <div className="flex flex-col items-start gap-2">
             <LocationStatusBadge value="Pending" />
             <p className="text-sm leading-relaxed text-muted-foreground">
-              No district or thana could be determined from what was entered, so none was
-              recorded — a blank is kept rather than a guess. Setting it here does not change the
-              challan text or its printed document.
+              {t('challan.details.noLocation')}
             </p>
           </div>
         )}
@@ -145,32 +162,32 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
         {onSetLocation && (
           <Button variant="outline" size="sm" className="mt-3" onClick={onSetLocation}>
             <MapPinned data-icon="inline-start" aria-hidden />
-            {location ? 'Change location' : 'Set location'}
+            {location ? t('challan.details.changeLocation') : t('challan.details.setLocation')}
           </Button>
         )}
       </Section>
 
       <Section
         icon={Phone}
-        title="Contact and reference"
-        description="Who to call, and what it is filed against."
+        title={t('challan.details.contactAndReference')}
+        description={t('challan.details.contactHint')}
       >
         <Rows
           rows={[
-            ['Receiver mobile', record.receiverMobile],
-            ['Sender mobile', record.senderMobile ?? '—'],
-            ['Zone / PO', record.zonePo ?? '—'],
+            [t('challan.details.receiverMobile'), record.receiverMobile],
+            [t('challan.details.senderMobile'), record.senderMobile ?? BLANK],
+            [t('challan.details.zonePo'), record.zonePo ?? BLANK],
           ]}
         />
       </Section>
 
       <Section
         icon={Boxes}
-        title="Goods"
+        title={t('challan.details.goods')}
         description={
           record.items.length === 1
-            ? 'What this challan carries.'
-            : `${record.items.length} product lines on this challan.`
+            ? t('challan.details.goodsHint')
+            : t('challan.details.productLines', { n: formatNumber(record.items.length) })
         }
       >
         {/* Extracted rather than inline: the goods table now carries the rate
@@ -187,30 +204,35 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
 
       <Section
         icon={FileStack}
-        title="Source and document"
-        description="Where these pages came from, and what is stored."
+        title={t('challan.details.sourceAndDocument')}
+        description={t('challan.details.sourceHint')}
       >
         <Rows
           rows={[
-            ['Source file', record.sourceFileName],
+            [t('challan.details.sourceFile'), record.sourceFileName],
             [
-              'Pages taken',
-              formatRange({
-                startPage: record.sourcePageStart,
-                endPage: record.sourcePageEnd,
+              t('challan.details.pagesTaken'),
+              formatRange(
+                {
+                  startPage: record.sourcePageStart,
+                  endPage: record.sourcePageEnd,
+                },
+                t,
+              ),
+            ],
+            [
+              t('challan.details.storedDocument'),
+              t('challan.details.documentSize', {
+                pages: countOf(record.document.pageCount, 'nouns.page', t),
+                size: formatBytes(record.document.size),
               }),
             ],
-            [
-              'Stored document',
-              `${record.document.pageCount} pages · ${formatBytes(record.document.size)}`,
-            ],
-            ['Generated', formatDateTime(record.document.generatedAt)],
+            [t('challan.details.generated'), format.dateTime(record.document.generatedAt)],
           ]}
         />
 
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-          The stored PDF is the original challan pages exactly as they arrived, followed by the
-          generated LBTS back page. The source file itself was never uploaded.
+          {t('challan.details.storedNote')}
         </p>
 
         <Button
@@ -219,19 +241,22 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
           className="mt-3"
           render={<Link to={`/challan/batch/${record.batchId}`} />}
         >
-          Open the source batch
+          {t('challan.details.openSourceBatch')}
         </Button>
       </Section>
 
       <Section
         icon={ShieldCheck}
-        title="Filing"
-        description="Who filed it, who printed it, and when."
+        title={t('challan.details.filing')}
+        description={t('challan.details.filingHint')}
       >
         <Rows
           rows={[
-            ['Filed by', record.submittedBy?.name ?? record.createdBy?.name ?? '—'],
-            ['Filed at', formatDateTime(record.submittedAt)],
+            [
+              t('challan.details.filedBy'),
+              record.submittedBy?.name ?? record.createdBy?.name ?? BLANK,
+            ],
+            [t('challan.details.filedAt'), format.dateTime(record.submittedAt)],
             /**
              * Printing is the point of a challan, and nothing else on this
              * page says whether the paper exists. A dispatch rather than a
@@ -239,16 +264,11 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
              * never learns what the printer did with it, which is why the row
              * menu can take the mark back.
              */
-            [
-              'Printed',
-              record.printedAt
-                ? `${formatDateTime(record.printedAt)}${record.printedBy ? ` by ${record.printedBy.name}` : ''}`
-                : 'Not yet',
-            ],
+            [t('challan.details.printed'), printedText],
             ...(record.amendedAt
               ? ([
-                  ['Corrected at', formatDateTime(record.amendedAt)],
-                  ['Corrected by', record.updatedBy?.name ?? '—'],
+                  [t('challan.details.correctedAt'), format.dateTime(record.amendedAt)],
+                  [t('challan.details.correctedBy'), record.updatedBy?.name ?? BLANK],
                 ] as [string, string][])
               : []),
           ]}
@@ -256,8 +276,7 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
 
         {record.amendedAt && (
           <p className="mt-3 rounded-lg border border-tone-amber/25 bg-tone-amber/5 px-3 py-2 text-xs leading-relaxed">
-            This challan was corrected after filing, and its document was regenerated to match. Any
-            copy printed before that date shows the old details.
+            {t('challan.details.amendedNote')}
           </p>
         )}
       </Section>

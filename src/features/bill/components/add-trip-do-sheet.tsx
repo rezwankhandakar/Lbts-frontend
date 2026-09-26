@@ -11,6 +11,7 @@ import { useBillCandidates } from '../hooks/use-bills'
 import { useCandidateSelection } from '../hooks/use-candidate-selection'
 import type { BillRecord } from '../types'
 import { CandidateResults } from './candidate-results'
+import { useT } from '@/lib/i18n'
 
 interface AddTripDoSheetProps {
   bill: BillRecord
@@ -26,6 +27,8 @@ interface AddTripDoSheetProps {
  * made from.
  */
 export function AddTripDoSheet({ bill, open, onOpenChange }: AddTripDoSheetProps) {
+  const t = useT()
+
   const [search, setSearch] = useState('')
   const settled = useDebouncedValue(search.trim(), 300)
   const candidates = useBillCandidates(bill.id, settled, open)
@@ -70,7 +73,7 @@ export function AddTripDoSheet({ bill, open, onOpenChange }: AddTripDoSheetProps
         <SheetHeader className="border-b px-5 pt-5 pb-4">
           <SheetTitle className="flex items-center gap-2 pr-10">
             <PackagePlus className="size-4.5 text-primary" aria-hidden />
-            Add Trip DO
+            {t('bill.addTripDo')}
           </SheetTitle>
           <SheetDescription>
             To <span className="font-mono text-foreground">{bill.billNumber}</span> · Unit {bill.unit} ·{' '}
@@ -88,7 +91,7 @@ export function AddTripDoSheet({ bill, open, onOpenChange }: AddTripDoSheetProps
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={onKeyDown}
-              aria-label="Trip DO or gate pass number"
+              aria-label={t('bill.toolbar.tripDoAria')}
               className="h-10 pl-9 font-mono text-[15px]"
             />
             {candidates.isFetching && (
@@ -100,8 +103,8 @@ export function AddTripDoSheet({ bill, open, onOpenChange }: AddTripDoSheetProps
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             {settled
-              ? 'Press Enter to add the whole Trip DO when the search finds just one.'
-              : `Type a Trip DO or gate pass number. Until then: ${bill.unit} Trip DOs from ${bill.periodLabel} that are on no bill.`}
+              ? t('bill.search.enterHint')
+              : t('bill.search.hint', { unit: bill.unit, period: bill.periodLabel })}
           </p>
         </SheetHeader>
 
@@ -130,7 +133,7 @@ export function AddTripDoSheet({ bill, open, onOpenChange }: AddTripDoSheetProps
           <div className="flex items-center gap-2">
             {selection.count > 0 && (
               <Button variant="ghost" size="sm" onClick={selection.clear} disabled={add.isPending}>
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
             <Button disabled={selection.count === 0 || add.isPending} onClick={() => addRows(selection.ids)}>

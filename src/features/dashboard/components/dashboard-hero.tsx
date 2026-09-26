@@ -4,17 +4,18 @@ import { Link } from 'react-router-dom'
 import { canWriteChallans } from '@/features/challan/types'
 import { canWriteDeliveries } from '@/features/delivery/types'
 import { canWriteGatePasses } from '@/features/gate-pass/types'
+import { useFormatters, useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { roleMeta } from '@/lib/roles'
-import { greetingLine } from '../lib/greeting'
+import { firstNameOf, greetingSlotFor } from '../lib/greeting'
 import type { DashboardData } from '../types'
 
-/** "Monday, 21 September" — the day, in the viewer's own locale and calendar. */
-const DAY_FORMAT = new Intl.DateTimeFormat(undefined, {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-})
+/*
+ * The day line used to be a module-level `Intl.DateTimeFormat` pinned to the
+ * browser's locale. It reads from `useFormatters()` now, which is cached per
+ * locale in exactly the same way and follows the language the page is in.
+ */
 
 /**
  * The top of the page: who is reading, what day it is, and what has moved
@@ -49,8 +50,23 @@ const DAY_FORMAT = new Intl.DateTimeFormat(undefined, {
  * entirely in what sits *beside* what rather than under it.
  */
 export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; name: string }) {
+  const t = useT()
+  const format = useFormatters()
+
   const now = new Date()
-  const role = dashboard.role ? roleMeta(dashboard.role) : null
+
+  /*
+   * The slot decides which greeting the hour calls for; the message decides
+   * how it joins to a name — including whether there is a comma at all. A
+   * name that has not arrived yet greets nobody rather than leaving a
+   * dangling separator, which is what `firstNameOf` returning empty means.
+   */
+  const greetingWord = t(`dashboard.greeting.${greetingSlotFor(now.getHours())}` as TranslationKey)
+  const firstName = firstNameOf(name)
+  const greeting = firstName
+    ? t('dashboard.greeting.withName', { greeting: greetingWord, name: firstName })
+    : greetingWord
+  const role = dashboard.role ? roleMeta(dashboard.role, t) : null
 
   const trips = dashboard.delivery.data
   const gatePasses = dashboard.gatePass.data
@@ -71,11 +87,11 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
    * are the next-best reading of the same day.
    */
   const headline: { label: string; value: number | undefined } | null = dashboard.can.delivery
-    ? { label: 'Pieces out today', value: trips?.todayQty }
+    ? { label: t('dashboard.hero.piecesOutToday'), value: trips?.todayQty }
     : dashboard.can.gatePass
-      ? { label: 'Gate passes today', value: gatePasses?.today }
+      ? { label: t('dashboard.hero.gatePassesToday'), value: gatePasses?.today }
       : dashboard.can.challan
-        ? { label: 'Challans filed today', value: challans?.today }
+        ? { label: t('dashboard.hero.challansFiledToday'), value: challans?.today }
         : null
 
   /**
@@ -91,51 +107,59 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
     headline === null
       ? ''
       : headline.value === undefined
-        ? 'Counting what has gone out.'
+        ? t('dashboard.hero.counting')
         : headline.value === 0
-          ? 'Nothing has left the gate yet today.'
+          ? t('dashboard.hero.nothingOutYet')
           : dashboard.can.delivery
-            ? `Carried on ${trips?.today === 1 ? 'one trip' : `${(trips?.today ?? 0).toLocaleString()} trips`} so far today.`
-            : 'Filed today.'
+            ? t('dashboard.hero.carriedOn', {
+                count: trips?.today ?? 0,
+                n: format.number(trips?.today ?? 0),
+              })
+            : t('dashboard.hero.filedToday')
 
   const panels: Panel[] = []
   if (dashboard.can.delivery) {
     panels.push({
       icon: Truck,
-      label: 'Trips out',
+      label: t('dashboard.hero.tripsOut'),
       value: trips?.today,
-      note: trips === undefined ? '' : trips.today === 0 ? 'No lorry out yet' : 'on the road today',
+      note:
+        trips === undefined
+          ? ''
+          : trips.today === 0
+            ? t('dashboard.hero.noLorryYet')
+            : t('dashboard.hero.onTheRoadToday'),
       to: '/delivery',
     })
   }
   if (dashboard.can.gatePass) {
     panels.push({
       icon: ScanLine,
-      label: 'Gate passes',
+      label: t('dashboard.hero.gatePasses'),
       value: gatePasses?.today,
-      note: gatePasses === undefined ? '' : 'dated today',
+      note: gatePasses === undefined ? '' : t('dashboard.hero.datedToday'),
       to: '/gate-pass',
     })
   }
   if (dashboard.can.challan) {
     panels.push({
       icon: ReceiptText,
-      label: 'Challans filed',
+      label: t('dashboard.hero.challansFiled'),
       value: challans?.today,
-      note: challans === undefined ? '' : 'out of the office PDFs',
+      note: challans === undefined ? '' : t('dashboard.hero.outOfOfficePdfs'),
       to: '/challan',
     })
   }
 
   const actions: Action[] = []
   if (canWriteGatePasses(dashboard.role)) {
-    actions.push({ to: '/gate-pass/new', label: 'File a gate pass', icon: ScanLine })
+    actions.push({ to: '/gate-pass/new', label: t('dashboard.hero.fileGatePass'), icon: ScanLine })
   }
   if (canWriteChallans(dashboard.role)) {
-    actions.push({ to: '/challan/new', label: 'Open a source PDF', icon: ReceiptText })
+    actions.push({ to: '/challan/new', label: t('dashboard.hero.openSourcePdf'), icon: ReceiptText })
   }
   if (canWriteDeliveries(dashboard.role)) {
-    actions.push({ to: '/delivery/new', label: 'Start a trip', icon: PackageCheck })
+    actions.push({ to: '/delivery/new', label: t('dashboard.hero.startTrip'), icon: PackageCheck })
   }
 
   return (
@@ -169,7 +193,7 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5">
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
             <h1 className="text-sm font-semibold tracking-tight sm:text-base">
-              {greetingLine(name, now.getHours())}
+              {greeting}
             </h1>
             {role && (
               <span className="inline-flex items-center gap-1 rounded-full bg-primary-foreground/15 px-2 py-0.5 text-[11px] font-medium ring-1 ring-primary-foreground/20">
@@ -180,7 +204,7 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
             <span className="text-primary-foreground/35" aria-hidden>
               •
             </span>
-            <p className="truncate text-xs text-primary-foreground/70">{DAY_FORMAT.format(now)}</p>
+            <p className="truncate text-xs text-primary-foreground/70">{format.dayLong(now)}</p>
           </div>
 
           {actions.length > 0 && (
@@ -236,7 +260,7 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
                     />
                   ) : (
                     <p className="text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl">
-                      {headline.value.toLocaleString()}
+                      {format.number(headline.value)}
                     </p>
                   )}
                   <p className="max-w-[13rem] text-[11px] leading-snug text-pretty text-primary-foreground/65">
@@ -255,7 +279,7 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
                 )}
               >
                 {panels.map((panel) => (
-                  <HeroPanel key={panel.label} panel={panel} />
+                  <HeroPanel key={panel.to} panel={panel} />
                 ))}
               </div>
             )}
@@ -296,6 +320,8 @@ interface Action {
  * somebody's cursor.
  */
 function HeroPanel({ panel }: { panel: Panel }) {
+  const format = useFormatters()
+
   return (
     <Link
       to={panel.to}
@@ -324,7 +350,7 @@ function HeroPanel({ panel }: { panel: Panel }) {
         />
       ) : (
         <span className="shrink-0 text-xl font-semibold tabular-nums sm:text-2xl">
-          {panel.value.toLocaleString()}
+          {format.number(panel.value)}
         </span>
       )}
 

@@ -4,6 +4,7 @@ import { BillRefChip } from '@/features/bill/components/bill-badges'
 import { shortChallanNumber } from '@/features/challan/lib/challan-meta'
 import { rateDescription, rateLabel } from '@/features/product-rate/lib/rate-format'
 import { formatDate, formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { KIND_META } from '../lib/trip-do-meta'
 import type { TripDoRowRecord } from '../types'
@@ -49,6 +50,8 @@ export function TripDoSheetRow({
   onToggle,
   ...actions
 }: TripDoSheetRowProps) {
+  const t = useT()
+
   const kind = KIND_META[row.kind]
   const link = row.link
 
@@ -123,7 +126,7 @@ export function TripDoSheetRow({
       <td className={cn(CELL, 'text-right')}>
         <QtyCell row={row} />
       </td>
-      <td className={cn(CELL, 'text-right tabular-nums')} title={rateDescription(row.rate)}>
+      <td className={cn(CELL, 'text-right tabular-nums')} title={rateDescription(row.rate, t)}>
         {row.rate ? rateLabel(row.rate) : <Dash />}
       </td>
       <td className={cn(CELL, 'text-right font-medium tabular-nums')}>

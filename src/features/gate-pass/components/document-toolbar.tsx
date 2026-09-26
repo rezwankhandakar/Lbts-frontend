@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useT } from '@/lib/i18n'
+import { formatNumber, formatPercent } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 export interface ViewerControls {
@@ -83,62 +85,91 @@ export function DocumentToolbar({
   disabled,
   isFullscreen,
 }: DocumentToolbarProps) {
+  const t = useT()
+
   return (
     <div className="flex flex-wrap items-center gap-1 border-t bg-muted/30 px-2 py-1.5">
       {isPdf ? (
         <p className="px-2 text-xs text-muted-foreground">
-          {pageCount && pageCount > 1 ? `${pageCount} pages` : 'PDF document'}
-          <span className="hidden sm:inline"> · use the viewer controls to page and zoom</span>
+          {pageCount && pageCount > 1
+            ? t('gatePass.scanner.pageCount', {
+                count: pageCount,
+                n: formatNumber(pageCount),
+              })
+            : t('gatePass.viewer.pdfDocument')}
+          <span className="hidden sm:inline">{t('gatePass.viewer.pdfHint')}</span>
         </p>
       ) : (
         <>
-          <IconButton label="Zoom out" icon={ZoomOut} onClick={controls.zoomOut} disabled={disabled} />
+          <IconButton
+            label={t('gatePass.viewer.zoomOut')}
+            icon={ZoomOut}
+            onClick={controls.zoomOut}
+            disabled={disabled}
+          />
           <span className="w-12 text-center text-xs tabular-nums text-muted-foreground">
-            {Math.round(controls.zoom * 100)}%
+            {formatPercent(Math.round(controls.zoom * 100))}
           </span>
-          <IconButton label="Zoom in" icon={ZoomIn} onClick={controls.zoomIn} disabled={disabled} />
+          <IconButton
+            label={t('gatePass.viewer.zoomIn')}
+            icon={ZoomIn}
+            onClick={controls.zoomIn}
+            disabled={disabled}
+          />
 
           <span className="mx-1 h-4 w-px bg-border" aria-hidden />
 
           <IconButton
-            label="Rotate left"
+            label={t('gatePass.viewer.rotateLeft')}
             icon={RotateCcw}
             onClick={controls.rotateLeft}
             disabled={disabled}
           />
           <IconButton
-            label="Rotate right"
+            label={t('gatePass.viewer.rotateRight')}
             icon={RotateCw}
             onClick={controls.rotateRight}
             disabled={disabled}
           />
           <Button variant="ghost" size="sm" onClick={controls.fit} disabled={disabled}>
-            Fit
+            {t('gatePass.viewer.fit')}
           </Button>
         </>
       )}
 
       <div className={cn('ml-auto flex items-center gap-1')}>
         <IconButton
-          label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+          label={
+            isFullscreen ? t('gatePass.viewer.exitFullscreen') : t('gatePass.viewer.fullscreen')
+          }
           icon={isFullscreen ? Minimize2 : Maximize2}
           onClick={onFullscreen}
           disabled={disabled}
         />
 
         {onDownload && (
-          <IconButton label="Download" icon={Download} onClick={onDownload} disabled={disabled} />
+          <IconButton
+            label={t('common.actions.download')}
+            icon={Download}
+            onClick={onDownload}
+            disabled={disabled}
+          />
         )}
 
         {onReplace && (
           <Button variant="ghost" size="sm" onClick={onReplace} disabled={disabled}>
             <Scan data-icon="inline-start" aria-hidden />
-            Rescan
+            {t('gatePass.viewer.rescan')}
           </Button>
         )}
 
         {onRemove && (
-          <IconButton label="Remove document" icon={Trash2} onClick={onRemove} disabled={disabled} />
+          <IconButton
+            label={t('gatePass.viewer.removeDocument')}
+            icon={Trash2}
+            onClick={onRemove}
+            disabled={disabled}
+          />
         )}
       </div>
     </div>

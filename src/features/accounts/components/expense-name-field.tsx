@@ -1,4 +1,5 @@
 import { Input } from '@/components/ui/input'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useExpenseNames } from '../hooks/use-accounts'
 import { EntryField } from './entry-field'
@@ -21,6 +22,8 @@ const MAX_SUGGESTIONS = 6
  * Expenses page and the profit and loss would count as three different costs.
  */
 export function ExpenseNameField({ label = 'Expense name', value, error, onChange }: ExpenseNameFieldProps) {
+  const t = useT()
+
   const names = useExpenseNames()
   const typed = (value ?? '').trim().toLowerCase()
   // Only real names: a blank or missing one from an older entry is never offered, and never crashes the form.
@@ -44,7 +47,7 @@ export function ExpenseNameField({ label = 'Expense name', value, error, onChang
         {known.map((name) => <option key={name} value={name} />)}
       </datalist>
       {suggestions.length > 0 && (
-        <div className="flex flex-wrap gap-1.5" aria-label="Expense names used before">
+        <div className="flex flex-wrap gap-1.5" aria-label={t('accounts.expense.namesUsedBefore')}>
           {suggestions.map((name) => (
             <button
               key={name}

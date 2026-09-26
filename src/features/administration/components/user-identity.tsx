@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials } from '@/features/auth/user-display'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { AdminUser } from '../types'
 
@@ -25,6 +26,8 @@ export function UserIdentity({
   emailClassName = 'xl:hidden',
   size = 'default',
 }: UserIdentityProps) {
+  const t = useT()
+
   return (
     <span className="flex min-w-0 items-center gap-3">
       <Avatar size={size} className="ring-2 ring-primary/15">
@@ -39,7 +42,7 @@ export function UserIdentity({
           <span className="truncate text-[13.5px] leading-tight font-semibold">{user.name}</span>
           {isSelf && (
             <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] leading-none font-semibold text-primary">
-              You
+              {t('administration.you')}
             </span>
           )}
         </span>

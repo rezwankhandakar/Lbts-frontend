@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useBills } from '../hooks/use-bills'
 import { periodLabel } from '../lib/bill-meta'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 interface SameSlotNoticeProps {
   month: number
@@ -17,6 +19,8 @@ interface SameSlotNoticeProps {
  * the wrong bill.
  */
 export function SameSlotNotice({ month, year, unit }: SameSlotNoticeProps) {
+  const t = useT()
+
   const settled = useDebouncedValue(unit, 400)
   const query = useBills(
     { page: 1, limit: 5, search: '', year, month, unit: settled, status: 'all' },
@@ -33,11 +37,15 @@ export function SameSlotNotice({ month, year, unit }: SameSlotNoticeProps) {
       <Info className="mt-px size-4 shrink-0 text-tone-amber" aria-hidden />
       <div className="min-w-0">
         <p className="font-medium text-foreground">
-          {settled} already has {existing.length === 1 ? 'a bill' : `${existing.length} bills`} for{' '}
-          {periodLabel(month, year)}
+          {t('bill.badges.sameSlot', {
+            count: existing.length,
+            n: formatNumber(existing.length),
+            unit: settled,
+            period: periodLabel(month, year),
+          })}
         </p>
         <p className="mt-1 text-muted-foreground">
-          You can still open another — a part bill, say.{' '}
+          {t('bill.badges.sameSlotHint')}{' '}
           {existing.map((bill, index) => (
             <span key={bill.id}>
               {index > 0 && ', '}

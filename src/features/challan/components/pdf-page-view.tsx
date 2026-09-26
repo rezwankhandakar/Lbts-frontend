@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { PDFDocumentProxy, RenderTask, TextLayer } from 'pdfjs-dist'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { isRenderCancelled, renderTextLayer, startPageRender } from '../lib/pdf-source'
 import type { PdfZoom } from '../hooks/use-viewer-controls'
@@ -53,6 +54,8 @@ export function PdfPageView({
   onTextAvailable,
   className,
 }: PdfPageViewProps) {
+  const t = useT()
+
   const containerRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -190,7 +193,7 @@ export function PdfPageView({
         // The message is deliberately plain, but the reason belongs in the
         // console — "could not be drawn" is not something anyone can debug.
         console.error('[challan] page render failed', failure)
-        setError('This page could not be drawn.')
+        setError(t('challan.pdf.pageDrawFailed'))
         setIsRendering(false)
       }
     })()
@@ -200,7 +203,7 @@ export function PdfPageView({
       task?.cancel()
       text?.cancel()
     }
-  }, [doc, pageNumber, zoom, rotation, size.width, size.height])
+  }, [doc, pageNumber, zoom, rotation, size.width, size.height, t])
 
   return (
     <div

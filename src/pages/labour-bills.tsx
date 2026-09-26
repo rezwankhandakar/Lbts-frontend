@@ -11,13 +11,16 @@ import { useLabourBillListParams } from '@/features/labour-bill/hooks/use-labour
 import { useLabourBills } from '@/features/labour-bill/hooks/use-labour-bills'
 import { canWriteLabourBill } from '@/features/labour-bill/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
-import { formatTaka } from '@/lib/format'
+import { formatNumber, formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 /**
  * Every Walton Labour Bill: a month of handling charges, opened as a slot and
  * filled by scanning challans.
  */
 export function LabourBillsPage() {
+  const t = useT()
+
   const canWrite = canWriteLabourBill(useCurrentRole())
   const list = useLabourBillListParams()
   const query = useLabourBills(list.applied)
@@ -35,13 +38,13 @@ export function LabourBillsPage() {
     <div className="mx-auto w-full max-w-[1500px]">
       <div className="flex flex-wrap items-start justify-between gap-x-6">
         <PageHeader
-          title="Walton Labour Bill"
-          description="One bill per CSD per month. Open a slot, scan the challans in, and type what the handling cost against each model — van, pulling and labour on one side, the floor it went up to on the other. It charges nothing the Excel bill charges, and marks nothing on the Trip DO sheet."
+          title={t('labourBill.title')}
+          description={t('labourBill.pageDescription')}
         />
         {canWrite && (
           <Button onClick={() => setCreating(true)} className="mb-6">
             <Plus data-icon="inline-start" aria-hidden />
-            New labour bill
+            {t('labourBill.newBill')}
           </Button>
         )}
       </div>
@@ -53,7 +56,7 @@ export function LabourBillsPage() {
         onChange={list.applyFilters}
       />
 
-      <section aria-label="Labour bills" className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      <section aria-label={t('labourBill.listAria')} className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <LabourBillListToolbar
           params={list.params}
           onChange={list.applyFilters}
@@ -61,9 +64,18 @@ export function LabourBillsPage() {
           isFiltered={list.isFiltered}
           summary={
             meta && !query.isPending
-              ? `${meta.total.toLocaleString()} ${meta.total === 1 ? 'labour bill' : 'labour bills'} · ${formatTaka(meta.totalAmount)}${
-                  list.isFiltered ? ' match these filters' : ' in total'
-                }`
+              ? t(
+                  list.isFiltered
+                    ? 'labourBill.stats.summaryFiltered'
+                    : 'labourBill.stats.summaryTotal',
+                  {
+                    bills: t('labourBill.stats.billCount', {
+                      count: meta.total,
+                      n: formatNumber(meta.total),
+                    }),
+                    amount: formatTaka(meta.totalAmount),
+                  },
+                )
               : undefined
           }
         />
@@ -87,7 +99,7 @@ export function LabourBillsPage() {
             meta={meta}
             onPageChange={list.setPage}
             isFetching={query.isFetching}
-            noun={['labour bill', 'labour bills']}
+            nounKey="nouns.labourBill"
           />
         )}
       </section>

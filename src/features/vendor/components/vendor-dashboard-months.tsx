@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { shortPeriodLabel } from '@/features/accounts/lib/accounts-meta'
-import { plural, taka } from '@/features/delivery/lib/delivery-meta'
+import { taka } from '@/features/delivery/lib/delivery-meta'
 import { cn } from '@/lib/utils'
 import type { VendorMonthPoint } from '../types'
+import { countOf, useT } from '@/lib/i18n'
 
 /** A clean upper bound for the axis: 1, 2, 2.5 or 5 times a power of ten. */
 function niceMax(value: number): number {
@@ -40,6 +41,8 @@ function compact(value: number): string {
  * where nothing ran, so the columns never slide out of step with their labels.
  */
 export function VendorDashboardMonths({ months }: { months: VendorMonthPoint[] }) {
+  const t = useT()
+
   const [active, setActive] = useState<number | null>(null)
 
   const top = niceMax(Math.max(0, ...months.map((point) => point.bill)))
@@ -128,7 +131,7 @@ export function VendorDashboardMonths({ months }: { months: VendorMonthPoint[] }
                       <span className="tabular-nums">{taka(point.bill)}</span>
                     </p>
                     <p className="mt-1.5 flex justify-between gap-2 border-t pt-1.5 text-muted-foreground">
-                      <span>{plural(point.trips, 'trip')}</span>
+                      <span>{countOf(point.trips, 'nouns.trip', t)}</span>
                       <span className="tabular-nums">{point.qty.toLocaleString()} pcs</span>
                     </p>
                   </div>

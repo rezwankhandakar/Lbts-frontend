@@ -1,7 +1,8 @@
 import { CircleDashed, MapPin, Phone, Trash2, Warehouse } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { formatAmount, formatTaka } from '@/lib/format'
+import { formatAmount, formatNumber, formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { MAX_FLOOR_NUMBER, MAX_LABOUR_AMOUNT, groupLineIds } from '../types'
 import type { LabourBillLinePatch, LabourBillLineRecord, LabourCsdGroupRecord } from '../types'
@@ -52,6 +53,8 @@ interface CsdSectionProps {
 
 /** One CSD's own bill: its heading, its challans, and what it comes to. */
 function CsdSection({ group, canEdit, onSave, onRemove }: CsdSectionProps) {
+  const t = useT()
+
   const lines = group.lines
   const members = groupLineIds(lines)
   const heads = lines.filter((line) => line.slRowSpan > 0)
@@ -80,15 +83,26 @@ function CsdSection({ group, canEdit, onSave, onRemove }: CsdSectionProps) {
           </span>
         </div>
         <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-          {group.totals.rows} {group.totals.rows === 1 ? 'row' : 'rows'} · {group.totals.challans}{' '}
-          {group.totals.challans === 1 ? 'challan' : 'challans'} · {group.totals.qty} pcs ·{' '}
-          {formatAmount(group.totals.labourTotal)} labour · {formatAmount(group.totals.floorTotal)}{' '}
-          floor
+          {t('labourBill.stats.sectionSummaryLong', {
+            rows: t('labourBill.stats.rowCount', {
+              count: group.totals.rows,
+              n: formatNumber(group.totals.rows),
+            }),
+            challans: t('labourBill.stats.challanCount', {
+              count: group.totals.challans,
+              n: formatNumber(group.totals.challans),
+            }),
+            pcs: t('labourBill.stats.pcsCount', {
+              count: group.totals.qty,
+              n: formatNumber(group.totals.qty),
+            }),
+            labour: formatAmount(group.totals.labourTotal),
+            floor: formatAmount(group.totals.floorTotal),
+          })}
         </p>
         {group.isPending && (
           <p className="mt-1 text-[11.5px] text-pretty text-muted-foreground">
-            No Trip DO yet, so nothing says which CSD these belong to. Set it on the Trip DO sheet
-            and each one moves into its own section by itself — with the amounts typed here.
+            {t('labourBill.details.pendingHintShort')}
           </p>
         )}
       </header>
@@ -106,10 +120,10 @@ function CsdSection({ group, canEdit, onSave, onRemove }: CsdSectionProps) {
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-1.5 text-sm font-semibold">
                   <LabourDriftMark drift={head.drift} />
-                  <span className="truncate">{head.customerName || 'No customer'}</span>
+                  <span className="truncate">{head.customerName || t('labourBill.noCustomer')}</span>
                 </p>
                 <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
-                  {head.challanNumber} · SL {head.challanSlNumber}
+                  {head.challanNumber} · SL {formatNumber(head.challanSlNumber)}
                 </p>
               </div>
 
@@ -124,11 +138,13 @@ function CsdSection({ group, canEdit, onSave, onRemove }: CsdSectionProps) {
                   variant="ghost"
                   size="icon-xs"
                   className="text-muted-foreground hover:text-destructive"
-                  aria-label={`Take challan ${head.challanNumber} off the labour bill`}
+                  aria-label={t('labourBill.cells.removeChallan', {
+                    challan: head.challanNumber,
+                  })}
                   onClick={() =>
                     onRemove({
                       lineIds: members.get(head.id) ?? [head.id],
-                      label: `challan ${head.challanNumber}`,
+                      label: t('labourBill.cells.challanLabel', { challan: head.challanNumber }),
                     })
                   }
                 >
@@ -178,6 +194,8 @@ const FIELD_LABEL = 'text-[10.5px] font-medium tracking-wide text-muted-foregrou
 const BOXED = 'rounded-md border bg-background'
 
 function ModelBlock({ line, canEdit, onSave, onRemove }: ModelBlockProps) {
+  const t = useT()
+
   const save = (patch: LabourBillLinePatch) => onSave(line.id, patch)
 
   return (
@@ -185,7 +203,7 @@ function ModelBlock({ line, canEdit, onSave, onRemove }: ModelBlockProps) {
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="font-mono text-[12px] font-semibold">{line.model || line.productName}</span>
         <span className="rounded-md border bg-muted/50 px-1.5 py-px text-[11px] font-semibold tabular-nums">
-          × {line.qty}
+          × {formatNumber(line.qty)}
         </span>
         {line.csd && (
           <span className="font-mono text-[11px] text-muted-foreground">CSD {line.csd}</span>
@@ -205,11 +223,14 @@ function ModelBlock({ line, canEdit, onSave, onRemove }: ModelBlockProps) {
             variant="ghost"
             size="icon-xs"
             className="ml-auto text-muted-foreground hover:text-destructive"
-            aria-label={`Take ${line.model} off the labour bill`}
+            aria-label={t('labourBill.cells.removeModel', { model: line.model })}
             onClick={() =>
               onRemove({
                 lineIds: [line.id],
-                label: `${line.challanNumber} · ${line.model || line.productName}`,
+                label: t('labourBill.cells.lineLabel', {
+                  challan: line.challanNumber,
+                  model: line.model || line.productName,
+                }),
               })
             }
           >
@@ -223,49 +244,61 @@ function ModelBlock({ line, canEdit, onSave, onRemove }: ModelBlockProps) {
           {/* A span rather than a label: every cell carries its own aria-label,
               which names the challan and the model too, so a bare `for` here
               would replace a precise name with a generic one. */}
-          <span className={FIELD_LABEL}>Unit / Company</span>
+          <span className={FIELD_LABEL}>{t('labourBill.fields.unitCompany')}</span>
           <LabourTextCell
             value={line.company}
             maxLength={60}
             disabled={!canEdit}
             placeholder={line.unit || '—'}
-            label={`Company for ${line.challanNumber} ${line.model}`}
+            label={t('labourBill.cells.company', {
+              challan: line.challanNumber,
+              model: line.model,
+            })}
             onCommit={(company) => save({ company })}
             className={cn(BOXED, 'text-left')}
           />
         </div>
 
         <div className={cn(FIELD, 'col-span-2')}>
-          <span className={FIELD_LABEL}>Ven / Pulling / Labour</span>
+          <span className={FIELD_LABEL}>{t('labourBill.fields.labour')}</span>
           <LabourCellInput
             value={line.labourAmount}
             max={MAX_LABOUR_AMOUNT}
             disabled={!canEdit}
-            label={`Ven, pulling and labour for ${line.challanNumber} ${line.model}`}
+            label={t('labourBill.cells.labour', {
+              challan: line.challanNumber,
+              model: line.model,
+            })}
             onCommit={(labourAmount) => save({ labourAmount })}
             className={BOXED}
           />
         </div>
 
         <div className={FIELD}>
-          <span className={FIELD_LABEL}>Floor no.</span>
+          <span className={FIELD_LABEL}>{t('labourBill.fields.floorNo')}</span>
           <LabourCellInput
             value={line.floorNo}
             max={MAX_FLOOR_NUMBER}
             disabled={!canEdit}
-            label={`Floor number for ${line.challanNumber} ${line.model}`}
+            label={t('labourBill.cells.floorNo', {
+              challan: line.challanNumber,
+              model: line.model,
+            })}
             onCommit={(floorNo) => save({ floorNo })}
             className={cn(BOXED, 'text-center')}
           />
         </div>
 
         <div className={FIELD}>
-          <span className={FIELD_LABEL}>Floor amount</span>
+          <span className={FIELD_LABEL}>{t('labourBill.fields.floorAmount')}</span>
           <LabourCellInput
             value={line.floorAmount}
             max={MAX_LABOUR_AMOUNT}
             disabled={!canEdit}
-            label={`Floor amount for ${line.challanNumber} ${line.model}`}
+            label={t('labourBill.cells.floorAmount', {
+              challan: line.challanNumber,
+              model: line.model,
+            })}
             onCommit={(floorAmount) => save({ floorAmount })}
             className={BOXED}
           />
@@ -273,14 +306,14 @@ function ModelBlock({ line, canEdit, onSave, onRemove }: ModelBlockProps) {
       </div>
 
       <p className="mt-2 flex items-baseline justify-between gap-2 border-t pt-2">
-        <span className={FIELD_LABEL}>Total</span>
+        <span className={FIELD_LABEL}>{t('labourBill.fields.total')}</span>
         <span
           className={cn(
             'text-[15px] font-semibold tabular-nums',
             line.total === null && 'text-[12.5px] font-medium text-tone-amber',
           )}
         >
-          {line.total === null ? 'Not set' : formatTaka(line.total)}
+          {line.total === null ? t('labourBill.notSet') : formatTaka(line.total)}
         </span>
       </p>
     </div>

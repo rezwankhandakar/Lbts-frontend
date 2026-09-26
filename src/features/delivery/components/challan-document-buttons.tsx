@@ -5,6 +5,7 @@ import { useReceivedCopy } from '../hooks/use-received-copy'
 import type { TripChallanRecord } from '../types'
 import { ChallanPdfDialog } from './challan-pdf-dialog'
 import { ReceivedCopyViewer } from './received-copy-viewer'
+import { useT } from '@/lib/i18n'
 
 /**
  * The two papers behind one delivery, each behind its own button: the challan
@@ -17,6 +18,8 @@ import { ReceivedCopyViewer } from './received-copy-viewer'
  * as "not filed yet" and not as a missing feature.
  */
 export function ChallanDocumentButtons({ challan }: { challan: TripChallanRecord }) {
+  const t = useT()
+
   const [pdfOpen, setPdfOpen] = useState(false)
   const [copyOpen, setCopyOpen] = useState(false)
   const copyFile = useReceivedCopy()
@@ -26,7 +29,7 @@ export function ChallanDocumentButtons({ challan }: { challan: TripChallanRecord
     <>
       <Button type="button" variant="outline" size="sm" onClick={() => setPdfOpen(true)}>
         <FileText data-icon="inline-start" aria-hidden />
-        Challan PDF
+        {t('delivery.dispatch.challanPdf')}
       </Button>
 
       <Button
@@ -34,7 +37,7 @@ export function ChallanDocumentButtons({ challan }: { challan: TripChallanRecord
         variant="outline"
         size="sm"
         disabled={!copy}
-        title={copy ? undefined : 'No signed copy has been filed yet'}
+        title={copy ? undefined : t('delivery.dispatch.noSignedCopyYet')}
         onClick={() => {
           if (copy) {
             setCopyOpen(true)
@@ -43,7 +46,7 @@ export function ChallanDocumentButtons({ challan }: { challan: TripChallanRecord
         }}
       >
         <FileCheck2 data-icon="inline-start" aria-hidden />
-        Signed copy
+        {t('delivery.dispatch.signedCopy')}
       </Button>
 
       <ChallanPdfDialog

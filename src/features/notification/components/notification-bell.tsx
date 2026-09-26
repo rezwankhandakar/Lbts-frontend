@@ -3,6 +3,7 @@ import { Bell } from 'lucide-react'
 import { HEADER_ICON_BUTTON } from '@/components/layout/header-styles'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useNotificationSummary } from '../hooks/use-notifications'
 import { NotificationPanel } from './notification-panel'
@@ -34,6 +35,8 @@ import { NotificationPreferencesDialog } from './notification-preferences-dialog
  * while somebody is reading.
  */
 export function NotificationBell() {
+  const t = useT()
+
   const [open, setOpen] = useState(false)
   const [preferencesOpen, setPreferencesOpen] = useState(false)
 
@@ -59,7 +62,7 @@ export function NotificationBell() {
               className={cn(HEADER_ICON_BUTTON, 'relative')}
               aria-label={
                 unread === 0
-                  ? 'Notifications, nothing unread'
+                  ? t('notification.bellNothing')
                   : `Notifications, ${unread} unread`
               }
             />
@@ -85,7 +88,7 @@ export function NotificationBell() {
             summary={summary.data}
             isLoading={summary.isPending}
             isError={summary.isError}
-            errorMessage={summary.error?.message ?? 'Something went wrong.'}
+            errorMessage={summary.error?.message ?? t('errors.generic')}
             onRetry={() => void summary.refetch()}
             onClose={() => setOpen(false)}
             onOpenPreferences={() => setPreferencesOpen(true)}

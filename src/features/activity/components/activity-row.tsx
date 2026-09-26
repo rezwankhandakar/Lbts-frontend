@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import { formatRelative } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { categoryMeta, entityLabel, moduleMeta, severityMeta, timeOf } from '../lib/activity-meta'
 import type { ActivityRecord } from '../types'
@@ -37,9 +38,11 @@ interface ActivityRowProps {
  * that are quietly wrong or hard to undo.
  */
 export function ActivityRow({ record, showConnector, onOpen }: ActivityRowProps) {
-  const module = moduleMeta(record.module)
-  const category = categoryMeta(record.category)
-  const severity = severityMeta(record.severity)
+  const t = useT()
+
+  const module = moduleMeta(record.module, t)
+  const category = categoryMeta(record.category, t)
+  const severity = severityMeta(record.severity, t)
   const CategoryIcon = category.icon
 
   const isCritical = record.severity === 'critical'
@@ -109,7 +112,7 @@ export function ActivityRow({ record, showConnector, onOpen }: ActivityRowProps)
 
             {record.entityLabel && (
               <span className="inline-flex min-w-0 items-center gap-1 text-[11px] text-muted-foreground">
-                <span className="shrink-0">{entityLabel(record.entityType)}</span>
+                <span className="shrink-0">{entityLabel(record.entityType, t)}</span>
                 <span className="truncate font-mono text-foreground/80">{record.entityLabel}</span>
               </span>
             )}

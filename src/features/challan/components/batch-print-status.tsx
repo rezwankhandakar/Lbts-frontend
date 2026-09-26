@@ -1,5 +1,7 @@
 import { Printer, PrinterCheck, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface BatchPrintStatusProps {
@@ -37,6 +39,7 @@ export function BatchPrintStatus({
   onClear,
   className,
 }: BatchPrintStatusProps) {
+  const t = useT()
   const none = printedChallanCount === 0
 
   return (
@@ -56,23 +59,30 @@ export function BatchPrintStatus({
       <p className="text-[11px] text-muted-foreground">
         {none ? (
           <>
-            <span className="font-medium text-foreground">Not printed yet.</span> Printing the batch
-            sends every challan to the printer as one document and marks them here.
+            <span className="font-medium text-foreground">
+              {t('challan.batch.notPrintedYet')}
+            </span>{' '}
+            {t('challan.batch.printingMarksNote')}
           </>
         ) : isPrinted ? (
           <>
             <span className="font-medium text-foreground">
-              All {challanCount} {challanCount === 1 ? 'challan is' : 'challans are'} marked as
-              printed.
+              {t('challan.batch.allMarkedPrinted', {
+                count: challanCount,
+                n: formatNumber(challanCount),
+              })}
             </span>{' '}
-            Printing again is never refused — reprint whenever a copy is needed.
+            {t('challan.batch.reprintNote')}
           </>
         ) : (
           <>
             <span className="font-medium text-foreground">
-              {printedChallanCount} of {challanCount} printed.
+              {t('challan.batch.printedOf', {
+                printed: formatNumber(printedChallanCount),
+                total: formatNumber(challanCount),
+              })}
             </span>{' '}
-            The rest are still only on file.
+            {t('challan.batch.restOnFile')}
           </>
         )}
       </p>
@@ -86,7 +96,7 @@ export function BatchPrintStatus({
           onClick={onClear}
         >
           <Undo2 data-icon="inline-start" aria-hidden />
-          Clear
+          {t('common.actions.clear')}
         </Button>
       )}
     </div>

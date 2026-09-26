@@ -1,29 +1,43 @@
 import { Input } from '@/components/ui/input'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { comparePeriods, currentPeriod, fiscalYearOf, parsePeriodParam, periodParam, shiftPeriod } from '../lib/accounts-meta'
 import type { PeriodRange } from '../lib/accounts-meta'
 
 interface Preset {
   key: string
-  label: string
+  labelKey: TranslationKey
   range: () => PeriodRange
 }
 
 const PRESETS: Preset[] = [
-  { key: 'this-month', label: 'This month', range: () => ({ from: currentPeriod(), to: currentPeriod() }) },
+  {
+    key: 'this-month',
+    labelKey: 'accounts.report.thisMonth',
+    range: () => ({ from: currentPeriod(), to: currentPeriod() }),
+  },
   {
     key: 'last-month',
-    label: 'Last month',
+    labelKey: 'accounts.report.lastMonth',
     range: () => {
       const last = shiftPeriod(currentPeriod(), -1)
       return { from: last, to: last }
     },
   },
-  { key: 'last-3', label: 'Last 3 months', range: () => ({ from: shiftPeriod(currentPeriod(), -2), to: currentPeriod() }) },
-  { key: 'last-6', label: 'Last 6 months', range: () => ({ from: shiftPeriod(currentPeriod(), -5), to: currentPeriod() }) },
+  {
+    key: 'last-3',
+    labelKey: 'accounts.report.last3',
+    range: () => ({ from: shiftPeriod(currentPeriod(), -2), to: currentPeriod() }),
+  },
+  {
+    key: 'last-6',
+    labelKey: 'accounts.report.last6',
+    range: () => ({ from: shiftPeriod(currentPeriod(), -5), to: currentPeriod() }),
+  },
   {
     key: 'fiscal',
-    label: 'This fiscal year',
+    labelKey: 'accounts.report.thisFiscalYear',
     range: () => {
       const year = fiscalYearOf(currentPeriod())
       return { from: year.from, to: currentPeriod() }
@@ -31,7 +45,7 @@ const PRESETS: Preset[] = [
   },
   {
     key: 'last-fiscal',
-    label: 'Last fiscal year',
+    labelKey: 'accounts.report.lastFiscalYear',
     range: () => {
       const year = fiscalYearOf(shiftPeriod(fiscalYearOf(currentPeriod()).from, -1))
       return { from: year.from, to: year.to }
@@ -39,7 +53,7 @@ const PRESETS: Preset[] = [
   },
   {
     key: 'calendar',
-    label: 'This year',
+    labelKey: 'accounts.report.thisYear',
     range: () => ({ from: { year: currentPeriod().year, month: 1 }, to: currentPeriod() }),
   },
 ]
@@ -54,9 +68,11 @@ function sameRange(a: PeriodRange, b: PeriodRange): boolean {
  * anything else.
  */
 export function PlRangePicker({ value, onChange }: { value: PeriodRange; onChange: (range: PeriodRange) => void }) {
+  const t = useT()
+
   return (
     <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-      <div role="radiogroup" aria-label="Report period" className="flex w-fit flex-wrap gap-1 rounded-lg border bg-card p-0.5">
+      <div role="radiogroup" aria-label={t('accounts.report.periodAria')} className="flex w-fit flex-wrap gap-1 rounded-lg border bg-card p-0.5">
         {PRESETS.map((preset) => {
           const active = sameRange(preset.range(), value)
           return (
@@ -71,7 +87,7 @@ export function PlRangePicker({ value, onChange }: { value: PeriodRange; onChang
                 active ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              {preset.label}
+              {t(preset.labelKey)}
             </button>
           )
         })}
@@ -79,7 +95,7 @@ export function PlRangePicker({ value, onChange }: { value: PeriodRange; onChang
       <div className="flex min-w-0 items-center gap-1.5 xl:ml-auto">
         <Input
           type="month"
-          aria-label="From month"
+          aria-label={t('accounts.report.fromMonth')}
           value={periodParam(value.from)}
           max={periodParam(value.to)}
           onChange={(event) => {
@@ -91,7 +107,7 @@ export function PlRangePicker({ value, onChange }: { value: PeriodRange; onChang
         <span className="shrink-0 text-xs text-muted-foreground">to</span>
         <Input
           type="month"
-          aria-label="To month"
+          aria-label={t('accounts.report.toMonth')}
           value={periodParam(value.to)}
           min={periodParam(value.from)}
           onChange={(event) => {

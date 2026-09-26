@@ -1,5 +1,6 @@
 import { ChevronRight, CircleDashed, TriangleAlert, Warehouse } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { taka } from '../lib/accounts-meta'
 import type { LabourReceivableRecord } from '../types'
@@ -15,6 +16,8 @@ import { ProgressBar, SettlementBadge } from './account-atoms'
  * would be offering to pay a figure nobody is billed.
  */
 export function LabourMonthCard({ month }: { month: LabourReceivableRecord }) {
+  const t = useT()
+
   const csds = month.csds.filter((csd) => csd.canReceive)
   const settled = csds.filter((csd) => csd.paymentStatus === 'Settled').length
 
@@ -42,11 +45,11 @@ export function LabourMonthCard({ month }: { month: LabourReceivableRecord }) {
 
       <dl className="grid grid-cols-2 gap-x-3 gap-y-2 px-4 text-sm">
         <div>
-          <dt className="text-xs text-muted-foreground">Received</dt>
+          <dt className="text-xs text-muted-foreground">{t('accounts.labour.received')}</dt>
           <dd className="tabular-nums">{taka(month.receivedAmount)}</dd>
         </div>
         <div className="text-right">
-          <dt className="text-xs text-muted-foreground">Billed</dt>
+          <dt className="text-xs text-muted-foreground">{t('accounts.labour.billed')}</dt>
           <dd className="text-lg leading-tight font-semibold tabular-nums">
             {taka(month.billedAmount)}
           </dd>
@@ -58,7 +61,11 @@ export function LabourMonthCard({ month }: { month: LabourReceivableRecord }) {
           <span>
             {settled} of {csds.length} {csds.length === 1 ? 'CSD' : 'CSDs'} settled
           </span>
-          <span>{month.outstanding > 0 ? `${taka(month.outstanding)} left` : 'Fully received'}</span>
+          <span>
+            {month.outstanding > 0
+              ? t('accounts.finalBill.amountLeft', { amount: taka(month.outstanding) })
+              : t('accounts.finalBill.fullyReceived')}
+          </span>
         </div>
         <ProgressBar
           value={month.receivedAmount}

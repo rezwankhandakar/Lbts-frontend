@@ -1,6 +1,8 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { toAuthMessage } from './firebase-errors'
 import { useAuthActions } from './use-auth'
 
@@ -16,10 +18,15 @@ export function useSignOut(): () => Promise<void> {
   return useCallback(async () => {
     try {
       await logout()
-      toast.success('Signed out')
+      /*
+       * The standalone `t` rather than the hook: this is a callback that
+       * produces a string and hands it straight to a toast, so there is
+       * nothing rendering that would need to re-render. See `use-t.ts`.
+       */
+      toast.success(t('auth.signOutSuccess'))
       navigate('/sign-in', { replace: true })
     } catch (error) {
-      toast.error(toAuthMessage(error))
+      toast.error(t(toAuthMessage(error) as TranslationKey))
     }
   }, [logout, navigate])
 }

@@ -1,5 +1,7 @@
 import { CircleDashed, Warehouse } from 'lucide-react'
-import { formatAmount, formatTaka } from '@/lib/format'
+import { formatAmount, formatNumber, formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { groupLineIds } from '../types'
 import type { LabourBillLinePatch, LabourCsdGroupRecord } from '../types'
@@ -13,18 +15,24 @@ interface LabourBillSheetProps {
   onRemove: (target: LabourRemoveTarget) => void
 }
 
-/** Headings that stand on their own, merged down both rows of the header. */
-const SINGLE_HEADINGS = [
-  'SL',
-  'Customer',
-  'CSD',
-  'Receiver Number',
-  'Address',
-  'Unit',
-  'Model',
-  'Trip Do',
-  'Qty',
-  'Ven/Pulling/Labour',
+/**
+ * Headings that stand on their own, merged down both rows of the header.
+ *
+ * Keys rather than words: this is the **screen**. The workbook the office
+ * sends is built on the server and keeps the English headings it has always
+ * had — the split the Trip DO sheet and the Excel Bill both make.
+ */
+const SINGLE_HEADING_KEYS: TranslationKey[] = [
+  'labourBill.columns.sl',
+  'labourBill.columns.customer',
+  'labourBill.columns.csd',
+  'labourBill.columns.receiver',
+  'labourBill.columns.address',
+  'labourBill.columns.unit',
+  'labourBill.columns.model',
+  'labourBill.columns.tripDo',
+  'labourBill.columns.qty',
+  'labourBill.columns.labour',
 ]
 
 const HEAD =
@@ -55,36 +63,38 @@ const FOOT = cn(
  * scroll nobody can type into.
  */
 export function LabourBillSheet({ groups, canEdit, onSave, onRemove }: LabourBillSheetProps) {
-  const columns = SINGLE_HEADINGS.length + 3 + (canEdit ? 1 : 0)
+  const t = useT()
+
+  const columns = SINGLE_HEADING_KEYS.length + 3 + (canEdit ? 1 : 0)
 
   return (
     <div className="relative hidden max-h-[calc(100dvh-11rem)] min-h-[16rem] overflow-auto overscroll-x-contain md:block">
       <table className="w-max min-w-full border-separate border-spacing-0 text-[12.5px]">
         <thead>
           <tr>
-            {SINGLE_HEADINGS.map((heading) => (
+            {SINGLE_HEADING_KEYS.map((heading) => (
               <th key={heading} scope="col" rowSpan={2} className={cn(HEAD, 'sticky top-0')}>
-                {heading}
+                {t(heading)}
               </th>
             ))}
             <th scope="colgroup" colSpan={2} className={cn(HEAD, 'sticky top-0')}>
-              Floor
+              {t('labourBill.columns.floor')}
             </th>
             <th scope="col" rowSpan={2} className={cn(HEAD, 'sticky top-0')}>
-              Total Amount
+              {t('labourBill.columns.total')}
             </th>
             {canEdit && (
               <th scope="col" rowSpan={2} className={cn(HEAD, 'sticky top-0 w-10')}>
-                <span className="sr-only">Remove</span>
+                <span className="sr-only">{t('labourBill.details.removeRow')}</span>
               </th>
             )}
           </tr>
           <tr>
             <th scope="col" className={cn(HEAD, 'sticky top-[2.0625rem]')}>
-              Floor No.
+              {t('labourBill.columns.floorNo')}
             </th>
             <th scope="col" className={cn(HEAD, 'sticky top-[2.0625rem]')}>
-              Amount
+              {t('labourBill.columns.floorAmount')}
             </th>
           </tr>
         </thead>
@@ -120,6 +130,8 @@ interface SectionBodyProps {
  * table rather than something floating over it.
  */
 function SectionBody({ group, columns, canEdit, onSave, onRemove }: SectionBodyProps) {
+  const t = useT()
+
   const groups = groupLineIds(group.lines)
   const Icon = group.isPending ? CircleDashed : Warehouse
 
@@ -147,9 +159,20 @@ function SectionBody({ group, columns, canEdit, onSave, onRemove }: SectionBodyP
               {group.label}
             </span>
             <span className="text-[11.5px] font-normal text-muted-foreground">
-              {group.totals.rows} {group.totals.rows === 1 ? 'row' : 'rows'} ·{' '}
-              {group.totals.challans} {group.totals.challans === 1 ? 'challan' : 'challans'} ·{' '}
-              {group.totals.qty} pcs
+              {t('labourBill.stats.sectionSummary', {
+                rows: t('labourBill.stats.rowCount', {
+                  count: group.totals.rows,
+                  n: formatNumber(group.totals.rows),
+                }),
+                challans: t('labourBill.stats.challanCount', {
+                  count: group.totals.challans,
+                  n: formatNumber(group.totals.challans),
+                }),
+                pcs: t('labourBill.stats.pcsCount', {
+                  count: group.totals.qty,
+                  n: formatNumber(group.totals.qty),
+                }),
+              })}
             </span>
             <span className="ml-auto text-[13px] font-semibold tabular-nums">
               {formatTaka(group.totals.totalAmount)}
@@ -157,9 +180,7 @@ function SectionBody({ group, columns, canEdit, onSave, onRemove }: SectionBodyP
           </span>
           {group.isPending && (
             <span className="mt-0.5 block text-[11.5px] font-normal text-pretty text-muted-foreground">
-              These rows have no Trip DO yet, so nothing says which CSD they belong to. Set it on the
-              Trip DO sheet and each one moves into its own section by itself — the amounts typed
-              here come with it.
+              {t('labourBill.details.pendingHint')}
             </span>
           )}
         </th>
@@ -179,9 +200,9 @@ function SectionBody({ group, columns, canEdit, onSave, onRemove }: SectionBodyP
 
       <tr>
         <td colSpan={8} className={cn(FOOT, 'pr-4 text-right tracking-wide uppercase')}>
-          {group.label} total
+          {t('labourBill.columns.sectionTotal', { section: group.label })}
         </td>
-        <td className={cn(FOOT, 'text-[13px]')}>{group.totals.qty.toLocaleString()}</td>
+        <td className={cn(FOOT, 'text-[13px]')}>{formatNumber(group.totals.qty)}</td>
         <td className={cn(FOOT, 'text-right text-[13px] whitespace-nowrap')}>
           {formatAmount(group.totals.labourTotal)}
         </td>

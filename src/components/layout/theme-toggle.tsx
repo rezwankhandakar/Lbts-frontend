@@ -2,9 +2,11 @@ import { Moon, Sun } from 'lucide-react'
 import { useThemeStore } from '@/stores/use-theme-store'
 import { HEADER_ICON_BUTTON } from '@/components/layout/header-styles'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 export function ThemeToggle() {
+  const t = useT()
   const theme = useThemeStore((state) => state.theme)
   const toggleTheme = useThemeStore((state) => state.toggleTheme)
   const isDark = theme === 'dark'
@@ -14,7 +16,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+      aria-label={isDark ? t('shell.switchToLight') : t('shell.switchToDark')}
       aria-pressed={isDark}
       className={cn(HEADER_ICON_BUTTON, 'relative')}
     >

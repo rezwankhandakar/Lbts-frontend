@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { GATE_PASS_COLUMNS, lineMatchesColumns } from '../lib/gate-pass-columns'
 import type { FilterPatch, GatePassColumnId, GatePassListParams, GatePassListRecord } from '../types'
@@ -51,24 +53,29 @@ function linesOf(records: readonly GatePassListRecord[], filters: GatePassListPa
  * one record's lines are never split across two pages.
  */
 export function GatePassSheet({ records, actions, onOpen, filters, onFilterChange, empty }: GatePassSheetProps) {
+  const t = useT()
+
   const lines = linesOf(records, filters)
 
-  const heading = (id: GatePassColumnId, label: string, className?: string) => (
-    <span className={cn('flex items-center gap-1', className === 'text-right' && 'justify-end')}>
-      {label}
-      <GatePassColumnFilter column={id} label={label} params={filters} onChange={onFilterChange} />
-    </span>
-  )
+  const heading = (id: GatePassColumnId, labelKey: TranslationKey, className?: string) => {
+    const label = t(labelKey)
+    return (
+      <span className={cn('flex items-center gap-1', className === 'text-right' && 'justify-end')}>
+        {label}
+        <GatePassColumnFilter column={id} label={label} params={filters} onChange={onFilterChange} />
+      </span>
+    )
+  }
 
   return (
     <div className="relative max-h-[calc(100dvh-14rem)] min-h-[18rem] overflow-auto overscroll-x-contain">
       <table className="w-max min-w-full border-separate border-spacing-0 text-[12.5px]">
         <thead>
           <tr>
-            <th className={cn(HEAD, 'left-0 z-30')}>{heading('tripDo', 'Trip Do')}</th>
+            <th className={cn(HEAD, 'left-0 z-30')}>{heading('tripDo', 'gatePass.columns.tripDo')}</th>
             {GATE_PASS_COLUMNS.map((column) => (
               <th key={column.id} className={cn(HEAD, column.className)}>
-                {heading(column.id, column.label, column.className)}
+                {heading(column.id, column.labelKey, column.className)}
               </th>
             ))}
             <th
@@ -77,7 +84,7 @@ export function GatePassSheet({ records, actions, onOpen, filters, onFilterChang
                 'right-0 z-30 w-12 border-l shadow-[-10px_0_14px_-14px_var(--foreground)]',
               )}
             >
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t('gatePass.columns.actions')}</span>
             </th>
           </tr>
         </thead>

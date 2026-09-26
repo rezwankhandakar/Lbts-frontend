@@ -10,6 +10,8 @@ import {
   Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,6 +66,8 @@ export function ChallanActionMenu({
   record: ChallanRecord
   actions: ChallanActions
 }) {
+  const t = useT()
+
   const canChange = canChangeChallan(actions.role, record, actions.currentUserId)
 
   return (
@@ -73,7 +77,7 @@ export function ChallanActionMenu({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Actions for ${record.challanNumber}`}
+            aria-label={t('challan.menu.aria', { challan: record.challanNumber })}
             className="text-muted-foreground hover:text-foreground"
           />
         }
@@ -87,7 +91,8 @@ export function ChallanActionMenu({
         <div className="px-1.5 pt-1 pb-2">
           <p className="truncate text-[13px] leading-tight font-semibold">{record.challanNumber}</p>
           <p className="mt-0.5 truncate text-[11px] leading-tight text-muted-foreground">
-            SL {record.slNumber} · {record.customerName}
+            {t('challan.pages.slWith', { sl: formatNumber(record.slNumber) })} ·{' '}
+            {record.customerName}
           </p>
         </div>
 
@@ -96,7 +101,7 @@ export function ChallanActionMenu({
           onClick={() => actions.onOpen(record)}
         >
           <Eye className="text-muted-foreground" aria-hidden />
-          View details
+          {t('challan.menu.view')}
         </DropdownMenuItem>
 
         {canChange && (
@@ -105,7 +110,7 @@ export function ChallanActionMenu({
             onClick={() => actions.onEdit(record)}
           >
             <Pencil className="text-tone-indigo" aria-hidden />
-            Correct
+            {t('challan.menu.correct')}
           </DropdownMenuItem>
         )}
 
@@ -131,10 +136,10 @@ export function ChallanActionMenu({
               aria-hidden
             />
             {record.locationStatus === 'Pending'
-              ? 'Set location'
+              ? t('challan.menu.setLocation')
               : isReviewableLocation(record.resolvedLocation)
-                ? 'Check location'
-                : 'Change location'}
+                ? t('challan.menu.checkLocation')
+                : t('challan.menu.changeLocation')}
           </DropdownMenuItem>
         )}
 
@@ -143,7 +148,7 @@ export function ChallanActionMenu({
           onClick={() => actions.onDownload(record)}
         >
           <Download className="text-muted-foreground" aria-hidden />
-          Download PDF
+          {t('challan.menu.downloadPdf')}
         </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -151,7 +156,7 @@ export function ChallanActionMenu({
           onClick={() => actions.onPrint(record)}
         >
           <Printer className="text-muted-foreground" aria-hidden />
-          Print challan
+          {t('challan.menu.printChallan')}
         </DropdownMenuItem>
 
         {/* Printing already marks the record, so this is for the two cases it
@@ -167,7 +172,7 @@ export function ChallanActionMenu({
               className={record.printedAt ? 'text-muted-foreground' : 'text-tone-violet'}
               aria-hidden
             />
-            {record.printedAt ? 'Mark as not printed' : 'Mark as printed'}
+            {record.printedAt ? t('challan.menu.markNotPrinted') : t('challan.menu.markPrinted')}
           </DropdownMenuItem>
         )}
 
@@ -176,7 +181,7 @@ export function ChallanActionMenu({
           onClick={() => actions.onOpenBatch(record)}
         >
           <Layers className="text-muted-foreground" aria-hidden />
-          Open source batch
+          {t('challan.menu.openSourceBatch')}
         </DropdownMenuItem>
 
         {canChange && (
@@ -187,7 +192,7 @@ export function ChallanActionMenu({
               onClick={() => actions.onDelete(record)}
             >
               <Trash2 aria-hidden />
-              Delete challan
+              {t('challan.menu.deleteChallan')}
             </DropdownMenuItem>
           </>
         )}

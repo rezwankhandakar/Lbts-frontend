@@ -1,5 +1,6 @@
 import { CheckCheck, Settings2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 
 interface NotificationBulkActionsProps {
   /** What the current filters add up to, alongside the inbox-wide unread count. */
@@ -39,6 +40,8 @@ export function NotificationBulkActions({
   onClearRead,
   onOpenPreferences,
 }: NotificationBulkActionsProps) {
+  const t = useT()
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       {summary && (
@@ -56,7 +59,7 @@ export function NotificationBulkActions({
           className="shrink-0"
         >
           <CheckCheck data-icon="inline-start" aria-hidden />
-          Mark all read
+          {t('notification.panel.markAllRead')}
         </Button>
       )}
 
@@ -69,7 +72,7 @@ export function NotificationBulkActions({
           className="shrink-0 text-muted-foreground hover:text-destructive"
         >
           <Trash2 data-icon="inline-start" aria-hidden />
-          Clear read
+          {t('notification.panel.clearRead')}
         </Button>
       )}
 
@@ -80,7 +83,7 @@ export function NotificationBulkActions({
         className="shrink-0 text-muted-foreground"
       >
         <Settings2 data-icon="inline-start" aria-hidden />
-        Settings
+        {t('notification.panel.settingsShort')}
       </Button>
     </div>
   )

@@ -20,6 +20,8 @@ import type { ChallanRecord, PageRange } from '@/features/challan/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuthStore } from '@/stores/use-auth-store'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 /**
  * One source PDF, and the challans cut out of it.
@@ -55,6 +57,8 @@ function pagesIn(range: PageRange): number[] {
 }
 
 export function ChallanBatchPage() {
+  const t = useT()
+
   const { batchId } = useParams<{ batchId: string }>()
   const navigate = useNavigate()
 
@@ -73,7 +77,7 @@ export function ChallanBatchPage() {
   if (query.isPending) {
     return (
       <div className="mx-auto w-full max-w-7xl space-y-4" aria-busy="true">
-        <span className="sr-only">Loading batch</span>
+        <span className="sr-only">{t('challan.batch.loading')}</span>
         <Skeleton className="h-40 rounded-xl" />
         <Skeleton className="h-96 rounded-xl" />
       </div>
@@ -86,13 +90,15 @@ export function ChallanBatchPage() {
         <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
           <TriangleAlert className="size-5" aria-hidden />
         </div>
-        <h1 className="mt-4 text-lg font-semibold tracking-tight">Batch not found</h1>
+        <h1 className="mt-4 text-lg font-semibold tracking-tight">
+          {t('challan.batch.notFound')}
+        </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {query.error?.message ??
-            'It may have been removed when its last challan was deleted, or you may not have access to it.'}
+            t('challan.batch.notFoundHint')}
         </p>
         <Button variant="outline" size="sm" className="mt-5" onClick={() => navigate('/challan')}>
-          Back to challans
+          {t('challan.backToList')}
         </Button>
       </div>
     )
@@ -107,7 +113,7 @@ export function ChallanBatchPage() {
         onClick={() => navigate('/challan')}
       >
         <ArrowLeft data-icon="inline-start" aria-hidden />
-        All challans
+        {t('challan.allChallans')}
       </Button>
 
       <BatchSummary
@@ -161,16 +167,18 @@ export function ChallanBatchPage() {
       />
 
       <section
-        aria-label="Challans in this batch"
+        aria-label={t('challan.batch.challansAria')}
         className="mt-4 overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <header className="border-b bg-muted/30 px-4 py-3">
           <h2 className="text-[13px] font-semibold tracking-tight">
-            Challans from this PDF
-            <span className="ml-2 font-normal text-muted-foreground">{batch.challanCount}</span>
+            {t('challan.batch.challansHeading')}
+            <span className="ml-2 font-normal text-muted-foreground">
+              {formatNumber(batch.challanCount)}
+            </span>
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            In the order the source file had them, not the order they were filed.
+            {t('challan.batch.challansHint')}
           </p>
         </header>
 

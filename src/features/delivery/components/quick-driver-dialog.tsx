@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { DriverFormDialog } from '@/features/vendor/components/driver-form-dialog'
 import type { DriverFormValues } from '@/features/vendor/schemas/vendor-schemas'
@@ -62,15 +63,15 @@ export function QuickDriverDialog({
       try {
         return await uploadTripDriverPhoto(driver.id, photo)
       } catch (error) {
-        toast.warning(`${driver.name} was added, but the photo did not upload`, {
+        toast.warning(t('delivery.driver.photoFailed', { name: driver.name }), {
           description: (error as ApiError).message,
         })
         return driver
       }
     },
     onSuccess: (driver) => {
-      toast.success(`${driver.name} added as ${driver.driverCode}`, {
-        description: 'They are driving this trip. The vehicle’s assigned driver is unchanged.',
+      toast.success(t('delivery.driver.added', { name: driver.name, code: driver.driverCode }), {
+        description: t('delivery.driver.addedNote'),
       })
       setPhoto(null)
       // The vendor's driver lists and counts now include them.
@@ -93,7 +94,7 @@ export function QuickDriverDialog({
         onOpenChange(next)
       }}
       onSubmit={(values) => mutation.mutate(values)}
-      description={`This driver will work for ${vendorName} and drive this trip. A driver code is allocated automatically.`}
+      description={t('delivery.driver.addedFor', { vendor: vendorName })}
       extra={<DriverPhotoField file={photo} onChange={setPhoto} disabled={mutation.isPending} />}
     />
   )

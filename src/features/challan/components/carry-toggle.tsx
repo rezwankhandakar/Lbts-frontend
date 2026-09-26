@@ -1,6 +1,8 @@
 import { CarryToggle as SharedCarryToggle } from '@/components/shared/carry-toggle'
 import type { CarryControls } from '@/hooks/use-carry-over'
-import { CARRIED_LABELS } from '../lib/carried-fields'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
+import { CARRIED_LABEL_KEYS } from '../lib/carried-fields'
 import type { CarriedField } from '../lib/carried-fields'
 
 interface CarryToggleProps {
@@ -14,13 +16,15 @@ interface CarryToggleProps {
  * control in `components/shared/carry-toggle.tsx` and `hooks/use-carry-over.ts`.
  */
 export function CarryToggle({ carry, field }: CarryToggleProps) {
+  const t = useT()
+
   if (!carry) {
     return null
   }
 
   return (
     <SharedCarryToggle
-      label={CARRIED_LABELS[field]}
+      label={t(CARRIED_LABEL_KEYS[field] as TranslationKey)}
       shown={carry.values[field]?.trim() ?? ''}
       checked={Boolean(carry.kept[field])}
       onToggle={(next) => carry.toggle(field, next)}

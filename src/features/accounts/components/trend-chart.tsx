@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { shortPeriodLabel, signedTaka, taka } from '../lib/accounts-meta'
 import type { ProfitLossMonth } from '../types'
@@ -19,8 +20,8 @@ function compact(value: number): string {
 }
 
 const SERIES = [
-  { key: 'income', label: 'Income (Walton billed)', swatch: 'bg-viz-1' },
-  { key: 'totalCost', label: 'Cost', swatch: 'bg-viz-2' },
+  { key: 'income', labelKey: 'accounts.profit.incomeSeries', swatch: 'bg-viz-1' },
+  { key: 'totalCost', labelKey: 'accounts.profit.totalCost', swatch: 'bg-viz-2' },
 ] as const
 
 /**
@@ -35,6 +36,8 @@ const SERIES = [
  * stays either way, so the labels never slide out of step with the columns.
  */
 export function TrendChart({ months }: { months: ProfitLossMonth[] }) {
+  const t = useT()
+
   const [active, setActive] = useState<number | null>(null)
   const sparseLabels = months.length > 6
   const top = niceMax(Math.max(0, ...months.flatMap((month) => [month.income, month.totalCost])))
@@ -46,7 +49,7 @@ export function TrendChart({ months }: { months: ProfitLossMonth[] }) {
         {SERIES.map((series) => (
           <span key={series.key} className="flex items-center gap-1.5">
             <span className={cn('size-2.5 rounded-[3px]', series.swatch)} aria-hidden />
-            {series.label}
+            {t(series.labelKey)}
           </span>
         ))}
       </figcaption>
@@ -100,7 +103,7 @@ export function TrendChart({ months }: { months: ProfitLossMonth[] }) {
                       </p>
                     ))}
                     <p className="mt-1.5 flex justify-between border-t pt-1.5 font-medium">
-                      <span>Profit</span>
+                      <span>{t('accounts.profit.profit')}</span>
                       <span className="tabular-nums">{signedTaka(month.profit)}</span>
                     </p>
                   </div>
@@ -121,13 +124,13 @@ export function TrendChart({ months }: { months: ProfitLossMonth[] }) {
       </div>
 
       <table className="sr-only">
-        <caption>Income, cost and profit by month</caption>
+        <caption>{t('accounts.profit.chartCaption')}</caption>
         <thead>
           <tr>
-            <th>Month</th>
-            <th>Income</th>
-            <th>Cost</th>
-            <th>Profit</th>
+            <th>{t('accounts.profit.month')}</th>
+            <th>{t('accounts.profit.income')}</th>
+            <th>{t('accounts.profit.totalCost')}</th>
+            <th>{t('accounts.profit.profit')}</th>
           </tr>
         </thead>
         <tbody>

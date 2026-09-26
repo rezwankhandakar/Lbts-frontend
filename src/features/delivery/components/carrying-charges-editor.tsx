@@ -10,9 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CARRYING_KIND_META, taka } from '../lib/delivery-meta'
+import { carryingKindMeta, taka } from '../lib/delivery-meta'
 import { CARRYING_KINDS, MAX_CARRYING_ENTRIES } from '../types'
 import type { CarryingChargeRecord, CarryingKind } from '../types'
+import { useT } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 
 interface CarryingChargesEditorProps {
   entries: CarryingChargeRecord[]
@@ -21,10 +23,12 @@ interface CarryingChargesEditorProps {
 }
 
 /** Base UI labels a closed trigger from these; see `assign-driver-dialog`. */
-const KIND_OPTIONS = CARRYING_KINDS.map((value) => ({
-  value,
-  label: CARRYING_KIND_META[value].label,
-}))
+function kindOptions(t: Translator) {
+  return CARRYING_KINDS.map((value) => ({
+    value,
+    label: carryingKindMeta(value, t).label,
+  }))
+}
 
 /**
  * What was hired to get the goods the last few metres, and what it cost.
@@ -44,6 +48,8 @@ export function CarryingChargesEditor({
   disabled,
   onChange,
 }: CarryingChargesEditorProps) {
+  const t = useT()
+
   const set = (index: number, patch: Partial<CarryingChargeRecord>) => {
     onChange(entries.map((entry, at) => (at === index ? { ...entry, ...patch } : entry)))
   }
@@ -62,7 +68,7 @@ export function CarryingChargesEditor({
                     What
                   </Label>
                   <Select
-                    items={KIND_OPTIONS}
+                    items={kindOptions(t)}
                     value={entry.kind}
                     onValueChange={(value) =>
                       set(index, { kind: (value ?? 'Labour') as CarryingKind })
@@ -73,7 +79,7 @@ export function CarryingChargesEditor({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {KIND_OPTIONS.map((option) => (
+                        {kindOptions(t).map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
@@ -85,12 +91,12 @@ export function CarryingChargesEditor({
 
                 <div className="min-w-40 flex-1 space-y-1">
                   <Label htmlFor={`carry-what-${index}`} className="text-xs text-muted-foreground">
-                    Details
+                    {t('delivery.extras.detailsHeading')}
                   </Label>
                   <Input
                     id={`carry-what-${index}`}
                     className="h-8 text-[13px]"
-                    placeholder={CARRYING_KIND_META[entry.kind].hint}
+                    placeholder={carryingKindMeta(entry.kind, t).hint}
                     maxLength={200}
                     value={entry.description}
                     disabled={disabled}
@@ -121,7 +127,7 @@ export function CarryingChargesEditor({
                   variant="ghost"
                   size="icon"
                   className="size-8"
-                  aria-label="Remove this charge"
+                  aria-label={t('delivery.extras.removeCharge')}
                   disabled={disabled}
                   onClick={() => onChange(entries.filter((_, at) => at !== index))}
                 >
@@ -144,12 +150,14 @@ export function CarryingChargesEditor({
           }
         >
           <Plus data-icon="inline-start" aria-hidden />
-          {entries.length === 0 ? 'A vehicle or labour was used' : 'Add another'}
+          {entries.length === 0
+            ? t('delivery.extras.firstCharge')
+            : t('delivery.extras.addAnother')}
         </Button>
 
         {entries.length > 0 && (
           <p className="ms-auto text-sm">
-            <span className="text-muted-foreground">Total </span>
+            <span className="text-muted-foreground">{t('delivery.extras.total')} </span>
             <span className="font-semibold tabular-nums">{taka(total)}</span>
           </p>
         )}
@@ -157,8 +165,7 @@ export function CarryingChargesEditor({
 
       {entries.length === 0 && (
         <p className="text-xs leading-snug text-muted-foreground">
-          Only if something was hired to get the goods in. A charge of nothing is worth recording
-          too — it says the address needed help, not that nobody was paid.
+          {t('delivery.extras.chargeHint')}
         </p>
       )}
     </div>

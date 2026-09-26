@@ -4,6 +4,7 @@ import type { UseMutationResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { fetchMyProfile } from '@/features/auth/auth-api'
 import type { ApiError } from '@/lib/axios'
+import { t } from '@/lib/i18n'
 import { useAuthStore } from '@/stores/use-auth-store'
 import type { UserProfile } from '@/stores/use-auth-store'
 import { removeProfilePhoto, updateProfile, uploadProfilePhoto } from './profile-api'
@@ -100,7 +101,7 @@ export function useUpdateProfile(): UseMutationResult<UserProfile, ApiError, Upd
 
   return useMutation({
     mutationFn: updateProfile,
-    onSuccess: (profile) => write(profile, 'Profile updated'),
+    onSuccess: (profile) => write(profile, t('profile.edit.updated')),
     onError: reportError,
   })
 }
@@ -119,7 +120,7 @@ export function useUploadProfilePhoto(onUploaded?: () => void): PhotoUploadContr
   const mutation = useMutation({
     mutationFn: (file: File) => uploadProfilePhoto(file, setProgress),
     onSuccess: (profile) => {
-      write(profile, 'Profile photo updated')
+      write(profile, t('profile.photo.updated'))
       onUploaded?.()
     },
     onError: reportError,
@@ -144,7 +145,7 @@ export function useRemoveProfilePhoto(): UseMutationResult<UserProfile, ApiError
 
   return useMutation({
     mutationFn: removeProfilePhoto,
-    onSuccess: (profile) => write(profile, 'Profile photo removed'),
+    onSuccess: (profile) => write(profile, t('profile.photo.removed')),
     onError: reportError,
   })
 }

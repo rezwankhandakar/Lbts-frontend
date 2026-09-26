@@ -2,13 +2,16 @@ import { BadgeCheck, CalendarDays, RefreshCcw, Send, TriangleAlert, Undo2 } from
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { GatePassStats as Stats } from '../types'
 
 interface StatDef {
   key: keyof Stats
-  label: string
-  hint: string
+  labelKey: TranslationKey
+  hintKey: TranslationKey
   icon: LucideIcon
   chip: string
   /** Drawn only while the figure is non-zero — a queue that needs attention. */
@@ -18,30 +21,30 @@ interface StatDef {
 const STATS: StatDef[] = [
   {
     key: 'today',
-    label: "Today's gate passes",
-    hint: 'Trips dated today',
+    labelKey: 'gatePass.stats.today',
+    hintKey: 'gatePass.stats.todayHint',
     icon: CalendarDays,
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
   },
   {
     key: 'submitted',
-    label: 'Awaiting verification',
-    hint: 'Submitted, not yet checked',
+    labelKey: 'gatePass.stats.submitted',
+    hintKey: 'gatePass.stats.submittedHint',
     icon: Send,
     chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
     emphasis: 'ring-1 ring-tone-amber/30',
   },
   {
     key: 'verified',
-    label: 'Verified',
-    hint: 'Checked against the scan',
+    labelKey: 'gatePass.stats.verified',
+    hintKey: 'gatePass.stats.verifiedHint',
     icon: BadgeCheck,
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
   },
   {
     key: 'rejected',
-    label: 'Sent back',
-    hint: 'Waiting on a correction',
+    labelKey: 'gatePass.stats.rejected',
+    hintKey: 'gatePass.stats.rejectedHint',
     icon: Undo2,
     chip: 'bg-tone-rose/10 text-tone-rose ring-tone-rose/20',
     emphasis: 'ring-1 ring-tone-rose/30',
@@ -67,16 +70,18 @@ interface GatePassStatsProps {
  * screen.
  */
 export function GatePassStats({ stats, isLoading, isError, onRetry }: GatePassStatsProps) {
+  const t = useT()
+
   if (isError) {
     return (
       <div className="mb-6 flex flex-col items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-center gap-2.5 text-sm text-muted-foreground">
           <TriangleAlert className="size-4 shrink-0 text-destructive" aria-hidden />
-          The gate pass overview could not be loaded.
+          {t('gatePass.stats.loadFailed')}
         </p>
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          Retry
+          {t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -98,7 +103,7 @@ export function GatePassStats({ stats, isLoading, isError, onRetry }: GatePassSt
           >
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-medium tracking-wide text-muted-foreground">
-                {stat.label}
+                {t(stat.labelKey)}
               </p>
               <span
                 className={cn(
@@ -114,11 +119,11 @@ export function GatePassStats({ stats, isLoading, isError, onRetry }: GatePassSt
               <Skeleton className="mt-3 h-8 w-14" />
             ) : (
               <p className="mt-2 text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                {value}
+                {formatNumber(value)}
               </p>
             )}
 
-            <p className="mt-2 text-[11px] text-muted-foreground/80">{stat.hint}</p>
+            <p className="mt-2 text-[11px] text-muted-foreground/80">{t(stat.hintKey)}</p>
           </div>
         )
       })}

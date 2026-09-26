@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import type { ApiError } from '@/lib/axios'
+import type { TranslationKey } from '@/lib/i18n'
 import { DuplicateChallanError, PageRangeConflictError } from '../api/challan-api'
 import { SourcePdfError, extractPageRangeAsFile } from '../lib/pdf-source'
 import type { ChallanEntry } from '../lib/challan-session'
@@ -40,10 +41,10 @@ export const SUBMISSION_STAGES: Exclude<SubmissionStage, 'idle'>[] = [
  * milliseconds of it, so a label naming only those sends somebody looking for
  * a slow PDF writer when the wait is a database and an external lookup.
  */
-export const STAGE_LABELS: Record<Exclude<SubmissionStage, 'idle'>, string> = {
-  extracting: 'Cutting the challan pages out of the PDF',
-  uploading: 'Uploading the challan pages',
-  finalizing: 'Checking, numbering and filing the challan',
+export const STAGE_KEYS: Record<Exclude<SubmissionStage, 'idle'>, TranslationKey> = {
+  extracting: 'challan.stages.extracting',
+  uploading: 'challan.stages.uploading',
+  finalizing: 'challan.stages.finalizing',
 }
 
 export interface SubmissionContext {

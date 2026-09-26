@@ -1,7 +1,8 @@
 import { cn } from '@/lib/utils'
 import { useWallets } from '../hooks/use-accounts'
 import { useEntryDialog } from '../hooks/use-entry-dialog'
-import { KIND_META } from '../lib/accounts-meta'
+import { useT } from '@/lib/i18n'
+import { kindMeta } from '../lib/accounts-meta'
 import type { EntryKind } from '../types'
 
 const ACTIONS: EntryKind[] = ['Deposit', 'Expense', 'VendorPayment', 'TripAdvance', 'Advance', 'Transfer']
@@ -12,6 +13,8 @@ const ACTIONS: EntryKind[] = ['Deposit', 'Expense', 'VendorPayment', 'TripAdvanc
  * nothing moves into or out of a bank or mobile wallet.
  */
 export function QuickActions({ className }: { className?: string }) {
+  const t = useT()
+
   const dialog = useEntryDialog()
   const wallets = useWallets()
   const cashWallets = (wallets.data ?? []).filter((wallet) => wallet.kind === 'Cash' && wallet.isActive).length
@@ -20,7 +23,7 @@ export function QuickActions({ className }: { className?: string }) {
   return (
     <div className={cn('grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6', className)}>
       {actions.map((kind) => {
-        const meta = KIND_META[kind]
+        const meta = kindMeta(kind, t)
         return (
           <button
             key={kind}

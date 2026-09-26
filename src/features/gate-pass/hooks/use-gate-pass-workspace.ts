@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
+import { t } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { DuplicateSubmissionError } from '../api/gate-pass-api'
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
 import type { DuplicateCandidate, GatePassInput, GatePassRecord } from '../types'
@@ -24,10 +26,10 @@ import {
  */
 export type SubmissionStage = 'idle' | 'saving' | 'uploading' | 'finalizing'
 
-export const STAGE_LABELS: Record<Exclude<SubmissionStage, 'idle'>, string> = {
-  saving: 'Saving gate pass…',
-  uploading: 'Uploading document…',
-  finalizing: 'Finalising…',
+export const STAGE_KEYS: Record<Exclude<SubmissionStage, 'idle'>, TranslationKey> = {
+  saving: 'gatePass.stages.saving',
+  uploading: 'gatePass.stages.uploading',
+  finalizing: 'gatePass.stages.finalizing',
 }
 
 /** A scan waiting to be uploaded, or the one already stored on the record. */
@@ -199,8 +201,8 @@ export function useGatePassWorkspace({
       try {
         const current = await write(values)
 
-        toast.success('Draft saved', {
-          description: `${current.gatePassId} is saved. You can finish it later.`,
+        toast.success(t('gatePass.toasts.draftSaved'), {
+          description: t('gatePass.toasts.draftSavedNote', { gatePass: current.gatePassId }),
         })
 
         return current
@@ -231,11 +233,16 @@ export function useGatePassWorkspace({
         const current = await write(values)
         const returned = before === 'Verified' && current.status === 'Submitted'
 
-        toast.success(returned ? 'Sent back for verification' : 'Changes saved', {
-          description: returned
-            ? `${current.gatePassId} returns to a reviewer, because what was verified has changed.`
-            : `${current.gatePassId} is up to date.`,
-        })
+        toast.success(
+          returned
+            ? t('gatePass.toasts.sentBackForVerification')
+            : t('gatePass.toasts.changesSaved'),
+          {
+            description: returned
+              ? t('gatePass.toasts.reverifyNote', { gatePass: current.gatePassId })
+              : t('gatePass.toasts.upToDate', { gatePass: current.gatePassId }),
+          },
+        )
 
         return current
       } catch (error) {
@@ -262,8 +269,8 @@ export function useGatePassWorkspace({
         if (!current.document) {
           // The server refuses this too; saying it here saves a round trip and
           // points at the panel that needs attention.
-          toast.error('Scan the gate pass first', {
-            description: 'A submitted gate pass has to carry its scanned document.',
+          toast.error(t('gatePass.toasts.scanFirst'), {
+            description: t('gatePass.toasts.scanFirstNote'),
           })
           return null
         }

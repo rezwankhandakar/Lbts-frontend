@@ -1,6 +1,7 @@
 import { CheckCheck, Settings2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   useDismissNotification,
@@ -57,6 +58,9 @@ export function NotificationPanel({
   onClose,
   onOpenPreferences,
 }: NotificationPanelProps) {
+  const t = useT()
+  const format = useFormatters()
+
   const setRead = useSetNotificationRead()
   const dismiss = useDismissNotification()
   const markAll = useMarkAllRead()
@@ -79,9 +83,13 @@ export function NotificationPanel({
     <div className="flex max-h-[min(30rem,calc(100svh-5rem))] w-[calc(100vw-2rem)] flex-col sm:w-96">
       <header className="flex items-center gap-2 border-b px-3 py-2.5">
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] leading-none font-semibold">Notifications</p>
+          <p className="text-[13px] leading-none font-semibold">{t('notification.title')}</p>
           <p className="mt-1 text-[11px] leading-none text-muted-foreground">
-            {isLoading ? 'Checking…' : unread === 0 ? 'Nothing waiting' : `${unread} unread`}
+            {isLoading
+              ? t('notification.panel.checking')
+              : unread === 0
+                ? t('notification.panel.nothingWaiting')
+                : t('notification.panel.unread', { count: unread, n: format.number(unread) })}
           </p>
         </div>
 
@@ -89,7 +97,7 @@ export function NotificationPanel({
           variant="ghost"
           size="icon-sm"
           className="text-muted-foreground"
-          aria-label="Notification settings"
+          aria-label={t('notification.panel.settings')}
           onClick={() => {
             onClose()
             onOpenPreferences()
@@ -109,7 +117,7 @@ export function NotificationPanel({
             onClick={() => markAll.mutate(newestShown)}
           >
             <CheckCheck aria-hidden />
-            Mark all
+            {t('notification.panel.markAll')}
           </Button>
         )}
       </header>
@@ -121,7 +129,7 @@ export function NotificationPanel({
             if (count === 0) {
               return null
             }
-            const meta = notificationPriorityMeta(priority)
+            const meta = notificationPriorityMeta(priority, t)
             return (
               <span
                 key={priority}
@@ -169,7 +177,7 @@ export function NotificationPanel({
           render={<Link to="/notifications" state={{ state: 'unread' }} />}
           onClick={onClose}
         >
-          See unread
+          {t('notification.panel.seeUnread')}
         </Button>
         <Button
           variant="ghost"
@@ -178,7 +186,7 @@ export function NotificationPanel({
           render={<Link to="/notifications" />}
           onClick={onClose}
         >
-          All notifications
+          {t('notification.panel.seeAll')}
         </Button>
       </footer>
     </div>

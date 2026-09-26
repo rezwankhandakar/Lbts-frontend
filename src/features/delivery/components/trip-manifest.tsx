@@ -1,6 +1,7 @@
 import { ExternalLink, PackageCheck, Undo2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { lineDetail } from '../lib/delivery-meta'
 import type { TripChallanRecord } from '../types'
@@ -30,6 +31,8 @@ interface TripManifestProps {
  * deliveries, signed for at three doors.
  */
 export function TripManifest({ challans, completionHref }: TripManifestProps) {
+  const t = useT()
+
   return (
     <ol className="space-y-3">
       {challans.map((challan, index) => (
@@ -77,7 +80,7 @@ export function TripManifest({ challans, completionHref }: TripManifestProps) {
 
           {challan.reserved.length > 0 && (
             <p className="mx-4 mt-2 rounded-md bg-tone-cyan/10 px-2 py-1 text-[11px] text-tone-cyan">
-              Left on the challan for a later trip:{' '}
+              {t('delivery.completion.leftOnChallan')}{' '}
               {challan.reserved
                 .map((line) => `${line.productName} ${line.model} × ${line.qty}`)
                 .join('; ')}
@@ -93,7 +96,7 @@ export function TripManifest({ challans, completionHref }: TripManifestProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="text-sm font-medium">{line.productName}</span>
-                    <LineChangeBadge change={line.change} detail={lineDetail(line)} />
+                    <LineChangeBadge change={line.change} detail={lineDetail(line, t)} />
                   </div>
                   <p className="font-mono text-xs text-muted-foreground">{line.model}</p>
                 </div>
@@ -112,7 +115,9 @@ export function TripManifest({ challans, completionHref }: TripManifestProps) {
                 render={<Link to={completionHref(challan)} />}
               >
                 <PackageCheck data-icon="inline-start" aria-hidden />
-                {challan.outcome === 'Complete' ? 'Open the delivery' : 'Complete this delivery'}
+                {challan.outcome === 'Complete'
+                  ? t('delivery.completion.openDelivery')
+                  : t('delivery.completion.completeDelivery')}
               </Button>
             )}
           </div>

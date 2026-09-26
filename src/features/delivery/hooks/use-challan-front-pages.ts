@@ -1,3 +1,4 @@
+import { t } from '@/lib/i18n'
 import { useCallback, useEffect, useState } from 'react'
 import { fetchChallanDocument } from '@/features/challan/api/challan-api'
 
@@ -61,7 +62,7 @@ export function useChallanFrontPages(id: string | null) {
         const message =
           typeof failure === 'object' && failure !== null && 'message' in failure
             ? String((failure as { message: unknown }).message)
-            : 'The challan PDF could not be loaded.'
+            : t('delivery.dispatch.pdfLoadFailed')
         setLoaded({ key, url: null, blob: null, error: message })
       })
 

@@ -16,6 +16,8 @@ import { defaultLinkQty } from '../lib/split-parts'
 import type { GatePassOption, LinkTarget } from '../types'
 import { GatePassOptionList } from './gate-pass-option-list'
 import { LinkQtyField } from './link-qty-field'
+import { useT } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 
 interface AssignTripDoDialogProps {
   target: LinkTarget | null
@@ -60,18 +62,29 @@ export function AssignTripDoDialog({
   )
 }
 
-function blockedReason(target: LinkTarget, chosen: GatePassOption | null, qty: number): string | null {
+/**
+ * Why the confirm button is disabled, as a sentence.
+ *
+ * Takes the translator rather than reaching for the store — it is called from
+ * a component that already holds `useT()`, and that is the subscription.
+ */
+function blockedReason(
+  target: LinkTarget,
+  chosen: GatePassOption | null,
+  qty: number,
+  t: Translator,
+): string | null {
   if (!chosen) {
-    return 'Choose the gate pass these goods came out on.'
+    return t('tripDo.assign.chooseGatePass')
   }
   if (qty < 1) {
-    return 'Link at least one piece.'
+    return t('tripDo.assign.linkAtLeastOne')
   }
   if (qty > chosen.remainingQty) {
-    return `Only ${chosen.remainingQty} ${chosen.model} left on this gate pass.`
+    return t('tripDo.option.onlyLeft', { qty: chosen.remainingQty, model: chosen.model })
   }
   if (chosen.isCurrent && qty === target.qty) {
-    return 'This is already the Trip DO.'
+    return t('tripDo.assign.alreadySet')
   }
   return null
 }
@@ -87,6 +100,8 @@ function AssignTripDoBody({
   onCancel: () => void
   onConfirm: (option: GatePassOption, qty: number) => void
 }) {
+  const t = useT()
+
   const [query, setQuery] = useState('')
   const [chosenKey, setChosenKey] = useState<string | null>(null)
   const [qty, setQty] = useState(target.qty)
@@ -97,7 +112,7 @@ function AssignTripDoBody({
   // Until somebody chooses, the line the row is already linked to is chosen.
   const chosen =
     list.find((option) => (chosenKey === null ? option.isCurrent : option.optionKey === chosenKey)) ?? null
-  const blocked = blockedReason(target, chosen, qty)
+  const blocked = blockedReason(target, chosen, qty, t)
 
   const choose = (option: GatePassOption) => {
     setChosenKey(option.optionKey)
@@ -107,9 +122,11 @@ function AssignTripDoBody({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>{target.currentGatePassId ? 'Change Trip DO' : 'Set Trip DO'}</DialogTitle>
+        <DialogTitle>
+          {target.currentGatePassId ? t('tripDo.changeTripDo') : t('tripDo.setTripDo')}
+        </DialogTitle>
         <DialogDescription>
-          Choose the gate pass these goods came out on. Its CSD and unit are set on the row with it.
+          {t('tripDo.assign.chooseGatePassLong')}
         </DialogDescription>
       </DialogHeader>
 
@@ -120,7 +137,7 @@ function AssignTripDoBody({
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13px] font-semibold">{target.productName}</p>
           <p className="truncate font-mono text-xs text-muted-foreground">
-            {target.model || 'No model'} · {target.label}
+            {target.model || t('tripDo.noModel')} · {target.label}
           </p>
         </div>
         <div className="text-right">
@@ -140,8 +157,8 @@ function AssignTripDoBody({
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Trip DO, gate pass number or vehicle"
-            aria-label="Find a gate pass"
+            placeholder={t('tripDo.assign.searchPlaceholder')}
+            aria-label={t('tripDo.assign.searchAria')}
             className="pl-8.5"
           />
         </div>
@@ -172,14 +189,18 @@ function AssignTripDoBody({
 
       <DialogFooter>
         <Button variant="outline" onClick={onCancel} disabled={isPending}>
-          Cancel
+          {t('common.actions.cancel')}
         </Button>
         <Button
           onClick={() => chosen && onConfirm(chosen, qty)}
           disabled={Boolean(blocked) || isPending}
           title={blocked ?? undefined}
         >
-          {isPending ? 'Saving…' : chosen ? `Set Trip DO ${chosen.tripDo}` : 'Set Trip DO'}
+          {isPending
+            ? t('tripDo.assign.saving')
+            : chosen
+              ? t('tripDo.assign.setWith', { tripDo: chosen.tripDo })
+              : t('tripDo.setTripDo')}
         </Button>
       </DialogFooter>
     </>

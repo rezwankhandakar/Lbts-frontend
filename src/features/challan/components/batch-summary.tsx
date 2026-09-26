@@ -1,6 +1,6 @@
 import { CircleCheck, Download, FileStack, Loader2, PenLine, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { formatDateTime } from '@/lib/format'
+import { countOf, useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { formatBytes } from '../lib/challan-meta'
 import type { ChallanBatchDetail, PageRange } from '../types'
@@ -57,6 +57,9 @@ export function BatchSummary({
   onClearPrinted,
   onContinue,
 }: BatchSummaryProps) {
+  const t = useT()
+  const format = useFormatters()
+
   const busy = isDownloading || isPrinting
   /**
    * Only while there is something left to file. A finished batch offers the
@@ -64,9 +67,24 @@ export function BatchSummary({
    */
   const canContinue = canChange && !batch.isComplete
 
+  // Two whole clauses rather than three fragments: "started" and "completed"
+  // sit in a different order in the two languages.
+  const started = batch.createdBy
+    ? t('challan.batch.startedBy', {
+        when: format.dateTime(batch.createdAt),
+        name: batch.createdBy.name,
+      })
+    : t('challan.batch.startedAt', { when: format.dateTime(batch.createdAt) })
+  const startedText = batch.completedAt
+    ? t('challan.batch.completedAlso', {
+        started,
+        when: format.dateTime(batch.completedAt),
+      })
+    : started
+
   return (
     <section
-      aria-label="Batch summary"
+      aria-label={t('challan.batch.summaryAria')}
       className="overflow-hidden rounded-xl border bg-card shadow-sm"
     >
       <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-start lg:justify-between">
@@ -98,15 +116,15 @@ export function BatchSummary({
             </div>
 
             <p className="mt-1 text-sm text-muted-foreground">
-              {batch.sourcePageCount} {batch.sourcePageCount === 1 ? 'page' : 'pages'} ·{' '}
-              {batch.challanCount} {batch.challanCount === 1 ? 'challan' : 'challans'} filed
+              {t('challan.batch.pagesChallansLine', {
+                pages: countOf(batch.sourcePageCount, 'nouns.page', t),
+                challans: countOf(batch.challanCount, 'nouns.challan', t),
+              })}
               {batch.sourceFileSize ? ` · ${formatBytes(batch.sourceFileSize)}` : ''}
             </p>
 
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Started {formatDateTime(batch.createdAt)}
-              {batch.createdBy ? ` by ${batch.createdBy.name}` : ''}
-              {batch.completedAt ? ` · completed ${formatDateTime(batch.completedAt)}` : ''}
+              {startedText}
             </p>
           </div>
         </div>
@@ -122,7 +140,7 @@ export function BatchSummary({
           {canContinue && (
             <Button onClick={onContinue}>
               <PenLine data-icon="inline-start" aria-hidden />
-              Continue entering
+              {t('challan.batch.continueEntering')}
             </Button>
           )}
 
@@ -136,7 +154,7 @@ export function BatchSummary({
             ) : (
               <Printer data-icon="inline-start" aria-hidden />
             )}
-            {isPrinting ? 'Assembling…' : 'Print all challans'}
+            {isPrinting ? t('challan.batch.assembling') : t('challan.batch.printAll')}
           </Button>
 
           <Button variant="outline" onClick={onDownload} disabled={!batch.isComplete || busy}>
@@ -145,7 +163,7 @@ export function BatchSummary({
             ) : (
               <Download data-icon="inline-start" aria-hidden />
             )}
-            {isDownloading ? 'Assembling…' : 'Download batch PDF'}
+            {isDownloading ? t('challan.batch.assembling') : t('challan.batch.downloadBatch')}
           </Button>
         </div>
       </div>

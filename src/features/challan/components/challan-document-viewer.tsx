@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Download, FileWarning, Loader2, Maximize2, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface ChallanDocumentViewerProps {
@@ -39,6 +40,8 @@ export function ChallanDocumentViewer({
   pageCount,
   className,
 }: ChallanDocumentViewerProps) {
+  const t = useT()
+
   const [fullscreen, setFullscreen] = useState(false)
 
   const body = (() => {
@@ -58,10 +61,10 @@ export function ChallanDocumentViewer({
           role="alert"
         >
           <FileWarning className="size-6 text-destructive" aria-hidden />
-          <p className="text-sm font-medium">The document could not be loaded</p>
+          <p className="text-sm font-medium">{t('challan.details.loadFailed')}</p>
           <p className="max-w-xs text-xs text-muted-foreground">{error}</p>
           <Button variant="outline" size="sm" onClick={onRetry}>
-            Try again
+            {t('common.actions.retry')}
           </Button>
         </div>
       )
@@ -84,7 +87,7 @@ export function ChallanDocumentViewer({
       // this app fetched from its own authenticated API, typed
       // application/pdf, so the browser hands it to the PDF viewer rather than
       // parsing it as a document.
-      <iframe src={url} title="Challan document" className="size-full border-0 bg-white" />
+      <iframe src={url} title={t('challan.details.documentAria')} className="size-full border-0 bg-white" />
     )
   })()
 
@@ -109,7 +112,7 @@ export function ChallanDocumentViewer({
               className="text-muted-foreground hover:text-foreground"
               onClick={() => setFullscreen(true)}
               disabled={!url}
-              aria-label="Fullscreen"
+              aria-label={t('challan.pdf.fullscreen')}
             >
               <Maximize2 aria-hidden />
             </Button>
@@ -119,7 +122,7 @@ export function ChallanDocumentViewer({
               className="text-muted-foreground hover:text-foreground"
               onClick={onPrint}
               disabled={!url}
-              aria-label="Print"
+              aria-label={t('common.actions.print')}
             >
               <Printer aria-hidden />
             </Button>
@@ -128,7 +131,7 @@ export function ChallanDocumentViewer({
               size="icon-sm"
               className="text-muted-foreground hover:text-foreground"
               onClick={onDownload}
-              aria-label="Download"
+              aria-label={t('common.actions.download')}
             >
               <Download aria-hidden />
             </Button>
@@ -138,10 +141,10 @@ export function ChallanDocumentViewer({
 
       <Dialog open={fullscreen} onOpenChange={setFullscreen}>
         <DialogContent className="flex h-[92vh] w-[96vw] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none">
-          <DialogTitle className="sr-only">Challan document</DialogTitle>
+          <DialogTitle className="sr-only">{t('challan.details.documentAria')}</DialogTitle>
           <div className="min-h-0 flex-1 pt-8">
             {url && (
-              <iframe src={url} title="Challan document" className="size-full border-0 bg-white" />
+              <iframe src={url} title={t('challan.details.documentAria')} className="size-full border-0 bg-white" />
             )}
           </div>
         </DialogContent>

@@ -2,6 +2,7 @@ import { useReceivableFinalBills, useReceivableLabourCsds } from '../hooks/use-a
 import { taka } from '../lib/accounts-meta'
 import { LockedValue } from './entry-field'
 import type { KindFieldsProps } from './entry-kind-fields'
+import { useT } from '@/lib/i18n'
 
 /**
  * Add money asks nothing about where the money came from: it is a deposit into
@@ -24,6 +25,8 @@ export function DepositFields(props: KindFieldsProps) {
 
 /** How much is left to receive, with the correction's own amount added back in. */
 function FillIt({ left, onFill }: { left: number; onFill: () => void }) {
+  const t = useT()
+
   if (left <= 0) {
     return null
   }
@@ -31,13 +34,15 @@ function FillIt({ left, onFill }: { left: number; onFill: () => void }) {
     <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
       {taka(left)} left to receive
       <button type="button" className="font-medium text-primary hover:underline" onClick={onFill}>
-        Fill it
+        {t('accounts.deposit.fillIt')}
       </button>
     </p>
   )
 }
 
 function FinalBillPaymentField({ draft, set, request }: KindFieldsProps) {
+  const t = useT()
+
   const receivable = useReceivableFinalBills(true)
   const bill = receivable.data?.find((option) => option.id === draft.finalBillId)
   const current = request.entry?.finalBill
@@ -48,9 +53,20 @@ function FinalBillPaymentField({ draft, set, request }: KindFieldsProps) {
   return (
     <div className="grid gap-1.5">
       <LockedValue
-        label="Walton payment against final bill"
-        value={bill ? `${bill.unit} · ${bill.periodLabel}` : (current?.label ?? 'Final bill')}
-        detail={bill ? `Final bill ${taka(bill.finalAmount)} · ${taka(bill.receivedAmount)} received` : undefined}
+        label={t('accounts.deposit.againstFinalBill')}
+        value={
+          bill
+            ? t('accounts.deposit.unitAndPeriod', { unit: bill.unit, period: bill.periodLabel })
+            : (current?.label ?? t('accounts.deposit.finalBill'))
+        }
+        detail={
+          bill
+            ? t('accounts.deposit.finalBillDetail', {
+                amount: taka(bill.finalAmount),
+                received: taka(bill.receivedAmount),
+              })
+            : undefined
+        }
       />
       {left !== null && <FillIt left={left} onFill={() => set({ amount: left })} />}
     </div>
@@ -65,6 +81,8 @@ function FinalBillPaymentField({ draft, set, request }: KindFieldsProps) {
  * being paid for.
  */
 function LabourPaymentField({ draft, set, request }: KindFieldsProps) {
+  const t = useT()
+
   const receivable = useReceivableLabourCsds(true)
   const option = receivable.data?.find(
     (candidate) => candidate.billId === draft.labourBillId && candidate.csd === draft.labourCsd,
@@ -77,11 +95,11 @@ function LabourPaymentField({ draft, set, request }: KindFieldsProps) {
   return (
     <div className="grid gap-1.5">
       <LockedValue
-        label="Walton payment against labour bill"
+        label={t('accounts.deposit.againstLabourBill')}
         value={
           option
             ? `${option.csd} · ${option.periodLabel}`
-            : (current?.label ?? (draft.labourCsd || 'Labour bill CSD'))
+            : (current?.label ?? (draft.labourCsd || t('accounts.deposit.labourCsd')))
         }
         detail={
           option

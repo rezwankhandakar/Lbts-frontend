@@ -9,14 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  ROLE_META,
-  STATUS_META,
-  USER_ROLES,
-  USER_STATUSES,
-  roleMeta,
-  statusMeta,
-} from '@/lib/roles'
+import { useT } from '@/lib/i18n'
+import { ROLE_META, STATUS_META, USER_ROLES, USER_STATUSES, roleLabel, statusLabel } from '@/lib/roles'
 import { cn } from '@/lib/utils'
 import type { RoleFilter, StatusFilter } from '../types'
 
@@ -35,18 +29,6 @@ interface UserFiltersProps {
 const TRIGGER = 'h-8 w-full sm:w-[9.5rem]'
 
 /**
- * Base UI renders the raw value in the trigger unless it is told otherwise, so
- * an unmapped filter would read 'all' rather than 'All roles'.
- */
-function roleLabel(value: unknown): string {
-  return typeof value === 'string' && value !== 'all' ? roleMeta(value).label : 'All roles'
-}
-
-function statusLabel(value: unknown): string {
-  return typeof value === 'string' && value !== 'all' ? statusMeta(value).label : 'All status'
-}
-
-/**
  * Local to Administration by design — this filters the user directory, it is
  * not an app-wide search. The text field is debounced by the page, so typing
  * does not fire a request per keystroke.
@@ -61,7 +43,26 @@ export function UserFilters({
   onReset,
   summary,
 }: UserFiltersProps) {
+  const t = useT()
   const isFiltered = search !== '' || role !== 'all' || status !== 'all'
+
+  /**
+   * Base UI renders the raw value in the trigger unless it is told otherwise,
+   * so an unmapped filter would read 'all' rather than 'All roles'.
+   *
+   * These are closures over `t` rather than module-level functions, which is
+   * what makes them follow the language: a module-level helper would have had
+   * to reach for the store and would then never re-render.
+   */
+  const renderRole = (value: unknown): string =>
+    typeof value === 'string' && value !== 'all'
+      ? roleLabel(value, t)
+      : t('administration.filters.allRoles')
+
+  const renderStatus = (value: unknown): string =>
+    typeof value === 'string' && value !== 'all'
+      ? statusLabel(value, t)
+      : t('administration.filters.allStatus')
 
   return (
     <div className="flex flex-col gap-3 border-b p-3 sm:p-4">
@@ -75,28 +76,28 @@ export function UserFilters({
             type="search"
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search by name or email"
-            aria-label="Search users"
+            placeholder={t('administration.filters.searchPlaceholder')}
+            aria-label={t('administration.filters.searchAria')}
             className="pl-8.5"
           />
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Select value={role} onValueChange={(value) => onRoleChange(value as RoleFilter)}>
-            <SelectTrigger className={TRIGGER} aria-label="Filter by role">
+            <SelectTrigger className={TRIGGER} aria-label={t('administration.filters.roleAria')}>
               <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
-              <SelectValue>{roleLabel}</SelectValue>
+              <SelectValue>{renderRole}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="all">All roles</SelectItem>
+                <SelectItem value="all">{t('administration.filters.allRoles')}</SelectItem>
                 {USER_ROLES.map((option) => (
                   <SelectItem key={option} value={option}>
                     <span
                       className={cn('size-1.5 shrink-0 rounded-full', ROLE_META[option].dot)}
                       aria-hidden
                     />
-                    {ROLE_META[option].label}
+                    {roleLabel(option, t)}
                   </SelectItem>
                 ))}
               </SelectGroup>
@@ -104,20 +105,20 @@ export function UserFilters({
           </Select>
 
           <Select value={status} onValueChange={(value) => onStatusChange(value as StatusFilter)}>
-            <SelectTrigger className={TRIGGER} aria-label="Filter by account status">
+            <SelectTrigger className={TRIGGER} aria-label={t('administration.filters.statusAria')}>
               <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
-              <SelectValue>{statusLabel}</SelectValue>
+              <SelectValue>{renderStatus}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="all">All status</SelectItem>
+                <SelectItem value="all">{t('administration.filters.allStatus')}</SelectItem>
                 {USER_STATUSES.map((option) => (
                   <SelectItem key={option} value={option}>
                     <span
                       className={cn('size-1.5 shrink-0 rounded-full', STATUS_META[option].dot)}
                       aria-hidden
                     />
-                    {STATUS_META[option].label}
+                    {statusLabel(option, t)}
                   </SelectItem>
                 ))}
               </SelectGroup>
@@ -127,7 +128,7 @@ export function UserFilters({
           {isFiltered && (
             <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
               <X data-icon="inline-start" aria-hidden />
-              Clear
+              {t('common.actions.clear')}
             </Button>
           )}
         </div>

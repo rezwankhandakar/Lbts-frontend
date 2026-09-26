@@ -1,6 +1,9 @@
 import { FileClock, TrendingDown, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
+import { formatPercent } from '@/lib/format'
+import { countOf } from '@/lib/i18n'
 import { signedTaka, taka } from '../lib/accounts-meta'
 import type { ProfitLossReport } from '../types'
 
@@ -10,15 +13,17 @@ import type { ProfitLossReport } from '../types'
  * above it, because they are costs with no income against them.
  */
 export function PlSummary({ report }: { report: ProfitLossReport }) {
+  const t = useT()
+
   const { summary } = report
   const isProfit = summary.profit >= 0
   const Trend = isProfit ? TrendingUp : TrendingDown
   const costShare = (value: number) => (summary.totalCost > 0 ? Math.round((value / summary.totalCost) * 100) : 0)
 
   const costs = [
-    { label: 'Trip rent', value: summary.tripRent },
-    { label: 'Labour bill', value: summary.labourBill },
-    { label: 'Office expenses', value: summary.officeExpense },
+    { label: t('accounts.profit.tripRent'), value: summary.tripRent },
+    { label: t('accounts.profit.labourBill'), value: summary.labourBill },
+    { label: t('accounts.profit.officeExpenses'), value: summary.officeExpense },
   ]
 
   return (
@@ -40,7 +45,9 @@ export function PlSummary({ report }: { report: ProfitLossReport }) {
 
       <section className="grid overflow-hidden rounded-xl border bg-card shadow-sm lg:grid-cols-[1fr_1fr_1.1fr]">
         <div className="border-b p-5 lg:border-r lg:border-b-0">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Income</p>
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            {t('accounts.profit.income')}
+          </p>
           <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">{taka(summary.income)}</p>
           {/* The two claims on their own lines: neither stands for the other, and
               a single figure would hide which half a month is missing. */}
@@ -67,7 +74,9 @@ export function PlSummary({ report }: { report: ProfitLossReport }) {
         </div>
 
         <div className="border-b p-5 lg:border-r lg:border-b-0">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Operational cost</p>
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            {t('accounts.profit.operationalCost')}
+          </p>
           <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">{taka(summary.totalCost)}</p>
           <dl className="mt-3 grid gap-1.5 text-sm">
             {costs.map((cost) => (
@@ -85,11 +94,17 @@ export function PlSummary({ report }: { report: ProfitLossReport }) {
         <div className={cn('flex flex-col justify-between p-5', isProfit ? 'bg-tone-emerald/5' : 'bg-tone-rose/5')}>
           <p className={cn('flex items-center gap-2 text-xs font-medium tracking-wide uppercase', isProfit ? 'text-tone-emerald' : 'text-tone-rose')}>
             <Trend className="size-4" aria-hidden />
-            Net {isProfit ? 'profit' : 'loss'}
+            {isProfit ? t('accounts.profit.netProfit') : t('accounts.profit.netLoss')}
           </p>
           <p className="mt-2 text-4xl font-semibold tracking-tight tabular-nums">{signedTaka(summary.profit)}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {summary.margin === null ? 'No income to take a margin of' : `${summary.margin}% margin`} · {summary.tripCount} trips
+            {t('accounts.profit.marginAndTrips', {
+              margin:
+                summary.margin === null
+                  ? t('accounts.profit.noMargin')
+                  : t('accounts.profit.marginOf', { margin: formatPercent(summary.margin) }),
+              trips: countOf(summary.tripCount, 'nouns.trip', t),
+            })}
             {summary.blankBills > 0 && <span className="text-tone-amber"> · {summary.blankBills} with no bill entered</span>}
           </p>
         </div>

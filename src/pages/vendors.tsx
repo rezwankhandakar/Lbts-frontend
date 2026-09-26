@@ -119,7 +119,7 @@ export function VendorsPage() {
             meta={meta}
             onPageChange={setPage}
             isFetching={vendorsQuery.isFetching}
-            noun={['vendor', 'vendors']}
+            nounKey="nouns.vendor"
           />
         )}
       </section>

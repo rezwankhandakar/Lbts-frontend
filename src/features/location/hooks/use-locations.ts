@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import {
   createLocation,
@@ -205,8 +206,8 @@ export function useUpdateLocation(): UseMutationResult<
     onSuccess: (location) => {
       toast.success(`${location.district} / ${location.thana} updated`, {
         description: location.isActive
-          ? 'Challans that reference it now read the corrected values.'
-          : 'It is deactivated, so it can no longer be chosen or matched.',
+          ? t('location.remove.corrected')
+          : t('location.remove.deactivated'),
       })
       void invalidate()
     },
@@ -239,7 +240,7 @@ export function useDeleteLocation(): UseMutationResult<
             ? `${result.challanCount} challan${
                 result.challanCount === 1 ? '' : 's'
               } still reference it, so it was kept and taken out of use instead.`
-            : 'Nothing referenced it, so it is gone.',
+            : t('location.remove.deleted'),
         },
       )
       void invalidate()

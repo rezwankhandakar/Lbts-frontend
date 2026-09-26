@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Loader2, MapPin, SkipForward, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { formatDateTime } from '@/lib/format'
+import { formatPercent } from '@/lib/format'
+import { useFormatters } from '@/lib/i18n'
 import { LocationSelect } from '@/features/location/components/location-select'
 import type { LocationSelection } from '@/features/location/components/location-select'
 import {
@@ -11,6 +12,7 @@ import {
 import { locationSourceLabel } from '@/features/location/lib/location-meta'
 import { isReviewableLocation } from '@/features/location/types'
 import type { ChallanRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface ChallanLocationEditorProps {
   record: ChallanRecord
@@ -60,6 +62,9 @@ export function ChallanLocationEditor({
   onCancel,
   onSkip,
 }: ChallanLocationEditorProps) {
+  const t = useT()
+  const format = useFormatters()
+
   const resolved = record.resolvedLocation
 
   /**
@@ -88,26 +93,59 @@ export function ChallanLocationEditor({
   const isSameRow = selection !== null && resolved !== null && selection.id === resolved.masterId
   const alreadyDecided = isSameRow && resolved.source === 'admin_manual'
 
+  /**
+   * What decided this location, as one sentence.
+   *
+   * Three whole messages rather than a source plus two appended clauses: a
+   * person's name and a confidence figure sit in different places in the two
+   * languages, and a fragment bolted on in JSX can only be right in one.
+   */
+  const decidedLine = !resolved
+    ? ''
+    : resolved.source === 'admin_manual'
+      ? resolved.resolvedBy
+        ? t('challan.location.decidedBy', {
+            source: locationSourceLabel(resolved.source, t),
+            name: resolved.resolvedBy.name,
+            when: format.dateTime(resolved.resolvedAt),
+          })
+        : t('challan.location.decidedPlain', {
+            source: locationSourceLabel(resolved.source, t),
+            when: format.dateTime(resolved.resolvedAt),
+          })
+      : t('challan.location.decidedConfidence', {
+          source: locationSourceLabel(resolved.source, t),
+          confidence: formatPercent(Math.round(resolved.confidence * 100)),
+          when: format.dateTime(resolved.resolvedAt),
+        })
+
   return (
     <div className="grid gap-4 lg:grid-cols-2 lg:items-start xl:gap-6">
       <section
-        aria-label="What the challan says"
+        aria-label={t('challan.location.transcribedAria')}
         className="overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <header className="border-b bg-muted/30 px-4 py-3">
-          <h2 className="text-[13px] font-semibold tracking-tight">As transcribed</h2>
+          <h2 className="text-[13px] font-semibold tracking-tight">
+            {t('challan.location.transcribedHeading')}
+          </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Exactly what was typed off the challan. Never rewritten by a location, and this is
-            what the printed back page carries.
+            {t('challan.location.transcribedHint')}
           </p>
         </header>
 
         <dl className="divide-y">
-          <TranscribedRow label="Thana" value={record.thana} />
-          <TranscribedRow label="District" value={record.district} />
-          <TranscribedRow label="Delivery address" value={record.deliveryAddress} multiline />
-          {record.zonePo && <TranscribedRow label="Zone / PO" value={record.zonePo} />}
-          <TranscribedRow label="Customer" value={record.customerName} />
+          <TranscribedRow label={t('challan.details.thana')} value={record.thana} />
+          <TranscribedRow label={t('challan.details.district')} value={record.district} />
+          <TranscribedRow
+            label={t('challan.details.deliveryAddress')}
+            value={record.deliveryAddress}
+            multiline
+          />
+          {record.zonePo && (
+            <TranscribedRow label={t('challan.details.zonePo')} value={record.zonePo} />
+          )}
+          <TranscribedRow label={t('challan.details.customer')} value={record.customerName} />
         </dl>
       </section>
 
@@ -119,7 +157,7 @@ export function ChallanLocationEditor({
             attention from whoever is reading the address on the left. */}
         {resolved && (
           <section
-            aria-label="What the system decided"
+            aria-label={t('challan.location.decidedAria')}
             className={
               needsCheck
                 ? 'overflow-hidden rounded-xl border border-tone-orange/30 bg-tone-orange/5 shadow-sm'
@@ -130,28 +168,24 @@ export function ChallanLocationEditor({
               <div className="flex flex-wrap items-center gap-2">
                 <MapPin className="size-4 text-muted-foreground" aria-hidden />
                 <span className="text-sm font-semibold">
-                  {resolved.district} / {resolved.thana}
+                  {t('challan.location.districtThana', {
+                    district: resolved.district,
+                    thana: resolved.thana,
+                  })}
                 </span>
                 <LocationTypeBadge value={resolved.locationType} />
                 {needsCheck && <LocationReviewBadge source={resolved.source} />}
               </div>
 
               <p className="mt-2 text-xs text-muted-foreground">
-                {locationSourceLabel(resolved.source)}
-                {resolved.source === 'admin_manual'
-                  ? resolved.resolvedBy
-                    ? ` by ${resolved.resolvedBy.name}`
-                    : ''
-                  : ` · ${Math.round(resolved.confidence * 100)}% confident`}{' '}
-                · {formatDateTime(resolved.resolvedAt)}
+                {decidedLine}
               </p>
 
               {needsCheck && (
                 <p className="mt-2.5 flex items-start gap-2 text-xs leading-relaxed font-medium text-tone-orange">
                   <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
                   <span>
-                    Nobody has confirmed this. Check it against the transcribed thana, district and
-                    address, then confirm it or choose the right one.
+                    {t('challan.location.unconfirmed')}
                   </span>
                 </p>
               )}
@@ -160,16 +194,17 @@ export function ChallanLocationEditor({
         )}
 
         <section
-          aria-label="Choose the location"
+          aria-label={t('challan.location.chooseAria')}
           className="overflow-hidden rounded-xl border bg-card shadow-sm"
         >
           <header className="border-b bg-muted/30 px-4 py-3">
             <h2 className="text-[13px] font-semibold tracking-tight">
-              {resolved ? 'Change it, or confirm what is there' : 'Choose the location'}
+              {resolved
+                ? t('challan.location.changeOrConfirm')
+                : t('challan.location.chooseHeading')}
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              The district and thana come from the master list, and the location type follows from
-              the pair.
+              {t('challan.location.masterHint')}
             </p>
           </header>
 
@@ -192,7 +227,7 @@ export function ChallanLocationEditor({
                 disabled={isPending}
                 onClick={() => onSubmit(null)}
               >
-                Clear location
+                {t('challan.location.clearLocation')}
               </Button>
             )}
 
@@ -203,11 +238,11 @@ export function ChallanLocationEditor({
               {onSkip ? (
                 <Button type="button" variant="outline" disabled={isPending} onClick={onSkip}>
                   <SkipForward data-icon="inline-start" aria-hidden />
-                  Skip
+                  {t('common.actions.skip')}
                 </Button>
               ) : (
                 <Button type="button" variant="outline" disabled={isPending} onClick={onCancel}>
-                  Cancel
+                  {t('common.actions.cancel')}
                 </Button>
               )}
 
@@ -219,7 +254,11 @@ export function ChallanLocationEditor({
                 {isPending && (
                   <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
                 )}
-                {isSameRow ? 'Confirm location' : resolved ? 'Change location' : 'Set location'}
+                {isSameRow
+                  ? t('challan.location.confirmLocation')
+                  : resolved
+                    ? t('challan.details.changeLocation')
+                    : t('challan.details.setLocation')}
               </Button>
             </div>
           </footer>

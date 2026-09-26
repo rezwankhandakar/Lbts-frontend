@@ -6,8 +6,11 @@ import { BrandLogo } from '@/components/shared/brand'
 import { ADMIN_ROLE } from '@/lib/roles'
 import type { UserRole } from '@/lib/roles'
 import { useAuthStore } from '@/stores/use-auth-store'
+import { useT } from '@/lib/i18n'
 
 function FullPageLoader() {
+  const t = useT()
+
   return (
     <div
       className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background"
@@ -26,9 +29,9 @@ function FullPageLoader() {
       </div>
 
       <p className="animate-pulse text-xs font-medium tracking-wide text-muted-foreground">
-        Loading LBTS…
+        {t('shell.loadingApp')}
       </p>
-      <span className="sr-only">Checking your session</span>
+      <span className="sr-only">{t('shell.checkingSession')}</span>
     </div>
   )
 }

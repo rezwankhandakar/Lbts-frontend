@@ -194,7 +194,7 @@ export function DriverPanel({
             meta={meta}
             onPageChange={setPage}
             isFetching={query.isFetching}
-            noun={['driver', 'drivers']}
+            nounKey="nouns.driver"
           />
         )}
       </Panel>

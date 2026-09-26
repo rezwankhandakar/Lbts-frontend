@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { VendorAvatar } from '@/features/vendor/components/vendor-identity'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useEntryDialog } from '../hooks/use-entry-dialog'
 import { periodParam, signedTaka, taka } from '../lib/accounts-meta'
@@ -31,6 +32,8 @@ function DueCell({ row }: { row: VendorBillRow }) {
  * form with the vendor and month already chosen.
  */
 export function VendorBillTable({ rows, period, isLoading, canWrite }: VendorBillTableProps) {
+  const t = useT()
+
   const dialog = useEntryDialog()
 
   if (isLoading) {
@@ -47,8 +50,8 @@ export function VendorBillTable({ rows, period, isLoading, canWrite }: VendorBil
     return (
       <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
         <Truck className="size-6 text-muted-foreground" aria-hidden />
-        <p className="text-sm font-medium">No vendor trip bills for this month</p>
-        <p className="text-xs text-muted-foreground">A vendor appears here once one of its trips runs in the month.</p>
+        <p className="text-sm font-medium">{t('accounts.vendorBill.noneThisMonth')}</p>
+        <p className="text-xs text-muted-foreground">{t('accounts.vendorBill.noneHint')}</p>
       </div>
     )
   }
@@ -66,14 +69,14 @@ export function VendorBillTable({ rows, period, isLoading, canWrite }: VendorBil
       <table className="hidden w-full text-sm lg:table">
         <thead>
           <tr className="border-b text-left text-xs text-muted-foreground">
-            <th className="px-4 py-2.5 font-medium">Vendor</th>
-            <th className="px-2 py-2.5 text-right font-medium">Trips</th>
-            <th className="px-2 py-2.5 text-right font-medium">Trip rent</th>
-            <th className="px-2 py-2.5 text-right font-medium">Labour</th>
-            <th className="px-2 py-2.5 text-right font-medium">Advance</th>
-            <th className="px-2 py-2.5 text-right font-medium">Paid</th>
+            <th className="px-4 py-2.5 font-medium">{t('accounts.vendorBill.vendor')}</th>
+            <th className="px-2 py-2.5 text-right font-medium">{t('accounts.vendorBill.trips')}</th>
+            <th className="px-2 py-2.5 text-right font-medium">{t('accounts.profit.tripRent')}</th>
+            <th className="px-2 py-2.5 text-right font-medium">{t('accounts.profit.labour')}</th>
+            <th className="px-2 py-2.5 text-right font-medium">{t('accounts.trip.advance')}</th>
+            <th className="px-2 py-2.5 text-right font-medium">{t('accounts.vendorBill.paid')}</th>
             <th className="px-2 py-2.5 text-right font-medium">Due</th>
-            <th className="px-4 py-2.5 text-right font-medium" aria-label="Actions" />
+            <th className="px-4 py-2.5 text-right font-medium" aria-label={t('accounts.list.actions')} />
           </tr>
         </thead>
         <tbody className="divide-y">
@@ -118,7 +121,7 @@ export function VendorBillTable({ rows, period, isLoading, canWrite }: VendorBil
                     </Button>
                   )}
                   <VendorStatementButton vendorId={row.vendor.id} vendorName={row.vendor.name} period={period} compact />
-                  <Button variant="ghost" size="icon-sm" render={<Link to={detailLink(row)} />} aria-label={`Open ${row.vendor.name}`}>
+                  <Button variant="ghost" size="icon-sm" render={<Link to={detailLink(row)} />} aria-label={t('accounts.vendorBill.openVendor', { name: row.vendor.name })}>
                     <ChevronRight aria-hidden />
                   </Button>
                 </div>
@@ -146,7 +149,7 @@ export function VendorBillTable({ rows, period, isLoading, canWrite }: VendorBil
             </div>
             <dl className="mt-3 grid grid-cols-3 gap-2 text-xs">
               <div>
-                <dt className="text-muted-foreground">Bill</dt>
+                <dt className="text-muted-foreground">{t('accounts.trip.bill')}</dt>
                 <dd className="font-medium tabular-nums">{taka(row.totalBill)}</dd>
               </div>
               <div>
@@ -163,7 +166,7 @@ export function VendorBillTable({ rows, period, isLoading, canWrite }: VendorBil
             {canWrite && row.due > 0 && (
               <Button size="sm" className="mt-3 w-full" onClick={() => pay(row)}>
                 <Wallet data-icon="inline-start" aria-hidden />
-                Pay {taka(row.due)}
+                {t('accounts.vendorBill.pay', { amount: taka(row.due) })}
               </Button>
             )}
           </li>

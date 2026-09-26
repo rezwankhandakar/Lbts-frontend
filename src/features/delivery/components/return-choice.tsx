@@ -1,13 +1,15 @@
 import { CircleCheckBig, Loader2, PackageX, Undo2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 export type ReturnChoiceValue = 'delivered' | 'partial' | 'returned'
 
 interface ChoiceOption {
   value: ReturnChoiceValue
-  label: string
-  hint: string
+  labelKey: TranslationKey
+  hintKey: TranslationKey
   icon: LucideIcon
   selected: string
 }
@@ -15,22 +17,22 @@ interface ChoiceOption {
 const OPTIONS: ChoiceOption[] = [
   {
     value: 'delivered',
-    label: 'All delivered',
-    hint: 'Nothing came back',
+    labelKey: 'delivery.completion.allDelivered',
+    hintKey: 'delivery.completion.allDeliveredHint',
     icon: CircleCheckBig,
     selected: 'border-tone-emerald/40 bg-tone-emerald/10 text-tone-emerald',
   },
   {
     value: 'partial',
-    label: 'Some came back',
-    hint: 'Choose what returned',
+    labelKey: 'delivery.completion.someCameBack',
+    hintKey: 'delivery.completion.someCameBackHint',
     icon: Undo2,
     selected: 'border-tone-amber/40 bg-tone-amber/10 text-tone-amber',
   },
   {
     value: 'returned',
-    label: 'Full challan returned',
-    hint: 'One click · no copy needed',
+    labelKey: 'delivery.completion.fullReturn',
+    hintKey: 'delivery.completion.fullReturnHint',
     icon: PackageX,
     selected: 'border-tone-rose/40 bg-tone-rose/10 text-tone-rose',
   },
@@ -52,8 +54,10 @@ interface ReturnChoiceProps {
  * stepper on each product line, because that answer needs numbers.
  */
 export function ReturnChoice({ value, pending, disabled, onChoose }: ReturnChoiceProps) {
+  const t = useT()
+
   return (
-    <div role="radiogroup" aria-label="What happened to the goods" className="grid gap-2 sm:grid-cols-3">
+    <div role="radiogroup" aria-label={t('delivery.completion.radioAria')} className="grid gap-2 sm:grid-cols-3">
       {OPTIONS.map((option) => {
         const isSelected = option.value === value
         const Icon = option.icon
@@ -79,11 +83,11 @@ export function ReturnChoice({ value, pending, disabled, onChoose }: ReturnChoic
               <Icon className="mt-0.5 size-4 shrink-0" aria-hidden />
             )}
             <span className="min-w-0">
-              <span className="block text-sm font-semibold">{option.label}</span>
+              <span className="block text-sm font-semibold">{t(option.labelKey)}</span>
               <span
                 className={cn('block text-xs', isSelected ? 'opacity-80' : 'text-muted-foreground')}
               >
-                {option.hint}
+                {t(option.hintKey)}
               </span>
             </span>
           </button>

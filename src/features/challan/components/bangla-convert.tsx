@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Check, Languages, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { canOfferConversion, forceBanglaConversion, isLikelyLegacyBangla } from '../lib/bangla-text'
 
@@ -42,6 +43,8 @@ export function BanglaConvertControl({
   label,
   disabled,
 }: BanglaConvertControlProps) {
+  const t = useT()
+
   const [preview, setPreview] = useState<string | null>(null)
 
   const offer = canOfferConversion(value)
@@ -71,16 +74,16 @@ export function BanglaConvertControl({
           )}
         >
           <Languages data-icon="inline-start" aria-hidden />
-          {looksLegacy ? 'This looks like Bijoy text — convert' : 'Convert to Unicode'}
+          {looksLegacy ? t('challan.bangla.looksLegacy') : t('challan.bangla.convert')}
         </Button>
       ) : (
         <div
           className="rounded-lg border border-tone-amber/30 bg-tone-amber/5 p-2.5"
           role="group"
-          aria-label={`Unicode preview for ${label}`}
+          aria-label={t('challan.bangla.previewAria', { label })}
         >
           <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-            Unicode preview
+            {t('challan.bangla.previewHeading')}
           </p>
 
           <p className="mt-1.5 truncate text-xs text-muted-foreground line-through" title={value}>
@@ -100,16 +103,16 @@ export function BanglaConvertControl({
               }}
             >
               <Check data-icon="inline-start" aria-hidden />
-              Use this
+              {t('challan.bangla.useThis')}
             </Button>
             <Button type="button" variant="ghost" size="xs" onClick={close}>
               <X data-icon="inline-start" aria-hidden />
-              Keep what I typed
+              {t('challan.bangla.keepMine')}
             </Button>
           </div>
 
           <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-            If the preview is wrong, keep what you typed and correct it by hand.
+            {t('challan.bangla.hint')}
           </p>
         </div>
       )}

@@ -12,6 +12,7 @@ import { useBills } from '@/features/bill/hooks/use-bills'
 import { canWriteBill } from '@/features/bill/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 /**
  * Every bill: a unit's month of Trip DOs, as the Excel sheet the office sends.
@@ -19,6 +20,8 @@ import { formatTaka } from '@/lib/format'
  * page by searching the Trip DO sheet.
  */
 export function BillsPage() {
+  const t = useT()
+
   const canWrite = canWriteBill(useCurrentRole())
   const list = useBillListParams()
   const query = useBills(list.applied)
@@ -36,8 +39,8 @@ export function BillsPage() {
     <div className="mx-auto w-full max-w-[1500px]">
       <div className="flex flex-wrap items-start justify-between gap-x-6">
         <PageHeader
-          title="Excel Bill"
-          description="Open a bill slot for a month and a unit, add its Trip DOs, and download the bill in the office's own Excel layout — one SL per Trip DO. Every row you add is marked billed on the Trip DO sheet, the challan and the gate pass."
+          title={t('bill.title')}
+          description={t('bill.pageDescription')}
         />
         {canWrite && (
           <Button onClick={() => setCreating(true)} className="mb-6">
@@ -49,7 +52,7 @@ export function BillsPage() {
 
       <BillOverview meta={meta} isLoading={query.isPending} params={list.params} onChange={list.applyFilters} />
 
-      <section aria-label="Bills" className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      <section aria-label={t('bill.billsAria')} className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <BillListToolbar
           params={list.params}
           onChange={list.applyFilters}
@@ -79,7 +82,7 @@ export function BillsPage() {
         </div>
 
         {meta && !query.isError && (
-          <ListPagination meta={meta} onPageChange={list.setPage} isFetching={query.isFetching} noun={['bill', 'bills']} />
+          <ListPagination meta={meta} onPageChange={list.setPage} isFetching={query.isFetching} nounKey="nouns.bill" />
         )}
       </section>
 

@@ -1,6 +1,7 @@
 import { CircleSlash, Layers, Package, Tags } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ProductRateStats as Stats } from '../types'
 
@@ -29,6 +30,9 @@ interface Tile {
  * Real counts from the collection, never placeholders.
  */
 export function ProductRateStatsPanel({ stats, isLoading }: ProductRateStatsProps) {
+  const t = useT()
+  const format = useFormatters()
+
   if (isLoading || !stats) {
     return (
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true">
@@ -41,30 +45,33 @@ export function ProductRateStatsPanel({ stats, isLoading }: ProductRateStatsProp
 
   const tiles: Tile[] = [
     {
-      label: 'Rates in use',
-      hint: `${stats.products} ${stats.products === 1 ? 'product' : 'products'}`,
-      value: String(stats.active),
+      label: t('productRate.stats.inUse'),
+      hint: t('productRate.stats.inUseHint', {
+        count: stats.products,
+        n: format.number(stats.products),
+      }),
+      value: format.number(stats.active),
       icon: Tags,
       chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
     },
     {
-      label: 'Priced by model',
-      hint: `${stats.withoutModel} priced whatever the model`,
-      value: String(stats.withModel),
+      label: t('productRate.stats.byModel'),
+      hint: t('productRate.stats.byModelHint', { n: format.number(stats.withoutModel) }),
+      value: format.number(stats.withModel),
       icon: Package,
       chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
     },
     {
-      label: 'Tiered rates',
-      hint: 'First N pieces at one figure, the rest at another',
-      value: String(stats.tiered),
+      label: t('productRate.stats.tiered'),
+      hint: t('productRate.stats.tieredHint'),
+      value: format.number(stats.tiered),
       icon: Layers,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
     },
     {
-      label: 'Deactivated',
-      hint: 'Kept, so past charges stay traceable',
-      value: String(stats.inactive),
+      label: t('productRate.stats.deactivated'),
+      hint: t('productRate.stats.deactivatedHint'),
+      value: format.number(stats.inactive),
       icon: CircleSlash,
       chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
     },

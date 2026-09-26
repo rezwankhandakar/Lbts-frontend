@@ -2,10 +2,11 @@ import { ArrowRight, Navigation } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { TripStatusBadge } from '@/features/delivery/components/delivery-badges'
-import { plural, shortTripNumber, taka } from '@/features/delivery/lib/delivery-meta'
+import { shortTripNumber, taka } from '@/features/delivery/lib/delivery-meta'
 import { formatDay } from '../lib/vendor-meta'
 import { netOf, tripProgress } from '../lib/trip-figures'
 import type { VendorTripRecord } from '../types'
+import { countOf, useT } from '@/lib/i18n'
 
 interface VendorDashboardRecentProps {
   trips: VendorTripRecord[]
@@ -28,6 +29,8 @@ interface VendorDashboardRecentProps {
  * one a vendor is looking for; the rent and labour behind it are in the sheet.
  */
 export function VendorDashboardRecent({ trips, onOpen }: VendorDashboardRecentProps) {
+  const t = useT()
+
   return (
     <section className="overflow-hidden rounded-xl border bg-card shadow-sm">
       <header className="flex items-center gap-3 border-b bg-muted/30 px-4 py-3">
@@ -88,7 +91,7 @@ export function VendorDashboardRecent({ trips, onOpen }: VendorDashboardRecentPr
                 </div>
 
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  {plural(trip.challanCount, 'challan')} · {trip.totalQty.toLocaleString()} pcs
+                  {countOf(trip.challanCount, 'nouns.challan', t)} · {trip.totalQty.toLocaleString()} pcs
                   {trip.returnedQty > 0 && (
                     <span className="text-tone-rose"> · {trip.returnedQty} back at depot</span>
                   )}

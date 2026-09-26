@@ -7,6 +7,8 @@ import {
   Undo2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ChallanFilterPatch, ChallanListParams, PageMeta } from '../types'
 
@@ -52,6 +54,8 @@ interface Chip {
  * finished work is one people stop reading.
  */
 export function BacklogChips({ meta, params, onChange, className }: BacklogChipsProps) {
+  const t = useT()
+
   if (!meta) {
     return null
   }
@@ -59,7 +63,7 @@ export function BacklogChips({ meta, params, onChange, className }: BacklogChips
   const chips: Chip[] = [
     {
       key: 'amount',
-      label: 'Blank amount',
+      label: t('challan.backlog.blankAmount'),
       count: meta.blankAmount ?? 0,
       icon: CircleDollarSign,
       iconTone: 'text-tone-amber',
@@ -67,11 +71,11 @@ export function BacklogChips({ meta, params, onChange, className }: BacklogChips
       isActive: params.amount === 'unpriced',
       patch: { amount: 'unpriced' },
       clearPatch: { amount: 'all' },
-      title: 'Challans where nothing has been charged. Either the location is not set, or the products are not on the rate card.',
+      title: t('challan.backlog.blankAmountHint'),
     },
     {
       key: 'partial',
-      label: 'Partly charged',
+      label: t('challan.backlog.partlyCharged'),
       count: meta.partialAmount ?? 0,
       icon: CircleDollarSign,
       iconTone: 'text-tone-orange',
@@ -79,11 +83,11 @@ export function BacklogChips({ meta, params, onChange, className }: BacklogChips
       isActive: params.amount === 'partial',
       patch: { amount: 'partial' },
       clearPatch: { amount: 'all' },
-      title: 'Challans charged for some of their product lines but not all of them — the amount shown is less than the full charge.',
+      title: t('challan.backlog.partlyChargedHint'),
     },
     {
       key: 'location-pending',
-      label: 'Location pending',
+      label: t('challan.backlog.locationPending'),
       count: meta.locationPending ?? 0,
       icon: MapPinOff,
       iconTone: 'text-tone-amber',
@@ -91,11 +95,11 @@ export function BacklogChips({ meta, params, onChange, className }: BacklogChips
       isActive: params.location === 'pending',
       patch: { location: 'pending' },
       clearPatch: { location: 'all' },
-      title: 'Challans whose district and thana have not been determined. Setting one also prices its lines.',
+      title: t('challan.backlog.locationPendingHint'),
     },
     {
       key: 'location-review',
-      label: 'Unconfirmed match',
+      label: t('challan.backlog.unconfirmedMatch'),
       count: meta.locationReview ?? 0,
       icon: ScanSearch,
       iconTone: 'text-tone-orange',
@@ -103,11 +107,11 @@ export function BacklogChips({ meta, params, onChange, className }: BacklogChips
       isActive: params.location === 'review',
       patch: { location: 'review' },
       clearPatch: { location: 'all' },
-      title: 'Locations the system inferred that nobody has confirmed. Opening one and agreeing takes it out of this list.',
+      title: t('challan.backlog.unconfirmedMatchHint'),
     },
     {
       key: 'not-dispatched',
-      label: 'Not dispatched',
+      label: t('challan.backlog.notDispatched'),
       count: meta.notDispatched ?? 0,
       icon: PackageX,
       iconTone: 'text-tone-indigo',
@@ -115,11 +119,11 @@ export function BacklogChips({ meta, params, onChange, className }: BacklogChips
       isActive: params.dispatch === 'pending',
       patch: { dispatch: 'pending' },
       clearPatch: { dispatch: 'all' },
-      title: 'Challans that are filed but on no trip yet — the goods have not left the gate.',
+      title: t('challan.backlog.notDispatchedHint'),
     },
     {
       key: 'partly-dispatched',
-      label: 'Partly sent',
+      label: t('challan.backlog.partlySent'),
       count: meta.partlyDispatched ?? 0,
       icon: PackageOpen,
       iconTone: 'text-tone-cyan',
@@ -127,11 +131,11 @@ export function BacklogChips({ meta, params, onChange, className }: BacklogChips
       isActive: params.dispatch === 'partial',
       patch: { dispatch: 'partial' },
       clearPatch: { dispatch: 'all' },
-      title: 'Challans split across trips with something still to go. They read as sent at a glance, which is why they are counted apart.',
+      title: t('challan.backlog.partlySentHint'),
     },
     {
       key: 'returned',
-      label: 'Returned at depot',
+      label: t('challan.backlog.returnedAtDepot'),
       count: meta.returnedAtDepot ?? 0,
       icon: Undo2,
       iconTone: 'text-tone-rose',
@@ -139,7 +143,7 @@ export function BacklogChips({ meta, params, onChange, className }: BacklogChips
       isActive: params.dispatch === 'returned',
       patch: { dispatch: 'returned' },
       clearPatch: { dispatch: 'all' },
-      title: 'Goods that came back off a lorry and have not gone out again — they are on the shelf, waiting for another trip.',
+      title: t('challan.backlog.returnedAtDepotHint'),
     },
   ]
 
@@ -157,7 +161,7 @@ export function BacklogChips({ meta, params, onChange, className }: BacklogChips
   return (
     <div className={cn('flex flex-wrap items-center gap-x-2 gap-y-1.5', className)}>
       <span className="mr-1 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-        Needs attention
+        {t('challan.backlog.heading')}
       </span>
       {visible.map((chip) => (
         <button
@@ -181,7 +185,7 @@ export function BacklogChips({ meta, params, onChange, className }: BacklogChips
               chip.isActive ? 'bg-background/70' : 'bg-muted text-muted-foreground',
             )}
           >
-            {chip.count}
+            {formatNumber(chip.count)}
           </span>
         </button>
       ))}

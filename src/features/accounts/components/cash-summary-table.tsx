@@ -1,19 +1,21 @@
 import { CalendarRange } from 'lucide-react'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { signedTaka, taka } from '../lib/accounts-meta'
 import type { CashFigures, CashSummaryRow } from '../types'
 
-const IN_COLUMNS: { key: keyof CashFigures; label: string }[] = [
-  { key: 'deposits', label: 'Deposit' },
-  { key: 'transfersIn', label: 'Transfer in' },
+const IN_COLUMNS: { key: keyof CashFigures; labelKey: TranslationKey }[] = [
+  { key: 'deposits', labelKey: 'accounts.cash.deposits' },
+  { key: 'transfersIn', labelKey: 'accounts.cash.transfersIn' },
 ]
 
-const OUT_COLUMNS: { key: keyof CashFigures; label: string }[] = [
-  { key: 'vendorPayments', label: 'Vendor payment' },
-  { key: 'tripAdvances', label: 'Trip advance' },
-  { key: 'advancesNet', label: 'Advance (after return)' },
-  { key: 'expenses', label: 'Expense' },
-  { key: 'transfersOut', label: 'Transfer out' },
+const OUT_COLUMNS: { key: keyof CashFigures; labelKey: TranslationKey }[] = [
+  { key: 'vendorPayments', labelKey: 'accounts.cash.vendorPayments' },
+  { key: 'tripAdvances', labelKey: 'accounts.cash.tripAdvances' },
+  { key: 'advancesNet', labelKey: 'accounts.cash.advancesNet' },
+  { key: 'expenses', labelKey: 'accounts.cash.expenses' },
+  { key: 'transfersOut', labelKey: 'accounts.cash.transfersOut' },
 ]
 
 function amount(value: number) {
@@ -26,6 +28,8 @@ function amount(value: number) {
  * up, a card per period below it.
  */
 export function CashSummaryTable({ rows, totals }: { rows: CashSummaryRow[]; totals: CashFigures }) {
+  const t = useT()
+
   const largestIn = Math.max(1, ...rows.map((row) => row.moneyIn))
   // Transfers only move money into or out of a bank or bKash wallet on entries
   // written before that was closed off, so their columns appear only when the
@@ -37,7 +41,7 @@ export function CashSummaryTable({ rows, totals }: { rows: CashSummaryRow[]; tot
     return (
       <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
         <CalendarRange className="size-6 text-muted-foreground" aria-hidden />
-        <p className="text-sm text-muted-foreground">Choose a range to see cash in and out.</p>
+        <p className="text-sm text-muted-foreground">{t('accounts.cash.chooseRange')}</p>
       </div>
     )
   }
@@ -74,10 +78,10 @@ export function CashSummaryTable({ rows, totals }: { rows: CashSummaryRow[]; tot
                 Period
               </th>
               <th colSpan={inColumns.length + 1} className="border-x px-2 pt-2 text-center font-medium text-tone-emerald">
-                Cash in
+                {t('accounts.cash.cashIn')}
               </th>
               <th colSpan={outColumns.length + 1} className="border-x px-2 pt-2 text-center font-medium text-tone-rose">
-                Cash out
+                {t('accounts.cash.cashOut')}
               </th>
               <th rowSpan={2} className="px-4 py-2 text-right font-medium">
                 Net
@@ -86,16 +90,16 @@ export function CashSummaryTable({ rows, totals }: { rows: CashSummaryRow[]; tot
             <tr className="border-b text-[11px] text-muted-foreground">
               {inColumns.map((column) => (
                 <th key={column.key} className="px-2 py-1.5 text-right font-normal">
-                  {column.label}
+                  {t(column.labelKey)}
                 </th>
               ))}
-              <th className="border-x px-3 py-1.5 text-right font-medium">Total in</th>
+              <th className="border-x px-3 py-1.5 text-right font-medium">{t('accounts.cash.totalIn')}</th>
               {outColumns.map((column) => (
                 <th key={column.key} className="px-2 py-1.5 text-right font-normal">
-                  {column.label}
+                  {t(column.labelKey)}
                 </th>
               ))}
-              <th className="border-x px-3 py-1.5 text-right font-medium">Total out</th>
+              <th className="border-x px-3 py-1.5 text-right font-medium">{t('accounts.cash.totalOut')}</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -111,7 +115,7 @@ export function CashSummaryTable({ rows, totals }: { rows: CashSummaryRow[]; tot
           <tfoot>
             <tr className="border-t-2 bg-muted/30">
               <th scope="row" className="sticky left-0 bg-muted px-4 py-3 text-left font-semibold">
-                Range total
+                {t('accounts.cash.rangeTotal')}
               </th>
               {cells(totals, true)}
             </tr>
@@ -131,12 +135,12 @@ export function CashSummaryTable({ rows, totals }: { rows: CashSummaryRow[]; tot
             </span>
             <dl className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <dt className="text-muted-foreground">Cash in</dt>
+                <dt className="text-muted-foreground">{t('accounts.cash.cashIn')}</dt>
                 <dd className="font-semibold text-tone-emerald tabular-nums">{taka(row.moneyIn)}</dd>
                 <dd className="text-[11px] text-muted-foreground">Deposit {taka(row.deposits)}</dd>
               </div>
               <div className="text-right">
-                <dt className="text-muted-foreground">Cash out</dt>
+                <dt className="text-muted-foreground">{t('accounts.cash.cashOut')}</dt>
                 <dd className="font-semibold text-tone-rose tabular-nums">{taka(row.moneyOut)}</dd>
                 <dd className="text-[11px] text-muted-foreground">Vendor {taka(row.vendorPayments + row.tripAdvances)}</dd>
               </div>
@@ -144,7 +148,7 @@ export function CashSummaryTable({ rows, totals }: { rows: CashSummaryRow[]; tot
           </li>
         ))}
         <li className="flex items-center justify-between bg-muted/30 px-4 py-3 text-sm font-semibold">
-          <span>Range total</span>
+          <span>{t('accounts.cash.rangeTotal')}</span>
           <span className="text-right tabular-nums">
             <span className="text-tone-emerald">{taka(totals.moneyIn)}</span> ·{' '}
             <span className="text-tone-rose">{taka(totals.moneyOut)}</span>

@@ -10,6 +10,7 @@ import { lineChange } from '../lib/cart'
 import type { CartChallan, CartLine, LineAllocation, LineChange } from '../types'
 import { LineChangeBadge } from './delivery-badges'
 import { QtyStepper } from './qty-stepper'
+import { useT } from '@/lib/i18n'
 
 interface CartLineRowProps {
   challan: CartChallan
@@ -52,6 +53,8 @@ function detailFor(
  * the line now is relative to the paper, with the numbers behind the word.
  */
 export function CartLineRow({ challan, line, canRemove, onQty, onEdit, onRemove }: CartLineRowProps) {
+  const t = useT()
+
   const source = challan.sources.find((entry) => entry.index === line.sourceIndex)
   const change = lineChange(challan, line)
   const reserved = line.sourceIndex === null ? 0 : (challan.reserved[line.sourceIndex] ?? 0)
@@ -78,7 +81,7 @@ export function CartLineRow({ challan, line, canRemove, onQty, onEdit, onRemove 
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon-sm" aria-label={`More for ${label}`}>
+              <Button variant="ghost" size="icon-sm" aria-label={t('delivery.cart.moreFor', { label })}>
                 <EllipsisVertical aria-hidden />
               </Button>
             }
@@ -86,13 +89,17 @@ export function CartLineRow({ challan, line, canRemove, onQty, onEdit, onRemove 
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem onClick={onEdit}>
               <PencilLine aria-hidden />
-              {line.sourceIndex === null ? 'Edit product' : 'Change model or product'}
+              {line.sourceIndex === null
+                ? t('delivery.cart.editProduct')
+                : t('delivery.cart.changeModel')}
             </DropdownMenuItem>
             {/* A removal says the product does not exist, so it leaves the
                 challan too. Sending it later is a split, not a removal. */}
             <DropdownMenuItem variant="destructive" disabled={!canRemove} onClick={onRemove}>
               <Trash2 aria-hidden />
-              {line.sourceIndex === null ? 'Remove this product' : 'Remove from trip and challan'}
+              {line.sourceIndex === null
+                ? t('delivery.cart.removeProduct')
+                : t('delivery.cart.removeFromBoth')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

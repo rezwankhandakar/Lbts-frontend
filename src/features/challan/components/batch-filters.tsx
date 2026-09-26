@@ -9,10 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useT } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { BatchListParams } from '../api/challan-api'
 import type { BatchFilterPatch } from '../hooks/use-batch-list-params'
-import { CHALLAN_BATCH_STATUS_META } from '../lib/challan-meta'
+import { batchStatusMeta } from '../lib/challan-meta'
 
 interface BatchFiltersProps {
   params: BatchListParams
@@ -25,10 +27,10 @@ const TRIGGER = 'h-8 w-full sm:w-[11rem]'
 
 type BatchStatusFilter = BatchListParams['status']
 
-function statusLabel(value: unknown): string {
+function statusLabel(value: unknown, t: Translator): string {
   return typeof value === 'string' && value !== 'all'
-    ? (CHALLAN_BATCH_STATUS_META[value as 'Processing' | 'Completed']?.label ?? value)
-    : 'Any status'
+    ? batchStatusMeta(value, t).label
+    : t('challan.filters.anyStatus')
 }
 
 /**
@@ -45,6 +47,8 @@ function statusLabel(value: unknown): string {
  * clear it.
  */
 export function BatchFilters({ params, onChange, onReset, summary }: BatchFiltersProps) {
+  const t = useT()
+
   const isFiltered = params.search !== '' || params.status !== 'all'
 
   return (
@@ -60,8 +64,8 @@ export function BatchFilters({ params, onChange, onReset, summary }: BatchFilter
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="Source file name"
-              aria-label="Search source PDFs"
+              placeholder={t('challan.filters.sourceFilePlaceholder')}
+              aria-label={t('challan.filters.sourceSearchAria')}
               className="pl-8.5"
             />
           </div>
@@ -71,23 +75,23 @@ export function BatchFilters({ params, onChange, onReset, summary }: BatchFilter
               value={params.status}
               onValueChange={(value) => onChange({ status: value as BatchStatusFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by status">
+              <SelectTrigger className={TRIGGER} aria-label={t('challan.filters.statusAria')}>
                 <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
-                <SelectValue>{statusLabel}</SelectValue>
+                <SelectValue>{(value) => statusLabel(value, t)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any status</SelectItem>
+                  <SelectItem value="all">{t('challan.filters.anyStatus')}</SelectItem>
                   {(['Processing', 'Completed'] as const).map((status) => (
                     <SelectItem key={status} value={status}>
                       <span
                         className={cn(
                           'size-1.5 shrink-0 rounded-full',
-                          CHALLAN_BATCH_STATUS_META[status].dot,
+                          batchStatusMeta(status, t).dot,
                         )}
                         aria-hidden
                       />
-                      {CHALLAN_BATCH_STATUS_META[status].label}
+                      {batchStatusMeta(status, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>

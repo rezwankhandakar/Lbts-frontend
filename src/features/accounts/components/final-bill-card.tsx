@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useEntryDialog } from '../hooks/use-entry-dialog'
 import { formatDay, signedTaka, taka } from '../lib/accounts-meta'
@@ -27,6 +28,8 @@ interface FinalBillCardProps {
  * at this bill with what is left to receive.
  */
 export function FinalBillCard({ bill, canWrite, onEdit, onDelete }: FinalBillCardProps) {
+  const t = useT()
+
   const dialog = useEntryDialog()
   const hasExcel = bill.excelBills.length > 0
 
@@ -40,7 +43,7 @@ export function FinalBillCard({ bill, canWrite, onEdit, onDelete }: FinalBillCar
         <SettlementBadge status={bill.paymentStatus} receiving />
         {canWrite && (
           <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={`Actions for ${bill.unit} ${bill.periodLabel}`} />}>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={t('accounts.finalBill.actionsFor', { unit: bill.unit, period: bill.periodLabel })} />}>
               <MoreHorizontal aria-hidden />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-40">
@@ -60,18 +63,20 @@ export function FinalBillCard({ bill, canWrite, onEdit, onDelete }: FinalBillCar
 
       <dl className="grid grid-cols-2 gap-x-3 gap-y-2 px-4 text-sm">
         <div>
-          <dt className="text-xs text-muted-foreground">Excel bill</dt>
+          <dt className="text-xs text-muted-foreground">{t('accounts.finalBill.excelBill')}</dt>
           <dd className="tabular-nums">{hasExcel ? taka(bill.submittedAmount) : '—'}</dd>
         </div>
         <div className="text-right">
-          <dt className="text-xs text-muted-foreground">Final bill</dt>
+          <dt className="text-xs text-muted-foreground">{t('accounts.finalBill.finalBill')}</dt>
           <dd className="text-lg leading-tight font-semibold tabular-nums">{taka(bill.finalAmount)}</dd>
         </div>
         {hasExcel && (
           <div className="col-span-2 flex items-center justify-between rounded-md bg-muted/40 px-2.5 py-1.5 text-xs">
-            <span className="text-muted-foreground">Audit difference</span>
+            <span className="text-muted-foreground">{t('accounts.finalBill.auditDifference')}</span>
             <span className={cn('font-semibold tabular-nums', bill.difference < 0 && 'text-tone-rose', bill.difference > 0 && 'text-tone-emerald')}>
-              {bill.difference === 0 ? 'No change' : signedTaka(bill.difference)}
+              {bill.difference === 0
+                ? t('accounts.finalBill.noChange')
+                : signedTaka(bill.difference)}
             </span>
           </div>
         )}
@@ -80,7 +85,11 @@ export function FinalBillCard({ bill, canWrite, onEdit, onDelete }: FinalBillCar
       <div className="grid gap-1.5 px-4 pt-3">
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>{taka(bill.receivedAmount)} received</span>
-          <span>{bill.outstanding > 0 ? `${taka(bill.outstanding)} left` : 'Fully received'}</span>
+          <span>
+            {bill.outstanding > 0
+              ? t('accounts.finalBill.amountLeft', { amount: taka(bill.outstanding) })
+              : t('accounts.finalBill.fullyReceived')}
+          </span>
         </div>
         <ProgressBar value={bill.receivedAmount} max={bill.finalAmount} tone={bill.outstanding > 0 ? 'amber' : 'emerald'} />
       </div>
@@ -109,7 +118,7 @@ export function FinalBillCard({ bill, canWrite, onEdit, onDelete }: FinalBillCar
             }
           >
             <ArrowDownLeft data-icon="inline-start" aria-hidden />
-            Record payment received
+            {t('accounts.finalBill.recordPayment')}
           </Button>
         )}
       </div>

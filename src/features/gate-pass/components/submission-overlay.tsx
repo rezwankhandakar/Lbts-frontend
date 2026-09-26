@@ -1,6 +1,8 @@
 import { Check, Loader2 } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { STAGE_LABELS } from '../hooks/use-gate-pass-workspace'
+import { formatPercent } from '@/lib/format'
+import { STAGE_KEYS } from '../hooks/use-gate-pass-workspace'
 import type { SubmissionStage } from '../hooks/use-gate-pass-workspace'
 
 interface SubmissionOverlayProps {
@@ -20,6 +22,8 @@ const ORDER: Exclude<SubmissionStage, 'idle'>[] = ['saving', 'uploading', 'final
  * upload shows real bytes rather than a guess.
  */
 export function SubmissionOverlay({ stage, uploadProgress }: SubmissionOverlayProps) {
+  const t = useT()
+
   if (stage === 'idle') {
     return null
   }
@@ -64,9 +68,9 @@ export function SubmissionOverlay({ stage, uploadProgress }: SubmissionOverlayPr
                     isCurrent ? 'font-medium text-foreground' : 'text-muted-foreground',
                   )}
                 >
-                  {STAGE_LABELS[step]}
+                  {t(STAGE_KEYS[step])}
                   {isCurrent && step === 'uploading' && uploadProgress !== null && (
-                    <span className="ml-1 tabular-nums">{uploadProgress}%</span>
+                    <span className="ml-1 tabular-nums">{formatPercent(uploadProgress)}</span>
                   )}
                 </span>
               </li>
@@ -84,7 +88,7 @@ export function SubmissionOverlay({ stage, uploadProgress }: SubmissionOverlayPr
         )}
 
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-          The server may take a moment to wake up. Nothing is lost if this is slow.
+          {t('gatePass.stages.coldStart')}
         </p>
       </div>
     </div>

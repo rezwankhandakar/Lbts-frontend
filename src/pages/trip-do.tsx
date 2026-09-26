@@ -19,6 +19,7 @@ import { useTripDoListParams } from '@/features/trip-do/hooks/use-trip-do-list-p
 import { canWriteTripDo } from '@/features/trip-do/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 /**
@@ -34,6 +35,8 @@ import { cn } from '@/lib/utils'
  * own Trip DO.
  */
 export function TripDoPage() {
+  const t = useT()
+
   const role = useCurrentRole()
   const canWrite = canWriteTripDo(role)
   const [searchParams] = useSearchParams()
@@ -55,8 +58,8 @@ export function TripDoPage() {
   return (
     <div className={cn('mx-auto w-full max-w-[1600px]', selection.count > 0 && 'pb-24')}>
       <PageHeader
-        title="Trip DO"
-        description="Every challan product line on a row of its own, with returns and re-sends beneath it. Set the Trip DO a row came out on — split the quantity when a line came out on more than one — and the gate pass supplies its CSD and unit, and shows where its goods are."
+        title={t('tripDo.title')}
+        description={t('tripDo.description')}
       />
 
       <TripDoOverview
@@ -66,7 +69,7 @@ export function TripDoPage() {
         onChange={list.applyFilters}
       />
 
-      <section aria-label="Trip DO sheet" className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      <section aria-label={t('tripDo.sheetAria')} className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <TripDoToolbar
           params={list.params}
           onChange={list.applyFilters}
@@ -107,7 +110,7 @@ export function TripDoPage() {
             meta={meta}
             onPageChange={list.setPage}
             isFetching={rowsQuery.isFetching}
-            noun={['row', 'rows']}
+            nounKey="nouns.row"
           />
         )}
       </section>

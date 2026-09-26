@@ -12,6 +12,9 @@ import {
 import { formatTripDate } from '../lib/gate-pass-meta'
 import type { DuplicateCandidate } from '../types'
 import { GatePassStatusBadge } from './gate-pass-status-badge'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 interface DuplicateDialogProps {
   duplicates: DuplicateCandidate[]
@@ -21,8 +24,8 @@ interface DuplicateDialogProps {
   onContinue: () => void
 }
 
-const MATCH_REASONS: Record<DuplicateCandidate['matchedOn'], string> = {
-  tripDo: 'Same Trip DO',
+const MATCH_REASON_KEYS: Record<DuplicateCandidate['matchedOn'], TranslationKey> = {
+  tripDo: 'gatePass.duplicate.matchedTripDo',
 }
 
 /**
@@ -41,6 +44,8 @@ export function DuplicateDialog({
   onDismiss,
   onContinue,
 }: DuplicateDialogProps) {
+  const t = useT()
+
   return (
     <Dialog open={duplicates.length > 0} onOpenChange={(open) => !open && onDismiss()}>
       <DialogContent className="sm:max-w-lg">
@@ -48,12 +53,11 @@ export function DuplicateDialog({
           <DialogTitle className="flex items-center gap-2">
             <CopyCheck className="size-4 text-tone-amber" aria-hidden />
             {duplicates.length === 1
-              ? 'This Trip DO is already on a gate pass'
-              : `This Trip DO is already on ${duplicates.length} gate passes`}
+              ? t('gatePass.duplicate.titleOne')
+              : t('gatePass.duplicate.titleMany', { n: formatNumber(duplicates.length) })}
           </DialogTitle>
           <DialogDescription>
-            Check whether this is the same trip before you submit. Your work is saved as a draft
-            either way.
+            {t('gatePass.duplicate.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -72,10 +76,14 @@ export function DuplicateDialog({
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     DO {candidate.tripDo} · {formatTripDate(candidate.tripDate)} ·{' '}
                     {candidate.productName} ({candidate.model})
-                    {candidate.moreItems > 0 ? ` +${candidate.moreItems} more` : ''}
+                    {candidate.moreItems > 0
+                      ? ` ${t('gatePass.duplicate.moreItems', {
+                          n: formatNumber(candidate.moreItems),
+                        })}`
+                      : ''}
                   </p>
                   <p className="mt-1.5 text-[11px] font-medium text-tone-amber">
-                    {MATCH_REASONS[candidate.matchedOn]}
+                    {t(MATCH_REASON_KEYS[candidate.matchedOn])}
                   </p>
                 </div>
 
@@ -87,7 +95,7 @@ export function DuplicateDialog({
                     <Link to={`/gate-pass/${candidate.id}`} target="_blank" rel="noreferrer" />
                   }
                 >
-                  View
+                  {t('gatePass.duplicate.view')}
                   <ExternalLink data-icon="inline-end" aria-hidden />
                 </Button>
               </div>
@@ -97,10 +105,12 @@ export function DuplicateDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onDismiss} disabled={isSubmitting}>
-            Go back and check
+            {t('gatePass.duplicate.goBack')}
           </Button>
           <Button onClick={onContinue} disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting…' : 'This is a different trip — submit'}
+            {isSubmitting
+              ? t('gatePass.duplicate.submitting')
+              : t('gatePass.duplicate.submitAnyway')}
           </Button>
         </DialogFooter>
       </DialogContent>

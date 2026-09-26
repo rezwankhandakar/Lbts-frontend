@@ -1,8 +1,9 @@
 import { Inbox } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { NOTIFICATION_CATEGORY_META, notificationPriorityMeta } from '../lib/notification-meta'
+import { notificationCategoryMeta, notificationPriorityMeta } from '../lib/notification-meta'
 import { NOTIFICATION_CATEGORIES } from '../types'
 import type {
   NotificationCategory,
@@ -57,6 +58,8 @@ export function NotificationOverview({
   params,
   onChange,
 }: NotificationOverviewProps) {
+  const t = useT()
+
   if (isLoading || !summary) {
     return (
       <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-busy="true">
@@ -67,15 +70,18 @@ export function NotificationOverview({
     )
   }
 
-  const urgent = notificationPriorityMeta('urgent')
-  const attention = notificationPriorityMeta('attention')
+  const urgent = notificationPriorityMeta('urgent', t)
+  const attention = notificationPriorityMeta('attention', t)
 
   const tiles: Tile[] = [
     {
       key: 'unread',
-      label: 'Unread',
+      label: t('notification.overview.unread'),
       value: summary.unread,
-      hint: summary.unread === 0 ? 'You are up to date' : 'Everything you have not opened',
+      hint:
+        summary.unread === 0
+          ? t('notification.overview.unreadHintEmpty')
+          : t('notification.overview.unreadHint'),
       icon: Inbox,
       chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
       filter: {
@@ -86,9 +92,9 @@ export function NotificationOverview({
     },
     {
       key: 'urgent',
-      label: 'Urgent',
+      label: t('notification.overview.urgent'),
       value: summary.byPriority.urgent,
-      hint: 'Already wrong, or hard to undo',
+      hint: t('notification.overview.urgentHint'),
       icon: urgent.icon,
       chip: 'bg-tone-rose/10 text-tone-rose ring-tone-rose/20',
       filter: {
@@ -99,9 +105,9 @@ export function NotificationOverview({
     },
     {
       key: 'attention',
-      label: 'Needs attention',
+      label: t('notification.overview.attention'),
       value: summary.byPriority.attention,
-      hint: 'Waiting on somebody to do something',
+      hint: t('notification.overview.attentionHint'),
       icon: attention.icon,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
       filter: {
@@ -127,12 +133,12 @@ export function NotificationOverview({
   )
 
   if (busiest.count > 0) {
-    const meta = NOTIFICATION_CATEGORY_META[busiest.category]
+    const meta = notificationCategoryMeta(busiest.category, t)
     tiles.push({
       key: busiest.category,
       label: meta.label,
       value: busiest.count,
-      hint: 'The most of any kind right now',
+      hint: t('notification.overview.busiestHint'),
       icon: meta.icon,
       chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
       filter: {

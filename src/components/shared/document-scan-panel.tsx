@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Loader2, ScanLine, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -12,7 +12,14 @@ import {
 } from '@/components/ui/select'
 import { ScannerPairingDialog } from '@/components/shared/scanner-pairing-dialog'
 import { useScanner } from '@/hooks/use-scanner'
-import { SCANNER_STATE_COPY, SCANNER_TONES } from '@/lib/scanner-messages'
+import {
+  SCANNER_STATE_COPY,
+  SCANNER_TONES,
+  scannerDescriptionKey,
+  scannerTitleKey,
+} from '@/lib/scanner-messages'
+import { useFormatters, useT } from '@/lib/i18n'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import type { ScanColorMode, ScanSource } from '@/lib/scanner-agent'
 import { cn } from '@/lib/utils'
 
@@ -29,27 +36,40 @@ interface DocumentScanPanelProps {
   idPrefix?: string
 }
 
-const SOURCE_LABELS: Record<ScanSource, string> = {
-  flatbed: 'Flatbed glass',
-  feeder: 'Document feeder',
+const SOURCE_KEYS: Record<ScanSource, TranslationKey> = {
+  flatbed: 'shared.documentScan.flatbed',
+  feeder: 'shared.documentScan.feeder',
 }
 
-const COLOR_LABELS: Record<ScanColorMode, string> = {
-  color: 'Colour',
-  grayscale: 'Greyscale',
-  blackwhite: 'Black & white',
+const COLOR_KEYS: Record<ScanColorMode, TranslationKey> = {
+  color: 'shared.documentScan.colour',
+  grayscale: 'shared.documentScan.greyscale',
+  blackwhite: 'shared.documentScan.blackwhite',
 }
 
-/** Base UI labels a closed trigger from these; see `assign-driver-dialog`. */
-const SOURCE_OPTIONS = (Object.keys(SOURCE_LABELS) as ScanSource[]).map((value) => ({
-  value,
-  label: SOURCE_LABELS[value],
-}))
-
-const COLOR_OPTIONS = (Object.keys(COLOR_LABELS) as ScanColorMode[]).map((value) => ({
-  value,
-  label: COLOR_LABELS[value],
-}))
+/**
+ * Base UI labels a closed trigger from these; see `assign-driver-dialog`.
+ *
+ * Built inside the component rather than at module scope, because a module
+ * constant is evaluated once and could never follow a language change — the
+ * trigger would keep the words it was born with while the list beside it
+ * changed. `useMemo` on the translator keeps the arrays stable otherwise.
+ */
+function useScanOptions(t: Translator) {
+  return useMemo(
+    () => ({
+      sources: (Object.keys(SOURCE_KEYS) as ScanSource[]).map((value) => ({
+        value,
+        label: t(SOURCE_KEYS[value]),
+      })),
+      colors: (Object.keys(COLOR_KEYS) as ScanColorMode[]).map((value) => ({
+        value,
+        label: t(COLOR_KEYS[value]),
+      })),
+    }),
+    [t],
+  )
+}
 
 /**
  * Taking **one document** off the scanner on this desk.
@@ -97,6 +117,9 @@ export function DocumentScanPanel({
     },
   })
 
+  const t = useT()
+  const format = useFormatters()
+  const { sources: SOURCE_OPTIONS, colors: COLOR_OPTIONS } = useScanOptions(t)
   const copy = SCANNER_STATE_COPY[scanner.state]
   const tone = SCANNER_TONES[copy.tone]
   const isBusy = scanner.state === 'scanning' || scanner.state === 'processing'
@@ -110,14 +133,18 @@ export function DocumentScanPanel({
           {/* The status changes without the operator doing anything, so it is
               announced rather than only drawn. */}
           <p className="text-[13px] font-medium" aria-live="polite">
-            {copy.title}
+            {t(scannerTitleKey(scanner.state))}
             {scanner.state === 'scanning' && scanner.pages > 0 && (
               <span className="ml-1 font-normal text-muted-foreground">
-                · {scanner.pages} {scanner.pages === 1 ? 'sheet' : 'sheets'}
+                ·{' '}
+                {t('shared.documentScan.sheets', {
+                  count: scanner.pages,
+                  n: format.number(scanner.pages),
+                })}
               </span>
             )}
           </p>
-          <p className="text-xs leading-snug text-muted-foreground">{copy.description}</p>
+          <p className="text-xs leading-snug text-muted-foreground">{t(scannerDescriptionKey(scanner.state))}</p>
         </div>
       </div>
 
@@ -128,7 +155,7 @@ export function DocumentScanPanel({
           {hasFeeder && (
             <div className="space-y-1">
               <Label htmlFor={`${idPrefix}-scan-source`} className="text-xs text-muted-foreground">
-                Source
+                {t('shared.documentScan.sourceLabel')}
               </Label>
               <Select
                 items={SOURCE_OPTIONS}
@@ -155,7 +182,7 @@ export function DocumentScanPanel({
 
           <div className="space-y-1">
             <Label htmlFor={`${idPrefix}-scan-colour`} className="text-xs text-muted-foreground">
-              Colour
+              {t('shared.documentScan.colourLabel')}
             </Label>
             <Select
               items={COLOR_OPTIONS}
@@ -185,7 +212,7 @@ export function DocumentScanPanel({
         {isBusy ? (
           <Button type="button" variant="outline" size="sm" onClick={scanner.cancel}>
             <Square data-icon="inline-start" className="size-3.5" aria-hidden />
-            Stop
+            {t('shared.documentScan.stop')}
           </Button>
         ) : (
           <Button
@@ -199,19 +226,19 @@ export function DocumentScanPanel({
             ) : (
               <ScanLine data-icon="inline-start" className="size-3.5" aria-hidden />
             )}
-            Scan now
+            {t('shared.documentScan.scanNow')}
           </Button>
         )}
 
         {scanner.state === 'unpaired' && (
           <Button type="button" variant="outline" size="sm" onClick={() => setPairing(true)}>
-            Connect the scanner
+            {t('scanner.pairing.title')}
           </Button>
         )}
 
-        {copy.retryLabel && !isBusy && (
+        {copy.retryLabelKey && !isBusy && (
           <Button type="button" variant="ghost" size="sm" onClick={scanner.check}>
-            {copy.retryLabel}
+            {t(copy.retryLabelKey)}
           </Button>
         )}
 
@@ -223,7 +250,7 @@ export function DocumentScanPanel({
           onClick={onDismiss}
           className="text-muted-foreground"
         >
-          Hide
+          {t('shared.documentScan.hide')}
         </Button>
       </div>
 

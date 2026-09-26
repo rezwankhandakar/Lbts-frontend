@@ -9,6 +9,7 @@ import { hasChallan } from '../lib/cart'
 import type { CartState, ChallanCandidate } from '../types'
 import { ChallanCandidateItem } from './challan-candidate-item'
 import { ScannerStatus } from './scanner-status'
+import { useT } from '@/lib/i18n'
 
 interface ChallanFinderProps {
   cart: CartState
@@ -42,6 +43,8 @@ export function ChallanFinder({
   listening,
   excludeTripId,
 }: ChallanFinderProps) {
+  const t = useT()
+
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const listId = useId()
@@ -61,7 +64,7 @@ export function ChallanFinder({
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <Label htmlFor={`${listId}-input`}>Find or scan a challan</Label>
+        <Label htmlFor={`${listId}-input`}>{t('delivery.finder.label')}</Label>
         <div className="relative">
           <Search
             className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
@@ -114,8 +117,7 @@ export function ChallanFinder({
           )}
         </div>
         <p className="text-xs leading-snug text-muted-foreground">
-          Challan number, SL, customer or receiver number. Scanning a printed challan&apos;s barcode
-          adds it straight away.
+          {t('delivery.finder.hint')}
         </p>
       </div>
 
@@ -131,7 +133,7 @@ export function ChallanFinder({
         <ul
           id={listId}
           role="listbox"
-          aria-label="Matching challans"
+          aria-label={t('delivery.finder.matchesAria')}
           className="max-h-[26rem] space-y-1 overflow-y-auto rounded-lg border bg-background p-1"
         >
           {results.map((candidate, index) => (
@@ -150,7 +152,7 @@ export function ChallanFinder({
 
       {typed.length >= 3 && !waiting && search.data && results.length === 0 && (
         <p className="rounded-lg border border-dashed px-4 py-4 text-center text-sm text-muted-foreground">
-          No challan matches <span className="font-medium text-foreground">{typed}</span>.
+          {t('delivery.noChallanMatches', { query: typed })}
         </p>
       )}
     </div>

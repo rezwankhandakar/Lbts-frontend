@@ -1,4 +1,5 @@
 import { Checkbox } from '@/components/ui/checkbox'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface CarryToggleProps {
@@ -29,6 +30,8 @@ interface CarryToggleProps {
  * correcting what the tick put in simply puts the tick out.
  */
 export function CarryToggle({ label, shown, checked, onToggle, sourceLabel }: CarryToggleProps) {
+  const t = useT()
+
   if (shown.trim().length === 0) {
     return null
   }
@@ -49,7 +52,7 @@ export function CarryToggle({ label, shown, checked, onToggle, sourceLabel }: Ca
         }: ${shown}`}
         className="size-3.5 shrink-0"
       />
-      <span className="shrink-0">Same as last:</span>
+      <span className="shrink-0">{t('shell.sameAsLastWith')}</span>
       <span className={cn('min-w-0 truncate font-medium', !checked && 'text-foreground')}>
         {shown}
       </span>

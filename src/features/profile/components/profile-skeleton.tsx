@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 
 function CardSkeleton({ rows }: { rows: number }) {
   return (
@@ -32,9 +33,11 @@ function CardSkeleton({ rows }: { rows: number }) {
  * long reads as a broken page rather than a slow one.
  */
 export function ProfileSkeleton() {
+  const t = useT()
+
   return (
     <div className="mx-auto w-full max-w-6xl" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading your profile</span>
+      <span className="sr-only">{t('profile.loading')}</span>
 
       <div className="mb-6 space-y-2.5">
         <Skeleton className="h-7 w-52" />

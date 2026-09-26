@@ -8,6 +8,7 @@ import { shortTripNumber } from '../lib/delivery-meta'
 import type { TripWorkspace } from '../hooks/use-trip-workspace'
 import { ChallanQuantitySummary } from './challan-quantity-summary'
 import { SummaryFigures } from './summary-figures'
+import { useT } from '@/lib/i18n'
 
 interface DeliverySummaryPanelProps {
   workspace: TripWorkspace
@@ -23,11 +24,13 @@ interface DeliverySummaryPanelProps {
  * reason is the least helpful control there is.
  */
 export function DeliverySummaryPanel({ workspace, onConfirm }: DeliverySummaryPanelProps) {
+  const t = useT()
+
   const { vehicle, driver, cart, blockers, editing, isSaving } = workspace
 
   return (
     <section
-      aria-label="Delivery summary"
+      aria-label={t('delivery.summary.panelAria')}
       className="overflow-hidden rounded-xl border bg-card shadow-sm"
     >
       <header className="flex items-center gap-2.5 border-b bg-gradient-to-r from-primary/10 to-transparent px-4 py-3">
@@ -36,12 +39,12 @@ export function DeliverySummaryPanel({ workspace, onConfirm }: DeliverySummaryPa
         </span>
         <div className="min-w-0">
           <h2 className="text-sm font-semibold tracking-tight">
-            {editing ? shortTripNumber(editing.tripNumber) : 'Delivery summary'}
+            {editing ? shortTripNumber(editing.tripNumber) : t('delivery.summary.heading')}
           </h2>
           <p className="truncate text-xs text-muted-foreground">
             {vehicle
               ? `${vehicle.vehicle.registrationNo} · ${vehicle.vendor.name}`
-              : 'No vehicle chosen yet'}
+              : t('delivery.summary.noVehicle')}
           </p>
         </div>
       </header>
@@ -53,7 +56,7 @@ export function DeliverySummaryPanel({ workspace, onConfirm }: DeliverySummaryPa
 
         {driver && (
           <p className="text-xs text-muted-foreground">
-            Driver <span className="font-medium text-foreground">{driver.name}</span>
+            {t('delivery.driverWith', { name: driver.name })}
             {vehicle?.currentDriver && vehicle.currentDriver.id !== driver.id && (
               <span className="text-tone-indigo"> · for this trip only</span>
             )}
@@ -76,7 +79,7 @@ export function DeliverySummaryPanel({ workspace, onConfirm }: DeliverySummaryPa
 
         <DateField
           id="trip-date"
-          label="Trip date"
+          label={t('delivery.summary.tripDate')}
           value={workspace.tripDate}
           onChange={workspace.setTripDate}
           disabled={isSaving}
@@ -84,7 +87,8 @@ export function DeliverySummaryPanel({ workspace, onConfirm }: DeliverySummaryPa
 
         <div className="space-y-1.5">
           <Label htmlFor="trip-note">
-            Trip note <span className="text-muted-foreground">(optional)</span>
+            {t('delivery.summary.tripNote')}{' '}
+            <span className="text-muted-foreground">{t('common.labels.optionalSuffix')}</span>
           </Label>
           <Textarea
             id="trip-note"
@@ -119,12 +123,12 @@ export function DeliverySummaryPanel({ workspace, onConfirm }: DeliverySummaryPa
           ) : (
             <Send data-icon="inline-start" aria-hidden />
           )}
-          {editing ? 'Save trip' : 'Create delivery'}
+          {editing ? t('delivery.summary.save') : t('delivery.summary.create')}
         </Button>
 
         {!editing && vehicle && (
           <p className="text-center text-[11px] text-muted-foreground">
-            Numbered on confirmation as{' '}
+            {t('delivery.summary.numberedOn')}{' '}
             <span className="font-mono">{vehicle.vendor.vendorCode}-TRIP-…</span>
           </p>
         )}

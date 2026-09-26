@@ -1,5 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useFormatters, useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 /** The paging half of any list response envelope. */
 export interface ListPageMeta {
@@ -14,8 +16,17 @@ interface ListPaginationProps {
   onPageChange: (page: number) => void
   /** True while the next page is in flight, so the controls cannot stack requests. */
   isFetching: boolean
-  /** "challan" / "challans", "location" / "locations" — one control serves both. */
-  noun?: [singular: string, plural: string]
+  /**
+   * What is being paged, as a key into the `nouns` branch — "challan" /
+   * "challans", "location" / "locations". One control serves every list.
+   *
+   * A key rather than the `[singular, plural]` pair of English words this used
+   * to take: the pair could only ever be English, and the sentence around it
+   * puts the noun in a different place in the two languages. The key lets the
+   * message own the whole sentence, which is the only way Bangla's word order
+   * can be right.
+   */
+  nounKey?: TranslationKey
 }
 
 /**
@@ -33,25 +44,37 @@ export function ListPagination({
   meta,
   onPageChange,
   isFetching,
-  noun = ['record', 'records'],
+  nounKey = 'nouns.record',
 }: ListPaginationProps) {
+  const t = useT()
+  const format = useFormatters()
+
   if (meta.total === 0) {
     return null
   }
 
   const first = (meta.page - 1) * meta.limit + 1
   const last = Math.min(meta.page * meta.limit, meta.total)
+  const noun = t(nounKey, { count: meta.total })
 
   return (
     <nav
-      aria-label={`${noun[1]} pages`}
+      aria-label={t('common.pagination.pagesAria', { noun })}
       className="flex flex-col items-center justify-between gap-3 border-t px-4 py-3 sm:flex-row"
     >
+      {/*
+       * One interpolated sentence rather than spans stitched together in JSX.
+       * The emphasis went with it: English reads "Showing 1–10 of 43 challans"
+       * and Bangla leads with the total, so a layout that hard-coded which
+       * fragment was bold could only be right in one of them.
+       */}
       <p className="text-xs text-muted-foreground" aria-live="polite">
-        Showing <span className="font-medium text-foreground">{first}</span>–
-        <span className="font-medium text-foreground">{last}</span> of{' '}
-        <span className="font-medium text-foreground">{meta.total}</span>{' '}
-        {meta.total === 1 ? noun[0] : noun[1]}
+        {t('common.pagination.showingNoun', {
+          from: format.number(first),
+          to: format.number(last),
+          total: format.number(meta.total),
+          noun,
+        })}
       </p>
 
       <div className="flex items-center gap-2">
@@ -62,11 +85,14 @@ export function ListPagination({
           onClick={() => onPageChange(meta.page - 1)}
         >
           <ChevronLeft data-icon="inline-start" aria-hidden />
-          Previous
+          {t('common.actions.previous')}
         </Button>
 
         <span className="px-1 text-xs whitespace-nowrap text-muted-foreground">
-          Page {meta.page} of {meta.totalPages}
+          {t('common.pagination.page', {
+            page: format.number(meta.page),
+            pages: format.number(meta.totalPages),
+          })}
         </span>
 
         <Button
@@ -75,7 +101,7 @@ export function ListPagination({
           disabled={meta.page >= meta.totalPages || isFetching}
           onClick={() => onPageChange(meta.page + 1)}
         >
-          Next
+          {t('common.actions.next')}
           <ChevronRight data-icon="inline-end" aria-hidden />
         </Button>
       </div>

@@ -2,6 +2,7 @@ import { Minus, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { linkOutcome } from '../lib/split-parts'
+import { useT } from '@/lib/i18n'
 
 interface LinkQtyFieldProps {
   qty: number
@@ -21,6 +22,8 @@ interface LinkQtyFieldProps {
  * is one press of "Max".
  */
 export function LinkQtyField({ qty, onChange, rowQty, room, tripDo }: LinkQtyFieldProps) {
+  const t = useT()
+
   const max = Math.max(1, Math.min(rowQty, room))
   const { linked, remainder } = linkOutcome(rowQty, qty)
 
@@ -28,7 +31,7 @@ export function LinkQtyField({ qty, onChange, rowQty, room, tripDo }: LinkQtyFie
     <div className="rounded-xl border bg-muted/25 p-3.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[13px] font-medium">How many came out on this Trip DO?</p>
+          <p className="text-[13px] font-medium">{t('tripDo.assign.howMany')}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Fewer than {rowQty} splits the row; the rest waits for another Trip DO.
           </p>
@@ -40,7 +43,7 @@ export function LinkQtyField({ qty, onChange, rowQty, room, tripDo }: LinkQtyFie
             size="icon-sm"
             onClick={() => onChange(Math.max(1, qty - 1))}
             disabled={qty <= 1}
-            aria-label="One fewer"
+            aria-label={t('tripDo.assign.oneFewer')}
           >
             <Minus aria-hidden />
           </Button>
@@ -52,14 +55,14 @@ export function LinkQtyField({ qty, onChange, rowQty, room, tripDo }: LinkQtyFie
             value={qty}
             onChange={(event) => onChange(Number.parseInt(event.target.value, 10) || 0)}
             className="h-8 w-16 text-center tabular-nums"
-            aria-label="Pieces on this Trip DO"
+            aria-label={t('tripDo.assign.piecesAria')}
           />
           <Button
             variant="outline"
             size="icon-sm"
             onClick={() => onChange(Math.min(max, qty + 1))}
             disabled={qty >= max}
-            aria-label="One more"
+            aria-label={t('tripDo.assign.oneMore')}
           >
             <Plus aria-hidden />
           </Button>

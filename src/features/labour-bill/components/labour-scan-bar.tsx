@@ -2,6 +2,7 @@ import { Loader2, ScanBarcode } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface LabourScanBarProps {
@@ -28,6 +29,8 @@ interface LabourScanBarProps {
  * typed into it.
  */
 export function LabourScanBar({ onScan, pending }: LabourScanBarProps) {
+  const t = useT()
+
   const [typed, setTyped] = useState('')
 
   const submit = () => {
@@ -55,21 +58,19 @@ export function LabourScanBar({ onScan, pending }: LabourScanBarProps) {
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">
-          Scan a challan to add its models
-        </p>
+        <p className="text-sm font-medium">{t('labourBill.details.scanTitle')}</p>
         <p className="text-xs text-pretty text-muted-foreground" aria-live="polite">
           {pending
-            ? 'Reading that challan…'
-            : 'Scan anywhere on this page — no need to click first. Every model on the challan becomes its own row, and each files itself under its own CSD.'}
+            ? t('labourBill.details.readingChallan')
+            : t('labourBill.details.scanAnywhere')}
         </p>
       </div>
 
       <div className="flex shrink-0 gap-2">
         <Input
           className="h-9 w-full font-mono text-[13px] sm:w-52"
-          placeholder="LBTS-CH-2026-000067"
-          aria-label="Challan number or SL"
+          placeholder={t('labourBill.toolbar.scanPlaceholder')}
+          aria-label={t('labourBill.toolbar.scanAria')}
           value={typed}
           disabled={pending}
           onChange={(event) => setTyped(event.target.value)}
@@ -81,7 +82,7 @@ export function LabourScanBar({ onScan, pending }: LabourScanBarProps) {
           }}
         />
         <Button variant="outline" className="h-9 shrink-0" disabled={pending || !typed.trim()} onClick={submit}>
-          Add
+          {t('common.actions.add')}
         </Button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { Building2, CircleAlert, Route, UserRound } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { OwnershipBadge, VehicleStatusBadge } from '@/features/vendor/components/status-badges'
 import { VehicleAvatar } from '@/features/vendor/components/vendor-identity'
@@ -32,6 +33,8 @@ export function VehicleResultItem({
   onSelect,
   onHover,
 }: VehicleResultItemProps) {
+  const t = useT()
+
   const { vehicle, vendor, currentDriver, openTrips } = option
   const description = [vehicle.brand, vehicle.model].filter(Boolean).join(' ')
 
@@ -91,7 +94,7 @@ export function VehicleResultItem({
                   )}
                 </>
               ) : (
-                <span className="text-muted-foreground">No driver assigned</span>
+                <span className="text-muted-foreground">{t('delivery.vehicle.noDriverAssigned')}</span>
               )}
             </span>
           </span>
@@ -108,7 +111,7 @@ export function VehicleResultItem({
             >
               <Route className="size-3" aria-hidden />
               {openTrips.length === 1
-                ? `On ${shortTripNumber(openTrips[0].tripNumber)}`
+                ? t('delivery.vehicle.onTrip', { trip: shortTripNumber(openTrips[0].tripNumber) })
                 : `${openTrips.length} open trips`}
             </span>
           )}

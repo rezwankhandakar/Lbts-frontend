@@ -252,7 +252,7 @@ export function AssignmentPanel({
             meta={meta}
             onPageChange={setPage}
             isFetching={query.isFetching}
-            noun={['assignment', 'assignments']}
+            nounKey="nouns.assignment"
           />
         )}
       </Panel>

@@ -1,5 +1,6 @@
 import { BellOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 
 /**
  * What the header panel draws when it has no messages to draw.
@@ -33,14 +34,16 @@ export function NotificationPanelError({
   message: string
   onRetry: () => void
 }) {
+  const t = useT()
+
   return (
     <div className="px-4 py-8 text-center">
-      <p className="text-[13px] font-medium">Could not load notifications</p>
+      <p className="text-[13px] font-medium">{t('notification.panel.loadFailed')}</p>
       <p className="mx-auto mt-1 max-w-[16rem] text-[11px] leading-relaxed text-muted-foreground">
         {message}
       </p>
       <Button variant="outline" size="sm" className="mt-3" onClick={onRetry}>
-        Try again
+        {t('common.actions.retry')}
       </Button>
     </div>
   )
@@ -57,12 +60,14 @@ export function NotificationPanelError({
  * either.
  */
 export function NotificationPanelEmpty() {
+  const t = useT()
+
   return (
     <div className="px-4 py-10 text-center">
       <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
         <BellOff className="size-4" aria-hidden />
       </div>
-      <p className="mt-3 text-[13px] font-medium">You are up to date</p>
+      <p className="mt-3 text-[13px] font-medium">{t('notification.panel.upToDate')}</p>
       <p className="mx-auto mt-1 max-w-[17rem] text-[11px] leading-relaxed text-muted-foreground">
         Approvals, review verdicts, lapsing certificates and money movements land
         here as they happen.

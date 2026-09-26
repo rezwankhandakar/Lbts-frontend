@@ -1,6 +1,7 @@
 import { Building2 } from 'lucide-react'
-import { CARRYING_KIND_META, floorLabel, taka } from '../lib/delivery-meta'
+import { carryingKindMeta, floorLabel, taka } from '../lib/delivery-meta'
 import type { TripChallanRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 const CHIP =
   'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap'
@@ -17,17 +18,19 @@ const CHIP =
  * recorded.
  */
 export function DeliveryDetailChips({ challan }: { challan: TripChallanRecord }) {
+  const t = useT()
+
   return (
     <>
       {challan.floorNo !== null && (
         <span className={`${CHIP} border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo`}>
           <Building2 className="size-3" aria-hidden />
-          {floorLabel(challan.floorNo)}
+          {floorLabel(challan.floorNo, t)}
         </span>
       )}
 
       {challan.carrying.map((entry, index) => {
-        const meta = CARRYING_KIND_META[entry.kind]
+        const meta = carryingKindMeta(entry.kind, t)
         const Icon = meta.icon
 
         return (
@@ -45,7 +48,7 @@ export function DeliveryDetailChips({ challan }: { challan: TripChallanRecord })
 
       {challan.carrying.length > 1 && (
         <span className={`${CHIP} border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald`}>
-          Carrying total
+          {t('delivery.extras.carryingTotal')}
           <span className="font-bold tabular-nums">{taka(challan.carryingTotal)}</span>
         </span>
       )}

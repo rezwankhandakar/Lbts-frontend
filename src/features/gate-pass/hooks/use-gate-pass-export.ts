@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
 import { exportGatePasses } from '../api/gate-pass-api'
+import { t } from '@/lib/i18n'
 import { saveBlob } from '@/lib/save-blob'
 import type { GatePassListParams } from '../types'
 import { reportGatePassError } from './use-gate-pass-mutations'
@@ -57,12 +58,12 @@ export function useGatePassExport(params: GatePassListParams): GatePassExportCon
     }
 
     setIsExporting(true)
-    const toastId = toast.loading('Building the spreadsheet…')
+    const toastId = toast.loading(t('gatePass.toasts.buildingSpreadsheet'))
 
     void exportGatePasses(params)
       .then(({ blob, filename }) => {
         saveBlob(blob, filename)
-        toast.success('Spreadsheet downloaded', { id: toastId })
+        toast.success(t('gatePass.toasts.spreadsheetDownloaded'), { id: toastId })
         // Closed only once the file exists, so a failure leaves the operator
         // looking at the question rather than at a list that did nothing.
         setIsConfirming(false)

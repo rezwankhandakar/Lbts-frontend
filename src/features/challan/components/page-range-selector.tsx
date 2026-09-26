@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { TriangleAlert } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { formatRange } from '../lib/challan-meta'
+import { formatRange, rangeProblemText } from '../lib/challan-meta'
 import type { RangeProblem } from '../lib/page-ranges'
 import type { ChallanEntry } from '../lib/challan-session'
 import type { PageRange } from '../types'
@@ -76,6 +78,8 @@ export function PageRangeSelector({
   onPreviewPage,
   disabled,
 }: PageRangeSelectorProps) {
+  const t = useT()
+
   /** Set after the first click, cleared by the second. */
   const [anchor, setAnchor] = useState<number | null>(null)
 
@@ -123,7 +127,7 @@ export function PageRangeSelector({
         <div className="flex items-end gap-2">
           <div className="space-y-1">
             <Label htmlFor="range-start" className="text-xs text-muted-foreground">
-              First page
+              {t('challan.pdf.firstPage')}
             </Label>
             <Input
               id="range-start"
@@ -137,11 +141,11 @@ export function PageRangeSelector({
             />
           </div>
 
-          <span className="pb-2 text-xs text-muted-foreground">to</span>
+          <span className="pb-2 text-xs text-muted-foreground">{t('common.labels.to')}</span>
 
           <div className="space-y-1">
             <Label htmlFor="range-end" className="text-xs text-muted-foreground">
-              Last page
+              {t('challan.pdf.lastPage')}
             </Label>
             <Input
               id="range-end"
@@ -158,16 +162,16 @@ export function PageRangeSelector({
 
         <p className="pb-1 text-xs text-muted-foreground" aria-live="polite">
           {isFiled
-            ? `Filed as ${entry.challanNumber}`
+            ? t('challan.pdf.filedAs', { challan: entry.challanNumber ?? '' })
             : anchor !== null
-              ? `Started at page ${anchor} — click the last page of this challan`
-              : `This challan is ${formatRange(entry)}`}
+              ? t('challan.pdf.startedAt', { page: formatNumber(anchor ?? 0) })
+              : t('challan.pdf.thisChallanIs', { range: formatRange(entry, t) })}
         </p>
       </div>
 
       <div
         role="group"
-        aria-label="Pages of the source PDF"
+        aria-label={t('challan.pdf.pagesAria')}
         className="flex flex-wrap gap-1 rounded-lg border bg-muted/30 p-2"
       >
         {Array.from({ length: sourcePageCount }, (_, index) => index + 1).map((page) => {
@@ -182,10 +186,10 @@ export function PageRangeSelector({
               aria-pressed={state === 'current'}
               title={
                 state === 'filed'
-                  ? 'Already filed as a challan'
+                  ? t('challan.pdf.alreadyFiled')
                   : state === 'other'
-                    ? 'Belongs to another challan in this queue'
-                    : `Page ${page}`
+                    ? t('challan.pdf.belongsToAnother')
+                    : t('challan.pages.pageN', { n: formatNumber(page) })
               }
               className={cn(
                 'h-7 min-w-7 rounded-md px-1.5 text-xs font-medium tabular-nums ring-1 transition-colors outline-none',
@@ -193,7 +197,7 @@ export function PageRangeSelector({
                 PAGE_STYLES[state],
               )}
             >
-              {page}
+              {formatNumber(page)}
             </button>
           )
         })}
@@ -205,15 +209,15 @@ export function PageRangeSelector({
           className="flex items-start gap-2 rounded-lg border border-destructive/25 bg-destructive/5 px-3 py-2 text-xs leading-snug text-destructive"
         >
           <TriangleAlert className="mt-px size-3.5 shrink-0" aria-hidden />
-          <span>{problem.message}</span>
+          <span>{rangeProblemText(problem, t)}</span>
         </p>
       )}
 
       <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-        <Legend className="bg-primary" label="This challan" />
-        <Legend className="bg-tone-amber/60" label="Queued" />
-        <Legend className="bg-tone-emerald/60" label="Filed" />
-        <Legend className="bg-border" label="Unassigned" />
+        <Legend className="bg-primary" label={t('challan.pdf.legendThis')} />
+        <Legend className="bg-tone-amber/60" label={t('challan.pdf.legendQueued')} />
+        <Legend className="bg-tone-emerald/60" label={t('challan.pdf.legendFiled')} />
+        <Legend className="bg-border" label={t('challan.pdf.legendUnassigned')} />
       </p>
     </div>
   )

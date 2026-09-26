@@ -13,13 +13,14 @@ import {
   DeliveryOutcomeBadge,
   TripStatusBadge,
 } from '@/features/delivery/components/delivery-badges'
-import { plural, shortTripNumber } from '@/features/delivery/lib/delivery-meta'
+import { shortTripNumber } from '@/features/delivery/lib/delivery-meta'
 import { useVendorTrip } from '../hooks/use-vendors'
 import { formatDay } from '../lib/vendor-meta'
 import type { VendorTripDetail } from '../types'
 import { InfoRow } from './form-parts'
 import { PanelError } from './panel-states'
 import { VendorTripMoney } from './vendor-trip-money'
+import { countOf, useT } from '@/lib/i18n'
 
 interface VendorTripDetailSheetProps {
   vendorId: string
@@ -109,6 +110,8 @@ export function VendorTripDetailSheet({
   canOpenDelivery,
   onClose,
 }: VendorTripDetailSheetProps) {
+  const t = useT()
+
   const query = useVendorTrip(vendorId, tripId)
   const trip = query.data
 
@@ -121,7 +124,7 @@ export function VendorTripDetailSheet({
           </SheetTitle>
           <SheetDescription>
             {trip
-              ? `${formatDay(trip.tripDate)} · ${plural(trip.challanCount, 'challan')} · ${trip.totalQty} pcs`
+              ? `${formatDay(trip.tripDate)} · ${countOf(trip.challanCount, 'nouns.challan', t)} · ${trip.totalQty} pcs`
               : 'Loading…'}
           </SheetDescription>
         </SheetHeader>

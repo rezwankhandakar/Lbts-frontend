@@ -1,4 +1,6 @@
 import { formatAmount } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { BillLineRecord, BillRecord } from '../types'
 import { BillSheetRow, CELL } from './bill-sheet-row'
@@ -11,25 +13,31 @@ interface BillSheetProps {
   onRemove: (target: RemoveTarget) => void
 }
 
-/** The Excel file's headers, in its order. */
-const HEADINGS = [
-  'SL',
-  'Customer',
-  'CSD',
-  'Receiver Number',
-  'Address',
-  'District',
-  'Thana',
-  'Location',
-  'Unit',
-  'Products Model',
-  'Qty.',
-  'Rate',
-  'Amount',
-  'Products',
-  'Trip Do',
-  'Capacity',
-  'Remarks',
+/**
+ * The sheet's headers, in the Excel file's order.
+ *
+ * Keys rather than words: this is the **screen**, and the screen follows the
+ * reader. The `.xlsx` the office sends is built on the server and keeps the
+ * English headings it has always had — the same split the Trip DO sheet makes.
+ */
+const HEADING_KEYS: TranslationKey[] = [
+  'bill.columns.sl',
+  'bill.columns.customer',
+  'bill.columns.csd',
+  'bill.columns.receiver',
+  'bill.columns.address',
+  'bill.columns.district',
+  'bill.columns.thana',
+  'bill.columns.location',
+  'bill.columns.unit',
+  'bill.columns.model',
+  'bill.columns.qty',
+  'bill.columns.rate',
+  'bill.columns.amount',
+  'bill.columns.products',
+  'bill.columns.tripDo',
+  'bill.columns.capacity',
+  'bill.columns.remarks',
 ]
 
 const HEAD =
@@ -61,6 +69,8 @@ function groupIdsFor(lines: readonly BillLineRecord[]): Map<string, string[]> {
  * reads without a heavier rule.
  */
 export function BillSheet({ bill, lines, canRemove, onRemove }: BillSheetProps) {
+  const t = useT()
+
   const groups = groupIdsFor(lines)
 
   return (
@@ -68,14 +78,14 @@ export function BillSheet({ bill, lines, canRemove, onRemove }: BillSheetProps) 
       <table className="w-max min-w-full border-separate border-spacing-0 text-[12.5px]">
         <thead>
           <tr>
-            {HEADINGS.map((heading) => (
+            {HEADING_KEYS.map((heading) => (
               <th key={heading} scope="col" className={HEAD}>
                 {heading}
               </th>
             ))}
             {canRemove && (
               <th scope="col" className={cn(HEAD, 'w-10')}>
-                <span className="sr-only">Remove</span>
+                <span className="sr-only">{t('bill.details.removeRow')}</span>
               </th>
             )}
           </tr>
@@ -97,7 +107,7 @@ export function BillSheet({ bill, lines, canRemove, onRemove }: BillSheetProps) 
         <tfoot>
           <tr>
             <td colSpan={10} className={cn(FOOT, 'pr-4 text-right tracking-wide uppercase')}>
-              Total
+              {t('bill.details.sheetTotal')}
             </td>
             <td className={cn(FOOT, 'text-[13px]')}>{bill.totalQty.toLocaleString()}</td>
             <td className={FOOT} />

@@ -1,6 +1,7 @@
 import { RefreshCcw, RotateCcw, TriangleAlert } from 'lucide-react'
 import { BrandLockup } from '@/components/shared/brand'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 
 interface FallbackProps {
   error: Error
@@ -30,6 +31,8 @@ function ErrorDetail({ error }: { error: Error }) {
  * Suspense boundary.
  */
 export function RouteErrorFallback({ error, onRetry }: FallbackProps) {
+  const t = useT()
+
   return (
     <div
       role="alert"
@@ -40,17 +43,17 @@ export function RouteErrorFallback({ error, onRetry }: FallbackProps) {
       </div>
 
       <h1 className="mt-5 text-lg font-semibold tracking-tight text-balance">
-        This page ran into a problem
+        {t('shared.errorFallback.routeTitle')}
       </h1>
       <p className="mt-2 text-sm leading-relaxed text-pretty text-muted-foreground">
-        Nothing was lost. Try again, or use the sidebar to go somewhere else.
+        {t('shared.errorFallback.routeBody')}
       </p>
 
       <ErrorDetail error={error} />
 
       <Button variant="outline" className="mt-6" onClick={onRetry}>
         <RotateCcw data-icon="inline-start" aria-hidden />
-        Try again
+        {t('common.actions.retry')}
       </Button>
     </div>
   )
@@ -60,7 +63,16 @@ export function RouteErrorFallback({ error, onRetry }: FallbackProps) {
  * Last resort, outside the router and the providers: used when the shell
  * itself failed, so it can rely on nothing but the brand and a reload.
  */
+/**
+ * Outside the providers, which means outside the locale store's React
+ * subscription — but not outside the store itself, which is a plain module.
+ * `useT` still resolves against the persisted locale; what it cannot do here
+ * is re-render, and a screen whose only action is a reload has nothing to
+ * re-render for.
+ */
 export function AppErrorFallback({ error }: { error: Error }) {
+  const t = useT()
+
   return (
     <div
       role="alert"
@@ -74,17 +86,17 @@ export function AppErrorFallback({ error }: { error: Error }) {
         </div>
 
         <h1 className="mt-5 text-lg font-semibold tracking-tight text-balance">
-          LBTS could not start
+          {t('shared.errorFallback.appTitle')}
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-pretty text-muted-foreground">
-          Something went wrong while loading the application. Reloading usually clears it.
+          {t('shared.errorFallback.appBody')}
         </p>
 
         <ErrorDetail error={error} />
 
         <Button className="mt-6 w-full" onClick={() => window.location.reload()}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          Reload LBTS
+          {t('shared.errorFallback.reload')}
         </Button>
       </div>
     </div>

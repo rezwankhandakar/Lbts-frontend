@@ -1,4 +1,5 @@
-import { formatAmount, formatTaka } from '@/lib/format'
+import { formatAmount, formatNumber, formatTaka } from '@/lib/format'
+import type { Translator } from '@/lib/i18n'
 import type { Rate } from '../types'
 
 /**
@@ -26,19 +27,26 @@ export function rateLabel(rate: Rate | null): string {
  * The same rate as a sentence. Used wherever the short form would be a riddle
  * — a details page, a tooltip, the confirmation before a charge is saved.
  */
-export function rateDescription(rate: Rate | null): string {
+export function rateDescription(rate: Rate | null, t: Translator): string {
   if (!rate) {
-    return 'No rate set.'
+    return t('productRate.rate.none')
   }
 
   if (rate.kind === 'flat') {
-    return `${formatTaka(rate.amount)} per piece.`
+    return t('productRate.rate.perPiece', { amount: formatTaka(rate.amount) })
   }
 
-  return (
-    `First ${rate.firstQty} ${rate.firstQty === 1 ? 'piece' : 'pieces'} on a challan at ` +
-    `${formatTaka(rate.firstAmount)} each, then ${formatTaka(rate.restAmount)} each.`
-  )
+  /*
+   * One message rather than a sentence assembled from three pieces. The
+   * allowance, the first figure and the rest sit in a different order in the
+   * two languages, and the `piece`/`pieces` agreement is English's alone.
+   */
+  return t('productRate.rate.tiered', {
+    count: rate.firstQty,
+    n: formatNumber(rate.firstQty),
+    first: formatTaka(rate.firstAmount),
+    rest: formatTaka(rate.restAmount),
+  })
 }
 
 /**

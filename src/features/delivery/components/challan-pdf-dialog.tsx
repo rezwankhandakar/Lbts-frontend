@@ -7,6 +7,7 @@ import { saveBlob } from '@/lib/save-blob'
 import { useChallanFrontPages } from '../hooks/use-challan-front-pages'
 import { useZoom } from '@/hooks/use-zoom'
 import { ZoomToolbar } from '@/components/shared/zoom-toolbar'
+import { useT } from '@/lib/i18n'
 
 /** pdf.js is only downloaded once somebody actually opens a PDF. */
 const ZoomablePdf = lazy(() =>
@@ -35,6 +36,8 @@ const SPINNER = (
  * are on screen.
  */
 export function ChallanPdfDialog({ challanId, challanNumber, open, onOpenChange }: ChallanPdfDialogProps) {
+  const t = useT()
+
   const document = useChallanFrontPages(open ? challanId : null)
   const zoom = useZoom()
 
@@ -61,7 +64,7 @@ export function ChallanPdfDialog({ challanId, challanNumber, open, onOpenChange 
             onClick={() => document.url && printDocument(document.url, 'application/pdf')}
           >
             <Printer data-icon="inline-start" aria-hidden />
-            Print
+            {t('common.actions.print')}
           </Button>
           <Button
             variant="outline"
@@ -70,7 +73,7 @@ export function ChallanPdfDialog({ challanId, challanNumber, open, onOpenChange 
             onClick={() => document.blob && saveBlob(document.blob, `${challanNumber}.pdf`)}
           >
             <Download data-icon="inline-start" aria-hidden />
-            Download
+            {t('common.actions.download')}
           </Button>
         </div>
 
@@ -81,7 +84,7 @@ export function ChallanPdfDialog({ challanId, challanNumber, open, onOpenChange 
               <FileWarning className="size-6 text-destructive" aria-hidden />
               <p className="text-sm text-muted-foreground">{document.error}</p>
               <Button variant="outline" size="sm" onClick={document.retry}>
-                Try again
+                {t('common.actions.retry')}
               </Button>
             </div>
           )}

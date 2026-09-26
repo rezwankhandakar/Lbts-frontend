@@ -1,6 +1,7 @@
 import { MapPin, Phone, StickyNote } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { PARTY_LABELS, whereOf } from '../lib/delivery-meta'
+import { PARTY_LABEL_KEYS, whereOf } from '../lib/delivery-meta'
 import type { TripChallanRecord } from '../types'
 
 /**
@@ -18,6 +19,8 @@ export function ChallanPartyDetails({
   challan: TripChallanRecord
   className?: string
 }) {
+  const t = useT()
+
   const where = whereOf(challan)
 
   return (
@@ -27,8 +30,7 @@ export function ChallanPartyDetails({
         <span className="min-w-0 wrap-break-word">
           {challan.deliveryAddress}
           <span className="block">
-            Thana: <span className="text-foreground">{where.thana}</span> · District:{' '}
-            <span className="text-foreground">{where.district}</span>
+            {t('delivery.cart.where', { thana: where.thana, district: where.district })}
           </span>
         </span>
       </p>
@@ -44,9 +46,14 @@ export function ChallanPartyDetails({
       )}
       {challan.edited.length > 0 && (
         <p className="rounded-md bg-tone-amber/10 px-2 py-1 text-[11px] text-tone-amber">
-          Changed for this trip:{' '}
+          {t('delivery.cart.changedForThisTrip')}{' '}
           {challan.edited
-            .map((field) => `${PARTY_LABELS[field]} (challan: ${challan.original[field] || 'blank'})`)
+            .map((field) =>
+              t('delivery.cart.editedField', {
+                label: t(PARTY_LABEL_KEYS[field]),
+                was: challan.original[field] || t('delivery.cart.blankValue'),
+              }),
+            )
             .join('; ')}
         </p>
       )}

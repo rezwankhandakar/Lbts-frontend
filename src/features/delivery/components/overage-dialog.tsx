@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import type { TripOverage } from '../types'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 interface OverageDialogProps {
   overages: TripOverage[] | null
@@ -28,11 +30,13 @@ interface OverageDialogProps {
  * default button is the one that goes back.
  */
 export function OverageDialog({ overages, isPending, onCancel, onConfirm }: OverageDialogProps) {
+  const t = useT()
+
   return (
     <AlertDialog open={overages !== null} onOpenChange={(open) => !open && !isPending && onCancel()}>
       <AlertDialogContent className="sm:max-w-lg">
         <AlertDialogHeader>
-          <AlertDialogTitle>More than the challan orders</AlertDialogTitle>
+          <AlertDialogTitle>{t('delivery.overage.title')}</AlertDialogTitle>
           <AlertDialogDescription>
             Check these lines against the load. Sending them anyway is allowed — the trip records
             what actually went — but it also <strong>raises the challan</strong> to match, so a
@@ -48,7 +52,7 @@ export function OverageDialog({ overages, isPending, onCancel, onConfirm }: Over
                 {overage.productName} <span className="font-mono text-xs">{overage.model}</span>
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
-                Ordered {overage.ordered}
+                {t('delivery.line.ordered', { n: formatNumber(overage.ordered) })}
                 {overage.onOtherTrips > 0 && ` · ${overage.onOtherTrips} already on other trips`} ·{' '}
                 <span className="font-semibold text-tone-orange">{overage.onThisTrip} on this trip</span>
               </p>
@@ -57,10 +61,12 @@ export function OverageDialog({ overages, isPending, onCancel, onConfirm }: Over
         </ul>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Go back and adjust</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>
+            {t('delivery.overage.goBack')}
+          </AlertDialogCancel>
           <Button type="button" variant="destructive" disabled={isPending} onClick={onConfirm}>
             {isPending && <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />}
-            Send anyway
+            {t('delivery.overage.sendAnyway')}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

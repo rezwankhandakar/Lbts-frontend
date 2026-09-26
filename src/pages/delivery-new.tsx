@@ -1,6 +1,7 @@
 import { DeliveryPageHeader } from '@/features/delivery/components/delivery-page-header'
 import { DeliveryWorkspace } from '@/features/delivery/components/delivery-workspace'
 import { useTripWorkspace } from '@/features/delivery/hooks/use-trip-workspace'
+import { useT } from '@/lib/i18n'
 
 /**
  * Building a new trip.
@@ -11,14 +12,16 @@ import { useTripWorkspace } from '@/features/delivery/hooks/use-trip-workspace'
  * challans. The trip number is allocated by the server at confirmation.
  */
 export function DeliveryNewPage() {
+  const t = useT()
+
   const workspace = useTripWorkspace()
 
   return (
     <div className="mx-auto w-full max-w-7xl">
       <DeliveryPageHeader
-        title="New delivery"
-        description="Choose the vehicle, confirm who drives it, then put the challans on the lorry. The trip is numbered under the vehicle's vendor when you confirm."
-        back={{ to: '/delivery', label: 'Deliveries' }}
+        title={t('delivery.workspace.newTitle')}
+        description={t('delivery.workspace.newDescription')}
+        back={{ to: '/delivery', label: t('delivery.deliveries') }}
       />
       <DeliveryWorkspace workspace={workspace} />
     </div>

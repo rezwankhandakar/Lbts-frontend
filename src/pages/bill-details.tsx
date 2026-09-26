@@ -20,6 +20,7 @@ import { BillSheet } from '@/features/bill/components/bill-sheet'
 import { useBillPage } from '@/features/bill/hooks/use-bill-page'
 import { canReviewBill, canWriteBill } from '@/features/bill/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { useT } from '@/lib/i18n'
 
 /**
  * One bill: its month and unit, its figures, and the sheet itself — laid out
@@ -28,6 +29,8 @@ import { useCurrentRole } from '@/hooks/use-current-role'
  * is read and downloaded.
  */
 export function BillDetailsPage() {
+  const t = useT()
+
   const { id = '' } = useParams()
   const role = useCurrentRole()
   const canWrite = canWriteBill(role)
@@ -74,10 +77,10 @@ export function BillDetailsPage() {
         onRefresh={page.refresh}
       />
 
-      <section aria-label="Bill sheet" className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      <section aria-label={t('bill.sheetAria')} className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
           <div>
-            <h2 className="text-sm font-semibold">Bill sheet</h2>
+            <h2 className="text-sm font-semibold">{t('bill.sheetHeading')}</h2>
             <p className="text-xs text-muted-foreground">
               Exactly what the Excel file carries — one SL per Trip DO, returns and re-sends in Remarks.
             </p>

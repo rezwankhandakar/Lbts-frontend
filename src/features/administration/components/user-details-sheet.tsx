@@ -11,9 +11,9 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { getInitials } from '@/features/auth/user-display'
-import { statusMeta } from '@/lib/roles'
+import { useFormatters, useT } from '@/lib/i18n'
+import { roleLabel, statusLabel, statusMeta } from '@/lib/roles'
 import { cn } from '@/lib/utils'
-import { formatDateTime, formatRelative } from '@/lib/format'
 import type { AdminUser } from '../types'
 import { UserRoleBadge } from '@/components/shared/user-role-badge'
 import { UserStatusBadge } from '@/components/shared/user-status-badge'
@@ -60,19 +60,22 @@ export function UserDetailsSheet({
   onOpenChange,
   onChangeRole,
 }: UserDetailsSheetProps) {
+  const t = useT()
+  const format = useFormatters()
+
   if (!user) {
     return null
   }
 
-  const status = statusMeta(user.status)
+  const status = statusMeta(user.status, t)
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-md">
         <SheetHeader className="border-b p-5">
-          <SheetTitle className="sr-only">Account details</SheetTitle>
+          <SheetTitle className="sr-only">{t('administration.details.srTitle')}</SheetTitle>
           <SheetDescription className="sr-only">
-            Role, account status and history for {user.name}.
+            {t('administration.details.srDescription', { name: user.name })}
           </SheetDescription>
 
           <div className="flex items-start gap-3.5 pr-8">
@@ -105,7 +108,7 @@ export function UserDetailsSheet({
         </SheetHeader>
 
         <dl className="divide-y px-5 py-2">
-          <Row icon={Mail} label="Email">
+          <Row icon={Mail} label={t('administration.details.email')}>
             <span className="break-all">{user.email}</span>
             <span
               className={cn(
@@ -114,45 +117,66 @@ export function UserDetailsSheet({
               )}
             >
               <BadgeCheck className="size-3.5" aria-hidden />
-              {user.emailVerified ? 'Email verified' : 'Email not verified'}
+              {user.emailVerified
+                ? t('administration.details.emailVerified')
+                : t('administration.details.emailNotVerified')}
             </span>
           </Row>
 
-          <Row icon={CalendarClock} label="Account created">
-            {formatDateTime(user.createdAt)}
+          <Row icon={CalendarClock} label={t('administration.details.accountCreated')}>
+            {format.dateTime(user.createdAt)}
           </Row>
 
-          <Row icon={Clock3} label="Last sign-in">
+          <Row icon={Clock3} label={t('administration.details.lastSignIn')}>
             {user.lastLoginAt ? (
               <>
-                {formatDateTime(user.lastLoginAt)}
+                {format.dateTime(user.lastLoginAt)}
                 <span className="ml-1.5 text-muted-foreground">
-                  ({formatRelative(user.lastLoginAt)})
+                  ({format.relative(user.lastLoginAt)})
                 </span>
               </>
             ) : (
-              'Never signed in'
+              t('administration.details.neverSignedIn')
             )}
           </Row>
 
-          <Row icon={UserRoundCog} label="Last administrative change">
+          <Row icon={UserRoundCog} label={t('administration.details.lastChange')}>
             {user.statusUpdatedAt || user.roleUpdatedAt ? (
               <ul className="space-y-1">
+                {/* Two whole sentences rather than one with an optional tail
+                    appended: ' by X' can only sit at the end in English, and
+                    Bangla puts the actor before the verb. */}
                 {user.roleUpdatedAt && (
                   <li>
-                    Role set to {user.role} {formatRelative(user.roleUpdatedAt)}
-                    {user.roleUpdatedBy ? ` by ${user.roleUpdatedBy.name}` : ''}
+                    {user.roleUpdatedBy
+                      ? t('administration.details.roleSetToBy', {
+                          role: roleLabel(user.role, t),
+                          when: format.relative(user.roleUpdatedAt),
+                          actor: user.roleUpdatedBy.name,
+                        })
+                      : t('administration.details.roleSetTo', {
+                          role: roleLabel(user.role, t),
+                          when: format.relative(user.roleUpdatedAt),
+                        })}
                   </li>
                 )}
                 {user.statusUpdatedAt && (
                   <li>
-                    Marked {user.status} {formatRelative(user.statusUpdatedAt)}
-                    {user.statusUpdatedBy ? ` by ${user.statusUpdatedBy.name}` : ''}
+                    {user.statusUpdatedBy
+                      ? t('administration.details.markedStatusBy', {
+                          status: statusLabel(user.status, t),
+                          when: format.relative(user.statusUpdatedAt),
+                          actor: user.statusUpdatedBy.name,
+                        })
+                      : t('administration.details.markedStatus', {
+                          status: statusLabel(user.status, t),
+                          when: format.relative(user.statusUpdatedAt),
+                        })}
                   </li>
                 )}
               </ul>
             ) : (
-              'No administrative changes recorded'
+              t('administration.details.noChanges')
             )}
           </Row>
         </dl>
@@ -160,12 +184,12 @@ export function UserDetailsSheet({
         <div className="border-t p-4">
           {isSelf ? (
             <p className="text-center text-xs leading-relaxed text-muted-foreground">
-              This is your own account. Another Admin has to change your role or status.
+              {t('administration.details.ownAccount')}
             </p>
           ) : (
             <Button variant="outline" className="w-full" onClick={() => onChangeRole(user)}>
               <UserRoundCog data-icon="inline-start" className="text-tone-indigo" aria-hidden />
-              Change role
+              {t('administration.changeRole')}
             </Button>
           )}
         </div>

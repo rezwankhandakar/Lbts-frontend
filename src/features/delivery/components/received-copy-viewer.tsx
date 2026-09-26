@@ -8,6 +8,7 @@ import { formatBytes } from '@/lib/document-file-rules'
 import type { ReceivedCopyRecord } from '../types'
 import { ZoomToolbar } from '@/components/shared/zoom-toolbar'
 import { ZoomableImage } from '@/components/shared/zoomable-image'
+import { useT } from '@/lib/i18n'
 
 /** pdf.js is only downloaded once somebody actually opens a PDF copy. */
 const ZoomablePdf = lazy(() =>
@@ -55,6 +56,8 @@ export function ReceivedCopyViewer({
   onOpenChange,
   onDownload,
 }: ReceivedCopyViewerProps) {
+  const t = useT()
+
   const zoom = useZoom()
 
   if (!copy) {
@@ -93,11 +96,11 @@ export function ReceivedCopyViewer({
             onClick={() => url && mimeType && printDocument(url, mimeType)}
           >
             <Printer data-icon="inline-start" aria-hidden />
-            Print
+            {t('common.actions.print')}
           </Button>
           <Button variant="outline" size="sm" onClick={onDownload}>
             <Download data-icon="inline-start" aria-hidden />
-            Download
+            {t('common.actions.download')}
           </Button>
         </div>
 
@@ -120,7 +123,7 @@ export function ReceivedCopyViewer({
                 </Suspense>
               )
             ) : (
-              <ZoomableImage key={url} url={url} alt={`Signed copy for ${challanNumber}`} controls={zoom} />
+              <ZoomableImage key={url} url={url} alt={t('delivery.copy.viewerAlt', { challan: challanNumber })} controls={zoom} />
             ))}
         </div>
       </DialogContent>

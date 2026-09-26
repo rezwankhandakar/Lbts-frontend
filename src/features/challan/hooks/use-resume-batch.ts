@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { t } from '@/lib/i18n'
 import { useAuthStore } from '@/stores/use-auth-store'
 import { canManageAnyChallan, canWriteChallans } from '../types'
 import type { ChallanBatchDetail } from '../types'
@@ -56,9 +57,9 @@ export function useResumeBatch(): ResumeBatchState {
   const problem = !batch
     ? null
     : batch.isComplete
-      ? 'Every page of this PDF is already accounted for, so there is nothing left to file from it.'
+      ? t('challan.resume.allAccounted')
       : !mayContinue
-        ? 'This batch was started by somebody else. Only they, or a Manager, can file the rest of its challans.'
+        ? t('challan.resume.notYours')
         : null
 
   /**
@@ -109,6 +110,6 @@ export function useResumeBatch(): ResumeBatchState {
 function loadMessage(message: string | undefined): string {
   return (
     message ??
-    'That batch could not be opened. It may have been removed when its last challan was deleted.'
+    t('challan.resume.openFailed')
   )
 }

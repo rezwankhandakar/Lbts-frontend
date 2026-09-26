@@ -15,6 +15,8 @@ import type {
   ProductRateListParams,
   ProductRateModelFilter,
 } from '../types'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 interface ProductRateFiltersProps {
   params: ProductRateListParams
@@ -27,16 +29,16 @@ interface ProductRateFiltersProps {
 
 const TRIGGER = 'h-8 w-full sm:w-[11rem]'
 
-const MODEL_LABELS: Record<ProductRateModelFilter, string> = {
-  all: 'With and without model',
-  yes: 'Has a model',
-  no: 'Any model',
+const MODEL_KEYS: Record<ProductRateModelFilter, TranslationKey> = {
+  all: 'productRate.filters.modelAll',
+  yes: 'productRate.filters.modelYes',
+  no: 'productRate.filters.modelNo',
 }
 
-const ACTIVE_LABELS: Record<ProductRateActiveFilter, string> = {
-  all: 'Active and inactive',
-  active: 'Active only',
-  inactive: 'Inactive only',
+const ACTIVE_KEYS: Record<ProductRateActiveFilter, TranslationKey> = {
+  all: 'productRate.filters.activeAll',
+  active: 'productRate.filters.activeOnly',
+  inactive: 'productRate.filters.inactiveOnly',
 }
 
 /**
@@ -60,6 +62,8 @@ export function ProductRateFilters({
   canManage,
   summary,
 }: ProductRateFiltersProps) {
+  const t = useT()
+
   const isFiltered =
     params.search !== '' ||
     params.productName !== '' ||
@@ -79,8 +83,8 @@ export function ProductRateFilters({
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="Product, model or capacity"
-              aria-label="Search the rate card"
+              placeholder={t('productRate.filters.searchPlaceholder')}
+              aria-label={t('productRate.filters.searchAria')}
               className="pl-8.5"
             />
           </div>
@@ -90,17 +94,17 @@ export function ProductRateFilters({
               value={params.hasModel}
               onValueChange={(value) => onChange({ hasModel: value as ProductRateModelFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by whether it names a model">
+              <SelectTrigger className={TRIGGER} aria-label={t('productRate.filters.modelAria')}>
                 <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
                 <SelectValue>
-                  {(value) => MODEL_LABELS[(value as ProductRateModelFilter) ?? 'all']}
+                  {(value) => t(MODEL_KEYS[(value as ProductRateModelFilter) ?? 'all'])}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {(Object.keys(MODEL_LABELS) as ProductRateModelFilter[]).map((value) => (
+                  {(Object.keys(MODEL_KEYS) as ProductRateModelFilter[]).map((value) => (
                     <SelectItem key={value} value={value}>
-                      {MODEL_LABELS[value]}
+                      {t(MODEL_KEYS[value])}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -111,16 +115,16 @@ export function ProductRateFilters({
               value={params.active}
               onValueChange={(value) => onChange({ active: value as ProductRateActiveFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by whether it is in use">
+              <SelectTrigger className={TRIGGER} aria-label={t('productRate.filters.activeAria')}>
                 <SelectValue>
-                  {(value) => ACTIVE_LABELS[(value as ProductRateActiveFilter) ?? 'all']}
+                  {(value) => t(ACTIVE_KEYS[(value as ProductRateActiveFilter) ?? 'all'])}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {(Object.keys(ACTIVE_LABELS) as ProductRateActiveFilter[]).map((value) => (
+                  {(Object.keys(ACTIVE_KEYS) as ProductRateActiveFilter[]).map((value) => (
                     <SelectItem key={value} value={value}>
-                      {ACTIVE_LABELS[value]}
+                      {t(ACTIVE_KEYS[value])}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -130,14 +134,14 @@ export function ProductRateFilters({
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
 
             {canManage && (
               <Button size="sm" onClick={onAdd}>
                 <Plus data-icon="inline-start" aria-hidden />
-                Add product
+                {t('productRate.addProduct')}
               </Button>
             )}
           </div>

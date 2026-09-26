@@ -1,5 +1,7 @@
 import { CalendarDays } from 'lucide-react'
-import { QUICK_RANGE_LABELS, quickRangeFor, rangeFor } from '@/lib/date-ranges'
+import { QUICK_RANGE_KEYS, quickRangeFor, rangeFor } from '@/lib/date-ranges'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ChallanFilterPatch, ChallanListParams } from '../types'
 
@@ -23,13 +25,15 @@ export function ChallanDateChips({
   params: Pick<ChallanListParams, 'from' | 'to'>
   onChange: (patch: ChallanFilterPatch) => void
 }) {
+  const t = useT()
+
   const quick = quickRangeFor({ from: params.from, to: params.to })
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div
         role="group"
-        aria-label="Filing date"
+        aria-label={t('challan.filters.dateAria')}
         className="inline-flex items-center rounded-lg bg-muted/70 p-0.5"
       >
         {OPTIONS.map((option) => {
@@ -46,7 +50,7 @@ export function ChallanDateChips({
               )}
             >
               {option === 'all' && <CalendarDays className="size-3.5" aria-hidden />}
-              {QUICK_RANGE_LABELS[option]}
+              {t(QUICK_RANGE_KEYS[option] as TranslationKey)}
             </button>
           )
         })}

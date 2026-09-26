@@ -12,16 +12,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useT } from '@/lib/i18n'
 import { roleMeta } from '@/lib/roles'
 import { cn } from '@/lib/utils'
 
 export function UserMenu() {
+  const t = useT()
   const profile = useAuthStore((state) => state.profile)
   const firebaseUser = useAuthStore((state) => state.firebaseUser)
   const signOut = useSignOut()
 
   const user = toDisplayUser(profile, firebaseUser)
-  const role = user.role ? roleMeta(user.role) : null
+  const role = user.role ? roleMeta(user.role, t) : null
 
   return (
     <DropdownMenu>
@@ -29,7 +31,7 @@ export function UserMenu() {
         render={
           <Button
             variant="ghost"
-            aria-label="Open account menu"
+            aria-label={t('shell.openAccountMenu')}
             className="h-9 gap-2 rounded-lg px-1 transition-colors hover:bg-primary/10 sm:pr-2"
           />
         }
@@ -83,7 +85,7 @@ export function UserMenu() {
           render={<Link to="/profile" />}
         >
           <UserRound className="text-brand-indigo" aria-hidden />
-          Profile
+          {t('shell.profile')}
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
@@ -94,7 +96,7 @@ export function UserMenu() {
           onClick={signOut}
         >
           <LogOut aria-hidden />
-          Sign out
+          {t('shell.signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

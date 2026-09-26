@@ -1,6 +1,7 @@
 import type { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { previewAmount, rateDescription } from '../lib/rate-format'
 import { toRate } from '../lib/product-rate-form'
@@ -51,6 +52,8 @@ export function RateFieldGroup({
   setValue,
   disabled,
 }: RateFieldGroupProps) {
+  const t = useT()
+
   const rowErrors = errors[column]
   const isTiered = values.kind === 'tiered'
 
@@ -93,7 +96,7 @@ export function RateFieldGroup({
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            {kind === 'flat' ? 'Flat' : 'Tiered'}
+            {kind === 'flat' ? t('productRate.form.flat') : t('productRate.form.tiered')}
           </button>
         ))}
       </div>
@@ -102,21 +105,21 @@ export function RateFieldGroup({
         <div className="grid gap-2.5 sm:grid-cols-3">
           <Field
             id={`${column}-first-qty`}
-            label="First pieces"
+            label={t('productRate.form.firstPieces')}
             error={rowErrors?.firstQty?.message}
             registration={register(`${column}.firstQty`)}
             disabled={disabled}
           />
           <Field
             id={`${column}-first-amount`}
-            label="At each"
+            label={t('productRate.form.atEach')}
             error={rowErrors?.firstAmount?.message}
             registration={register(`${column}.firstAmount`)}
             disabled={disabled}
           />
           <Field
             id={`${column}-rest-amount`}
-            label="Then each"
+            label={t('productRate.form.thenEach')}
             error={rowErrors?.restAmount?.message}
             registration={register(`${column}.restAmount`)}
             disabled={disabled}
@@ -126,7 +129,7 @@ export function RateFieldGroup({
         <div className="sm:max-w-[12rem]">
           <Field
             id={`${column}-amount`}
-            label="Per piece"
+            label={t('productRate.form.perPiece')}
             error={rowErrors?.amount?.message}
             registration={register(`${column}.amount`)}
             disabled={disabled}
@@ -136,7 +139,7 @@ export function RateFieldGroup({
 
       {isComplete && (
         <p className="mt-2.5 text-xs leading-snug text-muted-foreground">
-          {rateDescription(toRate(values))}
+          {rateDescription(toRate(values), t)}
           {isTiered && (
             <>
               {' '}

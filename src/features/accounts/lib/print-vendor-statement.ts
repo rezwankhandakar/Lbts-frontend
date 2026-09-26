@@ -1,8 +1,9 @@
 import { shortTripNumber } from '@/features/delivery/lib/delivery-meta'
 import { escapeHtml as escape, printHtml } from '@/lib/print-html'
+import { t } from '@/lib/i18n'
 import { takaInBanglaWords } from '@/lib/taka-words'
 import type { EntryRecord, VendorBillChallan, VendorBillDetail, VendorBillTrip } from '../types'
-import { VENDOR_STATUS_META, formatDay, signedTaka, taka } from './accounts-meta'
+import { formatDay, signedTaka, taka, vendorStatusMeta } from './accounts-meta'
 
 /**
  * A vendor's month on paper — the statement handed over with the payment, or
@@ -184,7 +185,7 @@ export function vendorStatementHtml(
 <header>
   <div><div class="muted">LBTS · Line Business Transport Service</div><h1>Vendor Trip Bill Statement</h1></div>
   <div style="text-align:right"><div><b>Month:</b> ${escape(period.label)}</div><div><b>Status:</b> ${escape(
-    VENDOR_STATUS_META[figures.status].label,
+    vendorStatusMeta(figures.status, t).label,
   )}</div></div>
 </header>
 

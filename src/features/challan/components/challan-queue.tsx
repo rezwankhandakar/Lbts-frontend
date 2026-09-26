@@ -1,5 +1,7 @@
 import { CircleCheck, CircleDot, Circle, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber, formatPadded } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { formatRange } from '../lib/challan-meta'
 import type { ChallanEntry } from '../lib/challan-session'
@@ -37,12 +39,19 @@ export function ChallanQueue({
   canAdd,
   disabled,
 }: ChallanQueueProps) {
+  const t = useT()
+
   return (
-    <section aria-label="Challans in this PDF" className="rounded-xl border bg-card p-3 shadow-sm">
+    <section
+      aria-label={t('challan.queue.ariaLabel')}
+      className="rounded-xl border bg-card p-3 shadow-sm"
+    >
       <div className="mb-2.5 flex items-center justify-between gap-3">
         <h2 className="text-[13px] font-semibold tracking-tight">
-          Challan queue
-          <span className="ml-2 font-normal text-muted-foreground">{entries.length}</span>
+          {t('challan.queue.heading')}
+          <span className="ml-2 font-normal text-muted-foreground">
+            {formatNumber(entries.length)}
+          </span>
         </h2>
 
         <Button
@@ -51,10 +60,10 @@ export function ChallanQueue({
           size="xs"
           onClick={onAdd}
           disabled={disabled || !canAdd}
-          title={canAdd ? undefined : 'Every page of this PDF already belongs to a challan'}
+          title={canAdd ? undefined : t('challan.queue.everyPageTaken')}
         >
           <Plus data-icon="inline-start" aria-hidden />
-          Add challan
+          {t('challan.queue.addChallan')}
         </Button>
       </div>
 
@@ -89,12 +98,12 @@ export function ChallanQueue({
                       <Circle className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
                     )}
                     <span className="text-xs font-semibold">
-                      Challan {String(index + 1).padStart(2, '0')}
+                      {t('challan.queue.challanN', { n: formatPadded(index + 1, 2) })}
                     </span>
                   </span>
 
                   <span className="mt-1 block text-[11px] text-muted-foreground">
-                    {formatRange(entry)}
+                    {formatRange(entry, t)}
                   </span>
 
                   <span
@@ -104,10 +113,13 @@ export function ChallanQueue({
                     )}
                   >
                     {isFiled
-                      ? `SL ${entry.slNumber} · ${entry.challanNumber}`
+                      ? t('challan.queue.filedWith', {
+                          sl: formatNumber(entry.slNumber ?? 0),
+                          challan: entry.challanNumber ?? '',
+                        })
                       : entry.values
-                        ? 'In progress'
-                        : 'Not started'}
+                        ? t('challan.queue.inProgress')
+                        : t('challan.queue.notStarted')}
                   </span>
                 </button>
 
@@ -119,7 +131,9 @@ export function ChallanQueue({
                     type="button"
                     onClick={() => onRemove(entry.id)}
                     disabled={disabled}
-                    aria-label={`Remove challan ${index + 1} from the queue`}
+                    aria-label={t('challan.queue.removeFromQueue', {
+                      n: formatNumber(index + 1),
+                    })}
                     className="absolute top-1.5 right-1.5 rounded-md p-0.5 text-muted-foreground opacity-0 transition-opacity outline-none group-hover:opacity-100 hover:text-destructive focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <X className="size-3.5" aria-hidden />

@@ -1,7 +1,8 @@
 import { barcodeSvg, barcodeWidthMm } from '@/lib/code128'
+import { countOf, formatNumber, t } from '@/lib/i18n'
 import { escapeHtml as escape, printHtml } from '@/lib/print-html'
 import { tallyProducts } from './cart'
-import { shortTripNumber, taka } from './delivery-meta'
+import { shortTripNumber, taka, tripStatusMeta } from './delivery-meta'
 import type { TripChallanRecord, TripLineRecord, TripRecord } from '../types'
 
 /**
@@ -168,7 +169,7 @@ function loadSummary(challans: TripChallanRecord[]): string {
     .map((row) => `<span class="tally">${escape(row.productName)} <b>${row.qty}</b></span>`)
     .join('')
 
-  return `<section class="load"><b>On the lorry</b>${rows}</section>`
+  return `<section class="load"><b>${escape(t('delivery.manifest.onTheLorry'))}</b>${rows}</section>`
 }
 
 /**
@@ -186,7 +187,7 @@ function writeBox(label: string, value: string, width: string): string {
 function challanRow(challan: TripChallanRecord): string {
   const thana = challan.thana || challan.location?.thana || '—'
   const district = challan.district || challan.location?.district || '—'
-  const where = `Thana: ${thana} · District: ${district}`
+  const where = t('delivery.manifest.where', { thana, district })
 
   /**
    * The first column is the **SL number and nothing else**. The challan number
@@ -244,11 +245,12 @@ function challanRow(challan: TripChallanRecord): string {
  * counting rows.
  */
 function endMark(trip: TripRecord): string {
-  const challans = `${trip.challanCount} challan${trip.challanCount === 1 ? '' : 's'}`
-
-  return `<p class="end">End of manifest · ${challans} · ${trip.totalQty} piece${
-    trip.totalQty === 1 ? '' : 's'
-  }</p>`
+  return `<p class="end">${escape(
+    t('delivery.manifest.endOfManifest', {
+      challans: countOf(trip.challanCount, 'nouns.challan', t),
+      pieces: countOf(trip.totalQty, 'nouns.piece', t),
+    }),
+  )}</p>`
 }
 
 function billSection(trip: TripRecord): string {
@@ -264,8 +266,8 @@ function billSection(trip: TripRecord): string {
    */
   return `<section class="bill">
     <div class="boxes">
-      ${writeBox('Trip rent', amount(trip.tripRent), '1 1 0')}
-      ${writeBox('Labour bill', amount(trip.labourBill), '1 1 0')}
+      ${writeBox(t('delivery.manifest.tripRent'), amount(trip.tripRent), '1 1 0')}
+      ${writeBox(t('delivery.manifest.labourBill'), amount(trip.labourBill), '1 1 0')}
     </div>
   </section>`
 }
@@ -278,7 +280,7 @@ export function manifestHtml(trip: TripRecord): string {
 <html>
 <head>
 <meta charset="utf-8" />
-<title>${escape(trip.tripNumber)} — Trip manifest</title>
+<title>${escape(t('delivery.manifest.documentTitle', { trip: trip.tripNumber }))}</title>
 <style>
   /*
    * No page margin, for the reason the vendor statement gives: a browser
@@ -357,9 +359,11 @@ ${punchGuide()}
 
 <header>
   <div>
-    <div class="muted">LBTS · Trip manifest</div>
+    <div class="muted">${escape(t('delivery.manifest.brandLine'))}</div>
     <h1 class="mono">${escape(shortTripNumber(trip.tripNumber))}</h1>
-    <div><b>Date:</b> ${day(trip.tripDate)} · <b>Status:</b> ${escape(trip.status)}</div>
+    <div><b>${escape(t('delivery.manifest.date'))}</b> ${day(trip.tripDate)} · <b>${escape(
+      t('delivery.manifest.status'),
+    )}</b> ${escape(tripStatusMeta(trip.status, t).label)}</div>
   </div>
   <div class="code">
     ${barcodeSvg(trip.tripNumber, {
@@ -371,27 +375,35 @@ ${punchGuide()}
 </header>
 
 <section class="parties">
-  <div><b>Vehicle</b><span class="mono strong">${escape(trip.vehicle.registrationNo)}</span><br/>${escape(trip.vehicle.vehicleCode)}</div>
-  <div><b>Vendor</b>${escape(trip.vendor.name)}<br/>${escape(trip.vendor.vendorCode)} · ${escape(trip.vendor.mobile)}</div>
-  <div><b>Driver</b>${escape(trip.driver.name)}<br/>${escape(trip.driver.mobile)}</div>
+  <div><b>${escape(t('delivery.manifest.vehicle'))}</b><span class="mono strong">${escape(trip.vehicle.registrationNo)}</span><br/>${escape(trip.vehicle.vehicleCode)}</div>
+  <div><b>${escape(t('delivery.manifest.vendor'))}</b>${escape(trip.vendor.name)}<br/>${escape(trip.vendor.vendorCode)} · ${escape(trip.vendor.mobile)}</div>
+  <div><b>${escape(t('delivery.manifest.driver'))}</b>${escape(trip.driver.name)}<br/>${escape(trip.driver.mobile)}</div>
 </section>
 
 ${billSection(trip)}
 ${loadSummary(challans)}
 
 <table>
-  <thead><tr><th class="num">SL</th><th>Customer and delivery</th><th>Products</th><th class="num">Qty</th><th>Note</th></tr></thead>
+  <thead><tr><th class="num">${escape(t('delivery.manifest.sl'))}</th><th>${escape(
+    t('delivery.manifest.customerAndDelivery'),
+  )}</th><th>${escape(t('delivery.manifest.products'))}</th><th class="num">${escape(
+    t('delivery.manifest.qty'),
+  )}</th><th>${escape(t('delivery.manifest.note'))}</th></tr></thead>
   <tbody>${challans.map(challanRow).join('')}</tbody>
-  <tfoot><tr><td colspan="3">Whole trip · ${trip.challanCount} challan${trip.challanCount === 1 ? '' : 's'}</td><td class="num">${trip.totalQty}</td><td></td></tr></tfoot>
+  <tfoot><tr><td colspan="3">${escape(
+    t('delivery.manifest.wholeTrip', {
+      challans: countOf(trip.challanCount, 'nouns.challan', t),
+    }),
+  )}</td><td class="num">${formatNumber(trip.totalQty)}</td><td></td></tr></tfoot>
 </table>
 ${endMark(trip)}
-${trip.note ? `<p><b>Trip note:</b> ${escape(trip.note)}</p>` : ''}
+${trip.note ? `<p><b>${escape(t('delivery.manifest.tripNote'))}</b> ${escape(trip.note)}</p>` : ''}
 
 <section class="sign-off">
   <div class="slot">
     <span class="space"></span>
     <div class="name">${escape(preparedBy)}</div>
-    <div class="role">Prepared by</div>
+    <div class="role">${escape(t('delivery.manifest.preparedBy'))}</div>
   </div>
 </section>
 

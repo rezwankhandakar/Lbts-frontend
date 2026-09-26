@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ApiError } from '@/lib/axios'
+import { t } from '@/lib/i18n'
 import { fetchChallanDocument } from '../api/challan-api'
 
 export interface DocumentSource {
@@ -64,7 +65,11 @@ export function useChallanDocument(id: string | null): DocumentSource {
         if (cancelled) {
           return
         }
-        setLoaded({ key, url: null, error: failure.message || 'The document could not be loaded.' })
+        setLoaded({
+          key,
+          url: null,
+          error: failure.message || t('challan.toasts.documentLoadFailed'),
+        })
       })
 
     return () => {

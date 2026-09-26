@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { statusMeta } from '@/lib/roles'
 import { cn } from '@/lib/utils'
 
@@ -11,7 +12,8 @@ interface UserStatusBadgeProps {
  * status must survive both a monochrome screen and a colour-blind reader.
  */
 export function UserStatusBadge({ status, className }: UserStatusBadgeProps) {
-  const meta = statusMeta(status)
+  const t = useT()
+  const meta = statusMeta(status, t)
 
   return (
     <span

@@ -7,6 +7,8 @@ import { BillActionsMenu } from './bill-actions-menu'
 import type { BillDialog } from './bill-actions-menu'
 import { BillStatusBadge } from './bill-badges'
 import { BillStats } from './bill-stats'
+import { useT } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 
 interface BillHeroProps {
   bill: BillRecord
@@ -20,13 +22,41 @@ interface BillHeroProps {
   onOpen: (dialog: Exclude<BillDialog, null>) => void
 }
 
-/** Who opened it, and — the part that matters later — who signed it off or reopened it. */
-function provenance(bill: BillRecord): string {
-  const parts = [`Opened ${formatDateTime(bill.createdAt)}${bill.createdBy ? ` by ${bill.createdBy.name}` : ''}`]
+/**
+ * Who opened it, and — the part that matters later — who signed it off or
+ * reopened it.
+ *
+ * Each clause is a whole message rather than a date with a name appended, for
+ * the reason the labour bill's hero gives: the actor sits in a different place
+ * in the two languages.
+ */
+function provenance(bill: BillRecord, t: Translator): string {
+  const parts = [
+    bill.createdBy
+      ? t('bill.details.openedBy', {
+          when: formatDateTime(bill.createdAt),
+          name: bill.createdBy.name,
+        })
+      : t('bill.details.opened', { when: formatDateTime(bill.createdAt) }),
+  ]
   if (bill.status === 'Finalized' && bill.finalizedAt) {
-    parts.push(`finalized ${formatDateTime(bill.finalizedAt)}${bill.finalizedBy ? ` by ${bill.finalizedBy.name}` : ''}`)
+    parts.push(
+      bill.finalizedBy
+        ? t('bill.details.finalizedOnBy', {
+            when: formatDateTime(bill.finalizedAt),
+            name: bill.finalizedBy.name,
+          })
+        : t('bill.details.finalizedOn', { when: formatDateTime(bill.finalizedAt) }),
+    )
   } else if (bill.reopenedAt) {
-    parts.push(`reopened ${formatDateTime(bill.reopenedAt)}${bill.reopenedBy ? ` by ${bill.reopenedBy.name}` : ''}`)
+    parts.push(
+      bill.reopenedBy
+        ? t('bill.details.reopenedOnBy', {
+            when: formatDateTime(bill.reopenedAt),
+            name: bill.reopenedBy.name,
+          })
+        : t('bill.details.reopenedOn', { when: formatDateTime(bill.reopenedAt) }),
+    )
   }
   return parts.join(' · ')
 }
@@ -43,6 +73,8 @@ export function BillHero({
   onRefresh,
   onOpen,
 }: BillHeroProps) {
+  const t = useT()
+
   const isDraft = bill.status === 'Draft'
 
   return (
@@ -59,7 +91,7 @@ export function BillHero({
             className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="size-3.5" aria-hidden />
-            All bills
+            {t('bill.allBills')}
           </Link>
 
           <div className="mt-3 flex flex-wrap items-center gap-2.5">
@@ -74,7 +106,7 @@ export function BillHero({
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Factory className="size-4" aria-hidden />
-              Unit
+              {t('bill.form.unit')}
               <span className="rounded-md border bg-background px-1.5 py-px font-mono text-xs font-semibold text-foreground">
                 {bill.unit}
               </span>
@@ -82,14 +114,14 @@ export function BillHero({
           </p>
 
           {bill.note && <p className="mt-2 max-w-xl text-sm text-pretty">{bill.note}</p>}
-          <p className="mt-2 text-xs text-muted-foreground">{provenance(bill)}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{provenance(bill, t)}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {isDraft && canWrite && (
             <Button onClick={onAdd}>
               <PackagePlus data-icon="inline-start" aria-hidden />
-              Add Trip DO
+              {t('bill.addTripDo')}
             </Button>
           )}
           <Button variant="outline" onClick={onExport} disabled={isExporting}>
@@ -98,7 +130,7 @@ export function BillHero({
             ) : (
               <Download data-icon="inline-start" aria-hidden />
             )}
-            {isExporting ? 'Building…' : 'Download Excel'}
+            {isExporting ? t('bill.details.building') : t('bill.details.downloadExcel')}
           </Button>
           <BillActionsMenu
             bill={bill}

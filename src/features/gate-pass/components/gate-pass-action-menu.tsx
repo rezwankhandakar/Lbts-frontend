@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { GatePassRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 export interface GatePassActions {
   /** True when the signed-in user may edit or submit their own open records. */
@@ -48,6 +49,8 @@ export function GatePassActionMenu({
   record: GatePassRecord
   actions: GatePassActions
 }) {
+  const t = useT()
+
   const isOwner = record.createdBy?.id === actions.currentUserId
 
   /**
@@ -67,7 +70,7 @@ export function GatePassActionMenu({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Actions for ${record.gatePassId}`}
+            aria-label={t('gatePass.menu.aria', { gatePass: record.gatePassId })}
             className="text-muted-foreground hover:text-foreground"
           />
         }
@@ -90,7 +93,7 @@ export function GatePassActionMenu({
           onClick={() => actions.onOpen(record)}
         >
           <Eye className="text-muted-foreground" aria-hidden />
-          View details
+          {t('gatePass.menu.view')}
         </DropdownMenuItem>
 
         {canChange && (
@@ -99,7 +102,7 @@ export function GatePassActionMenu({
             onClick={() => actions.onEdit(record)}
           >
             <Pencil className="text-tone-indigo" aria-hidden />
-            Edit
+            {t('common.actions.edit')}
           </DropdownMenuItem>
         )}
 
@@ -110,14 +113,14 @@ export function GatePassActionMenu({
               onClick={() => actions.onDownload(record)}
             >
               <Download className="text-muted-foreground" aria-hidden />
-              Download document
+              {t('gatePass.menu.download')}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="h-8 gap-2.5 rounded-lg text-[13px]"
               onClick={() => actions.onPrint(record)}
             >
               <Printer className="text-muted-foreground" aria-hidden />
-              Print gate pass
+              {t('gatePass.menu.print')}
             </DropdownMenuItem>
           </>
         )}
@@ -131,14 +134,14 @@ export function GatePassActionMenu({
               onClick={() => actions.onReview(record, 'Verified')}
             >
               <BadgeCheck aria-hidden />
-              Verify
+              {t('gatePass.menu.verify')}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="h-8 gap-2.5 rounded-lg text-[13px] text-tone-rose"
               onClick={() => actions.onReview(record, 'Rejected')}
             >
               <Undo2 aria-hidden />
-              Send back
+              {t('gatePass.menu.sendBack')}
             </DropdownMenuItem>
           </>
         )}
@@ -149,7 +152,9 @@ export function GatePassActionMenu({
             onClick={() => actions.onDelete(record)}
           >
             <Trash2 aria-hidden />
-            {record.status === 'Draft' ? 'Delete draft' : 'Delete gate pass'}
+            {record.status === 'Draft'
+              ? t('gatePass.remove.deleteDraft')
+              : t('gatePass.remove.deleteGatePass')}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

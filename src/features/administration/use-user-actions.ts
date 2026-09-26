@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { useT } from '@/lib/i18n'
 import type { UserRole } from '@/lib/roles'
 import { USER_ACTIONS } from './administration-actions'
 import type { UserActionId } from './administration-actions'
@@ -29,6 +30,7 @@ export interface UserActionsController {
  * the error rather than at a list that silently did nothing.
  */
 export function useUserActions(): UserActionsController {
+  const t = useT()
   const [target, setTarget] = useState<AdminUser | null>(null)
   const [view, setView] = useState<OverlayView | null>(null)
   const [action, setAction] = useState<UserActionId | null>(null)
@@ -92,12 +94,12 @@ export function useUserActions(): UserActionsController {
           status: definition.status,
           note: note || undefined,
           name: target.name,
-          successMessage: definition.success(target.name),
+          successMessage: t(definition.successKey, { name: target.name }),
         },
         { onSuccess: close },
       )
     },
-    [target, action, changeStatus, removeUser, close],
+    [target, action, changeStatus, removeUser, close, t],
   )
 
   return {

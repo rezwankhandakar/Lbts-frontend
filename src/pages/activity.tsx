@@ -16,6 +16,7 @@ import {
 import { canExportActivity } from '@/features/activity/types'
 import type { ActivityRecord } from '@/features/activity/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { useT } from '@/lib/i18n'
 
 /**
  * The activity journal: who did what, across every module.
@@ -37,6 +38,8 @@ import { useCurrentRole } from '@/hooks/use-current-role'
  * produce.
  */
 export function ActivityPage() {
+  const t = useT()
+
   const role = useCurrentRole()
   const canExport = canExportActivity(role)
 
@@ -72,8 +75,8 @@ export function ActivityPage() {
   return (
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
-        title="Activity Logs"
-        description="Every change the system records, in one place: what happened, which record it touched, and who did it. Rows are written by the system as people work and can never be edited or removed from here — that is what makes it worth reading."
+        title={t('activity.title')}
+        description={t('activity.description')}
       />
 
       <ActivityOverview
@@ -111,7 +114,7 @@ export function ActivityPage() {
           isLoading={activityQuery.isPending}
           isFetching={activityQuery.isFetching}
           isError={activityQuery.isError}
-          errorMessage={activityQuery.error?.message ?? 'Something went wrong.'}
+          errorMessage={activityQuery.error?.message ?? t('errors.generic')}
           isFiltered={isFiltered}
           onRetry={() => void activityQuery.refetch()}
           onReset={reset}
@@ -123,7 +126,7 @@ export function ActivityPage() {
             meta={meta}
             onPageChange={setPage}
             isFetching={activityQuery.isFetching}
-            noun={['event', 'events']}
+            nounKey="nouns.event"
           />
         )}
       </section>

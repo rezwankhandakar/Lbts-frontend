@@ -18,6 +18,7 @@ import {
 import { useNotificationParams } from '@/features/notification/hooks/use-notification-params'
 import type { NotificationFilterPatch } from '@/features/notification/hooks/use-notification-params'
 import type { NotificationRecord } from '@/features/notification/types'
+import { useT } from '@/lib/i18n'
 
 /**
  * Everything this account has been told.
@@ -44,6 +45,8 @@ import type { NotificationRecord } from '@/features/notification/types'
  * honest.
  */
 export function NotificationsPage() {
+  const t = useT()
+
   /**
    * The panel's "See unread" lands here already filtered, and the filter travels
    * in **router state rather than a query string** — the convention this codebase
@@ -98,8 +101,8 @@ export function NotificationsPage() {
   return (
     <div className="mx-auto w-full max-w-5xl">
       <PageHeader
-        title="Notifications"
-        description="What the system needs you to know: accounts waiting for approval, gate pass verdicts, certificates about to lapse, goods back at the depot and money movements. Each one is addressed to you — what you see here is not what anybody else sees."
+        title={t('notification.title')}
+        description={t('notification.description')}
       />
 
       <NotificationOverview
@@ -110,7 +113,7 @@ export function NotificationsPage() {
       />
 
       <section
-        aria-label="Your notifications"
+        aria-label={t('notification.listAria')}
         className="overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <NotificationToolbar
@@ -141,7 +144,7 @@ export function NotificationsPage() {
           isLoading={notificationsQuery.isPending}
           isFetching={notificationsQuery.isFetching}
           isError={notificationsQuery.isError}
-          errorMessage={notificationsQuery.error?.message ?? 'Something went wrong.'}
+          errorMessage={notificationsQuery.error?.message ?? t('errors.generic')}
           isFiltered={isFiltered}
           onRetry={() => void notificationsQuery.refetch()}
           onReset={reset}
@@ -154,7 +157,7 @@ export function NotificationsPage() {
             meta={meta}
             onPageChange={setPage}
             isFetching={notificationsQuery.isFetching}
-            noun={['notification', 'notifications']}
+            nounKey="nouns.notification"
           />
         )}
       </section>

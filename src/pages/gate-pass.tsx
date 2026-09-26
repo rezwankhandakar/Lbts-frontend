@@ -20,7 +20,9 @@ import {
 } from '@/features/gate-pass/types'
 import type { GatePassListParams } from '@/features/gate-pass/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { formatNumber } from '@/lib/format'
 import { useAuthStore } from '@/stores/use-auth-store'
+import { useT } from '@/lib/i18n'
 
 /**
  * The gate pass records.
@@ -34,6 +36,8 @@ import { useAuthStore } from '@/stores/use-auth-store'
  * the server has ever seen more than ten of them.
  */
 export function GatePassPage() {
+  const t = useT()
+
   const role = useCurrentRole()
   const currentUserId = useAuthStore((state) => state.profile?.id ?? null)
 
@@ -67,16 +71,18 @@ export function GatePassPage() {
     <div className="mx-auto w-full max-w-[1600px]">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Gate Pass</h1>
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            {t('gatePass.title')}
+          </h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
-            Every gate pass recorded against a trip, with the scanned hard copy attached to it.
+            {t('gatePass.pageDescription')}
           </p>
         </div>
 
         {canWrite && (
           <Button render={<Link to="/gate-pass/new" />} className="shrink-0">
             <Plus data-icon="inline-start" aria-hidden />
-            New gate pass
+            {t('gatePass.newGatePass')}
           </Button>
         )}
       </div>
@@ -95,7 +101,7 @@ export function GatePassPage() {
       />
 
       <section
-        aria-label="Gate pass records"
+        aria-label={t('gatePass.listAria')}
         className="overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <GatePassFilters
@@ -110,9 +116,17 @@ export function GatePassPage() {
           currentUserId={currentUserId}
           summary={
             meta && !query.isPending
-              ? `${meta.total} ${meta.total === 1 ? 'gate pass' : 'gate passes'}${
-                  list.isFiltered ? ' match these filters' : ' on record'
-                }`
+              ? t(
+                  list.isFiltered
+                    ? 'gatePass.stats.summaryFiltered'
+                    : 'gatePass.stats.summaryTotal',
+                  {
+                    records: t('gatePass.stats.recordCount', {
+                      count: meta.total,
+                      n: formatNumber(meta.total),
+                    }),
+                  },
+                )
               : undefined
           }
         />
@@ -122,7 +136,7 @@ export function GatePassPage() {
           isLoading={query.isPending}
           isFetching={query.isFetching}
           isError={query.isError}
-          errorMessage={query.error?.message ?? 'Something went wrong.'}
+          errorMessage={query.error?.message ?? t('gatePass.somethingWrong')}
           isFiltered={list.isFiltered}
           filters={list.params}
           onFilterChange={list.applyFilters}

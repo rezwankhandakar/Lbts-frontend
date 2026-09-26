@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useVendorOptions } from '@/features/vendor/hooks/use-vendors'
+import { useT } from '@/lib/i18n'
 import { ADMIN_ROLE, ROLE_META, USER_ROLES, roleMeta } from '@/lib/roles'
 import type { UserRole } from '@/lib/roles'
 import { cn } from '@/lib/utils'
@@ -46,6 +47,7 @@ export function ChangeRoleDialog({
   onOpenChange,
   onConfirm,
 }: ChangeRoleDialogProps) {
+  const t = useT()
   const [selected, setSelected] = useState<UserRole | null>(null)
   const [vendorId, setVendorId] = useState<string>('')
 
@@ -89,7 +91,7 @@ export function ChangeRoleDialog({
     return null
   }
 
-  const current = roleMeta(user.role)
+  const current = roleMeta(user.role, t)
   /**
    * Relinking a Vendor account to a different vendor is a real change even
    * though the role has not moved — which is why "already this role" is not the
@@ -103,11 +105,8 @@ export function ChangeRoleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Change role</DialogTitle>
-          <DialogDescription>
-            A role decides who someone is to the business. What each role may do inside a module is
-            configured by that module.
-          </DialogDescription>
+          <DialogTitle>{t('administration.role.title')}</DialogTitle>
+          <DialogDescription>{t('administration.role.description')}</DialogDescription>
         </DialogHeader>
 
         <div className="rounded-lg border bg-muted/40 px-3 py-2.5">
@@ -115,9 +114,14 @@ export function ChangeRoleDialog({
           <p className="truncate text-xs text-muted-foreground">{user.email}</p>
         </div>
 
-        <div role="group" aria-label="Select a role" className="grid gap-2 sm:grid-cols-2">
+        <div
+          role="group"
+          aria-label={t('administration.role.selectAria')}
+          className="grid gap-2 sm:grid-cols-2"
+        >
           {USER_ROLES.map((role) => {
             const meta = ROLE_META[role]
+            const words = roleMeta(role, t)
             const Icon = meta.icon
             /**
              * A Vendor account's own role is never disabled, because pressing
@@ -154,13 +158,15 @@ export function ChangeRoleDialog({
                 </span>
                 <span className="min-w-0">
                   <span className="flex items-center gap-1.5 text-[13px] font-semibold">
-                    {meta.label}
+                    {words.label}
                     {isCurrent && (
-                      <span className="text-[10px] font-medium text-muted-foreground">current</span>
+                      <span className="text-[10px] font-medium text-muted-foreground">
+                        {t('administration.role.current')}
+                      </span>
                     )}
                   </span>
                   <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
-                    {meta.description}
+                    {words.description}
                   </span>
                 </span>
               </button>
@@ -182,7 +188,7 @@ export function ChangeRoleDialog({
           <div className="space-y-1.5 rounded-lg border border-primary/25 bg-primary/5 p-3">
             <Label htmlFor="role-vendor" className="flex items-center gap-1.5 text-[13px]">
               <Building2 className="size-3.5 shrink-0" aria-hidden />
-              Linked vendor
+              {t('administration.role.linkedVendor')}
             </Label>
 
             <Select
@@ -192,7 +198,13 @@ export function ChangeRoleDialog({
               disabled={isPending || vendors.isPending}
             >
               <SelectTrigger id="role-vendor" className="w-full">
-                <SelectValue placeholder={vendors.isPending ? 'Loading…' : 'Choose a vendor'} />
+                <SelectValue
+                  placeholder={
+                    vendors.isPending
+                      ? t('common.states.loading')
+                      : t('administration.role.chooseVendor')
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
@@ -206,13 +218,12 @@ export function ChangeRoleDialog({
             </Select>
 
             <p className="text-[11.5px] leading-snug text-muted-foreground">
-              This account will see that vendor&apos;s fleet, drivers, assignments and documents —
-              read-only, and nothing belonging to any other vendor.
+              {t('administration.role.vendorScopeNote')}
             </p>
 
             {!vendors.isPending && (vendors.data ?? []).length === 0 && (
               <p className="text-[11.5px] leading-snug text-tone-amber">
-                No vendors exist yet. Add one on the Vendors page before linking an account to it.
+                {t('administration.role.noVendors')}
               </p>
             )}
           </div>
@@ -220,13 +231,15 @@ export function ChangeRoleDialog({
 
         {changed && (
           <div className="space-y-2.5 rounded-lg border border-primary/25 bg-primary/5 p-3">
+            {/* One interpolated sentence: the two role names sit either side of
+                the verb in English and before it in Bangla, so the emphasis
+                spans that used to wrap them could not survive the move. The
+                badges under it carry the same change visually. */}
             <p className="text-[13px] leading-snug">
-              You&apos;re changing this user&apos;s role from{' '}
-              <span className="font-semibold">{current.label}</span> to{' '}
-              <span className="font-semibold">
-                {ROLE_META[selected ?? user.role].label}
-              </span>
-              .
+              {t('administration.role.summary', {
+                from: current.label,
+                to: roleMeta(selected ?? user.role, t).label,
+              })}
             </p>
             <div className="flex items-center gap-2">
               <UserRoleBadge role={user.role} />
@@ -236,15 +249,15 @@ export function ChangeRoleDialog({
             {selected === ADMIN_ROLE && (
               <p className="flex items-start gap-1.5 text-[11.5px] leading-snug text-tone-amber">
                 <ShieldAlert className="mt-px size-3.5 shrink-0" aria-hidden />
-                Admin grants full access to Administration, including the ability to change every
-                other account.
+                {t('administration.role.adminWarning')}
               </p>
             )}
             {user.role === 'Vendor' && selected !== null && selected !== 'Vendor' && (
               <p className="flex items-start gap-1.5 text-[11.5px] leading-snug text-tone-amber">
                 <ShieldAlert className="mt-px size-3.5 shrink-0" aria-hidden />
-                The link to {user.vendor?.name ?? 'their vendor'} is cleared, so this account will
-                no longer see any vendor&apos;s records.
+                {t('administration.role.vendorUnlinkWarning', {
+                  vendor: user.vendor?.name ?? t('administration.role.theirVendor'),
+                })}
               </p>
             )}
           </div>
@@ -252,7 +265,7 @@ export function ChangeRoleDialog({
 
         <DialogFooter>
           <Button variant="outline" disabled={isPending} onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
           <Button
             disabled={!ready || isPending}
@@ -260,7 +273,7 @@ export function ChangeRoleDialog({
               onConfirm(selected ?? user.role, needsVendor ? vendorId : null)
             }
           >
-            {isPending ? 'Saving…' : 'Confirm change'}
+            {isPending ? t('common.states.saving') : t('administration.role.confirm')}
           </Button>
         </DialogFooter>
       </DialogContent>

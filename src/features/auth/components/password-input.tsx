@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { Input } from '@/components/ui/input'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 export function PasswordInput({ className, ...props }: ComponentProps<'input'>) {
+  const t = useT()
   const [visible, setVisible] = useState(false)
 
   return (
@@ -17,7 +19,7 @@ export function PasswordInput({ className, ...props }: ComponentProps<'input'>) 
       <button
         type="button"
         onClick={() => setVisible((current) => !current)}
-        aria-label={visible ? 'Hide password' : 'Show password'}
+        aria-label={visible ? t('auth.password.hide') : t('auth.password.show')}
         aria-pressed={visible}
         tabIndex={-1}
         className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-lg text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"

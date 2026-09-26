@@ -1,6 +1,8 @@
 import { ArrowRight, CircleCheck, Download, Eye, Printer } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import type { ChallanRecord } from '../types'
 
 interface ChallanFiledPanelProps {
@@ -41,26 +43,30 @@ export function ChallanFiledPanel({
   onPrint,
   onDismiss,
 }: ChallanFiledPanelProps) {
+  const t = useT()
+
   return (
     <section
-      aria-label="Challan filed"
+      aria-label={t('challan.filed.ariaLabel')}
       className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-tone-emerald/30 bg-tone-emerald/5 px-3 py-2"
     >
       <span className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-tone-emerald">
         <CircleCheck className="size-4" aria-hidden />
-        Filed
+        {t('challan.filed.filed')}
       </span>
 
       <dl className="flex min-w-0 flex-wrap items-baseline gap-x-5 gap-y-1">
         <div className="flex items-baseline gap-1.5">
           <dt className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-            SL
+            {t('challan.filed.sl')}
           </dt>
-          <dd className="text-base leading-none font-semibold tabular-nums">{record.slNumber}</dd>
+          <dd className="text-base leading-none font-semibold tabular-nums">
+            {formatNumber(record.slNumber)}
+          </dd>
         </div>
         <div className="flex min-w-0 items-baseline gap-1.5">
           <dt className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-            Challan
+            {t('challan.filed.heading')}
           </dt>
           <dd className="truncate text-base leading-none font-semibold">{record.challanNumber}</dd>
         </div>
@@ -74,7 +80,7 @@ export function ChallanFiledPanel({
           </Button>
         ) : (
           <Button size="xs" variant="outline" onClick={onDismiss}>
-            Close
+            {t('common.actions.close')}
           </Button>
         )}
 
@@ -84,17 +90,17 @@ export function ChallanFiledPanel({
           render={<Link to={`/challan/${record.id}`} target="_blank" rel="noreferrer" />}
         >
           <Eye data-icon="inline-start" aria-hidden />
-          View
+          {t('common.actions.view')}
         </Button>
 
         <Button variant="outline" size="xs" onClick={() => onPrint(record)}>
           <Printer data-icon="inline-start" aria-hidden />
-          Print
+          {t('common.actions.print')}
         </Button>
 
         <Button variant="outline" size="xs" onClick={() => onDownload(record)}>
           <Download data-icon="inline-start" aria-hidden />
-          Download
+          {t('common.actions.download')}
         </Button>
       </div>
     </section>

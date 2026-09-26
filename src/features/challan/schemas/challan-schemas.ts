@@ -13,12 +13,12 @@ import type { ChallanItem, ChallanValues } from '../types'
  * Change one, change both.
  */
 
-function text(min: number, max: number, label: string) {
+function text(min: number, max: number, shortKey: string, longKey: string) {
   return z
     .string()
     .trim()
-    .min(min, min === 1 ? `${label} is required` : `${label} must be at least ${min} characters`)
-    .max(max, `${label} must be ${max} characters or fewer`)
+    .min(min, shortKey)
+    .max(max, longKey)
 }
 
 /**
@@ -30,14 +30,14 @@ function text(min: number, max: number, label: string) {
 const MOBILE = /^(?:\+?880)?1\d{9}$/
 const LOOSE_CONTACT = /^[\d+\-() ]{6,20}$/
 
-function mobile(label: string) {
+function mobile(invalidKey: string) {
   return z
     .string()
     .trim()
     .refine((value) => {
       const digits = value.replace(/[^\d+]/g, '')
       return MOBILE.test(digits) || LOOSE_CONTACT.test(value)
-    }, `Enter a valid ${label.toLowerCase()}, for example 01712345678.`)
+    }, invalidKey)
 }
 
 /**
@@ -49,18 +49,20 @@ function mobile(label: string) {
  * coercion happens — the same reasoning the gate pass form uses.
  */
 const challanItemFormSchema = z.object({
-  productName: text(2, 200, 'Product'),
-  model: text(1, 120, 'Model'),
+  productName: text(
+    2,
+    200,
+    'challan.validation.productTooShort',
+    'challan.validation.productTooLong',
+  ),
+  model: text(1, 120, 'challan.validation.modelRequired', 'challan.validation.modelTooLong'),
   qty: z
     .string()
     .trim()
-    .min(1, 'Quantity is required')
-    .refine((value) => /^\d+$/.test(value), 'Quantity must be a whole number')
-    .refine((value) => Number.parseInt(value, 10) >= 1, 'Quantity must be at least 1')
-    .refine(
-      (value) => Number.parseInt(value, 10) <= 100000,
-      'Quantity looks too large. Check the challan.',
-    ),
+    .min(1, 'challan.validation.qtyRequired')
+    .refine((value) => /^\d+$/.test(value), 'challan.validation.qtyWhole')
+    .refine((value) => Number.parseInt(value, 10) >= 1, 'challan.validation.qtyAtLeastOne')
+    .refine((value) => Number.parseInt(value, 10) <= 100000, 'challan.validation.qtyTooLarge'),
 })
 
 export type ChallanItemFormValues = z.infer<typeof challanItemFormSchema>
@@ -72,8 +74,18 @@ export const EMPTY_ITEM: ChallanItemFormValues = { productName: '', model: '', q
  * The values the form holds.
  */
 export const challanFormSchema = z.object({
-  customerName: text(2, 200, 'Customer name'),
-  deliveryAddress: text(3, 500, 'Delivery address'),
+  customerName: text(
+    2,
+    200,
+    'challan.validation.customerNameTooShort',
+    'challan.validation.customerNameTooLong',
+  ),
+  deliveryAddress: text(
+    3,
+    500,
+    'challan.validation.addressTooShort',
+    'challan.validation.addressTooLong',
+  ),
   /**
    * The thana and district as transcribed — **optional**.
    *
@@ -83,25 +95,25 @@ export const challanFormSchema = z.object({
    * tell. The server matches whatever is here against the Location Master and
    * leaves the result blank rather than guessing.
    */
-  thana: z.string().trim().max(120, 'Thana must be 120 characters or fewer'),
-  district: z.string().trim().max(120, 'District must be 120 characters or fewer'),
+  thana: z.string().trim().max(120, 'challan.validation.thanaTooLong'),
+  district: z.string().trim().max(120, 'challan.validation.districtTooLong'),
   /**
    * The Location Master row the operator picked, if they picked one. An id or
    * nothing — every value written to the record is read from the row it points
    * at, server-side.
    */
   locationId: z.string().trim().max(40),
-  receiverMobile: mobile('Receiver mobile'),
+  receiverMobile: mobile('challan.validation.receiverMobileInvalid'),
   /** Optional: many challans carry only the receiver's number. */
   senderMobile: z
     .string()
     .trim()
-    .max(40, 'Sender mobile must be 40 characters or fewer')
+    .max(40, 'challan.validation.senderMobileTooLong')
     .refine(
       (value) => value.length === 0 || LOOSE_CONTACT.test(value),
-      'Enter a valid sender mobile, or leave it blank.',
+      'challan.validation.senderMobileInvalid',
     ),
-  zonePo: z.string().trim().max(120, 'Zone / PO must be 120 characters or fewer'),
+  zonePo: z.string().trim().max(120, 'challan.validation.zonePoTooLong'),
   /**
    * One row per product on the challan. Zod reports a failure at
    * `items.1.model`, which is the path React Hook Form reads to put the
@@ -109,8 +121,8 @@ export const challanFormSchema = z.object({
    */
   items: z
     .array(challanItemFormSchema)
-    .min(1, 'Add at least one product')
-    .max(MAX_CHALLAN_ITEMS, `A challan can carry at most ${MAX_CHALLAN_ITEMS} products`),
+    .min(1, 'challan.validation.itemsAtLeastOne')
+    .max(MAX_CHALLAN_ITEMS, 'challan.validation.itemsTooMany'),
 })
 
 export type ChallanFormValues = z.infer<typeof challanFormSchema>

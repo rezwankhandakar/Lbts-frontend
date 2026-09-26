@@ -21,7 +21,9 @@ import {
   Trash2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import { daysAgo } from '@/lib/day-grouping'
+import { formatDayLong, formatTime } from '@/lib/i18n'
 import type {
   ActivityCategory,
   ActivityEntityType,
@@ -49,8 +51,12 @@ import type {
  * vanishes — the rule `lib/roles.ts` and `layout/nav-accents.ts` both state.
  */
 
-interface ModuleMeta {
+interface ModuleMeta extends ModulePresentation {
   label: string
+}
+
+/** The untranslatable half: colour, icon and where that module lives. */
+interface ModulePresentation {
   icon: LucideIcon
   /** Soft tinted pill: background, hairline border and text in one hue. */
   badge: string
@@ -61,9 +67,8 @@ interface ModuleMeta {
   path: string
 }
 
-export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
+export const MODULE_META: Record<ActivityModule, ModulePresentation> = {
   Administration: {
-    label: 'Administration',
     icon: ShieldCheck,
     badge: 'border-tone-violet/25 bg-tone-violet/10 text-tone-violet',
     chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
@@ -71,7 +76,6 @@ export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
     path: '/administration',
   },
   Vendor: {
-    label: 'Vendor',
     icon: Building2,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
@@ -79,7 +83,6 @@ export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
     path: '/vendors',
   },
   Delivery: {
-    label: 'Delivery',
     icon: PackageCheck,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
@@ -87,7 +90,6 @@ export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
     path: '/delivery',
   },
   'Gate Pass': {
-    label: 'Gate Pass',
     icon: ScanLine,
     badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
     chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
@@ -95,7 +97,6 @@ export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
     path: '/gate-pass',
   },
   Challan: {
-    label: 'Challan',
     icon: ReceiptText,
     badge: 'border-tone-violet/25 bg-tone-violet/10 text-tone-violet',
     chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
@@ -103,7 +104,6 @@ export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
     path: '/challan',
   },
   Location: {
-    label: 'Location',
     icon: MapPinned,
     badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
     chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
@@ -111,7 +111,6 @@ export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
     path: '/locations',
   },
   'Product Rate': {
-    label: 'Product Rate',
     icon: Tags,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
@@ -119,7 +118,6 @@ export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
     path: '/product-rates',
   },
   'Excel Bill': {
-    label: 'Excel Bill',
     icon: Receipt,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
@@ -127,7 +125,6 @@ export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
     path: '/bills',
   },
   'Labour Bill': {
-    label: 'Labour Bill',
     icon: HardHat,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
@@ -135,7 +132,6 @@ export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
     path: '/labour-bills',
   },
   Accounts: {
-    label: 'Accounts',
     icon: Landmark,
     badge: 'border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo',
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
@@ -144,8 +140,7 @@ export const MODULE_META: Record<ActivityModule, ModuleMeta> = {
   },
 }
 
-const UNKNOWN_MODULE: ModuleMeta = {
-  label: 'Activity',
+const UNKNOWN_MODULE: ModulePresentation = {
   icon: FileText,
   badge: 'border-border bg-muted text-muted-foreground',
   chip: 'bg-muted text-muted-foreground ring-border',
@@ -154,8 +149,16 @@ const UNKNOWN_MODULE: ModuleMeta = {
 }
 
 /** Tolerant: a row written under a module this build does not know still draws. */
-export function moduleMeta(value: string): ModuleMeta {
-  return MODULE_META[value as ActivityModule] ?? { ...UNKNOWN_MODULE, label: value || 'Activity' }
+export function moduleMeta(value: string, t: Translator): ModuleMeta {
+  const known = MODULE_META[value as ActivityModule]
+
+  if (known) {
+    return { ...known, label: t(`activity.modules.${value as ActivityModule}` as TranslationKey) }
+  }
+
+  // A module this build does not know keeps its own raw name: it is data from
+  // the journal, and inventing a translation for it would be worse.
+  return { ...UNKNOWN_MODULE, label: value || t('activity.modules.unknown') }
 }
 
 interface CategoryMeta {
@@ -163,73 +166,86 @@ interface CategoryMeta {
   icon: LucideIcon
 }
 
-export const CATEGORY_META: Record<ActivityCategory, CategoryMeta> = {
-  create: { label: 'Created', icon: FilePlus2 },
-  update: { label: 'Corrected', icon: Pencil },
-  status: { label: 'Status', icon: ToggleRight },
-  delete: { label: 'Deleted', icon: Trash2 },
-  access: { label: 'Access', icon: KeyRound },
-  money: { label: 'Money', icon: Banknote },
-  document: { label: 'Document', icon: FileText },
+export const CATEGORY_META: Record<ActivityCategory, { icon: LucideIcon }> = {
+  create: { icon: FilePlus2 },
+  update: { icon: Pencil },
+  status: { icon: ToggleRight },
+  delete: { icon: Trash2 },
+  access: { icon: KeyRound },
+  money: { icon: Banknote },
+  document: { icon: FileText },
 }
 
-export function categoryMeta(value: string): CategoryMeta {
-  return CATEGORY_META[value as ActivityCategory] ?? { label: value || 'Change', icon: FileText }
+export function categoryMeta(value: string, t: Translator): CategoryMeta {
+  const known = CATEGORY_META[value as ActivityCategory]
+
+  return known
+    ? { ...known, label: t(`activity.categories.${value as ActivityCategory}` as TranslationKey) }
+    : { label: value || t('activity.categories.unknown'), icon: FileText }
 }
 
-interface SeverityMeta {
+interface SeverityMeta extends SeverityPresentation {
   label: string
+}
+
+interface SeverityPresentation {
   icon: LucideIcon
   badge: string
   /** Drawn on the row itself, and only for `critical`. */
   emphasis: string
 }
 
-export const SEVERITY_META: Record<ActivitySeverity, SeverityMeta> = {
+export const SEVERITY_META: Record<ActivitySeverity, SeverityPresentation> = {
   info: {
-    label: 'Routine',
     icon: Info,
     badge: 'border-border bg-muted text-muted-foreground',
     emphasis: '',
   },
   notice: {
-    label: 'Notable',
     icon: AlertTriangle,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     emphasis: '',
   },
   critical: {
-    label: 'Critical',
     icon: Siren,
     badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
     emphasis: 'bg-tone-rose',
   },
 }
 
-export function severityMeta(value: string): SeverityMeta {
-  return SEVERITY_META[value as ActivitySeverity] ?? SEVERITY_META.info
+export function severityMeta(value: string, t: Translator): SeverityMeta {
+  const severity: ActivitySeverity =
+    value in SEVERITY_META ? (value as ActivitySeverity) : 'info'
+
+  return {
+    ...SEVERITY_META[severity],
+    label: t(`activity.severities.${severity}` as TranslationKey),
+  }
 }
 
 /** How a record type reads, and where that kind of record lives. */
-const ENTITY_META: Record<ActivityEntityType, { label: string; path: string | null }> = {
-  User: { label: 'Account', path: '/administration' },
-  Vendor: { label: 'Vendor', path: '/vendors' },
-  Vehicle: { label: 'Vehicle', path: null },
-  Driver: { label: 'Driver', path: null },
-  Assignment: { label: 'Assignment', path: null },
-  Document: { label: 'Document', path: null },
-  Trip: { label: 'Trip', path: '/delivery' },
-  GatePass: { label: 'Gate pass', path: '/gate-pass' },
-  Challan: { label: 'Challan', path: '/challan' },
-  Location: { label: 'Location', path: '/locations' },
-  ProductRate: { label: 'Product rate', path: '/product-rates' },
-  Bill: { label: 'Excel bill', path: '/bills' },
-  LabourBill: { label: 'Labour bill', path: '/labour-bills' },
-  AccountsEntry: { label: 'Accounts entry', path: '/accounts/cash-book' },
+const ENTITY_META: Record<ActivityEntityType, { path: string | null }> = {
+  User: { path: '/administration' },
+  Vendor: { path: '/vendors' },
+  Vehicle: { path: null },
+  Driver: { path: null },
+  Assignment: { path: null },
+  Document: { path: null },
+  Trip: { path: '/delivery' },
+  GatePass: { path: '/gate-pass' },
+  Challan: { path: '/challan' },
+  Location: { path: '/locations' },
+  ProductRate: { path: '/product-rates' },
+  Bill: { path: '/bills' },
+  LabourBill: { path: '/labour-bills' },
+  AccountsEntry: { path: '/accounts/cash-book' },
 }
 
-export function entityLabel(value: string): string {
-  return ENTITY_META[value as ActivityEntityType]?.label ?? value
+/** A record type this build does not know keeps its own raw name. */
+export function entityLabel(value: string, t: Translator): string {
+  return value in ENTITY_META
+    ? t(`activity.entities.${value as ActivityEntityType}` as TranslationKey)
+    : value
 }
 
 /**
@@ -269,26 +285,24 @@ export function recordPath(record: ActivityRecord): string | null {
   }
 }
 
-const DAY_HEADING = new Intl.DateTimeFormat(undefined, {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-})
-
-const TIME_ONLY = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' })
-
-/** "Today", "Yesterday", then the full date — the question the reader is asking. */
-export function dayHeading(iso: string): string {
+/**
+ * "Today", "Yesterday", then the full date — the question the reader is asking.
+ *
+ * The two words come from the shared `time` branch rather than from here,
+ * because the notification list says exactly the same thing and the two sit in
+ * one shell: a second copy is how one of them comes to read a Dhaka evening
+ * differently from the other.
+ */
+export function dayHeading(iso: string, t: Translator): string {
   const days = daysAgo(iso, new Date())
 
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  return DAY_HEADING.format(new Date(iso))
+  if (days === 0) return t('time.today')
+  if (days === 1) return t('time.yesterday')
+  return formatDayLong(new Date(iso))
 }
 
 export function timeOf(iso: string): string {
-  return TIME_ONLY.format(new Date(iso))
+  return formatTime(iso)
 }
 
 /**

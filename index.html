@@ -24,6 +24,28 @@
         }
       })()
     </script>
+    <script>
+      // The same trick for the language, and for a sharper reason than the
+      // theme: <html lang> is what a screen reader picks a voice from, so a
+      // Bangla page that boots announced as English is read aloud as
+      // gibberish until React hydrates. Reads the key and envelope that
+      // zustand/persist writes in src/lib/i18n/locale-store.ts - keep in sync.
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('lbts-locale')
+          var locale = stored ? JSON.parse(stored).state.locale : null
+          if (locale !== 'en' && locale !== 'bn') {
+            locale = 'en'
+          }
+          document.documentElement.lang = locale
+          document.documentElement.dir = 'ltr'
+          document.documentElement.dataset.locale = locale
+        } catch (error) {
+          // Unreadable or hand-edited storage falls back to English, which is
+          // what the store does too.
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

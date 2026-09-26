@@ -1,5 +1,6 @@
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { KIND_META, gatePassProductStatusMeta, rowStatusMeta } from '../lib/trip-do-meta'
+import { gatePassProductStatusMeta, kindMeta, rowStatusMeta } from '../lib/trip-do-meta'
 import type { ToneMeta } from '../lib/trip-do-meta'
 import type { TripDoRowKind } from '../types'
 
@@ -22,17 +23,23 @@ function ToneBadge({ meta, className }: { meta: ToneMeta; className?: string }) 
 
 /** Where a row's goods are. Drawn in every state: absent would read as "unknown". */
 export function RowStatusBadge({ status, className }: { status: string; className?: string }) {
-  return <ToneBadge meta={rowStatusMeta(status)} className={className} />
+  const t = useT()
+
+  return <ToneBadge meta={rowStatusMeta(status, t)} className={className} />
 }
 
 /** Where a gate pass line's goods are, as the challans linked to it say. */
 export function ProductStatusBadge({ status, className }: { status: string; className?: string }) {
-  return <ToneBadge meta={gatePassProductStatusMeta(status)} className={className} />
+  const t = useT()
+
+  return <ToneBadge meta={gatePassProductStatusMeta(status, t)} className={className} />
 }
 
 /** "Return" or "Re-sent" beside the SL. An order row needs no tag. */
 export function KindTag({ kind, className }: { kind: TripDoRowKind; className?: string }) {
-  const meta = KIND_META[kind]
+  const t = useT()
+
+  const meta = kindMeta(kind, t)
   if (!meta.icon) {
     return null
   }

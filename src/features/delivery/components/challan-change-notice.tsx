@@ -1,4 +1,5 @@
 import { FileWarning } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { changeSentence } from '../lib/delivery-meta'
 import type { ChallanChange } from '../types'
@@ -26,6 +27,8 @@ export function ChallanChangeNotice({
   changes,
   className,
 }: ChallanChangeNoticeProps) {
+  const t = useT()
+
   if (changes.length === 0) {
     return null
   }
@@ -40,18 +43,17 @@ export function ChallanChangeNotice({
       <FileWarning className="mt-px size-3.5 shrink-0" aria-hidden />
       <div className="min-w-0">
         <p className="font-semibold">
-          Confirming updates {challanNumber} permanently
+          {t('delivery.dispatch.confirmingUpdates', { challan: challanNumber })}
         </p>
         <ul className="mt-0.5 space-y-0.5">
           {changes.map((change) => (
             <li key={`${change.productName}|${change.model}|${change.kind}`}>
-              {changeSentence(change)}
+              {changeSentence(change, t)}
             </li>
           ))}
         </ul>
         <p className="mt-1 opacity-80">
-          Anything cut or removed cannot be added to a later trip. To send the rest later, split the
-          challan instead.
+          {t('delivery.dispatch.cannotBeAdded')}
         </p>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import {
   clearCopyMissing,
@@ -142,7 +143,9 @@ export function useSaveCompletion(): UseMutationResult<
     onSuccess: (trip, { challanId }) => {
       const challan = trip.challans?.find((entry) => entry.challanId === challanId)
       toast.success(
-        challan?.completionMethod === 'Returned' ? 'Returned in full — delivery closed' : 'Saved',
+        challan?.completionMethod === 'Returned'
+          ? t('delivery.completion.returnedInFull')
+          : t('delivery.completion.saved'),
       )
       void invalidate()
     },
@@ -160,11 +163,13 @@ export function useUploadReceivedCopy(): UseMutationResult<
   return useMutation({
     mutationFn: uploadReceivedCopy,
     onSuccess: (trip) => {
-      toast.success('Signed copy filed', {
+      toast.success(t('delivery.copy.filed'), {
         description:
           trip.status === 'Completed'
-            ? `Every challan on ${shortTripNumber(trip.tripNumber)} has now been signed for.`
-            : 'This delivery is complete.',
+            ? t('delivery.copy.filedTripComplete', {
+                trip: shortTripNumber(trip.tripNumber),
+              })
+            : t('delivery.copy.filedNote'),
       })
       void invalidate()
     },
@@ -182,8 +187,8 @@ export function useRemoveReceivedCopy(): UseMutationResult<
   return useMutation({
     mutationFn: removeReceivedCopy,
     onSuccess: () => {
-      toast.success('Signed copy removed', {
-        description: 'The delivery is open again.',
+      toast.success(t('delivery.copy.removed'), {
+        description: t('delivery.copy.removedNote'),
       })
       void invalidate()
     },
@@ -201,7 +206,7 @@ export function useSaveTripBill(): UseMutationResult<
   return useMutation({
     mutationFn: saveTripBill,
     onSuccess: () => {
-      toast.success('Trip bill saved')
+      toast.success(t('delivery.bill.saved'))
       void invalidate()
     },
     onError: reportDeliveryError,
@@ -218,8 +223,8 @@ export function useMarkCopyMissing(): UseMutationResult<
   return useMutation({
     mutationFn: markCopyMissing,
     onSuccess: () => {
-      toast.success('Delivery completed', {
-        description: 'Recorded without a signed copy. Scan it if it turns up.',
+      toast.success(t('delivery.copy.completed'), {
+        description: t('delivery.copy.completedNote'),
       })
       void invalidate()
     },
@@ -237,7 +242,7 @@ export function useClearCopyMissing(): UseMutationResult<
   return useMutation({
     mutationFn: clearCopyMissing,
     onSuccess: () => {
-      toast.success('The delivery is open again')
+      toast.success(t('delivery.copy.reopened'))
       void invalidate()
     },
     onError: reportDeliveryError,
@@ -250,8 +255,8 @@ export function useDeleteTrip(): UseMutationResult<{ id: string }, ApiError, str
   return useMutation({
     mutationFn: deleteTrip,
     onSuccess: () => {
-      toast.success('Trip deleted', {
-        description: 'Every challan quantity it held is free for another trip.',
+      toast.success(t('delivery.trip.deleted'), {
+        description: t('delivery.trip.deletedNote'),
       })
       void invalidate()
     },

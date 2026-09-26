@@ -1,6 +1,7 @@
 import { FileWarning, Undo2 } from 'lucide-react'
 import { shortTripNumber } from '../lib/delivery-meta'
 import type { DispatchCorrection, DispatchReturn } from '../types'
+import { useT } from '@/lib/i18n'
 
 /**
  * What came back, product by product and trip by trip.
@@ -9,11 +10,13 @@ import type { DispatchCorrection, DispatchReturn } from '../types'
  * challan. It still orders these pieces, and they are waiting for another lorry.
  */
 export function DispatchReturns({ returns }: { returns: DispatchReturn[] }) {
+  const t = useT()
+
   return (
     <div className="border-t bg-tone-rose/5 px-4 py-3 sm:px-5">
       <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-tone-rose uppercase">
         <Undo2 className="size-3.5" aria-hidden />
-        Came back
+        {t('delivery.dispatch.cameBack')}
       </p>
       <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
         {returns.map((entry, index) => (
@@ -27,7 +30,7 @@ export function DispatchReturns({ returns }: { returns: DispatchReturn[] }) {
         ))}
       </ul>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        Returned goods stay on this challan and can go out on another trip.
+        {t('delivery.dispatch.returnedStay')}
       </p>
     </div>
   )
@@ -41,11 +44,13 @@ export function DispatchReturns({ returns }: { returns: DispatchReturn[] }) {
  * place the challan's previous quantity survives.
  */
 export function DispatchCorrections({ corrections }: { corrections: DispatchCorrection[] }) {
+  const t = useT()
+
   return (
     <div className="border-t bg-tone-orange/5 px-4 py-3 sm:px-5">
       <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-tone-orange uppercase">
         <FileWarning className="size-3.5" aria-hidden />
-        Corrected by a delivery
+        {t('delivery.dispatch.correctedByDelivery')}
       </p>
       <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
         {corrections.map((correction, index) => (
@@ -74,7 +79,7 @@ export function DispatchCorrections({ corrections }: { corrections: DispatchCorr
         ))}
       </ul>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        The attached PDF is what the office sent and still shows the original quantities.
+        {t('delivery.dispatch.pdfShowsOriginal')}
       </p>
     </div>
   )

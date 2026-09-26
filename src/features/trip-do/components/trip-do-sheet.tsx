@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { RowSelection } from '../hooks/use-row-selection'
 import { COLUMNS } from '../lib/trip-do-columns'
@@ -55,6 +56,8 @@ export function TripDoSheet({
   empty,
   ...actions
 }: TripDoSheetProps) {
+  const t = useT()
+
   const bands = bandsFor(rows)
   // A billed row cannot be given another Trip DO, so it is never ticked for one.
   const selectable = rows.filter((row) => !row.bill)
@@ -80,15 +83,15 @@ export function TripDoSheet({
                   checked={allTicked}
                   indeterminate={ticked > 0 && !allTicked}
                   onCheckedChange={() => selection.toggleAll(selectable)}
-                  aria-label="Tick every row on this page"
+                  aria-label={t('tripDo.sheet.tickAll')}
                   disabled={selectable.length === 0}
                 />
               </th>
             )}
-            <th className={cn(HEAD, 'z-30 pr-1', canWrite ? 'left-9' : 'left-0')}>{heading('sl', 'SL')}</th>
+            <th className={cn(HEAD, 'z-30 pr-1', canWrite ? 'left-9' : 'left-0')}>{heading('sl', t('tripDo.sheet.sl'))}</th>
             {COLUMNS.map((column) => (
               <th key={column.id} className={cn(HEAD, 'pr-1', column.className)}>
-                {heading(column.id, column.label, column.className)}
+                {heading(column.id, t(column.labelKey), column.className)}
               </th>
             ))}
             <th
@@ -97,7 +100,7 @@ export function TripDoSheet({
                 'right-0 z-30 border-l pr-1 shadow-[-10px_0_14px_-14px_var(--foreground)]',
               )}
             >
-              {heading('tripDo', 'Trip Do')}
+              {heading('tripDo', t('tripDo.columns.tripDo'))}
             </th>
           </tr>
         </thead>

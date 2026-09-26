@@ -27,17 +27,17 @@ export type RateColumnKey = (typeof RATE_COLUMNS)[number]['key']
 
 function amountIssue(value: string): string | null {
   if (value.trim() === '') {
-    return 'Enter a rate.'
+    return 'productRate.validation.rateRequired'
   }
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) {
-    return 'That is not a number.'
+    return 'productRate.validation.notANumber'
   }
   if (parsed < 0) {
-    return 'A rate cannot be negative.'
+    return 'productRate.validation.negative'
   }
   if (parsed > 10_000_000) {
-    return 'That looks too large. Check the card.'
+    return 'productRate.validation.tooLarge'
   }
   return null
 }
@@ -81,7 +81,7 @@ const rateFieldsSchema = z
     ) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Enter a whole number of pieces, at least one.',
+        message: 'productRate.validation.firstQty',
         path: ['firstQty'],
       })
     }
@@ -98,16 +98,16 @@ export const productRateFormSchema = z.object({
   productName: z
     .string()
     .trim()
-    .min(2, 'Product must be at least 2 characters')
-    .max(200, 'Product must be 200 characters or fewer'),
+    .min(2, 'productRate.validation.productTooShort')
+    .max(200, 'productRate.validation.productTooLong'),
   /**
    * Optional, and blank is meaningful: a row with no model prices its product
    * whatever model a challan line names. The form says so out loud rather than
    * leaving somebody to type "NA", which the server would reduce to blank
    * anyway.
    */
-  productModel: z.string().trim().max(120, 'Model must be 120 characters or fewer'),
-  capacity: z.string().trim().max(120, 'Capacity must be 120 characters or fewer'),
+  productModel: z.string().trim().max(120, 'productRate.validation.modelTooLong'),
+  capacity: z.string().trim().max(120, 'productRate.validation.capacityTooLong'),
   isActive: z.boolean(),
   isd: rateFieldsSchema,
   osdMetro: rateFieldsSchema,

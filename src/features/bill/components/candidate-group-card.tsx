@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { formatTripDate } from '@/features/gate-pass/lib/gate-pass-meta'
 import { formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useUpdateBill } from '../hooks/use-bill-mutations'
 import type { CandidateSelection } from '../hooks/use-candidate-selection'
@@ -23,17 +24,21 @@ interface CandidateGroupCardProps {
  * is the ordinary cause.
  */
 function UnitMismatchNotice({ group, bill }: { group: BillCandidateGroup; bill: BillRecord }) {
+  const t = useT()
+
   const update = useUpdateBill()
   const canSwitch = bill.lineCount === 0 && Boolean(group.unit)
 
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-tone-amber/30 bg-tone-amber/10 px-3.5 py-2 text-[12px]">
       <p className="min-w-0 flex-1">
-        This Trip DO&apos;s gate pass is unit <span className="font-mono font-semibold">{group.unit || '(blank)'}</span>, and
-        this bill is for unit <span className="font-mono font-semibold">{bill.unit}</span>.{' '}
+        {t('bill.search.unitMismatch', {
+          theirs: group.unit || t('bill.blankUnit'),
+          ours: bill.unit,
+        })}{' '}
         {canSwitch
-          ? 'Switch the bill to this unit to add it.'
-          : 'Add it to a bill for its own unit, or correct the unit on its gate pass.'}
+          ? t('bill.search.switchUnit')
+          : t('bill.search.otherUnit')}
       </p>
       {canSwitch && (
         <Button
@@ -56,6 +61,8 @@ function UnitMismatchNotice({ group, bill }: { group: BillCandidateGroup; bill: 
  * can be ticked apart, for the day a return belongs on next month's bill.
  */
 export function CandidateGroupCard({ group, bill, selection, isAdding, onAddRows }: CandidateGroupCardProps) {
+  const t = useT()
+
   const billUnit = bill.unit
   const addable = new Set(group.addableRowIds)
   const addableRows = group.rows.filter((row) => addable.has(row.id))
@@ -83,7 +90,7 @@ export function CandidateGroupCard({ group, bill, selection, isAdding, onAddRows
             <span className="font-mono text-[15px] font-semibold tracking-tight">{group.tripDo}</span>
             <span className="text-xs text-muted-foreground">{formatTripDate(group.tripDate)}</span>
             <span className="rounded-md border bg-background px-1.5 py-px font-mono text-[10.5px]">
-              {group.csd || 'No CSD'}
+              {group.csd || t('bill.noCsd')}
             </span>
             <span
               className={cn(
@@ -94,7 +101,7 @@ export function CandidateGroupCard({ group, bill, selection, isAdding, onAddRows
               )}
               title={group.unitMatches ? undefined : `This bill is for unit ${billUnit}`}
             >
-              {group.unit || 'No unit'}
+              {group.unit || t('bill.noUnit')}
             </span>
           </p>
           <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
@@ -106,14 +113,16 @@ export function CandidateGroupCard({ group, bill, selection, isAdding, onAddRows
         {addableRows.length > 0 ? (
           <Button size="sm" variant="secondary" disabled={isAdding} onClick={() => onAddRows(group.addableRowIds)}>
             <Plus data-icon="inline-start" aria-hidden />
-            Add {addableRows.length === group.rows.length ? 'Trip DO' : `${addableRows.length} rows`}
+            {addableRows.length === group.rows.length
+              ? t('bill.search.addTripDo')
+              : t('bill.search.addRows', { count: addableRows.length })}
           </Button>
         ) : (
           <span className="text-[11.5px] font-medium text-muted-foreground">
             {!group.unitMatches
               ? `Unit ${group.unit || '(blank)'} · not ${billUnit}`
               : group.onThisBill === group.rows.length
-                ? 'Already on this bill'
+                ? t('bill.search.alreadyOn')
                 : `Billed on ${group.otherBills.join(', ')}`}
           </span>
         )}

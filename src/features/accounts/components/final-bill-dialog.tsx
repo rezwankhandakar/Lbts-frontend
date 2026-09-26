@@ -15,6 +15,7 @@ import { MAX_ACCOUNT_AMOUNT } from '../types'
 import type { FinalBillRecord } from '../types'
 import { EntryField } from './entry-field'
 import { FinalBillSlotPanel } from './final-bill-slot-panel'
+import { useT } from '@/lib/i18n'
 
 interface FinalBillDialogProps {
   open: boolean
@@ -40,6 +41,8 @@ const HAS_UNIT = /[A-Za-z0-9]/
  * only the audit knows it.
  */
 function FinalBillForm({ bill, onDone }: { bill: FinalBillRecord | null; onDone: () => void }) {
+  const t = useT()
+
   const start = currentPeriod()
   const [month, setMonth] = useState(bill?.month ?? start.month)
   const [year, setYear] = useState(bill?.year ?? start.year)
@@ -56,8 +59,9 @@ function FinalBillForm({ bill, onDone }: { bill: FinalBillRecord | null; onDone:
   const debouncedUnit = useDebouncedValue(unitValue, 300)
   const slot = useFinalBillSlot({ year, month }, debouncedUnit, HAS_UNIT.test(debouncedUnit))
 
-  const unitError = touched && !HAS_UNIT.test(unitValue) ? 'Enter the unit.' : undefined
-  const amountError = touched && finalAmount === null ? 'Enter the final bill amount.' : undefined
+  const unitError = touched && !HAS_UNIT.test(unitValue) ? 'accounts.validation.unitRequired' : undefined
+  const amountError =
+    touched && finalAmount === null ? 'accounts.validation.finalAmountRequired' : undefined
   const belowReceived = bill && finalAmount !== null && finalAmount < bill.receivedAmount
 
   const submit = (event: FormEvent) => {
@@ -80,16 +84,20 @@ function FinalBillForm({ bill, onDone }: { bill: FinalBillRecord | null; onDone:
           <FileBadge className="size-4" aria-hidden />
         </span>
         <div>
-          <DialogTitle>{bill ? `Edit final bill · ${bill.unit} · ${bill.periodLabel}` : 'Enter Walton final bill'}</DialogTitle>
+          <DialogTitle>
+            {bill
+              ? t('accounts.finalBill.editTitle', { unit: bill.unit, period: bill.periodLabel })
+              : t('accounts.finalBill.enterTitle')}
+          </DialogTitle>
           <DialogDescription className="mt-1">
-            The amount Walton approved after auditing the Excel bill. This is the income the profit and loss counts.
+            {t('accounts.finalBill.description')}
           </DialogDescription>
         </div>
       </DialogHeader>
 
       <BillPeriodPicker month={month} year={year} onMonthChange={setMonth} onYearChange={setYear} />
 
-      <EntryField id="final-unit" label="Unit" error={unitError}>
+      <EntryField id="final-unit" label={t('accounts.finalBill.unit')} error={unitError}>
         <Input id="final-unit" value={unit} list="final-unit-options" maxLength={24} autoComplete="off" className="font-mono uppercase" aria-invalid={Boolean(unitError)} onChange={(event) => setUnit(event.target.value)} />
         <datalist id="final-unit-options">{units.data?.map((option) => <option key={option} value={option} />)}</datalist>
       </EntryField>
@@ -98,7 +106,7 @@ function FinalBillForm({ bill, onDone }: { bill: FinalBillRecord | null; onDone:
 
       <AmountWordsInput
         id="final-amount"
-        label="Final bill amount"
+        label={t('accounts.finalBill.amount')}
         value={finalAmount}
         max={MAX_ACCOUNT_AMOUNT}
         error={amountError ?? (belowReceived ? `${taka(bill.receivedAmount)} is already received against this bill.` : null)}
@@ -106,15 +114,20 @@ function FinalBillForm({ bill, onDone }: { bill: FinalBillRecord | null; onDone:
       />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <EntryField id="final-ref" label="Walton reference" optional>
+        <EntryField id="final-ref" label={t('accounts.finalBill.reference')} optional>
           <Input id="final-ref" value={referenceNo} maxLength={80} autoComplete="off" onChange={(event) => setReferenceNo(event.target.value)} />
         </EntryField>
-        <EntryField id="final-received-on" label="Final bill received on" optional>
+        <EntryField id="final-received-on" label={t('accounts.finalBill.receivedOn')} optional>
           <Input id="final-received-on" type="date" value={receivedOn} onChange={(event) => setReceivedOn(event.target.value)} />
         </EntryField>
       </div>
 
-      <EntryField id="final-note" label="Audit note" optional hint="What the audit changed — rows disallowed, rates corrected.">
+      <EntryField
+        id="final-note"
+        label={t('accounts.finalBill.auditNote')}
+        optional
+        hint={t('accounts.finalBill.auditNoteHint')}
+      >
         <Textarea id="final-note" rows={2} maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} />
       </EntryField>
 
@@ -124,7 +137,7 @@ function FinalBillForm({ bill, onDone }: { bill: FinalBillRecord | null; onDone:
         </Button>
         <Button type="submit" disabled={save.isPending || Boolean(belowReceived)}>
           {save.isPending && <Loader2 className="animate-spin" data-icon="inline-start" aria-hidden />}
-          {bill ? 'Save changes' : 'Save final bill'}
+          {bill ? t('common.actions.saveChanges') : t('accounts.finalBill.save')}
         </Button>
       </DialogFooter>
     </form>

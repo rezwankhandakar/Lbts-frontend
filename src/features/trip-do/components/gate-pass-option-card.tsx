@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react'
 import { formatTripDate } from '@/features/gate-pass/lib/gate-pass-meta'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { GatePassOption, MatchLevel } from '../types'
 
@@ -36,6 +37,8 @@ function MatchTag({ level, what }: { level: MatchLevel; what: string }) {
 }
 
 export function GatePassOptionCard({ option, isChosen, onChoose }: GatePassOptionCardProps) {
+  const t = useT()
+
   const isFull = option.remainingQty === 0 && !option.isCurrent
   const used = option.qty > 0 ? Math.round((option.allocatedQty / option.qty) * 100) : 0
 
@@ -67,12 +70,12 @@ export function GatePassOptionCard({ option, isChosen, onChoose }: GatePassOptio
           <span className="text-[11px] text-muted-foreground">{option.gatePassNumber}</span>
           {option.isCurrent && (
             <span className="rounded bg-tone-emerald/10 px-1.5 text-[10px] font-semibold text-tone-emerald">
-              Current
+              {t('tripDo.assign.current')}
             </span>
           )}
           {option.isOrderTripDo && !option.isCurrent && (
             <span className="rounded bg-tone-indigo/10 px-1.5 text-[10px] font-semibold text-tone-indigo">
-              Same as order row
+              {t('tripDo.assign.sameAsOrder')}
             </span>
           )}
         </span>
@@ -88,7 +91,7 @@ export function GatePassOptionCard({ option, isChosen, onChoose }: GatePassOptio
             CSD <span className="font-medium text-foreground">{option.csd}</span>
           </span>
           <span>
-            Unit <span className="font-medium text-foreground">{option.unit}</span>
+            {t('tripDo.unitWith', { unit: option.unit })}
           </span>
           <span className="max-w-[12rem] truncate">{option.vehicleNo}</span>
         </span>
@@ -98,15 +101,18 @@ export function GatePassOptionCard({ option, isChosen, onChoose }: GatePassOptio
         {option.countsTowardQty ? (
           <>
             <span className="text-[13px] font-semibold tabular-nums">{option.remainingQty}</span>
-            <span className="text-[11px] text-muted-foreground"> left of {option.qty}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {' '}
+              {t('tripDo.option.leftOf', { total: option.qty })}
+            </span>
             <span className="mt-1 block h-1 overflow-hidden rounded-full bg-muted">
               <span className="block h-full rounded-full bg-tone-indigo" style={{ width: `${used}%` }} />
             </span>
           </>
         ) : (
-          <span className="text-[11px] text-muted-foreground" title="Returned and re-sent pieces do not use up the gate pass">
-            <span className="text-[13px] font-semibold text-foreground tabular-nums">{option.qty}</span> on
-            gate pass
+          <span className="text-[11px] text-muted-foreground" title={t('tripDo.assign.returnsNote')}>
+            <span className="text-[13px] font-semibold text-foreground tabular-nums">{option.qty}</span>{' '}
+            {t('tripDo.option.onGatePass')}
           </span>
         )}
       </span>

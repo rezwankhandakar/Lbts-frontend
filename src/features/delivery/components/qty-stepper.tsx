@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface QtyStepperProps {
@@ -31,6 +32,8 @@ export function QtyStepper({
   disabled,
   className,
 }: QtyStepperProps) {
+  const t = useT()
+
   const [draft, setDraft] = useState<string | null>(null)
 
   const commit = (raw: string) => {
@@ -56,7 +59,7 @@ export function QtyStepper({
         className="rounded-r-none"
         disabled={disabled || value <= min}
         onClick={() => onChange(value - 1)}
-        aria-label={`One fewer ${label}`}
+        aria-label={t('delivery.line.oneFewer', { label })}
       >
         <Minus aria-hidden />
       </Button>
@@ -74,7 +77,7 @@ export function QtyStepper({
             commit(event.currentTarget.value)
           }
         }}
-        aria-label={`Quantity of ${label}`}
+        aria-label={t('delivery.line.qtyOf', { label })}
         className="h-full w-11 border-x bg-transparent text-center text-sm font-semibold tabular-nums outline-none focus-visible:bg-primary/5"
       />
 
@@ -85,7 +88,7 @@ export function QtyStepper({
         className="rounded-l-none"
         disabled={disabled || value >= max}
         onClick={() => onChange(value + 1)}
-        aria-label={`One more ${label}`}
+        aria-label={t('delivery.line.oneMore', { label })}
       >
         <Plus aria-hidden />
       </Button>

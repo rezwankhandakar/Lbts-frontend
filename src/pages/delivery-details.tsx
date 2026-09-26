@@ -16,6 +16,7 @@ import { useTrip } from '@/features/delivery/hooks/use-deliveries'
 import { useSheetScan } from '@/features/delivery/hooks/use-sheet-scan'
 import { useTripActions } from '@/features/delivery/hooks/use-trip-actions'
 import { shortTripNumber } from '@/features/delivery/lib/delivery-meta'
+import { useT } from '@/lib/i18n'
 
 /**
  * One trip: the manifest of what went, who ran it, and how each delivery on it
@@ -32,6 +33,8 @@ import { shortTripNumber } from '@/features/delivery/lib/delivery-meta'
  * when there is an exception to report.
  */
 export function DeliveryDetailsPage() {
+  const t = useT()
+
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const query = useTrip(id)
@@ -66,13 +69,18 @@ export function DeliveryDetailsPage() {
             />
           </span>
         }
-        description={`Assigned to ${trip.vendor.name} · ${formatDay(trip.tripDate)} · ${trip.vehicle.registrationNo} driven by ${trip.driver.name}`}
-        back={{ to: '/delivery', label: 'Deliveries' }}
+        description={t('delivery.trip.assignedTo', {
+          vendor: trip.vendor.name,
+          date: formatDay(trip.tripDate),
+          plate: trip.vehicle.registrationNo,
+          driver: trip.driver.name,
+        })}
+        back={{ to: '/delivery', label: t('delivery.deliveries') }}
         actions={<TripActionsBar trip={trip} actions={actions} />}
       />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <section aria-label="Manifest" className="min-w-0 space-y-4">
+        <section aria-label={t('delivery.manifestAria')} className="min-w-0 space-y-4">
           <ChallanQuantitySummary lines={lines} returned={returned} />
 
           <SummaryFigures

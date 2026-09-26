@@ -1,6 +1,7 @@
 import { BellOff, Inbox } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { dayHeading, groupByDay } from '../lib/notification-meta'
 import type { NotificationRecord } from '../types'
@@ -48,6 +49,8 @@ export function NotificationList({
   onToggleRead,
   onDismiss,
 }: NotificationListProps) {
+  const t = useT()
+
   if (isLoading) {
     return (
       <div className="space-y-4 p-4" aria-busy="true">
@@ -71,12 +74,12 @@ export function NotificationList({
         <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive ring-1 ring-destructive/15">
           <BellOff className="size-5" aria-hidden />
         </div>
-        <h2 className="mt-4 text-base font-semibold">Could not load your notifications</h2>
+        <h2 className="mt-4 text-base font-semibold">{t('notification.list.loadFailed')}</h2>
         <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-pretty text-muted-foreground">
           {errorMessage}
         </p>
         <Button variant="outline" size="sm" className="mt-4" onClick={onRetry}>
-          Try again
+          {t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -99,17 +102,17 @@ export function NotificationList({
          */}
         {isFiltered ? (
           <>
-            <h2 className="mt-4 text-base font-semibold">Nothing matches these filters</h2>
+            <h2 className="mt-4 text-base font-semibold">{t('notification.list.noMatches')}</h2>
             <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-pretty text-muted-foreground">
-              There may still be notifications outside them.
+              {t('notification.panel.outsideFilters')}
             </p>
             <Button variant="outline" size="sm" className="mt-4" onClick={onReset}>
-              Clear filters
+              {t('common.actions.clearFilters')}
             </Button>
           </>
         ) : (
           <>
-            <h2 className="mt-4 text-base font-semibold">You are up to date</h2>
+            <h2 className="mt-4 text-base font-semibold">{t('notification.list.upToDate')}</h2>
             <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-pretty text-muted-foreground">
               Accounts waiting for approval, gate pass verdicts, certificates about
               to lapse, goods back at the depot and money movements arrive here as
@@ -126,9 +129,9 @@ export function NotificationList({
   return (
     <div className={cn('transition-opacity', isFetching && 'opacity-60')}>
       {groups.map((group) => (
-        <section key={group.day} aria-label={dayHeading(group.rows[0]?.createdAt ?? group.day)}>
+        <section key={group.day} aria-label={dayHeading(group.rows[0]?.createdAt ?? group.day, t)}>
           <h2 className="sticky top-0 z-10 flex items-center gap-2 border-y bg-card/95 px-4 py-2 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase backdrop-blur-sm">
-            {dayHeading(group.rows[0]?.createdAt ?? group.day)}
+            {dayHeading(group.rows[0]?.createdAt ?? group.day, t)}
             <span className="font-normal normal-case tracking-normal text-muted-foreground/70">
               · {group.rows.length} {group.rows.length === 1 ? 'notification' : 'notifications'}
             </span>

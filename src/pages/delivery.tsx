@@ -13,9 +13,10 @@ import { useTripStats, useTrips } from '@/features/delivery/hooks/use-deliveries
 import { useSheetScan } from '@/features/delivery/hooks/use-sheet-scan'
 import { useTripActions } from '@/features/delivery/hooks/use-trip-actions'
 import { useTripListParams } from '@/features/delivery/hooks/use-trip-list-params'
-import { localToday, plural } from '@/features/delivery/lib/delivery-meta'
+import { localToday } from '@/features/delivery/lib/delivery-meta'
 import { canWriteDeliveries } from '@/features/delivery/types'
 import type { TripListParams } from '@/features/delivery/types'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * Every trip, filtered and paged server-side — and the desk where signed
@@ -34,6 +35,8 @@ import type { TripListParams } from '@/features/delivery/types'
  * mouse once.
  */
 export function DeliveryPage() {
+  const t = useT()
+
   const role = useCurrentRole()
   const canWrite = canWriteDeliveries(role)
 
@@ -73,16 +76,15 @@ export function DeliveryPage() {
     <div className="mx-auto w-full max-w-7xl">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Delivery</h1>
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('delivery.title')}</h1>
           <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
-            Every trip: which vehicle and driver, which vendor it was assigned to, and exactly
-            which challans — and how much of each — went out on it.
+            {t('delivery.pageDescription')}
           </p>
         </div>
         {canWrite && (
           <Button size="lg" className="shrink-0" render={<Link to="/delivery/new" />}>
             <Plus data-icon="inline-start" aria-hidden />
-            New delivery
+            {t('delivery.newDelivery')}
           </Button>
         )}
       </div>
@@ -107,7 +109,7 @@ export function DeliveryPage() {
         }}
       />
 
-      <section aria-label="Trips" className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      <section aria-label={t('delivery.tripsAria')} className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <TripFilters
           params={list.params}
           onChange={list.applyFilters}
@@ -115,10 +117,14 @@ export function DeliveryPage() {
           isFiltered={list.isFiltered}
           summary={
             meta && !query.isPending
-              ? `${plural(meta.total, 'trip')}${list.isFiltered ? ' match these filters' : ''} · ${plural(
-                  meta.totalChallans ?? 0,
-                  'challan',
-                )} · ${plural(meta.totalQty ?? 0, 'piece')}`
+              ? t(
+                  list.isFiltered ? 'delivery.list.summaryFiltered' : 'delivery.list.summaryTotal',
+                  {
+                    trips: countOf(meta.total, 'nouns.trip', t),
+                    challans: countOf(meta.totalChallans ?? 0, 'nouns.challan', t),
+                    pieces: countOf(meta.totalQty ?? 0, 'nouns.piece', t),
+                  },
+                )
               : undefined
           }
           totals={
@@ -138,7 +144,7 @@ export function DeliveryPage() {
           isLoading={query.isPending}
           isFetching={query.isFetching}
           isError={query.isError}
-          errorMessage={query.error?.message ?? 'Something went wrong.'}
+          errorMessage={query.error?.message ?? t('delivery.somethingWrong')}
           isFiltered={list.isFiltered}
           canWrite={canWrite}
           actions={actions}
@@ -151,7 +157,7 @@ export function DeliveryPage() {
             meta={meta}
             onPageChange={list.setPage}
             isFetching={query.isFetching}
-            noun={['trip', 'trips']}
+            nounKey="nouns.trip"
           />
         )}
       </section>

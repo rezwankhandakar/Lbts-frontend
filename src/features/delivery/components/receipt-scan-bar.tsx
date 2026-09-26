@@ -3,6 +3,7 @@ import { Loader2, ScanBarcode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { isChallanCode, isTripCode } from '@/lib/barcode-wedge'
+import { useT } from '@/lib/i18n'
 
 interface ReceiptScanBarProps {
   onScan: (code: string) => void
@@ -32,6 +33,8 @@ interface ReceiptScanBarProps {
  * the scanner cannot.
  */
 export function ReceiptScanBar({ onScan, pending, listening }: ReceiptScanBarProps) {
+  const t = useT()
+
   const [typed, setTyped] = useState('')
 
   const submit = () => {
@@ -54,18 +57,18 @@ export function ReceiptScanBar({ onScan, pending, listening }: ReceiptScanBarPro
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">A signed copy came back, or a manifest in hand?</p>
+        <p className="text-sm font-medium">{t('delivery.receipt.prompt')}</p>
         <p className="text-xs text-muted-foreground">
           {listening
-            ? 'Scan anywhere on this page: a challan opens the delivery it belongs to, a manifest opens its trip.'
-            : 'Close what is open to scan, or type the challan number.'}
+            ? t('delivery.receipt.listening')
+            : t('delivery.receipt.paused')}
         </p>
       </div>
 
       <div className="flex shrink-0 gap-2">
         <Input
           className="h-9 w-48 font-mono text-[13px]"
-          placeholder="LBTS-CH-2026-000067"
+          placeholder={t('delivery.receipt.placeholder')}
           value={typed}
           disabled={pending}
           onChange={(event) => setTyped(event.target.value)}

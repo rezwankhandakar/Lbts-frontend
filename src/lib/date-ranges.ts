@@ -43,11 +43,19 @@ export function rangeFor(quick: Exclude<QuickRange, 'custom' | 'all'>): DateRang
   return { from: toIso(start), to: today }
 }
 
-export const QUICK_RANGE_LABELS: Record<Exclude<QuickRange, 'custom'>, string> = {
-  all: 'Any date',
-  today: 'Today',
-  month: 'This month',
-  lastMonth: 'Last month',
+/**
+ * Keys into the shared `time` vocabulary, as plain strings.
+ *
+ * This file is import-free because `node --test` loads it, so it cannot reach
+ * `TranslationKey` — the same compromise `attention.ts` makes with its filter
+ * values and `AttentionIcon` with its icon names. The caller casts, and the
+ * dictionary is what proves the key is real.
+ */
+export const QUICK_RANGE_KEYS: Record<Exclude<QuickRange, 'custom'>, string> = {
+  all: 'time.anyDate',
+  today: 'time.today',
+  month: 'time.thisMonth',
+  lastMonth: 'time.lastMonth',
 }
 
 /** Which quick range a from/to pair corresponds to, if any. */

@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface ActivityTrendProps {
@@ -27,6 +28,8 @@ const WEEKDAY = new Intl.DateTimeFormat(undefined, { weekday: 'short' })
  * screen reader, and the numbers behind it are small enough to simply state.
  */
 export function ActivityTrend({ trend }: ActivityTrendProps) {
+  const t = useT()
+
   const peak = Math.max(1, ...trend.map((day) => day.count))
   const total = trend.reduce((sum, day) => sum + day.count, 0)
   const first = trend[0]
@@ -35,7 +38,7 @@ export function ActivityTrend({ trend }: ActivityTrendProps) {
   return (
     <section className="flex flex-col rounded-xl border bg-card p-4 shadow-xs">
       <div className="flex items-baseline justify-between gap-2">
-        <h2 className="text-[13px] font-medium">Last 14 days</h2>
+        <h2 className="text-[13px] font-medium">{t('activity.trend.heading')}</h2>
         <p className="text-xs text-muted-foreground tabular-nums">
           {total.toLocaleString()} events
         </p>
@@ -81,7 +84,7 @@ export function ActivityTrend({ trend }: ActivityTrendProps) {
       )}
 
       <table className="sr-only">
-        <caption>Events per day over the last fourteen days</caption>
+        <caption>{t('activity.trend.caption')}</caption>
         <tbody>
           {trend.map((day) => (
             <tr key={day.date}>

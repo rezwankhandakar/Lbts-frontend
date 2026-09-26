@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { formatNumber } from '@/lib/format'
+import { countOf, t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import {
   deleteChallan,
@@ -83,7 +85,7 @@ export function useUpdateChallan(): UseMutationResult<ChallanRecord, ApiError, U
   return useMutation({
     mutationFn: updateChallan,
     onSuccess: (record) => {
-      toast.success('Challan corrected', {
+      toast.success(t('challan.toasts.corrected'), {
         description: `${record.challanNumber} was saved and its document regenerated. Reprint it if the old copy is in circulation.`,
       })
       void invalidate()
@@ -111,14 +113,17 @@ export function useBatchSkippedPages(): UseMutationResult<
     onSuccess: (batch) => {
       toast.success(
         batch.isComplete
-          ? 'Batch complete'
+          ? t('challan.toasts.batchComplete')
           : batch.skippedPages.length === 0
-            ? 'Blank pages cleared'
-            : 'Marked as blank',
+            ? t('challan.toasts.blankCleared')
+            : t('challan.toasts.markedBlank'),
         {
           description: batch.isComplete
-            ? 'Every page of this PDF is accounted for. The batch can be downloaded as one document.'
-            : `${batch.unassignedPages} page${batch.unassignedPages === 1 ? '' : 's'} still to account for.`,
+            ? t('challan.toasts.batchAccounted')
+            : t('challan.toasts.stillToAccount', {
+                count: batch.unassignedPages,
+                n: formatNumber(batch.unassignedPages),
+              }),
         },
       )
       void invalidate()
@@ -164,10 +169,15 @@ export function useBatchPrinted(): UseMutationResult<
   return useMutation({
     mutationFn: setBatchPrinted,
     onSuccess: (batch) => {
-      toast.success(batch.isPrinted ? 'Batch marked as printed' : 'Print marks cleared', {
+      toast.success(
+        batch.isPrinted ? t('challan.toasts.batchPrinted') : t('challan.toasts.printMarksCleared'),
+        {
         description: batch.isPrinted
-          ? `All ${batch.challanCount} challan${batch.challanCount === 1 ? '' : 's'} from ${batch.sourceFileName} are marked as printed.`
-          : 'None of this batch is marked as printed any more.',
+          ? t('challan.toasts.batchPrintedNote', {
+              challans: countOf(batch.challanCount, 'nouns.challan', t),
+              file: batch.sourceFileName,
+            })
+          : t('challan.toasts.batchNotPrintedNote'),
       })
       void invalidate()
     },
@@ -195,7 +205,7 @@ export function useSetChallanLocation(): UseMutationResult<
     onSuccess: (record) => {
       const location = record.resolvedLocation
 
-      toast.success(location ? 'Location set' : 'Location cleared', {
+      toast.success(location ? t('challan.toasts.locationSet') : t('challan.toasts.locationCleared'), {
         description: location
           ? `${record.challanNumber} is ${location.district} / ${location.thana} · ${location.locationType}.`
           : `${record.challanNumber} has no location again. It can be set at any time.`,
@@ -216,10 +226,10 @@ export function useDeleteChallan(): UseMutationResult<
   return useMutation({
     mutationFn: ({ id }) => deleteChallan(id),
     onSuccess: (_result, variables) => {
-      toast.success(`${variables.challanNumber} was deleted`, {
+      toast.success(t('challan.toasts.deleted', { challan: variables.challanNumber }), {
         // Deleting re-opens the batch it came from: its pages are unclaimed
         // again, so the batch can no longer be downloaded as a finished set.
-        description: 'Its pages are unassigned again in the batch it came from.',
+        description: t('challan.toasts.deletedNote'),
       })
       void invalidate()
     },

@@ -1,6 +1,7 @@
 import { ZoomIn, ZoomOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { ZoomControls } from '@/hooks/use-zoom'
+import { useFormatters, useT } from '@/lib/i18n'
 
 /**
  * Zoom out, the current level, zoom in. Pressing the level puts the whole page
@@ -10,14 +11,23 @@ import type { ZoomControls } from '@/hooks/use-zoom'
  * `features/delivery/` together when Accounts needed the same viewer for a
  * voucher.
  */
-export function ZoomToolbar({ controls, disabled = false }: { controls: ZoomControls; disabled?: boolean }) {
+export function ZoomToolbar({
+  controls,
+  disabled = false,
+}: {
+  controls: ZoomControls
+  disabled?: boolean
+}) {
+  const t = useT()
+  const format = useFormatters()
+
   return (
-    <div className="inline-flex items-center rounded-md border" role="group" aria-label="Zoom">
+    <div className="inline-flex items-center rounded-md border" role="group" aria-label={t('shared.zoom.group')}>
       <Button
         type="button"
         variant="ghost"
         size="icon-sm"
-        aria-label="Zoom out"
+        aria-label={t('shared.zoom.out')}
         disabled={disabled || !controls.canZoomOut}
         onClick={controls.zoomOut}
       >
@@ -28,17 +38,17 @@ export function ZoomToolbar({ controls, disabled = false }: { controls: ZoomCont
         variant="ghost"
         size="sm"
         className="h-8 min-w-14 px-2 text-xs tabular-nums"
-        title="Fit the whole page on screen"
+        title={t('shared.zoom.fit')}
         disabled={disabled}
         onClick={controls.reset}
       >
-        {Math.round(controls.zoom * 100)}%
+        {format.percent(controls.zoom * 100)}
       </Button>
       <Button
         type="button"
         variant="ghost"
         size="icon-sm"
-        aria-label="Zoom in"
+        aria-label={t('shared.zoom.in')}
         disabled={disabled || !controls.canZoomIn}
         onClick={controls.zoomIn}
       >

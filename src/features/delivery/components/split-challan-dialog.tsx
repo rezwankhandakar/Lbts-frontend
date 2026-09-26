@@ -12,6 +12,8 @@ import {
 import { takenBySource } from '../lib/cart'
 import type { CartChallan } from '../types'
 import { QtyStepper } from './qty-stepper'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 interface SplitChallanDialogProps {
   challan: CartChallan
@@ -32,6 +34,8 @@ interface SplitChallanDialogProps {
  * cart as it is now.
  */
 export function SplitChallanDialog({ challan, onOpenChange, onSplit }: SplitChallanDialogProps) {
+  const t = useT()
+
   const [take, setTake] = useState<Record<number, number>>(() => takenBySource(challan))
 
   const total = Object.values(take).reduce((sum, qty) => sum + qty, 0)
@@ -50,17 +54,15 @@ export function SplitChallanDialog({ challan, onOpenChange, onSplit }: SplitChal
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Split {challan.challanNumber}</DialogTitle>
+          <DialogTitle>{t('delivery.split.title', { challan: challan.challanNumber })}</DialogTitle>
           <DialogDescription>
-            Choose how much of each line this trip carries. The rest <strong>stays on the
-            challan</strong> for a later trip, which is what makes this different from trimming a
-            quantity on the card — that corrects the challan down to what went.
+            {t('delivery.split.description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => fill((n) => n)}>
-            Everything left
+            {t('delivery.split.everythingLeft')}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => fill((n) => Math.ceil(n / 2))}>
             Half
@@ -81,7 +83,7 @@ export function SplitChallanDialog({ challan, onOpenChange, onSplit }: SplitChal
                   <p className="text-sm font-medium">{source.productName}</p>
                   <p className="font-mono text-xs text-muted-foreground">{source.model}</p>
                   <p className="mt-1 text-[11px] text-muted-foreground tabular-nums">
-                    Ordered {source.ordered}
+                    {t('delivery.line.ordered', { n: formatNumber(source.ordered) })}
                     {source.dispatched > 0 && ` · ${source.dispatched} on other trips`}
                   </p>
                 </div>
@@ -104,18 +106,17 @@ export function SplitChallanDialog({ challan, onOpenChange, onSplit }: SplitChal
 
         {total === 0 && (
           <p className="text-xs text-destructive">
-            This trip has to carry something from the challan. To send all of it later, remove the
-            challan from this trip instead.
+            {t('delivery.split.mustCarrySomething')}
           </p>
         )}
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
           <Button type="button" disabled={total === 0} onClick={() => onSplit(take)}>
             <Scissors data-icon="inline-start" aria-hidden />
-            Apply split
+            {t('delivery.split.apply')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,5 +1,7 @@
 import { CircleCheck, FileX2, TriangleAlert, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber, formatPercent } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { formatRange, formatRanges } from '../lib/challan-meta'
 import type { ChallanBatchDetail, PageRange } from '../types'
@@ -38,13 +40,18 @@ export function BatchAccounting({
   onMarkBlank,
   onClearBlank,
 }: BatchAccountingProps) {
+  const t = useT()
+
   return (
     <>
       <div className="flex items-center justify-between gap-3 text-xs">
         <span className="text-muted-foreground">
-          {batch.assignedPages} of {batch.sourcePageCount} pages accounted for
+          {t('challan.batch.accountedOf', {
+            assigned: formatNumber(batch.assignedPages),
+            total: formatNumber(batch.sourcePageCount),
+          })}
         </span>
-        <span className="font-semibold tabular-nums">{batch.percent}%</span>
+        <span className="font-semibold tabular-nums">{formatPercent(batch.percent)}</span>
       </div>
 
       <div
@@ -53,7 +60,7 @@ export function BatchAccounting({
         aria-valuenow={batch.percent}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Pages filed as challans"
+        aria-label={t('challan.queue.filedAria')}
       >
         <div
           className={cn(
@@ -67,10 +74,7 @@ export function BatchAccounting({
       {batch.isComplete ? (
         <p className="mt-2.5 flex items-start gap-1.5 text-xs leading-snug text-muted-foreground">
           <CircleCheck className="mt-px size-3.5 shrink-0 text-tone-emerald" aria-hidden />
-          <span>
-            Every page of this PDF is accounted for. The batch document is each challan's pages
-            followed by its LBTS back page, in the order the source file had them.
-          </span>
+          <span>{t('challan.batch.accounted')}</span>
         </p>
       ) : (
         <div className="mt-2.5 rounded-lg border border-tone-amber/25 bg-tone-amber/5 px-2.5 py-2">
@@ -78,15 +82,15 @@ export function BatchAccounting({
             <TriangleAlert className="mt-px size-3.5 shrink-0 text-tone-amber" aria-hidden />
             <span className="text-muted-foreground">
               <span className="font-medium text-foreground">
-                {batch.unassignedPages} {batch.unassignedPages === 1 ? 'page is' : 'pages are'} not
-                accounted for
+                {t('challan.batch.notAccounted', {
+                  count: batch.unassignedPages,
+                  n: formatNumber(batch.unassignedPages),
+                  ranges: formatRanges(batch.unassignedRanges, t),
+                })}
               </span>{' '}
-              — {formatRanges(batch.unassignedRanges)}. The batch cannot be printed or downloaded as
-              one document until every page is either filed as a challan or marked as blank, because
-              the file would be missing them without saying so. The source PDF was never stored, so
-              filing them means opening it again:{' '}
-              <span className="font-medium text-foreground">Continue entering</span> asks for that
-              file and carries on in this batch.
+              {t('challan.batch.notAccountedNote', {
+                action: t('challan.batch.continueEntering'),
+              })}
             </span>
           </p>
 
@@ -97,7 +101,9 @@ export function BatchAccounting({
               blank page. */}
           {canChange && (
             <div className="mt-2.5 flex flex-wrap items-center gap-2 border-t border-tone-amber/20 pt-2.5">
-              <p className="text-[11px] text-muted-foreground">Not challans at all?</p>
+              <p className="text-[11px] text-muted-foreground">
+                {t('challan.batch.notChallans')}
+              </p>
               {batch.unassignedRanges.map((range) => (
                 <Button
                   key={`${range.startPage}-${range.endPage}`}
@@ -107,7 +113,7 @@ export function BatchAccounting({
                   onClick={() => onMarkBlank(range)}
                 >
                   <FileX2 data-icon="inline-start" aria-hidden />
-                  Mark {formatRange(range)} blank
+                  {t('challan.batch.markBlank', { range: formatRange(range, t) })}
                 </Button>
               ))}
             </div>
@@ -121,9 +127,12 @@ export function BatchAccounting({
       {batch.skippedPages.length > 0 && (
         <div className="mt-2.5 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-2.5 py-2">
           <p className="text-[11px] text-muted-foreground">
-            <span className="font-medium text-foreground">Marked blank:</span>{' '}
-            {formatRanges(batch.skippedRanges)} — not filed as challans, and not in the batch
-            document.
+            <span className="font-medium text-foreground">
+              {t('challan.batch.markedBlank')}
+            </span>{' '}
+            {t('challan.batch.markedBlankNote', {
+              ranges: formatRanges(batch.skippedRanges, t),
+            })}
           </p>
           {canChange && (
             <Button

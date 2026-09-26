@@ -1,12 +1,13 @@
 import { CalendarDays, Package, UserRound } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatDay } from '@/features/vendor/lib/vendor-meta'
-import { plural, shortTripNumber, taka } from '../lib/delivery-meta'
+import { shortTripNumber, taka } from '../lib/delivery-meta'
 import { useRowLink } from '../hooks/use-row-link'
 import type { TripActions } from '../hooks/use-trip-actions'
 import type { TripRecord } from '../types'
 import { TripStatusBadge } from './delivery-badges'
 import { TripRowMenu } from './trip-row-menu'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * The trips on a narrow screen. A swap rather than a scrolling table, in the
@@ -14,6 +15,8 @@ import { TripRowMenu } from './trip-row-menu'
  * sees the same record laid out differently.
  */
 export function TripCards({ records, actions }: { records: TripRecord[]; actions: TripActions }) {
+  const t = useT()
+
   const openRow = useRowLink()
 
   return (
@@ -57,15 +60,15 @@ export function TripCards({ records, actions }: { records: TripRecord[]; actions
           </div>
 
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">{plural(trip.challanCount, 'challan')}</span>
+            <span className="font-medium text-foreground">{countOf(trip.challanCount, 'nouns.challan', t)}</span>
             <span>
-              Rent{' '}
+              {t('delivery.bill.rent')}{' '}
               <span className="font-semibold text-foreground tabular-nums">
                 {trip.tripRent === null ? '—' : taka(trip.tripRent)}
               </span>
             </span>
             <span>
-              Labour{' '}
+              {t('delivery.bill.labour')}{' '}
               <span className="font-semibold text-foreground tabular-nums">
                 {trip.labourBill === null ? '—' : taka(trip.labourBill)}
               </span>

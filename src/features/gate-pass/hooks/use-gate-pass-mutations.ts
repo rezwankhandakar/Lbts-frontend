@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
+import { t } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import {
   createGatePass,
   deleteGatePass,
@@ -33,7 +35,7 @@ export function reportGatePassError(error: ApiError): void {
   toast.error(error.message, {
     description: detail
       ? detail.path
-        ? `${detail.path}: ${detail.message}`
+        ? t('gatePass.toasts.errorDetail', { path: detail.path, message: detail.message })
         : detail.message
       : undefined,
   })
@@ -104,9 +106,9 @@ export function useSubmitGatePass(): UseMutationResult<
   })
 }
 
-const REVIEW_MESSAGES: Record<ReviewGatePassArgs['status'], string> = {
-  Verified: 'Gate pass verified',
-  Rejected: 'Gate pass sent back for correction',
+const REVIEW_KEYS: Record<ReviewGatePassArgs['status'], TranslationKey> = {
+  Verified: 'gatePass.toasts.verified',
+  Rejected: 'gatePass.toasts.sentBack',
 }
 
 export function useReviewGatePass(): UseMutationResult<
@@ -119,7 +121,7 @@ export function useReviewGatePass(): UseMutationResult<
   return useMutation({
     mutationFn: reviewGatePass,
     onSuccess: (_record, variables) => {
-      toast.success(REVIEW_MESSAGES[variables.status])
+      toast.success(t(REVIEW_KEYS[variables.status]))
       void invalidate()
     },
     onError: reportGatePassError,
@@ -136,7 +138,7 @@ export function useDeleteGatePass(): UseMutationResult<
   return useMutation({
     mutationFn: ({ id }) => deleteGatePass(id),
     onSuccess: (_result, variables) => {
-      toast.success(`${variables.gatePassId} was deleted`)
+      toast.success(t('gatePass.toasts.deleted', { gatePass: variables.gatePassId }))
       void invalidate()
     },
     onError: reportGatePassError,

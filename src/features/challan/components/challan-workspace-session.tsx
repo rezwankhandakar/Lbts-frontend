@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
+import { useT } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useChallanActions } from '../hooks/use-challan-actions'
 import { useBatchSkippedPages } from '../hooks/use-challan-mutations'
@@ -13,6 +15,7 @@ import { useLastEntryStore } from '../hooks/use-last-entry'
 import { useChallanSubmission } from '../hooks/use-challan-submission'
 import { carriedValuesOf, hasCarriedValues } from '../lib/carried-fields'
 import type { SourcePdf } from '../lib/pdf-source'
+import { rangeProblemText } from '../lib/challan-meta'
 import { fromChallanValues } from '../schemas/challan-schemas'
 import { canWriteChallans } from '../types'
 import type { ChallanValues } from '../types'
@@ -54,6 +57,8 @@ interface SessionProps {
 }
 
 export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProps) {
+  const t = useT()
+
   const navigate = useNavigate()
 
   const session = useChallanSession(source.pageCount, resume)
@@ -181,9 +186,9 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
 
   const filed = submission.lastFiled
   const blockedReason = session.rangeProblem
-    ? session.rangeProblem.message
+    ? rangeProblemText(session.rangeProblem, t)
     : !active
-      ? 'Every page of this PDF has been filed. Add a challan to carry on.'
+      ? t('challan.queue.everyPageFiled')
       : null
 
   return (
@@ -207,11 +212,11 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
 
         <div className="flex shrink-0 items-center gap-2">
           <Button variant="outline" size="sm" onClick={onClose}>
-            Open a different PDF
+            {t('challan.queue.openDifferent')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => navigate('/challan')}>
             <ArrowLeft data-icon="inline-start" aria-hidden />
-            All challans
+            {t('challan.allChallans')}
           </Button>
         </div>
       </div>
@@ -223,7 +228,7 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
         <div className="mb-3">
           <ChallanFiledPanel
             record={filed}
-            nextLabel={nextLabelFor(session.active, progress.isComplete)}
+            nextLabel={nextLabelFor(session.active, progress.isComplete, t)}
             onNext={startNext}
             onDismiss={submission.clearLastFiled}
             onDownload={actions.download}
@@ -265,7 +270,7 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
         </div>
 
         <section
-          aria-label="Challan details"
+          aria-label={t('challan.details.detailsAria')}
           className={cn(
             'overflow-hidden rounded-xl border bg-card shadow-sm',
             pane === 'form' ? 'block' : 'hidden',
@@ -277,7 +282,7 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
             defaultValues={active?.values ? fromChallanValues(active.values) : undefined}
             isBusy={submission.isBusy}
             blockedReason={blockedReason}
-            submitLabel={`File ${session.activeLabel}`}
+            submitLabel={t('challan.queue.fileThis', { label: session.activeLabel })}
             carried={carried}
             onSubmit={(values) => void file(values)}
             onValuesChange={session.rememberValues}
@@ -320,10 +325,19 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
   )
 }
 
-/** What the "next" button on the success panel should say, if anything. */
-function nextLabelFor(active: { id: string } | null, isComplete: boolean): string | null {
+/**
+ * What the "next" button on the success panel should say, if anything.
+ *
+ * It takes a translator rather than reading one itself: a label decided at
+ * module scope would keep whichever language the workspace opened in.
+ */
+function nextLabelFor(
+  active: { id: string } | null,
+  isComplete: boolean,
+  t: Translator,
+): string | null {
   if (isComplete) {
     return null
   }
-  return active ? 'Next challan' : 'Add the next challan'
+  return active ? t('challan.queue.nextChallan') : t('challan.queue.addNext')
 }

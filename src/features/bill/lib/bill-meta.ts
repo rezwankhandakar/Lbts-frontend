@@ -1,13 +1,14 @@
 import { BadgeCheck, CircleDashed, CircleDot, FileCheck2, FilePen } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { MONTH_NAMES } from '../types'
+import { formatPeriod, shortMonthName } from '@/lib/i18n'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import type { BillStatus, BillingFilter, BillingStatus } from '../types'
 
-export const BILLING_FILTER_LABELS: Record<BillingFilter, string> = {
-  all: 'Any billing',
-  unbilled: 'Not billed',
-  partial: 'Partly billed',
-  billed: 'Billed',
+export const BILLING_FILTER_KEYS: Record<BillingFilter, TranslationKey> = {
+  all: 'bill.billingFilters.all',
+  unbilled: 'bill.billingFilters.unbilled',
+  partial: 'bill.billingFilters.partial',
+  billed: 'bill.billingFilters.billed',
 }
 
 /**
@@ -16,9 +17,14 @@ export const BILLING_FILTER_LABELS: Record<BillingFilter, string> = {
  * source text — the rule `trip-do-meta.ts` follows.
  */
 
-export interface ToneMeta {
+/** What a status says. The lookups below resolve it. */
+export interface ToneMeta extends TonePresentation {
   label: string
   description: string
+}
+
+/** The untranslatable half: icon and colour, and nothing it says. */
+export interface TonePresentation {
   icon: LucideIcon
   badge: string
   dot: string
@@ -26,18 +32,14 @@ export interface ToneMeta {
   text: string
 }
 
-export const BILL_STATUS_META: Record<BillStatus, ToneMeta> = {
+export const BILL_STATUS_META: Record<BillStatus, TonePresentation> = {
   Draft: {
-    label: 'Draft',
-    description: 'Still being prepared: rows can be added and taken off.',
     icon: FilePen,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     dot: 'bg-tone-amber',
     text: 'text-tone-amber',
   },
   Finalized: {
-    label: 'Finalized',
-    description: 'Signed off. What it carries is fixed until an Admin or Manager reopens it.',
     icon: FileCheck2,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
@@ -45,30 +47,30 @@ export const BILL_STATUS_META: Record<BillStatus, ToneMeta> = {
   },
 }
 
-export function billStatusMeta(value: string): ToneMeta {
-  return BILL_STATUS_META[value as BillStatus] ?? BILL_STATUS_META.Draft
+export function billStatusMeta(value: string, t: Translator): ToneMeta {
+  const status: BillStatus = value in BILL_STATUS_META ? (value as BillStatus) : 'Draft'
+
+  return {
+    ...BILL_STATUS_META[status],
+    label: t(`bill.statuses.${status}.label` as TranslationKey),
+    description: t(`bill.statuses.${status}.description` as TranslationKey),
+  }
 }
 
-export const BILLING_STATUS_META: Record<BillingStatus, ToneMeta> = {
+export const BILLING_STATUS_META: Record<BillingStatus, TonePresentation> = {
   Unbilled: {
-    label: 'Not billed',
-    description: 'None of its Trip DO rows is on a bill yet.',
     icon: CircleDashed,
     badge: 'border-border bg-muted text-muted-foreground',
     dot: 'bg-muted-foreground',
     text: 'text-muted-foreground',
   },
   Partial: {
-    label: 'Partly billed',
-    description: 'Some of its Trip DO rows are on a bill and some are not.',
     icon: CircleDot,
     badge: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
     dot: 'bg-tone-orange',
     text: 'text-tone-orange',
   },
   Billed: {
-    label: 'Billed',
-    description: 'Every one of its Trip DO rows is on a bill.',
     icon: BadgeCheck,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
@@ -76,18 +78,32 @@ export const BILLING_STATUS_META: Record<BillingStatus, ToneMeta> = {
   },
 }
 
-export function billingStatusMeta(value: string | null | undefined): ToneMeta {
-  return BILLING_STATUS_META[value as BillingStatus] ?? BILLING_STATUS_META.Unbilled
+export function billingStatusMeta(value: string | null | undefined, t: Translator): ToneMeta {
+  const status: BillingStatus =
+    value && value in BILLING_STATUS_META ? (value as BillingStatus) : 'Unbilled'
+
+  return {
+    ...BILLING_STATUS_META[status],
+    label: t(`bill.billingStatuses.${status}.label` as TranslationKey),
+    description: t(`bill.billingStatuses.${status}.description` as TranslationKey),
+  }
 }
 
-/** "September 2026". */
+/**
+ * "September 2026" — in the reader's language.
+ *
+ * The twelve month names used to be a hard-coded array in this module, in the
+ * Labour Bill's and in Accounts'. They come from `Intl` now, once, which is
+ * what makes a billing month read as সেপ্টেম্বর without any of the three
+ * learning about the other two.
+ */
 export function periodLabel(month: number, year: number): string {
-  return `${MONTH_NAMES[month - 1] ?? ''} ${year}`.trim()
+  return formatPeriod(month, year)
 }
 
 /** "Sep". */
 export function shortMonth(month: number): string {
-  return (MONTH_NAMES[month - 1] ?? '').slice(0, 3)
+  return shortMonthName(month)
 }
 
 /** The years a bill slot offers, oldest first: two back, this one and next — and `current` if it is none of those. */

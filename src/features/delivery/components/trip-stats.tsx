@@ -2,8 +2,10 @@ import { CalendarDays, RefreshCcw, TriangleAlert } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { countOf, useT } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { TRIP_STATUS_META } from '../lib/delivery-meta'
+import { TRIP_STATUS_META, tripStatusMeta } from '../lib/delivery-meta'
 import type { TripStats, TripStatus } from '../types'
 
 interface TripStatsProps {
@@ -27,25 +29,34 @@ interface Card {
   status?: TripStatus
 }
 
-const CARDS: Card[] = [
-  {
-    key: 'today',
-    label: 'Trips today',
-    value: (stats) => stats.today,
-    caption: (stats) => `${stats.todayQty.toLocaleString()} pcs`,
-    icon: CalendarDays,
-    tile: 'bg-primary/10 text-primary ring-primary/20',
-  },
-  ...(['Open', 'Completed'] as const).map((status) => ({
-    key: status,
-    label: TRIP_STATUS_META[status].label,
-    value: (stats: TripStats) => (status === 'Open' ? stats.open : stats.completed),
-    caption: () => TRIP_STATUS_META[status].description.split('.')[0],
-    icon: TRIP_STATUS_META[status].icon,
-    tile: TRIP_STATUS_META[status].tile,
-    status,
-  })),
-]
+/**
+ * The three cards, built per render rather than once at import.
+ *
+ * A list frozen at module scope would keep whichever language the tab opened
+ * in — the same reason every `*_META` lookup in this module takes a
+ * translator rather than reaching for one.
+ */
+function cardsFor(t: Translator): Card[] {
+  return [
+    {
+      key: 'today',
+      label: t('delivery.list.tripsToday'),
+      value: (stats) => stats.today,
+      caption: (stats) => countOf(stats.todayQty, 'nouns.pc', t),
+      icon: CalendarDays,
+      tile: 'bg-primary/10 text-primary ring-primary/20',
+    },
+    ...(['Open', 'Completed'] as const).map((status) => ({
+      key: status,
+      label: tripStatusMeta(status, t).label,
+      value: (stats: TripStats) => (status === 'Open' ? stats.open : stats.completed),
+      caption: () => tripStatusMeta(status, t).description.split('.')[0],
+      icon: TRIP_STATUS_META[status].icon,
+      tile: TRIP_STATUS_META[status].tile,
+      status,
+    })),
+  ]
+}
 
 /**
  * Three counts across the top of the deliveries page. The two status cards are
@@ -56,16 +67,18 @@ const CARDS: Card[] = [
  * to come back, which is the pile somebody is working through.
  */
 export function TripStatsPanel({ stats, isLoading, isError, onRetry, onStatus, onToday }: TripStatsProps) {
+  const t = useT()
+
   if (isError) {
     return (
       <div className="mb-6 flex flex-col items-start gap-3 rounded-xl border bg-card px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-center gap-2.5 text-sm text-muted-foreground">
           <TriangleAlert className="size-4 shrink-0 text-destructive" aria-hidden />
-          The delivery figures could not be loaded.
+          {t('delivery.list.figuresFailed')}
         </p>
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          Retry
+          {t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -73,7 +86,7 @@ export function TripStatsPanel({ stats, isLoading, isError, onRetry, onStatus, o
 
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
-      {CARDS.map((card) => {
+      {cardsFor(t).map((card) => {
         const Icon = card.icon
         const body = (
           <>

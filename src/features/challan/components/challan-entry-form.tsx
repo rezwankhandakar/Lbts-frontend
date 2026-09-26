@@ -4,8 +4,9 @@ import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { useCarryOver } from '@/hooks/use-carry-over'
+import { useT } from '@/lib/i18n'
 import type { LastChallanEntry } from '../hooks/use-last-entry'
-import { CARRIED_FIELDS, CARRIED_LABELS } from '../lib/carried-fields'
+import { CARRIED_FIELDS } from '../lib/carried-fields'
 import type { CarriedField } from '../lib/carried-fields'
 import type { ParsedChallanFields } from '../lib/paste-parse'
 import {
@@ -64,6 +65,8 @@ export function ChallanEntryForm({
   onSubmit,
   onValuesChange,
 }: ChallanEntryFormProps) {
+  const t = useT()
+
   const {
     register,
     control,
@@ -202,10 +205,11 @@ export function ChallanEntryForm({
           >
             <Info className="mt-px size-3.5 shrink-0 text-tone-amber" aria-hidden />
             <span>
-              {CARRIED_LABELS.customerName} and {CARRIED_LABELS.zonePo} from{' '}
-              <span className="font-medium text-foreground">{carried.sourceLabel}</span> are shown
-              above their boxes. Tick <span className="font-medium">Same as last</span> on either
-              that matches this challan; both stay empty until you type them.
+              {t('challan.entry.carryBanner', {
+                fields: t('challan.entry.carryFields'),
+                source: carried.sourceLabel,
+                tick: t('challan.entry.sameAsLast'),
+              })}
             </span>
           </p>
         )}
@@ -214,8 +218,8 @@ export function ChallanEntryForm({
 
         <FieldGroup
           icon={User}
-          title="Customer and delivery"
-          description="Who the goods are going to, and where."
+          title={t('challan.entry.customerAndDelivery')}
+          description={t('challan.entry.customerHint')}
         >
           <CustomerFields
             register={register}
@@ -229,8 +233,8 @@ export function ChallanEntryForm({
 
         <FieldGroup
           icon={Phone}
-          title="Contact and reference"
-          description="How to reach them, and what this challan is filed against."
+          title={t('challan.entry.contactAndReference')}
+          description={t('challan.entry.contactHint')}
         >
           <ContactFields
             register={register}
@@ -244,8 +248,8 @@ export function ChallanEntryForm({
 
         <FieldGroup
           icon={Boxes}
-          title="Goods"
-          description="What is on this challan. Add a row for each product it lists."
+          title={t('challan.entry.goods')}
+          description={t('challan.entry.goodsHint')}
         >
           <ChallanItemRows
             fields={items.fields}
@@ -266,12 +270,14 @@ export function ChallanEntryForm({
         <p className="text-xs text-muted-foreground">
           {blockedReason ?? (
             <>
-              <kbd className="rounded border bg-muted px-1 py-0.5 font-mono text-[10px]">Ctrl</kbd>
+              <kbd className="rounded border bg-muted px-1 py-0.5 font-mono text-[10px]">
+                {t('challan.entry.shortcutCtrl')}
+              </kbd>
               {' + '}
               <kbd className="rounded border bg-muted px-1 py-0.5 font-mono text-[10px]">
-                Enter
+                {t('challan.entry.shortcutEnter')}
               </kbd>{' '}
-              files this challan
+              {t('challan.entry.shortcutHint')}
             </>
           )}
         </p>

@@ -2,6 +2,7 @@ import { FileSpreadsheet, Hourglass, Link2, Repeat } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { TripDoFilterPatch, TripDoListParams, TripDoPageMeta } from '../types'
 
@@ -32,6 +33,8 @@ interface Tile {
  * number to scroll past.
  */
 export function TripDoOverview({ meta, isLoading, params, onChange }: TripDoOverviewProps) {
+  const t = useT()
+
   if (isLoading || !meta) {
     return (
       <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-busy="true">
@@ -46,14 +49,14 @@ export function TripDoOverview({ meta, isLoading, params, onChange }: TripDoOver
 
   const tiles: Tile[] = [
     {
-      label: 'Rows on the sheet',
+      label: t('tripDo.overview.rows'),
       value: meta.total.toLocaleString(),
       hint: `${meta.totalQty.toLocaleString()} pcs · ${formatTaka(meta.totalAmount)}`,
       icon: FileSpreadsheet,
       chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
     },
     {
-      label: 'Trip DO set',
+      label: t('tripDo.overview.linked'),
       value: `${percent}%`,
       hint: `${meta.linkedQty.toLocaleString()} of ${meta.totalQty.toLocaleString()} pcs · ${meta.linkedRows} rows`,
       icon: Link2,
@@ -62,7 +65,7 @@ export function TripDoOverview({ meta, isLoading, params, onChange }: TripDoOver
       filter: { pressed: params.link === 'linked', apply: { link: 'linked' }, clear: { link: 'all' } },
     },
     {
-      label: 'Waiting for Trip DO',
+      label: t('tripDo.overview.waiting'),
       value: meta.unlinkedRows.toLocaleString(),
       hint: `${meta.unlinkedQty.toLocaleString()} pcs not matched to a gate pass`,
       icon: Hourglass,
@@ -70,7 +73,7 @@ export function TripDoOverview({ meta, isLoading, params, onChange }: TripDoOver
       filter: { pressed: params.link === 'unlinked', apply: { link: 'unlinked' }, clear: { link: 'all' } },
     },
     {
-      label: 'Returns & re-sends',
+      label: t('tripDo.overview.returns'),
       value: (meta.returnRows + meta.resentRows).toLocaleString(),
       hint: `${meta.returnRows} came back · ${meta.resentRows} went out again`,
       icon: Repeat,

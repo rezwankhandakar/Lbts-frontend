@@ -2,7 +2,7 @@ import { CalendarDays, Mail, PencilLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { UserRoleBadge } from '@/components/shared/user-role-badge'
 import { UserStatusBadge } from '@/components/shared/user-status-badge'
-import { formatMonthYear } from '@/lib/format'
+import { useFormatters, useT } from '@/lib/i18n'
 import type { UserProfile } from '@/stores/use-auth-store'
 import { AvatarUploader } from './avatar-uploader'
 
@@ -21,6 +21,9 @@ interface ProfileHeroProps {
  * on the neutral card so the information keeps the attention.
  */
 export function ProfileHero({ profile, onEdit }: ProfileHeroProps) {
+  const t = useT()
+  const format = useFormatters()
+
   return (
     <section className="relative overflow-hidden rounded-2xl border bg-card shadow-sm">
       <div className="relative h-24 bg-gradient-to-r from-brand-from via-primary to-brand-to sm:h-28">
@@ -61,7 +64,7 @@ export function ProfileHero({ profile, onEdit }: ProfileHeroProps) {
                 <UserStatusBadge status={profile.status} />
                 <span className="inline-flex items-center gap-1.5 rounded-full border bg-muted/60 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-muted-foreground">
                   <CalendarDays className="size-3.5 shrink-0" aria-hidden />
-                  Member since {formatMonthYear(profile.createdAt)}
+                  {t('profile.memberSince', { date: format.monthYear(profile.createdAt) })}
                 </span>
               </div>
             </div>
@@ -73,7 +76,7 @@ export function ProfileHero({ profile, onEdit }: ProfileHeroProps) {
             className="w-full shrink-0 shadow-sm sm:mt-1 sm:w-auto"
           >
             <PencilLine data-icon="inline-start" aria-hidden />
-            Edit profile
+            {t('profile.editProfile')}
           </Button>
         </div>
       </div>

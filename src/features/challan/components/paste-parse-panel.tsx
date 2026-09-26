@@ -2,8 +2,11 @@ import { useState } from 'react'
 import { ClipboardPaste, Info, WandSparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { countOf } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { fieldsToFill, parseChallanText } from '../lib/paste-parse'
 import type { ParsedChallanFields } from '../lib/paste-parse'
+import { useT } from '@/lib/i18n'
 
 interface PasteParsePanelProps {
   /** The form's current values, so nothing already typed is offered again. */
@@ -12,17 +15,23 @@ interface PasteParsePanelProps {
   disabled?: boolean
 }
 
-const FIELD_LABELS: Record<keyof ParsedChallanFields, string> = {
-  customerName: 'Customer name',
-  deliveryAddress: 'Delivery address',
-  thana: 'Thana',
-  district: 'District',
-  receiverMobile: 'Receiver mobile',
-  senderMobile: 'Sender mobile',
-  zonePo: 'Zone / PO',
-  product: 'Product',
-  model: 'Model',
-  qty: 'Quantity',
+/**
+ * What each parsed field is called, as keys.
+ *
+ * A table of words fixed at module scope keeps whichever language the tab was
+ * opened in; a table of keys is resolved on every render.
+ */
+const FIELD_LABEL_KEYS: Record<keyof ParsedChallanFields, TranslationKey> = {
+  customerName: 'challan.paste.fields.customerName',
+  deliveryAddress: 'challan.paste.fields.deliveryAddress',
+  thana: 'challan.paste.fields.thana',
+  district: 'challan.paste.fields.district',
+  receiverMobile: 'challan.paste.fields.receiverMobile',
+  senderMobile: 'challan.paste.fields.senderMobile',
+  zonePo: 'challan.paste.fields.zonePo',
+  product: 'challan.paste.fields.product',
+  model: 'challan.paste.fields.model',
+  qty: 'challan.paste.fields.qty',
 }
 
 /**
@@ -40,6 +49,8 @@ const FIELD_LABELS: Record<keyof ParsedChallanFields, string> = {
  * the form. When it does work it saves nine fields' worth of typing.
  */
 export function PasteParsePanel({ current, onFill, disabled }: PasteParsePanelProps) {
+  const t = useT()
+
   const [isOpen, setIsOpen] = useState(false)
   const [text, setText] = useState('')
   const [found, setFound] = useState<ParsedChallanFields | null>(null)
@@ -60,7 +71,7 @@ export function PasteParsePanel({ current, onFill, disabled }: PasteParsePanelPr
           disabled={disabled}
         >
           <ClipboardPaste data-icon="inline-start" aria-hidden />
-          Paste a block from the PDF
+          {t('challan.paste.prompt')}
         </Button>
       </div>
     )
@@ -70,10 +81,9 @@ export function PasteParsePanel({ current, onFill, disabled }: PasteParsePanelPr
     <div className="border-b bg-muted/20 px-4 py-3.5 sm:px-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-[13px] font-semibold tracking-tight">Paste and fill</h3>
+          <h3 className="text-[13px] font-semibold tracking-tight">{t('challan.paste.heading')}</h3>
           <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-            Select the challan text in the PDF, paste it here, and anything labelled is offered for
-            the fields you have not filled in yet.
+            {t('challan.paste.hintLong')}
           </p>
         </div>
         <Button
@@ -87,7 +97,7 @@ export function PasteParsePanel({ current, onFill, disabled }: PasteParsePanelPr
             setText('')
           }}
         >
-          Close
+          {t('common.actions.close')}
         </Button>
       </div>
 
@@ -99,7 +109,7 @@ export function PasteParsePanel({ current, onFill, disabled }: PasteParsePanelPr
         }}
         rows={4}
         spellCheck={false}
-        aria-label="Text pasted from the challan PDF"
+        aria-label={t('challan.paste.textAria')}
         className="mt-3 min-h-24 resize-y font-mono text-xs"
         disabled={disabled}
       />
@@ -107,7 +117,7 @@ export function PasteParsePanel({ current, onFill, disabled }: PasteParsePanelPr
       <div className="mt-2.5 flex flex-wrap items-center gap-2">
         <Button type="button" size="sm" onClick={inspect} disabled={disabled || !text.trim()}>
           <WandSparkles data-icon="inline-start" aria-hidden />
-          See what it found
+          {t('challan.paste.seeWhatItFound')}
         </Button>
 
         {found && entries.length > 0 && (
@@ -120,7 +130,9 @@ export function PasteParsePanel({ current, onFill, disabled }: PasteParsePanelPr
               setFound(null)
             }}
           >
-            Fill {entries.length} {entries.length === 1 ? 'field' : 'fields'}
+            {t('challan.paste.fillFields', {
+              fields: countOf(entries.length, 'nouns.field', t),
+            })}
           </Button>
         )}
       </div>
@@ -130,14 +142,15 @@ export function PasteParsePanel({ current, onFill, disabled }: PasteParsePanelPr
           {entries.length === 0 ? (
             <p className="flex items-start gap-2 text-xs leading-snug text-muted-foreground">
               <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-              Nothing new to fill. Either the fields are already filled in, or this text has no
-              labels it recognises — type the values in by hand.
+              {t('challan.paste.nothingNewLong')}
             </p>
           ) : (
             <ul className="space-y-1 rounded-lg border bg-card p-2.5">
               {entries.map(([field, value]) => (
                 <li key={field} className="flex gap-2 text-xs">
-                  <span className="w-28 shrink-0 text-muted-foreground">{FIELD_LABELS[field]}</span>
+                  <span className="w-28 shrink-0 text-muted-foreground">
+                    {t(FIELD_LABEL_KEYS[field])}
+                  </span>
                   <span className="min-w-0 flex-1 truncate font-medium">{value}</span>
                 </li>
               ))}

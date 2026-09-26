@@ -22,6 +22,8 @@ import type { CarriedField } from '../lib/carried-fields'
 import { CarryToggle } from './carry-toggle'
 import { EntryField, EntryInput } from './entry-field'
 import { SuggestInput } from './suggest-input'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 /**
  * The entry form, in the order the values appear on a Walton challan: the trip
@@ -82,19 +84,21 @@ export function FieldGrid({ children }: { children: ReactNode }) {
 }
 
 export function TripFields({ register, errors, carry }: SectionProps) {
+  const t = useT()
+
   return (
     <FieldGrid>
       <EntryInput
         id="tripDo"
-        label="Trip DO"
+        label={t('gatePass.fields.tripDo')}
         required
         registration={register('tripDo')}
         error={errors.tripDo?.message}
-        hint="Exactly as printed. Punctuation and spacing are kept."
+        hint={t('gatePass.fields.tripDoHint')}
       />
       <EntryInput
         id="tripDate"
-        label="Trip date"
+        label={t('gatePass.fields.tripDate')}
         required
         type="date"
         registration={register('tripDate')}
@@ -103,7 +107,7 @@ export function TripFields({ register, errors, carry }: SectionProps) {
       />
       <EntryInput
         id="csd"
-        label="CSD"
+        label={t('gatePass.fields.csd')}
         required
         uppercase
         registration={register('csd')}
@@ -112,7 +116,7 @@ export function TripFields({ register, errors, carry }: SectionProps) {
       />
       <EntryInput
         id="unit"
-        label="Unit"
+        label={t('gatePass.fields.unit')}
         required
         uppercase
         registration={register('unit')}
@@ -146,6 +150,8 @@ export function DeliveryFields({
   setValue,
   carry,
 }: DeliveryFieldsProps) {
+  const t = useT()
+
   const customerName = watch('customerName')
   const vehicleNo = watch('vehicleNo')
 
@@ -153,7 +159,7 @@ export function DeliveryFields({
     <FieldGrid>
       <EntryField
         id="customerName"
-        label="Customer name"
+        label={t('gatePass.fields.customerName')}
         required
         wide
         error={errors.customerName?.message}
@@ -174,11 +180,11 @@ export function DeliveryFields({
 
       <EntryField
         id="vehicleNo"
-        label="Vehicle number"
+        label={t('gatePass.fields.vehicleNo')}
         required
         wide
         error={errors.vehicleNo?.message}
-        hint="Typed in capitals. Spacing and punctuation are kept as printed."
+        hint={t('gatePass.fields.vehicleHint')}
         action={<CarryToggle carry={carry} field="vehicleNo" />}
       >
         <SuggestInput
@@ -191,7 +197,7 @@ export function DeliveryFields({
           describedBy={describedBy(
             'vehicleNo',
             errors.vehicleNo?.message,
-            'Typed in capitals. Spacing and punctuation are kept as printed.',
+            t('gatePass.fields.vehicleHint'),
           )}
           onPick={(value) =>
             setValue('vehicleNo', value, { shouldDirty: true, shouldValidate: true })
@@ -207,10 +213,10 @@ interface ReferenceFieldsProps extends SectionProps {
   setValue: UseFormSetValue<GatePassFormValues>
 }
 
-const REFERENCE_OPTIONS: { value: GatePassReferenceType; label: string }[] = [
-  { value: 'None', label: 'No reference' },
-  { value: 'Zone', label: 'Zone' },
-  { value: 'PO', label: 'PO' },
+const REFERENCE_OPTIONS: { value: GatePassReferenceType; labelKey: TranslationKey }[] = [
+  { value: 'None', labelKey: 'gatePass.referenceTypes.None' },
+  { value: 'Zone', labelKey: 'gatePass.referenceTypes.Zone' },
+  { value: 'PO', labelKey: 'gatePass.referenceTypes.PO' },
 ]
 
 /**
@@ -220,11 +226,13 @@ const REFERENCE_OPTIONS: { value: GatePassReferenceType; label: string }[] = [
  * back out of a column.
  */
 export function ReferenceFields({ register, errors, watch, setValue }: ReferenceFieldsProps) {
+  const t = useT()
+
   const referenceType = watch('referenceType')
 
   return (
     <FieldGrid>
-      <EntryField id="referenceType" label="Reference type">
+      <EntryField id="referenceType" label={t('gatePass.fields.referenceType')}>
         <Select
           value={referenceType}
           onValueChange={(value) => {
@@ -239,14 +247,18 @@ export function ReferenceFields({ register, errors, watch, setValue }: Reference
             }
           }}
         >
-          <SelectTrigger id="referenceType" className="w-full" aria-label="Reference type">
+          <SelectTrigger
+            id="referenceType"
+            className="w-full"
+            aria-label={t('gatePass.fields.referenceType')}
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               {REFERENCE_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.labelKey)}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -257,7 +269,7 @@ export function ReferenceFields({ register, errors, watch, setValue }: Reference
       {referenceType === 'Zone' && (
         <EntryInput
           id="zone"
-          label="Zone"
+          label={t('gatePass.fields.zone')}
           required
           registration={register('zone')}
           error={errors.zone?.message}
@@ -267,7 +279,7 @@ export function ReferenceFields({ register, errors, watch, setValue }: Reference
       {referenceType === 'PO' && (
         <EntryInput
           id="po"
-          label="PO number"
+          label={t('gatePass.fields.po')}
           required
           registration={register('po')}
           error={errors.po?.message}
@@ -276,7 +288,7 @@ export function ReferenceFields({ register, errors, watch, setValue }: Reference
 
       {referenceType === 'None' && (
         <p className="self-end pb-2 text-xs text-muted-foreground">
-          This gate pass is not filed against a zone or a PO.
+          {t('gatePass.fields.noReference')}
         </p>
       )}
     </FieldGrid>

@@ -2,16 +2,18 @@ import { useCallback, useState } from 'react'
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth'
 import { toAuthMessage } from '@/features/auth/firebase-errors'
 import { firebaseAuth } from '@/lib/firebase'
+import { t } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 /**
  * Reauthentication failures are about the *current* password, so the shared
  * sign-in wording ("Incorrect email or password") would point at the wrong
  * field. Everything else falls through to the shared mapper.
  */
-const REAUTH_MESSAGES: Record<string, string> = {
-  'auth/invalid-credential': 'Your current password is incorrect.',
-  'auth/wrong-password': 'Your current password is incorrect.',
-  'auth/missing-password': 'Enter your current password.',
+const REAUTH_MESSAGES: Record<string, TranslationKey> = {
+  'auth/invalid-credential': 'profile.changePassword.wrongCurrent',
+  'auth/wrong-password': 'profile.changePassword.wrongCurrent',
+  'auth/missing-password': 'profile.changePassword.missingCurrent',
 }
 
 function hasCode(error: unknown): error is { code: string } {
@@ -48,7 +50,7 @@ export function useChangePassword(): ChangePasswordController {
     const user = firebaseAuth.currentUser
 
     if (!user?.email) {
-      throw new Error('Your session has expired. Sign in again to change your password.')
+      throw new Error(t('profile.changePassword.sessionExpired'))
     }
 
     setIsPending(true)
@@ -58,12 +60,19 @@ export function useChangePassword(): ChangePasswordController {
         user,
         EmailAuthProvider.credential(user.email, currentPassword),
       ).catch((error: unknown) => {
-        const message = hasCode(error) ? REAUTH_MESSAGES[error.code] : undefined
-        throw new Error(message ?? toAuthMessage(error))
+        /*
+         * The standalone `t` rather than the hook: this rejects with a string
+         * that goes straight into a form's error state, so there is nothing
+         * subscribed here that could re-render. The form resolves keys anyway,
+         * but a thrown Error has to carry words rather than a key — it is also
+         * read by `error instanceof Error ? error.message` at the call site.
+         */
+        const key = hasCode(error) ? REAUTH_MESSAGES[error.code] : undefined
+        throw new Error(key ? t(key) : t(toAuthMessage(error) as TranslationKey))
       })
 
       await updatePassword(user, newPassword).catch((error: unknown) => {
-        throw new Error(toAuthMessage(error))
+        throw new Error(t(toAuthMessage(error) as TranslationKey))
       })
     } finally {
       setIsPending(false)

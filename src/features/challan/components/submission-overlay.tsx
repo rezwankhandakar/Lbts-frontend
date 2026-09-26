@@ -1,6 +1,7 @@
 import { Check, Loader2 } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { STAGE_LABELS, SUBMISSION_STAGES } from '../hooks/use-challan-submission'
+import { STAGE_KEYS, SUBMISSION_STAGES } from '../hooks/use-challan-submission'
 import type { SubmissionStage } from '../hooks/use-challan-submission'
 
 interface SubmissionOverlayProps {
@@ -25,6 +26,8 @@ interface SubmissionOverlayProps {
  * be less true.
  */
 export function SubmissionOverlay({ stage, uploadProgress }: SubmissionOverlayProps) {
+  const t = useT()
+
   if (stage === 'idle') {
     return null
   }
@@ -38,7 +41,7 @@ export function SubmissionOverlay({ stage, uploadProgress }: SubmissionOverlayPr
       aria-live="assertive"
     >
       <div className="w-full max-w-sm rounded-xl border bg-card p-5 shadow-lg">
-        <p className="mb-4 text-sm font-semibold tracking-tight">Filing this challan…</p>
+        <p className="mb-4 text-sm font-semibold tracking-tight">{t('challan.stages.filing')}</p>
 
         <ol className="space-y-3">
           {SUBMISSION_STAGES.map((step, index) => {
@@ -71,7 +74,7 @@ export function SubmissionOverlay({ stage, uploadProgress }: SubmissionOverlayPr
                     isCurrent ? 'font-medium text-foreground' : 'text-muted-foreground',
                   )}
                 >
-                  {STAGE_LABELS[step]}
+                  {t(STAGE_KEYS[step])}
                   {isCurrent && step === 'uploading' && uploadProgress !== null && (
                     <span className="ml-1 tabular-nums">{uploadProgress}%</span>
                   )}
@@ -91,8 +94,7 @@ export function SubmissionOverlay({ stage, uploadProgress }: SubmissionOverlayPr
         )}
 
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-          The server may take a moment to wake up. Nothing is lost if this is slow, and pressing the
-          button again cannot file this challan twice.
+          {t('challan.stages.coldStart')}
         </p>
       </div>
     </div>

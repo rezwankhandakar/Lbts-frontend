@@ -7,6 +7,7 @@ import { fetchVendorBill } from '../api/accounts-api'
 import { accountsKeys, reportAccountsError } from '../hooks/use-accounts'
 import { printVendorStatement } from '../lib/print-vendor-statement'
 import type { Period, VendorBillDetail } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface VendorStatementButtonProps {
   vendorId: string
@@ -29,6 +30,8 @@ export function VendorStatementButton({
   detail,
   compact = false,
 }: VendorStatementButtonProps) {
+  const t = useT()
+
   const queryClient = useQueryClient()
   const [isPreparing, setIsPreparing] = useState(false)
 
@@ -66,8 +69,8 @@ export function VendorStatementButton({
         size="icon-sm"
         onClick={() => void print()}
         disabled={isPreparing}
-        aria-label={`Print ${vendorName}'s statement`}
-        title="Print statement"
+        aria-label={t('accounts.vendorBill.printAria', { name: vendorName })}
+        title={t('accounts.vendorBill.printStatement')}
       >
         {icon}
       </Button>
@@ -81,7 +84,7 @@ export function VendorStatementButton({
       ) : (
         <Printer data-icon="inline-start" aria-hidden />
       )}
-      Print statement
+      {t('accounts.vendorBill.printStatement')}
     </Button>
   )
 }

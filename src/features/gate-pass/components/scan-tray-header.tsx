@@ -1,6 +1,8 @@
 import { Layers, Loader2, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
 import type { ScanBatch } from '../hooks/use-scan-batch'
+import { useT } from '@/lib/i18n'
 
 interface ScanTrayHeaderProps {
   batch: ScanBatch
@@ -43,15 +45,13 @@ export function ScanTrayHeader({
   onRemove,
   onCombine,
 }: ScanTrayHeaderProps) {
+  const t = useT()
+
   if (picking !== null) {
     return (
       <>
         <p className="max-w-md text-xs leading-relaxed text-pretty text-muted-foreground">
-          <span className="font-semibold text-foreground">
-            Tick the sheets that are one gate pass.
-          </span>{' '}
-          Join them into a single document, in the order they were scanned — or remove the ones
-          that do not belong.
+          {t('gatePass.tray.pickHint')}
         </p>
 
         <div className="flex items-center gap-1">
@@ -62,7 +62,7 @@ export function ScanTrayHeader({
             onClick={onCancelPicking}
             disabled={isJoining}
           >
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
 
           <Button
@@ -73,7 +73,9 @@ export function ScanTrayHeader({
             disabled={picking.length === 0 || busy}
           >
             <Trash2 data-icon="inline-start" aria-hidden />
-            {picking.length > 0 ? `Remove ${picking.length}` : 'Remove'}
+            {picking.length > 0
+              ? t('gatePass.tray.removeCount', { n: formatNumber(picking.length) })
+              : t('gatePass.tray.remove')}
           </Button>
 
           <Button size="xs" onClick={onJoin} disabled={!canJoin || busy}>
@@ -83,10 +85,10 @@ export function ScanTrayHeader({
               <Layers data-icon="inline-start" aria-hidden />
             )}
             {isJoining
-              ? 'Joining…'
+              ? t('gatePass.tray.joining')
               : picking.length < 2
-                ? 'Join sheets'
-                : `Join ${picking.length} sheets`}
+                ? t('gatePass.tray.joinSheets')
+                : t('gatePass.tray.joinCount', { n: formatNumber(picking.length) })}
           </Button>
         </div>
       </>
@@ -98,14 +100,24 @@ export function ScanTrayHeader({
       <div className="flex items-center gap-2">
         <Layers className="size-4 text-muted-foreground" aria-hidden />
         <p className="text-[13px] font-semibold tracking-tight">
-          {batch.total} {batch.total === 1 ? 'sheet' : 'sheets'} scanned
+          {t('gatePass.tray.sheetsScanned', {
+            count: batch.total,
+            n: formatNumber(batch.total),
+          })}
         </p>
         <span className="text-xs text-muted-foreground" aria-live="polite">
           {singleDocument
-            ? 'Saved as one document'
-            : `${batch.filed} of ${batch.total} filed${
-                batch.remaining > 0 ? ` · ${batch.remaining} to go` : ''
-              }`}
+            ? t('gatePass.tray.savedAsOne')
+            : batch.remaining > 0
+              ? t('gatePass.tray.filedOfToGo', {
+                  filed: formatNumber(batch.filed),
+                  total: formatNumber(batch.total),
+                  remaining: formatNumber(batch.remaining),
+                })
+              : t('gatePass.tray.filedOf', {
+                  filed: formatNumber(batch.filed),
+                  total: formatNumber(batch.total),
+                })}
         </span>
       </div>
 
@@ -115,7 +127,7 @@ export function ScanTrayHeader({
         {pendingCount >= 2 && (
           <Button variant="ghost" size="xs" onClick={onStartPicking} disabled={busy}>
             <Layers data-icon="inline-start" aria-hidden />
-            Select sheets
+            {t('gatePass.tray.selectSheets')}
           </Button>
         )}
 
@@ -124,7 +136,7 @@ export function ScanTrayHeader({
             that already exists. */}
         {onCombine && batch.filed === 0 && batch.isBatch && (
           <Button variant="ghost" size="xs" onClick={onCombine} disabled={busy}>
-            These are one gate pass
+            {t('gatePass.tray.theseAreOne')}
           </Button>
         )}
 
@@ -136,7 +148,7 @@ export function ScanTrayHeader({
           disabled={busy}
         >
           <X data-icon="inline-start" aria-hidden />
-          Clear all
+          {t('gatePass.tray.clearAll')}
         </Button>
       </div>
     </>

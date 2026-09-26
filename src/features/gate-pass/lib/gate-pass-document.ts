@@ -1,4 +1,4 @@
-import { formatBytes } from './gate-pass-meta'
+import { formatFileSize, t } from '@/lib/i18n'
 
 /**
  * Client-side document rules. These mirror
@@ -26,7 +26,10 @@ export const ACCEPTED_DOCUMENT_ATTRIBUTE = ACCEPTED_DOCUMENT_TYPES.join(',')
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 export const MAX_PDF_BYTES = 25 * 1024 * 1024
 
-export const DOCUMENT_RULES_HINT = 'PDF up to 25 MB, or JPG, PNG, WEBP up to 10 MB'
+/** Read at call time rather than frozen at import, so it follows the language. */
+export function documentRulesHint(): string {
+  return t('gatePass.documentRules.hint')
+}
 
 export function isPdf(mimeType: string): boolean {
   return mimeType === 'application/pdf'
@@ -39,16 +42,19 @@ export function maxBytesFor(mimeType: string): number {
 /** Returns a message to show the user, or null when the file is acceptable. */
 export function validateDocumentFile(file: File): string | null {
   if (!(ACCEPTED_DOCUMENT_TYPES as readonly string[]).includes(file.type)) {
-    return 'That file type is not supported. Use a PDF, JPG, PNG or WEBP.'
+    return t('gatePass.documentRules.wrongType')
   }
 
   if (file.size === 0) {
-    return 'That file is empty. Choose a different file.'
+    return t('gatePass.documentRules.emptyFile')
   }
 
   const limit = maxBytesFor(file.type)
   if (file.size > limit) {
-    return `That file is ${formatBytes(file.size)}. The limit is ${formatBytes(limit)}.`
+    return t('gatePass.documentRules.tooLarge', {
+      size: formatFileSize(file.size),
+      limit: formatFileSize(limit),
+    })
   }
 
   return null

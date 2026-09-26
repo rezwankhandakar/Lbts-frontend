@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { rateDescription, rateLabel } from '../lib/rate-format'
 import { productRateLabel } from '../hooks/use-product-rates'
@@ -40,19 +41,21 @@ export function ProductRateTable({
   onToggleActive,
   onDelete,
 }: ProductRateTableProps) {
+  const t = useT()
+
   return (
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Product</TableHead>
-            <TableHead>Model</TableHead>
-            <TableHead className="hidden lg:table-cell">Capacity</TableHead>
+            <TableHead>{t('productRate.table.product')}</TableHead>
+            <TableHead>{t('productRate.table.model')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('productRate.table.capacity')}</TableHead>
             <TableHead className="text-right">ISD</TableHead>
-            <TableHead className="text-right">OSD-Metro</TableHead>
-            <TableHead className="text-right">OSD-Thana</TableHead>
+            <TableHead className="text-right">{t('productRate.osdMetro')}</TableHead>
+            <TableHead className="text-right">{t('productRate.osdThana')}</TableHead>
             <TableHead className="w-10">
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t('productRate.table.actions')}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -64,7 +67,7 @@ export function ProductRateTable({
                 {record.productName}
                 {!record.isActive && (
                   <span className="ml-2 rounded border px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
-                    Inactive
+                    {t('productRate.inactive')}
                   </span>
                 )}
               </TableCell>
@@ -76,7 +79,7 @@ export function ProductRateTable({
                   /* Not an empty cell: a blank model is a rule — this row
                      prices the product whatever model a line names — and an
                      empty space would read as missing data. */
-                  <span className="text-xs text-muted-foreground italic">Any model</span>
+                  <span className="text-xs text-muted-foreground italic">{t('productRate.anyModel')}</span>
                 )}
               </TableCell>
 
@@ -112,14 +115,16 @@ export function ProductRateTable({
 
                       <DropdownMenuItem onClick={() => onToggleActive(record)}>
                         {record.isActive ? <PowerOff aria-hidden /> : <Power aria-hidden />}
-                        {record.isActive ? 'Deactivate' : 'Reactivate'}
+                        {record.isActive
+                          ? t('productRate.deactivate')
+                          : t('productRate.reactivate')}
                       </DropdownMenuItem>
 
                       <DropdownMenuSeparator />
 
                       <DropdownMenuItem variant="destructive" onClick={() => onDelete(record)}>
                         <Trash2 aria-hidden />
-                        Remove
+                        {t('common.actions.remove')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -143,11 +148,13 @@ export function ProductRateTable({
  * dialog.
  */
 function RateCell({ rate }: { rate: Rate | null }) {
+  const t = useT()
+
   return (
-    <TableCell className="text-right whitespace-nowrap tabular-nums" title={rateDescription(rate)}>
+    <TableCell className="text-right whitespace-nowrap tabular-nums" title={rateDescription(rate, t)}>
       <span className="inline-flex items-center gap-1.5">
         {rate?.kind === 'tiered' && (
-          <Layers className="size-3 shrink-0 text-tone-amber" aria-label="Tiered rate" />
+          <Layers className="size-3 shrink-0 text-tone-amber" aria-label={t('productRate.tieredRate')} />
         )}
         {rateLabel(rate)}
       </span>

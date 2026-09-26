@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { LabourBillRecord } from '../types'
 import { LabourBillCard } from './labour-bill-card'
+import { useT } from '@/lib/i18n'
 
 interface LabourBillGridProps {
   records: LabourBillRecord[]
@@ -35,10 +36,12 @@ export function LabourBillGrid({
   onReset,
   onCreate,
 }: LabourBillGridProps) {
+  const t = useT()
+
   if (isLoading) {
     return (
       <div className={GRID} aria-busy="true">
-        <span className="sr-only">Loading labour bills</span>
+        <span className="sr-only">{t('labourBill.list.loading')}</span>
         {Array.from({ length: 8 }, (_, index) => (
           <Skeleton key={index} className="h-[15.5rem] rounded-xl" />
         ))}
@@ -52,11 +55,13 @@ export function LabourBillGrid({
         <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
           <TriangleAlert className="size-5" aria-hidden />
         </div>
-        <h3 className="mt-4 text-base font-semibold tracking-tight">Could not load labour bills</h3>
+        <h3 className="mt-4 text-base font-semibold tracking-tight">
+          {t('labourBill.list.loadFailed')}
+        </h3>
         <p className="mt-1.5 max-w-sm text-sm text-pretty text-muted-foreground">{errorMessage}</p>
         <Button variant="outline" size="sm" className="mt-5" onClick={onRetry} disabled={isFetching}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          {isFetching ? 'Retrying…' : 'Try again'}
+          {isFetching ? t('labourBill.list.retrying') : t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -68,12 +73,14 @@ export function LabourBillGrid({
         <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
           <SearchX className="size-5" aria-hidden />
         </div>
-        <h3 className="mt-4 text-base font-semibold tracking-tight">No labour bills match</h3>
+        <h3 className="mt-4 text-base font-semibold tracking-tight">
+          {t('labourBill.list.noMatches')}
+        </h3>
         <p className="mt-1.5 max-w-md text-sm text-pretty text-muted-foreground">
-          No labour bill matches the current search, status, CSD, month or year.
+          {t('labourBill.list.noMatchesHint')}
         </p>
         <Button variant="outline" size="sm" className="mt-5" onClick={onReset}>
-          Clear filters
+          {t('common.actions.clearFilters')}
         </Button>
       </div>
     )
@@ -83,14 +90,14 @@ export function LabourBillGrid({
     return (
       <EmptyState
         icon={HardHat}
-        title="No labour bills yet"
-        description="A labour bill is one CSD's month of handling charges: open a slot, scan the challans in, and type what the van, the pulling and the stairs cost against each model. A month of deliveries is as many bills as there were CSDs in it. It charges nothing the Excel bill charges — that one carries the rate card's transport, this one the labour beside it."
+        title={t('labourBill.list.empty')}
+        description={t('labourBill.listDescription')}
         className="min-h-[22rem] border-dashed shadow-none"
         action={
           canCreate ? (
             <Button onClick={onCreate}>
               <Plus data-icon="inline-start" aria-hidden />
-              Open the first labour bill
+              {t('labourBill.list.openFirst')}
             </Button>
           ) : undefined
         }

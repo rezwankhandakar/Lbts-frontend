@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { FileText, FileX2, ImageOff, TextCursorInput, Undo2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { formatNumber } from '@/lib/format'
+import { countOf, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { formatBytes, formatRange } from '../lib/challan-meta'
 import { useViewerControls } from '../hooks/use-viewer-controls'
@@ -50,6 +52,8 @@ export function SourcePdfPanel({
   skippedPages = [],
   disabled,
 }: SourcePdfPanelProps) {
+  const t = useT()
+
   const [page, setPage] = useState(entry?.startPage ?? 1)
   const [isFullscreen, setIsFullscreen] = useState(false)
   /**
@@ -86,7 +90,7 @@ export function SourcePdfPanel({
   return (
     <>
       <section
-        aria-label="Source PDF"
+        aria-label={t('challan.pdf.sourceAria')}
         className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <header className="flex items-start justify-between gap-3 border-b bg-muted/30 px-4 py-3">
@@ -100,8 +104,10 @@ export function SourcePdfPanel({
                 {source.fileName}
               </h2>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {source.pageCount} {source.pageCount === 1 ? 'page' : 'pages'} ·{' '}
-                {formatBytes(source.fileSize)} · held in this browser only
+                {t('challan.pdf.heldHere', {
+                  pages: countOf(source.pageCount, 'nouns.page', t),
+                  size: formatBytes(source.fileSize),
+                })}
               </p>
 
               {hasText !== null && (
@@ -115,12 +121,12 @@ export function SourcePdfPanel({
                   {hasText ? (
                     <>
                       <TextCursorInput className="size-3" aria-hidden />
-                      Select text on the page and copy it straight into a field
+                      {t('challan.pdf.selectTextHint')}
                     </>
                   ) : (
                     <>
                       <ImageOff className="size-3" aria-hidden />
-                      This page is a scan — there is no text to select, so type the values in
+                      {t('challan.pdf.scanNoText')}
                     </>
                   )}
                 </p>
@@ -133,7 +139,7 @@ export function SourcePdfPanel({
             size="icon-sm"
             className="shrink-0 text-muted-foreground"
             onClick={onClose}
-            aria-label="Close this PDF"
+            aria-label={t('challan.pdf.closeAria')}
           >
             <X aria-hidden />
           </Button>
@@ -183,8 +189,10 @@ export function SourcePdfPanel({
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t pt-3">
                 <p className="text-[11px] text-muted-foreground">
                   {skippedPages.length > 0
-                    ? `Marked blank: ${skippedPages.join(', ')}`
-                    : 'Not a challan — a blank sheet, a cover page, a duplicate?'}
+                    ? t('challan.pdf.markedBlankWith', {
+                        pages: skippedPages.map((page) => formatNumber(page)).join(', '),
+                      })
+                    : t('challan.pdf.notAChallan')}
                 </p>
 
                 <div className="flex items-center gap-1.5">
@@ -198,7 +206,7 @@ export function SourcePdfPanel({
                       onClick={onUnskip}
                     >
                       <Undo2 data-icon="inline-start" aria-hidden />
-                      Undo
+                      {t('common.actions.undo')}
                     </Button>
                   )}
 
@@ -210,7 +218,7 @@ export function SourcePdfPanel({
                     onClick={onSkip}
                   >
                     <FileX2 data-icon="inline-start" aria-hidden />
-                    Skip {formatRange(entry)} as blank
+                    {t('challan.pdf.skipAsBlank', { range: formatRange(entry, t) })}
                   </Button>
                 </div>
               </div>

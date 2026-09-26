@@ -4,6 +4,7 @@ import { setColumnFilter } from '@/lib/column-filters'
 import { useColumnValues } from '../hooks/use-trip-do'
 import { columnValueLabel } from '../lib/trip-do-columns'
 import type { TripDoColumnId, TripDoFilterPatch, TripDoListParams } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface ColumnFilterMenuProps {
   column: TripDoColumnId
@@ -14,6 +15,8 @@ interface ColumnFilterMenuProps {
 
 /** One Trip DO sheet column's filter dropdown, its values fetched only while open. */
 export function ColumnFilterMenu({ column, label, params, onChange }: ColumnFilterMenuProps) {
+  const t = useT()
+
   const [open, setOpen] = useState(false)
   const query = useColumnValues(column, params, open)
 
@@ -26,7 +29,7 @@ export function ColumnFilterMenu({ column, label, params, onChange }: ColumnFilt
       data={query.data}
       isLoading={query.isPending}
       errorMessage={query.isError ? query.error.message : null}
-      labelOf={(value) => columnValueLabel(column, value)}
+      labelOf={(value) => columnValueLabel(column, value, t)}
       onApply={(values) => onChange({ columns: setColumnFilter(params.columns, column, values) })}
     />
   )

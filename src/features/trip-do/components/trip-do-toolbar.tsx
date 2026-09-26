@@ -2,9 +2,11 @@ import { CalendarDays, Download, Search, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { QUICK_RANGE_LABELS, quickRangeFor, rangeFor } from '@/lib/date-ranges'
+import { QUICK_RANGE_KEYS, quickRangeFor, rangeFor } from '@/lib/date-ranges'
 import type { TripDoFilterPatch, TripDoListParams } from '../types'
 import { TripDoFilterSelects } from './trip-do-filter-selects'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 interface TripDoToolbarProps {
   params: TripDoListParams
@@ -36,6 +38,8 @@ export function TripDoToolbar({
   canExport,
   isExporting,
 }: TripDoToolbarProps) {
+  const t = useT()
+
   const quick = quickRangeFor({ from: params.from, to: params.to })
 
   return (
@@ -51,8 +55,8 @@ export function TripDoToolbar({
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="SL, challan, customer, phone, model, Trip DO or trip"
-              aria-label="Search the Trip DO sheet"
+              placeholder={t('tripDo.filters.searchPlaceholder')}
+              aria-label={t('tripDo.filters.searchAria')}
               className="pl-8.5"
             />
           </div>
@@ -67,7 +71,7 @@ export function TripDoToolbar({
                 aria-pressed={quick === option}
                 onClick={() => onChange(option === 'all' ? { from: '', to: '' } : rangeFor(option))}
               >
-                {QUICK_RANGE_LABELS[option]}
+                {t(QUICK_RANGE_KEYS[option] as TranslationKey)}
               </Button>
             ))}
           </div>
@@ -76,7 +80,7 @@ export function TripDoToolbar({
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
             <Button
@@ -86,7 +90,7 @@ export function TripDoToolbar({
               disabled={!canExport || isExporting}
             >
               <Download data-icon="inline-start" aria-hidden />
-              {isExporting ? 'Exporting…' : 'Export Excel'}
+              {isExporting ? t('tripDo.export.exporting') : t('tripDo.export.exportExcel')}
             </Button>
           </div>
         </div>

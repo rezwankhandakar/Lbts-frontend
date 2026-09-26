@@ -3,6 +3,7 @@ import { History } from 'lucide-react'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatRelative } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { categoryMeta, moduleMeta, timeOf } from '../lib/activity-meta'
 import type { ActivityRecord } from '../types'
@@ -40,10 +41,12 @@ export function ActivityFeed({
   isLoading,
   isError,
   errorMessage,
-  emptyTitle = 'Nothing recorded yet',
-  emptyDescription = 'Changes appear here as people make them.',
+  emptyTitle,
+  emptyDescription,
   className,
 }: ActivityFeedProps) {
+  const t = useT()
+
   const [open, setOpen] = useState<ActivityRecord | null>(null)
 
   if (isLoading) {
@@ -66,8 +69,8 @@ export function ActivityFeed({
     return (
       <EmptyState
         icon={History}
-        title="The journal could not be read"
-        description={errorMessage ?? 'Something went wrong.'}
+        title={t('activity.timeline.loadFailed')}
+        description={errorMessage ?? t('errors.generic')}
         className={cn('min-h-[16rem]', className)}
       />
     )
@@ -77,8 +80,8 @@ export function ActivityFeed({
     return (
       <EmptyState
         icon={History}
-        title={emptyTitle}
-        description={emptyDescription}
+        title={emptyTitle ?? t('activity.timeline.feedEmptyTitle')}
+        description={emptyDescription ?? t('activity.timeline.feedEmptyBody')}
         className={cn('min-h-[16rem]', className)}
       />
     )
@@ -88,8 +91,8 @@ export function ActivityFeed({
     <>
       <ul className={cn('relative space-y-0.5', className)}>
         {records.map((record, index) => {
-          const module = moduleMeta(record.module)
-          const CategoryIcon = categoryMeta(record.category).icon
+          const module = moduleMeta(record.module, t)
+          const CategoryIcon = categoryMeta(record.category, t).icon
 
           return (
             <li key={record.id} className="relative">

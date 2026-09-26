@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { printDocument } from '@/lib/print-document'
 import { saveBlob } from '@/lib/save-blob'
@@ -128,12 +129,12 @@ export function useChallanActions({
    * the browser by `saveBlob`, which owns the object URL and revokes it.
    */
   const download = useCallback(async (record: ChallanRecord) => {
-    const toastId = toast.loading('Preparing the challan…')
+    const toastId = toast.loading(t('challan.toasts.preparing'))
 
     try {
       const blob = await fetchChallanDocument(record.id)
       saveBlob(blob, `${record.challanNumber}.pdf`)
-      toast.success('Challan downloaded', { id: toastId })
+      toast.success(t('challan.toasts.downloaded'), { id: toastId })
     } catch (error) {
       toast.dismiss(toastId)
       reportChallanError(error as ApiError)
@@ -165,7 +166,7 @@ export function useChallanActions({
    */
   const printNow = useCallback(
     async (record: ChallanRecord) => {
-      const toastId = toast.loading('Preparing to print…')
+      const toastId = toast.loading(t('challan.toasts.preparingPrint'))
 
       try {
         const blob = await fetchChallanDocument(record.id)
@@ -235,12 +236,12 @@ export function useBatchDownload(): BatchDownloadController {
       }
 
       setIsDownloading(true)
-      const toastId = toast.loading('Assembling the batch PDF…')
+      const toastId = toast.loading(t('challan.toasts.assemblingBatch'))
 
       void downloadChallanBatch(batchId)
         .then(({ blob, filename }) => {
           saveBlob(blob, filename)
-          toast.success('Batch downloaded', { id: toastId })
+          toast.success(t('challan.toasts.batchDownloaded'), { id: toastId })
         })
         .catch((error: ApiError) => {
           toast.dismiss(toastId)
@@ -293,7 +294,7 @@ export function useBatchPrint(): BatchPrintController {
       }
 
       setIsPrinting(true)
-      const toastId = toast.loading('Assembling the batch PDF to print…')
+      const toastId = toast.loading(t('challan.toasts.assemblingBatchPrint'))
 
       void downloadChallanBatch(batchId)
         .then(({ blob }) => {

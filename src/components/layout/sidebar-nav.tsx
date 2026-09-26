@@ -4,6 +4,7 @@ import type { NavItem } from '@/app/nav-config'
 import { NAV_ACCENTS } from '@/components/layout/nav-accents'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface SidebarNavProps {
@@ -12,6 +13,7 @@ interface SidebarNavProps {
 }
 
 export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
+  const t = useT()
   const { pathname } = useLocation()
   const role = useCurrentRole()
 
@@ -21,14 +23,14 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
   const sections = visibleNavSections(role)
 
   return (
-    <nav aria-label="Main" className="flex flex-col gap-6 px-3 py-4">
+    <nav aria-label={t('nav.ariaLabel')} className="flex flex-col gap-6 px-3 py-4">
       {sections.map((section) => (
-        <div key={section.label} className="flex flex-col gap-1">
+        <div key={section.labelKey} className="flex flex-col gap-1">
           {collapsed ? (
             <div className="mx-auto mb-1 h-px w-7 bg-sidebar-border first:hidden" aria-hidden />
           ) : (
             <p className="mb-1.5 px-2.5 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground/65 uppercase">
-              {section.label}
+              {t(section.labelKey)}
             </p>
           )}
 
@@ -55,6 +57,7 @@ interface SidebarNavLinkProps {
 }
 
 function SidebarNavLink({ item, active, collapsed, onNavigate }: SidebarNavLinkProps) {
+  const t = useT()
   const Icon = item.icon
   const accent = NAV_ACCENTS[item.accent]
 
@@ -95,7 +98,7 @@ function SidebarNavLink({ item, active, collapsed, onNavigate }: SidebarNavLinkP
         )}
         aria-hidden
       />
-      <span className={collapsed ? 'sr-only' : 'truncate'}>{item.label}</span>
+      <span className={collapsed ? 'sr-only' : 'truncate'}>{t(item.labelKey)}</span>
     </>
   )
 
@@ -106,7 +109,7 @@ function SidebarNavLink({ item, active, collapsed, onNavigate }: SidebarNavLinkP
   return (
     <Tooltip>
       <TooltipTrigger render={<Link {...linkProps} />}>{content}</TooltipTrigger>
-      <TooltipContent side="right">{item.label}</TooltipContent>
+      <TooltipContent side="right">{t(item.labelKey)}</TooltipContent>
     </Tooltip>
   )
 }

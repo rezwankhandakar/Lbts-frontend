@@ -9,6 +9,7 @@ import { ChallanPartyDetails } from './challan-party-details'
 import { DeliveryOutcomeBadge, LineChangeBadge } from './delivery-badges'
 import { DeliveryDetailChips } from './delivery-detail-chips'
 import { QtyStepper } from './qty-stepper'
+import { useT } from '@/lib/i18n'
 
 interface CompletionChallanCardProps {
   challan: TripChallanRecord
@@ -32,6 +33,8 @@ export function CompletionChallanCard({
   disabled,
   onReturnChange,
 }: CompletionChallanCardProps) {
+  const t = useT()
+
   const returned = returnedTotal(returns)
 
   return (
@@ -73,14 +76,14 @@ export function CompletionChallanCard({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span className="text-sm font-medium">{line.productName}</span>
-                  <LineChangeBadge change={line.change} detail={lineDetail(line)} />
+                  <LineChangeBadge change={line.change} detail={lineDetail(line, t)} />
                 </div>
                 <p className="font-mono text-xs text-muted-foreground">{line.model}</p>
               </div>
 
               {editing ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Came back</span>
+                  <span className="text-xs text-muted-foreground">{t('delivery.cameBack')}</span>
                   <QtyStepper
                     value={back}
                     onChange={(qty) => onReturnChange(index, qty)}

@@ -1,6 +1,7 @@
 import { Link2, Plus } from 'lucide-react'
 import { formatTripDate } from '@/features/gate-pass/lib/gate-pass-meta'
 import type { TripDoRowRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface TripDoLinkCellProps {
   row: TripDoRowRecord
@@ -17,6 +18,8 @@ interface TripDoLinkCellProps {
  * one — and for a read-only account it says so in words instead.
  */
 export function TripDoLinkCell({ row, canWrite, onLink }: TripDoLinkCellProps) {
+  const t = useT()
+
   const link = row.link
 
   if (link) {
@@ -57,7 +60,7 @@ export function TripDoLinkCell({ row, canWrite, onLink }: TripDoLinkCellProps) {
   }
 
   if (!canWrite) {
-    return <span className="px-1 text-[11.5px] text-muted-foreground italic">Not set</span>
+    return <span className="px-1 text-[11.5px] text-muted-foreground italic">{t('tripDo.notSet')}</span>
   }
 
   return (
@@ -67,7 +70,7 @@ export function TripDoLinkCell({ row, canWrite, onLink }: TripDoLinkCellProps) {
       className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-tone-amber/50 bg-tone-amber/5 px-2 py-1 text-[11.5px] font-medium text-tone-amber transition outline-none hover:border-tone-amber hover:bg-tone-amber/10 focus-visible:ring-2 focus-visible:ring-ring/50"
     >
       <Plus className="size-3.5" aria-hidden />
-      Set Trip DO
+      {t('tripDo.setTripDo')}
     </button>
   )
 }

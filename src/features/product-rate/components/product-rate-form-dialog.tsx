@@ -25,6 +25,7 @@ import {
 import type { ProductRateFormState } from '../lib/product-rate-form'
 import type { ProductRateRecord } from '../types'
 import { RateFieldGroup } from './rate-field-group'
+import { useT } from '@/lib/i18n'
 
 export type ProductRateFormValues = ProductRateFormArgs
 
@@ -38,9 +39,9 @@ interface ProductRateFormDialogProps {
 }
 
 const COLUMN_HINTS: Record<string, string> = {
-  isd: 'Inside the metropolitan delivery area.',
-  osdMetro: 'Outside it, in a metropolitan or sadar thana.',
-  osdThana: 'Outside it, in an upazila thana.',
+  isd: 'productRate.form.isdHint',
+  osdMetro: 'productRate.form.osdMetroHint',
+  osdThana: 'productRate.form.osdThanaHint',
 }
 
 /**
@@ -60,6 +61,8 @@ export function ProductRateFormDialog({
   onOpenChange,
   onSubmit,
 }: ProductRateFormDialogProps) {
+  const t = useT()
+
   const {
     register,
     control,
@@ -112,18 +115,20 @@ export function ProductRateFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{record ? 'Edit rate' : 'Add product rate'}</DialogTitle>
+          <DialogTitle>
+            {record ? t('productRate.form.editTitle') : t('productRate.form.addTitle')}
+          </DialogTitle>
           <DialogDescription>
             {record
-              ? 'Challans filed from now on are charged at these figures. Ones already charged from this row keep the figures they were charged at.'
-              : 'A product, optionally a model, and what it is charged at in each of the three delivery areas.'}
+              ? t('productRate.form.editDescription')
+              : t('productRate.form.addDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <form noValidate onSubmit={submit} className="space-y-4" aria-busy={isPending}>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="rate-product">Product</Label>
+              <Label htmlFor="rate-product">{t('productRate.table.product')}</Label>
               <Input
                 id="rate-product"
                 autoComplete="off"
@@ -140,7 +145,7 @@ export function ProductRateFormDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="rate-model">Model</Label>
+              <Label htmlFor="rate-model">{t('productRate.table.model')}</Label>
               <Input
                 id="rate-model"
                 autoComplete="off"
@@ -162,7 +167,7 @@ export function ProductRateFormDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="rate-capacity">Capacity</Label>
+            <Label htmlFor="rate-capacity">{t('productRate.table.capacity')}</Label>
             <Input
               id="rate-capacity"
               autoComplete="off"
@@ -203,7 +208,7 @@ export function ProductRateFormDialog({
               disabled={isPending}
             />
             <span className="min-w-0 flex-1">
-              <span className="block text-[13px] font-medium">In use</span>
+              <span className="block text-[13px] font-medium">{t('productRate.form.inUse')}</span>
               <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
                 An inactive row prices nothing and is offered nowhere. Challans already charged from
                 it keep their figures.
@@ -218,13 +223,13 @@ export function ProductRateFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && (
                 <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
               )}
-              {record ? 'Save changes' : 'Add to rate card'}
+              {record ? t('common.actions.saveChanges') : t('productRate.form.submitAdd')}
             </Button>
           </DialogFooter>
         </form>

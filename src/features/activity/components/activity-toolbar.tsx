@@ -10,10 +10,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { QUICK_RANGE_LABELS } from '@/lib/date-ranges'
+import { QUICK_RANGE_KEYS } from '@/lib/date-ranges'
 import type { QuickRange } from '@/lib/date-ranges'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { CATEGORY_META, MODULE_META, SEVERITY_META, entityLabel } from '../lib/activity-meta'
+import {
+  MODULE_META,
+  categoryMeta,
+  entityLabel,
+  moduleMeta,
+  severityMeta,
+} from '../lib/activity-meta'
 import {
   ACTIVITY_CATEGORIES,
   ACTIVITY_ENTITY_TYPES,
@@ -75,6 +83,8 @@ export function ActivityToolbar({
   onReset,
   onExport,
 }: ActivityToolbarProps) {
+  const t = useT()
+
   const [showMore, setShowMore] = useState(false)
 
   /** Filters living behind the disclosure, so it can say how many are on. */
@@ -102,8 +112,8 @@ export function ActivityToolbar({
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="What happened, which record, or who"
-              aria-label="Search the journal"
+              placeholder={t('activity.toolbar.searchPlaceholder')}
+              aria-label={t('activity.toolbar.searchAria')}
               className="pl-8.5"
             />
           </div>
@@ -113,22 +123,26 @@ export function ActivityToolbar({
               value={params.module}
               onValueChange={(value) => onChange({ module: value as ActivityModuleFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by module">
+              <SelectTrigger className={TRIGGER} aria-label={t('activity.toolbar.moduleAria')}>
                 <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
                 <SelectValue>
-                  {(value) => (value === 'all' || !value ? 'Every module' : String(value))}
+                  {(value) =>
+                    value === 'all' || !value
+                      ? t('activity.toolbar.everyModule')
+                      : moduleMeta(String(value), t).label
+                  }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Every module</SelectItem>
+                  <SelectItem value="all">{t('activity.toolbar.everyModule')}</SelectItem>
                   {ACTIVITY_MODULES.map((module) => (
                     <SelectItem key={module} value={module}>
                       <span
                         className={cn('size-1.5 shrink-0 rounded-full', MODULE_META[module].dot)}
                         aria-hidden
                       />
-                      {MODULE_META[module].label}
+                      {moduleMeta(module, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -154,14 +168,14 @@ export function ActivityToolbar({
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
 
             {canExport && (
               <Button variant="outline" size="sm" onClick={onExport} className="shrink-0">
                 <Download data-icon="inline-start" aria-hidden />
-                Export
+                {t('common.actions.export')}
               </Button>
             )}
           </div>
@@ -181,7 +195,7 @@ export function ActivityToolbar({
               onClick={() => onQuickRange(quick)}
               className="h-7 px-2.5 text-xs"
             >
-              {QUICK_RANGE_LABELS[quick]}
+              {t(QUICK_RANGE_KEYS[quick] as TranslationKey)}
             </Button>
           ))}
 
@@ -197,7 +211,7 @@ export function ActivityToolbar({
               value={params.from}
               max={params.to || undefined}
               onChange={(event) => onChange({ from: event.target.value })}
-              aria-label="From date"
+              aria-label={t('activity.toolbar.fromDate')}
               className="h-7 min-w-0 flex-1 text-xs sm:w-38 sm:flex-initial"
             />
             <span className="shrink-0 text-xs text-muted-foreground">to</span>
@@ -206,7 +220,7 @@ export function ActivityToolbar({
               value={params.to}
               min={params.from || undefined}
               onChange={(event) => onChange({ to: event.target.value })}
-              aria-label="To date"
+              aria-label={t('activity.toolbar.toDate')}
               className="h-7 min-w-0 flex-1 text-xs sm:w-38 sm:flex-initial"
             />
           </div>
@@ -218,21 +232,21 @@ export function ActivityToolbar({
               value={params.category}
               onValueChange={(value) => onChange({ category: value as ActivityCategoryFilter })}
             >
-              <SelectTrigger className="h-8 w-full" aria-label="Filter by kind of change">
+              <SelectTrigger className="h-8 w-full" aria-label={t('activity.toolbar.categoryAria')}>
                 <SelectValue>
                   {(value) =>
                     value === 'all' || !value
-                      ? 'Any kind of change'
-                      : (CATEGORY_META[value as keyof typeof CATEGORY_META]?.label ?? String(value))
+                      ? t('activity.toolbar.anyCategory')
+                      : categoryMeta(String(value), t).label
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any kind of change</SelectItem>
+                  <SelectItem value="all">{t('activity.toolbar.anyCategory')}</SelectItem>
                   {ACTIVITY_CATEGORIES.map((category) => (
                     <SelectItem key={category} value={category}>
-                      {CATEGORY_META[category].label}
+                      {categoryMeta(category, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -243,21 +257,21 @@ export function ActivityToolbar({
               value={params.severity}
               onValueChange={(value) => onChange({ severity: value as ActivitySeverityFilter })}
             >
-              <SelectTrigger className="h-8 w-full" aria-label="Filter by how much it matters">
+              <SelectTrigger className="h-8 w-full" aria-label={t('activity.toolbar.severityAria')}>
                 <SelectValue>
                   {(value) =>
                     value === 'all' || !value
-                      ? 'Any importance'
-                      : (SEVERITY_META[value as keyof typeof SEVERITY_META]?.label ?? String(value))
+                      ? t('activity.toolbar.anySeverity')
+                      : severityMeta(String(value), t).label
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any importance</SelectItem>
+                  <SelectItem value="all">{t('activity.toolbar.anySeverity')}</SelectItem>
                   {ACTIVITY_SEVERITIES.map((severity) => (
                     <SelectItem key={severity} value={severity}>
-                      {SEVERITY_META[severity].label}
+                      {severityMeta(severity, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -268,18 +282,18 @@ export function ActivityToolbar({
               value={params.action}
               onValueChange={(value) => onChange({ action: value ?? 'all' })}
             >
-              <SelectTrigger className="h-8 w-full" aria-label="Filter by exact action">
+              <SelectTrigger className="h-8 w-full" aria-label={t('activity.toolbar.actionAria')}>
                 <SelectValue>
                   {(value) =>
                     value === 'all' || !value
-                      ? 'Any action'
+                      ? t('activity.toolbar.anyAction')
                       : (actions.find((option) => option.action === value)?.label ?? String(value))
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any action</SelectItem>
+                  <SelectItem value="all">{t('activity.toolbar.anyAction')}</SelectItem>
                   {actions
                     .filter(
                       (option) => params.module === 'all' || option.module === params.module,
@@ -297,19 +311,21 @@ export function ActivityToolbar({
               value={params.entityType}
               onValueChange={(value) => onChange({ entityType: value as ActivityEntityFilter })}
             >
-              <SelectTrigger className="h-8 w-full" aria-label="Filter by record type">
+              <SelectTrigger className="h-8 w-full" aria-label={t('activity.toolbar.entityAria')}>
                 <SelectValue>
                   {(value) =>
-                    value === 'all' || !value ? 'Any record' : entityLabel(String(value))
+                    value === 'all' || !value
+                      ? t('activity.toolbar.anyEntity')
+                      : entityLabel(String(value), t)
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any record</SelectItem>
+                  <SelectItem value="all">{t('activity.toolbar.anyEntity')}</SelectItem>
                   {ACTIVITY_ENTITY_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
-                      {entityLabel(type)}
+                      {entityLabel(type, t)}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -323,18 +339,19 @@ export function ActivityToolbar({
               value={params.actorId || 'all'}
               onValueChange={(value) => onChange({ actorId: !value || value === 'all' ? '' : value })}
             >
-              <SelectTrigger className="h-8 w-full" aria-label="Filter by who did it">
+              <SelectTrigger className="h-8 w-full" aria-label={t('activity.toolbar.actorAria')}>
                 <SelectValue>
                   {(value) =>
                     value === 'all' || !value
-                      ? 'Anyone'
-                      : (actors.find((actor) => actor.id === value)?.name ?? 'Anyone')
+                      ? t('activity.toolbar.anyone')
+                      : (actors.find((actor) => actor.id === value)?.name ??
+                        t('activity.toolbar.anyone'))
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Anyone</SelectItem>
+                  <SelectItem value="all">{t('activity.toolbar.anyone')}</SelectItem>
                   {actors.map((actor) => (
                     <SelectItem key={actor.id ?? actor.name} value={actor.id ?? ''}>
                       {actor.name}

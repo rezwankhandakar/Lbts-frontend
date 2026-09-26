@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { DocumentStatusBadge } from '@/features/vendor/components/status-badges'
 import { DriverAvatar } from '@/features/vendor/components/vendor-identity'
@@ -52,6 +53,8 @@ export function DriverPickerDialog({
   onPick,
   onAdd,
 }: DriverPickerDialogProps) {
+  const t = useT()
+
   const [filter, setFilter] = useState('')
   const query = useAssignableDrivers(vendorId, open)
 
@@ -71,7 +74,7 @@ export function DriverPickerDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[85svh] flex-col sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Driver for this trip</DialogTitle>
+          <DialogTitle>{t('delivery.driver.forThisTrip')}</DialogTitle>
           <DialogDescription>
             {vendorName}&apos;s active drivers. Choosing one here does not change the vehicle&apos;s
             assigned driver.
@@ -87,8 +90,8 @@ export function DriverPickerDialog({
             type="search"
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
-            aria-label="Filter drivers"
-            placeholder="Name, code, mobile or licence"
+            aria-label={t('delivery.driver.filterAria')}
+            placeholder={t('delivery.driver.filterPlaceholder')}
             className="pl-8.5"
           />
         </div>
@@ -106,10 +109,12 @@ export function DriverPickerDialog({
             </p>
           ) : drivers.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              {filter ? 'No active driver matches that.' : `${vendorName} has no active drivers.`}
+              {filter
+                ? t('delivery.driver.noMatch')
+                : t('delivery.driver.vendorHasNone', { vendor: vendorName })}
             </p>
           ) : (
-            <ul className="space-y-1" aria-label="Active drivers">
+            <ul className="space-y-1" aria-label={t('delivery.driver.activeAria')}>
               {drivers.map((driver) => (
                 <li key={driver.id}>
                   <button
@@ -125,7 +130,9 @@ export function DriverPickerDialog({
                       <span className="flex flex-wrap items-center gap-x-2">
                         <span className="text-sm font-medium">{driver.name}</span>
                         {driver.id === assignedId && (
-                          <span className="text-[11px] font-medium text-tone-indigo">Assigned</span>
+                          <span className="text-[11px] font-medium text-tone-indigo">
+                            {t('delivery.driver.assigned')}
+                          </span>
                         )}
                       </span>
                       <span className="block truncate text-xs text-muted-foreground">
@@ -134,13 +141,15 @@ export function DriverPickerDialog({
                       {driver.currentVehicle && driver.id !== assignedId && (
                         <span className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
                           <Truck className="size-3" aria-hidden />
-                          Normally on {driver.currentVehicle.registrationNo}
+                          {t('delivery.driver.normallyOn', {
+                            plate: driver.currentVehicle.registrationNo,
+                          })}
                         </span>
                       )}
                     </span>
                     {driver.licenceStatus && <DocumentStatusBadge value={driver.licenceStatus} />}
                     {driver.id === selectedId && (
-                      <Check className="size-4 shrink-0 text-primary" aria-label="Selected" />
+                      <Check className="size-4 shrink-0 text-primary" aria-label={t('delivery.driver.selected')} />
                     )}
                   </button>
                 </li>
@@ -153,11 +162,11 @@ export function DriverPickerDialog({
           {canAdd && (
             <Button type="button" variant="outline" onClick={onAdd} className="sm:mr-auto">
               <UserPlus data-icon="inline-start" aria-hidden />
-              Add new driver
+              {t('delivery.driver.addNew')}
             </Button>
           )}
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-            Close
+            {t('common.actions.close')}
           </Button>
         </DialogFooter>
       </DialogContent>

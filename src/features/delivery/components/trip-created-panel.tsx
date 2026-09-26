@@ -2,9 +2,10 @@ import { ArrowRight, CircleCheckBig, ListChecks, Plus, Printer } from 'lucide-re
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { formatDay } from '@/features/vendor/lib/vendor-meta'
-import { plural, shortTripNumber } from '../lib/delivery-meta'
+import { shortTripNumber } from '../lib/delivery-meta'
 import { printManifest } from '../lib/print-manifest'
 import type { TripRecord } from '../types'
+import { countOf, useT } from '@/lib/i18n'
 
 interface TripCreatedPanelProps {
   trip: TripRecord
@@ -28,6 +29,8 @@ interface TripCreatedPanelProps {
  * carries the whole trip, challans included, so there is nothing to fetch.
  */
 export function TripCreatedPanel({ trip, isNew, onStartAnother }: TripCreatedPanelProps) {
+  const t = useT()
+
   return (
     <section className="relative overflow-hidden rounded-2xl border bg-card px-6 py-10 text-center shadow-sm sm:px-10">
       <div
@@ -41,7 +44,9 @@ export function TripCreatedPanel({ trip, isNew, onStartAnother }: TripCreatedPan
         </span>
 
         <p className="mt-6 text-sm font-medium text-muted-foreground">
-          {isNew ? `Trip assigned to ${trip.vendor.name}` : 'Trip saved'}
+          {isNew
+            ? t('delivery.created.assignedTo', { vendor: trip.vendor.name })
+            : t('delivery.created.saved')}
         </p>
         <h2 className="mt-1 font-mono text-2xl font-bold tracking-tight sm:text-3xl">
           {shortTripNumber(trip.tripNumber)}
@@ -61,28 +66,28 @@ export function TripCreatedPanel({ trip, isNew, onStartAnother }: TripCreatedPan
         </dl>
 
         <p className="mt-3 text-xs text-muted-foreground">
-          {plural(trip.challanCount, 'challan')} · {plural(trip.totalQty, 'piece')}
-          {trip.changedLines > 0 && ` · ${plural(trip.changedLines, 'line')} changed from the paper`}
+          {countOf(trip.challanCount, 'nouns.challan', t)} · {countOf(trip.totalQty, 'nouns.piece', t)}
+          {trip.changedLines > 0 && ` · ${countOf(trip.changedLines, 'nouns.line', t)} changed from the paper`}
         </p>
 
         <div className="mt-8 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
           {isNew && (
             <Button type="button" size="lg" onClick={onStartAnother}>
               <Plus data-icon="inline-start" aria-hidden />
-              Start another delivery
+              {t('delivery.created.startAnother')}
             </Button>
           )}
           <Button variant="outline" size="lg" onClick={() => printManifest(trip)}>
             <Printer data-icon="inline-start" aria-hidden />
-            Print manifest
+            {t('delivery.created.printManifest')}
           </Button>
           <Button variant="outline" size="lg" render={<Link to={`/delivery/${trip.id}`} />}>
-            Open the trip
+            {t('delivery.created.openTrip')}
             <ArrowRight data-icon="inline-end" aria-hidden />
           </Button>
           <Button variant="ghost" size="lg" render={<Link to="/delivery" />}>
             <ListChecks data-icon="inline-start" aria-hidden />
-            All deliveries
+            {t('delivery.allDeliveries')}
           </Button>
         </div>
 

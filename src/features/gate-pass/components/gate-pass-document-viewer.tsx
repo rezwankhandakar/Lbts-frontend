@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { FileWarning, Loader2, ScanLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { isPdf as isPdfType } from '../lib/gate-pass-document'
 import { DocumentToolbar } from './document-toolbar'
@@ -80,12 +81,14 @@ export function GatePassDocumentViewer({
   error,
   onRetry,
   emptyAction,
-  emptyMessage = 'No gate pass document scanned yet.',
+  emptyMessage,
   onDownload,
   onReplace,
   onRemove,
   className,
 }: GatePassDocumentViewerProps) {
+  const t = useT()
+
   const controls = useViewerControls()
   const fullscreenControls = useViewerControls()
   const [fullscreen, setFullscreen] = useState(false)
@@ -96,7 +99,7 @@ export function GatePassDocumentViewer({
       return (
         <div className="flex h-full flex-col items-center justify-center gap-3" aria-busy>
           <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />
-          <p className="text-xs text-muted-foreground">Loading the scanned document…</p>
+          <p className="text-xs text-muted-foreground">{t('gatePass.viewer.loading')}</p>
         </div>
       )
     }
@@ -105,10 +108,10 @@ export function GatePassDocumentViewer({
       return (
         <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center" role="alert">
           <FileWarning className="size-6 text-destructive" aria-hidden />
-          <p className="text-sm font-medium">The document could not be loaded</p>
+          <p className="text-sm font-medium">{t('gatePass.viewer.loadFailed')}</p>
           <p className="max-w-xs text-xs text-muted-foreground">{error}</p>
           <Button variant="outline" size="sm" onClick={onRetry}>
-            Try again
+            {t('common.actions.retry')}
           </Button>
         </div>
       )
@@ -120,7 +123,9 @@ export function GatePassDocumentViewer({
           <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
             <ScanLine className="size-5" aria-hidden />
           </div>
-          <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">{emptyMessage}</p>
+          <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+            {emptyMessage ?? t('gatePass.viewer.empty')}
+          </p>
           {emptyAction}
         </div>
       )
@@ -138,7 +143,11 @@ export function GatePassDocumentViewer({
         // the content: bytes this app fetched from its own authenticated API,
         // typed application/pdf, which the browser hands to the PDF viewer
         // rather than parsing as a document.
-        <iframe src={url} title="Scanned gate pass" className="size-full border-0 bg-white" />
+        <iframe
+          src={url}
+          title={t('gatePass.viewer.scannedTitle')}
+          className="size-full border-0 bg-white"
+        />
       )
     }
 
@@ -176,13 +185,13 @@ export function GatePassDocumentViewer({
           panel's zoom across would drop them into a corner of it. */}
       <Dialog open={fullscreen} onOpenChange={setFullscreen}>
         <DialogContent className="flex h-[92vh] w-[96vw] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none">
-          <DialogTitle className="sr-only">Scanned gate pass</DialogTitle>
+          <DialogTitle className="sr-only">{t('gatePass.viewer.scannedTitle')}</DialogTitle>
 
           <div className="min-h-0 flex-1 pt-8">
             {url && isPdf && (
               <iframe
                 src={url}
-                title="Scanned gate pass"
+                title={t('gatePass.viewer.scannedTitle')}
                 className="size-full border-0 bg-white"
               />
             )}

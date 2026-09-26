@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TripDoSheet } from './trip-do-sheet'
 import type { TripDoSheetProps } from './trip-do-sheet'
+import { useT } from '@/lib/i18n'
 
 interface TripDoDirectoryProps extends Omit<TripDoSheetProps, 'empty'> {
   isLoading: boolean
@@ -28,10 +29,12 @@ export function TripDoDirectory({
   onReset,
   ...sheet
 }: TripDoDirectoryProps) {
+  const t = useT()
+
   if (isLoading) {
     return (
       <div className="divide-y" aria-busy="true" aria-live="polite">
-        <span className="sr-only">Loading the Trip DO sheet</span>
+        <span className="sr-only">{t('tripDo.directory.loading')}</span>
         {Array.from({ length: 10 }, (_, index) => (
           <div key={index} className="flex items-center gap-4 px-4 py-3">
             <Skeleton className="h-4 w-12" />
@@ -53,11 +56,13 @@ export function TripDoDirectory({
         <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
           <TriangleAlert className="size-5" aria-hidden />
         </div>
-        <h3 className="mt-4 text-base font-semibold tracking-tight">Could not load the sheet</h3>
+        <h3 className="mt-4 text-base font-semibold tracking-tight">
+          {t('tripDo.directory.loadFailed')}
+        </h3>
         <p className="mt-1.5 max-w-sm text-sm text-pretty text-muted-foreground">{errorMessage}</p>
         <Button variant="outline" size="sm" className="mt-5" onClick={onRetry} disabled={isFetching}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          {isFetching ? 'Retrying…' : 'Try again'}
+          {isFetching ? t('tripDo.directory.retrying') : t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -75,12 +80,14 @@ export function TripDoDirectory({
             <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
               <SearchX className="size-5" aria-hidden />
             </div>
-            <h3 className="mt-4 text-base font-semibold tracking-tight">No rows match</h3>
+            <h3 className="mt-4 text-base font-semibold tracking-tight">
+              {t('tripDo.directory.noRows')}
+            </h3>
             <p className="mt-1.5 max-w-md text-sm text-pretty text-muted-foreground">
-              No challan product line, return or re-send matches the current filters.
+              {t('tripDo.directory.filteredHint')}
             </p>
             <Button variant="outline" size="sm" className="mt-5" onClick={onReset}>
-              Clear filters
+              {t('common.actions.clearFilters')}
             </Button>
           </div>
         }
@@ -96,16 +103,16 @@ export function TripDoDirectory({
           <Icon className="size-5" aria-hidden />
         </div>
         <h3 className="mt-4 text-base font-semibold tracking-tight">
-          {isFiltered ? 'No rows match' : 'The sheet is empty'}
+          {isFiltered ? t('tripDo.directory.noRows') : t('tripDo.directory.empty')}
         </h3>
         <p className="mt-1.5 max-w-md text-sm text-pretty text-muted-foreground">
           {isFiltered
-            ? 'No challan product line, return or re-send matches the current filters.'
-            : 'Every product line of every filed challan appears here on its own. File a challan and its lines arrive on the sheet, ready for a Trip DO.'}
+            ? t('tripDo.directory.filteredHint')
+            : t('tripDo.directory.emptyHint')}
         </p>
         {isFiltered && (
           <Button variant="outline" size="sm" className="mt-5" onClick={onReset}>
-            Clear filters
+            {t('common.actions.clearFilters')}
           </Button>
         )}
       </div>

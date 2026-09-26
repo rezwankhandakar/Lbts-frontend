@@ -1,10 +1,11 @@
 import { ChevronRight, FileClock, ReceiptText, ShieldCheck, TriangleAlert } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { plural } from '@/features/delivery/lib/delivery-meta'
+
 import { cn } from '@/lib/utils'
 import { formatDay } from '../lib/vendor-meta'
 import type { VendorDashboard } from '../types'
+import { countOf, useT } from '@/lib/i18n'
 
 interface AttentionRow {
   id: string
@@ -36,6 +37,8 @@ interface AttentionRow {
  * waiting for, and the doing of it happens at a desk rather than in a browser.
  */
 export function VendorDashboardAttention({ dashboard }: { dashboard: VendorDashboard }) {
+  const t = useT()
+
   const { figures, bill, fleet } = dashboard
 
   const rows: AttentionRow[] = []
@@ -45,8 +48,8 @@ export function VendorDashboardAttention({ dashboard }: { dashboard: VendorDashb
       id: 'copies',
       severity: 'warning',
       icon: FileClock,
-      title: `${plural(figures.backlog.awaitingCopies, 'signed copy', 'signed copies')} still to come back`,
-      detail: `On ${plural(figures.backlog.trips, 'trip')}${
+      title: `${countOf(figures.backlog.awaitingCopies, 'nouns.signedCopy', t)} still to come back`,
+      detail: `On ${countOf(figures.backlog.trips, 'nouns.trip', t)}${
         figures.backlog.oldest ? `, the oldest run on ${formatDay(figures.backlog.oldest)}` : ''
       }. A trip closes when every receiver's signed challan is scanned in.`,
       count: figures.backlog.awaitingCopies,
@@ -59,7 +62,7 @@ export function VendorDashboardAttention({ dashboard }: { dashboard: VendorDashb
       id: 'bills',
       severity: 'warning',
       icon: ReceiptText,
-      title: `${plural(bill.blankBills, 'trip')} without a full bill`,
+      title: `${countOf(bill.blankBills, 'nouns.trip', t)} without a full bill`,
       detail: `Rent or labour has not been entered against ${
         bill.blankBills === 1 ? 'it' : 'them'
       } yet, so ${bill.label}'s total is lower than what is actually owed.`,
@@ -73,7 +76,7 @@ export function VendorDashboardAttention({ dashboard }: { dashboard: VendorDashb
       id: 'expired',
       severity: 'critical',
       icon: TriangleAlert,
-      title: `${plural(fleet.expiredDocuments, 'document')} expired`,
+      title: `${countOf(fleet.expiredDocuments, 'nouns.document', t)} expired`,
       detail:
         'A lorry whose papers have lapsed cannot be sent out. Send the renewed certificate to LBTS to have it filed.',
       count: fleet.expiredDocuments,
@@ -86,7 +89,7 @@ export function VendorDashboardAttention({ dashboard }: { dashboard: VendorDashb
       id: 'expiring',
       severity: 'warning',
       icon: FileClock,
-      title: `${plural(fleet.expiringDocuments, 'document')} expiring soon`,
+      title: `${countOf(fleet.expiringDocuments, 'nouns.document', t)} expiring soon`,
       detail: 'Renew before the date passes and the vehicle or driver stops being assignable.',
       count: fleet.expiringDocuments,
       to: '/my-vendor?tab=documents',

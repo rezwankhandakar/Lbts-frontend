@@ -2,6 +2,7 @@ import { Phone } from 'lucide-react'
 import { VendorStatusBadge } from '@/features/vendor/components/status-badges'
 import { VendorAvatar } from '@/features/vendor/components/vendor-identity'
 import type { TripVendorRef } from '../types'
+import { useT } from '@/lib/i18n'
 
 /**
  * Who runs the vehicle — and so who this trip is assigned to and numbered
@@ -9,9 +10,11 @@ import type { TripVendorRef } from '../types'
  * trip's vendor is not a field anybody can set.
  */
 export function TripVendorCard({ vendor }: { vendor: TripVendorRef }) {
+  const t = useT()
+
   return (
     <div className="flex h-full flex-col rounded-xl border bg-card p-4">
-      <p className="text-[11px] font-semibold tracking-wide text-tone-emerald uppercase">Vendor</p>
+      <p className="text-[11px] font-semibold tracking-wide text-tone-emerald uppercase">{t('delivery.vendor.heading')}</p>
 
       <div className="mt-2 flex items-start gap-3">
         <VendorAvatar name={vendor.name} photoUrl={null} caption={vendor.vendorCode} />
@@ -24,7 +27,7 @@ export function TripVendorCard({ vendor }: { vendor: TripVendorRef }) {
 
       <dl className="mt-auto grid gap-1.5 pt-3 text-xs">
         <div className="flex items-center justify-between gap-2">
-          <dt className="text-muted-foreground">Mobile</dt>
+          <dt className="text-muted-foreground">{t('delivery.vendor.mobile')}</dt>
           <dd>
             {vendor.mobile ? (
               <a
@@ -40,7 +43,7 @@ export function TripVendorCard({ vendor }: { vendor: TripVendorRef }) {
           </dd>
         </div>
         <div className="flex items-center justify-between gap-2">
-          <dt className="text-muted-foreground">Trip number</dt>
+          <dt className="text-muted-foreground">{t('delivery.vendor.tripNumber')}</dt>
           <dd className="font-mono text-muted-foreground">{vendor.vendorCode}-TRIP-…</dd>
         </div>
       </dl>

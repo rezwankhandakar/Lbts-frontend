@@ -1,9 +1,10 @@
 import { Paperclip, RefreshCcw, ScrollText, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useEntryVoucher } from '../hooks/use-entry-voucher'
-import { KIND_META, describeEntry, formatDay, taka } from '../lib/accounts-meta'
+import { KIND_META, describeEntry, formatDay, kindMeta, taka } from '../lib/accounts-meta'
 import type { EntryRecord } from '../types'
 import { KindIcon } from './account-atoms'
 import { EntryActionsMenu } from './entry-actions-menu'
@@ -47,6 +48,8 @@ function signedAmount(entry: EntryRecord, walletId?: string): { text: string; cl
  * `CEO` opens a voucher and cannot attach or remove one.
  */
 function VoucherButton({ entry, onOpen }: { entry: EntryRecord; onOpen: (entry: EntryRecord) => void }) {
+  const t = useT()
+
   if (!entry.voucher) {
     return null
   }
@@ -55,8 +58,8 @@ function VoucherButton({ entry, onOpen }: { entry: EntryRecord; onOpen: (entry: 
     <Button
       variant="ghost"
       size="icon-sm"
-      title="Voucher attached"
-      aria-label={`Open the voucher for ${entry.entryNumber}`}
+      title={t('accounts.list.voucherAttached')}
+      aria-label={t('accounts.list.openVoucher', { entry: entry.entryNumber })}
       onClick={() => onOpen(entry)}
     >
       <Paperclip aria-hidden />
@@ -75,10 +78,12 @@ export function EntryList({
   onRetry,
   canWrite,
   walletId,
-  emptyTitle = 'No entries yet',
-  emptyDescription = 'Money added, spent, advanced or paid shows up here.',
+  emptyTitle,
+  emptyDescription,
   compact = false,
 }: EntryListProps) {
+  const t = useT()
+
   const viewer = useEntryVoucher()
 
   if (isLoading) {
@@ -98,7 +103,7 @@ export function EntryList({
         <p className="text-sm text-muted-foreground">{errorMessage}</p>
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          Try again
+          {t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -110,8 +115,10 @@ export function EntryList({
         <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
           <ScrollText className="size-5" aria-hidden />
         </span>
-        <p className="mt-2 text-sm font-medium">{emptyTitle}</p>
-        <p className="max-w-sm text-xs text-muted-foreground">{emptyDescription}</p>
+        <p className="mt-2 text-sm font-medium">{emptyTitle ?? t('accounts.list.emptyTitle')}</p>
+        <p className="max-w-sm text-xs text-muted-foreground">
+          {emptyDescription ?? t('accounts.list.emptyDescription')}
+        </p>
       </div>
     )
   }
@@ -121,16 +128,16 @@ export function EntryList({
       <table className={cn('hidden w-full text-sm', !compact && 'md:table')}>
         <thead>
           <tr className="border-b text-left text-xs text-muted-foreground">
-            <th className="px-4 py-2.5 font-medium">Date</th>
-            <th className="px-2 py-2.5 font-medium">Entry</th>
-            <th className="px-2 py-2.5 font-medium">Wallet</th>
-            <th className="px-2 py-2.5 text-right font-medium">Amount</th>
-            <th className="w-20 px-2 py-2.5" aria-label="Actions" />
+            <th className="px-4 py-2.5 font-medium">{t('accounts.list.date')}</th>
+            <th className="px-2 py-2.5 font-medium">{t('accounts.list.entry')}</th>
+            <th className="px-2 py-2.5 font-medium">{t('accounts.list.wallet')}</th>
+            <th className="px-2 py-2.5 text-right font-medium">{t('accounts.list.amount')}</th>
+            <th className="w-20 px-2 py-2.5" aria-label={t('accounts.list.actions')} />
           </tr>
         </thead>
         <tbody className="divide-y">
           {records.map((entry) => {
-            const { title, detail } = describeEntry(entry)
+            const { title, detail } = describeEntry(entry, t)
             const amount = signedAmount(entry, walletId)
             return (
               <tr key={entry.id} className="transition-colors hover:bg-muted/30">
@@ -144,16 +151,23 @@ export function EntryList({
                     <div className="min-w-0">
                       <p className="truncate font-medium">{title}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {KIND_META[entry.kind].label}
-                        {detail && ` · ${detail}`}
-                        {entry.reference && ` · Ref ${entry.reference}`}
+                        {detail
+                          ? t('accounts.list.kindAndDetail', {
+                              kind: kindMeta(entry.kind, t).label,
+                              detail,
+                            })
+                          : kindMeta(entry.kind, t).label}
+                        {entry.reference &&
+                          ` · ${t('accounts.list.reference', { reference: entry.reference })}`}
                       </p>
                       {entry.note && <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground/80 italic">{entry.note}</p>}
                     </div>
                   </div>
                 </td>
                 <td className="px-2 py-3 text-xs whitespace-nowrap text-muted-foreground">
-                  {entry.kind === 'AdvanceAdjust' ? 'No cash moved' : entry.wallet?.name}
+                  {entry.kind === 'AdvanceAdjust'
+                    ? t('accounts.list.noCashMoved')
+                    : entry.wallet?.name}
                 </td>
                 <td className={cn('px-2 py-3 text-right font-semibold whitespace-nowrap tabular-nums', amount.className)}>
                   {amount.text}
@@ -175,7 +189,7 @@ export function EntryList({
 
       <ul className={cn('divide-y', !compact && 'md:hidden')}>
         {records.map((entry) => {
-          const { title, detail } = describeEntry(entry)
+          const { title, detail } = describeEntry(entry, t)
           const amount = signedAmount(entry, walletId)
           return (
             <li key={entry.id} className="flex items-start gap-3 px-4 py-3">
@@ -187,7 +201,14 @@ export function EntryList({
                 </div>
                 {detail && <p className="truncate text-xs text-muted-foreground">{detail}</p>}
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  {formatDay(entry.date)} · {entry.kind === 'AdvanceAdjust' ? 'No cash' : entry.wallet?.name} · {entry.entryNumber}
+                  {t('accounts.list.rowLine', {
+                    day: formatDay(entry.date),
+                    wallet:
+                      entry.kind === 'AdvanceAdjust'
+                        ? t('accounts.list.noCash')
+                        : (entry.wallet?.name ?? ''),
+                    entry: entry.entryNumber,
+                  })}
                 </p>
               </div>
               {canWrite && <EntryActionsMenu entry={entry} />}

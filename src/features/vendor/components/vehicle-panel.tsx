@@ -205,7 +205,7 @@ export function VehiclePanel({
             meta={meta}
             onPageChange={setPage}
             isFetching={query.isFetching}
-            noun={['vehicle', 'vehicles']}
+            nounKey="nouns.vehicle"
           />
         )}
       </Panel>

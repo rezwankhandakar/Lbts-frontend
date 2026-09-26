@@ -15,16 +15,18 @@ import { Label } from '@/components/ui/label'
 import { ProductSuggestInput } from '@/features/challan/components/product-suggest-input'
 import { SuggestInput } from '@/features/challan/components/suggest-input'
 import { FieldError } from '@/features/vendor/components/form-parts'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 /** Mirrors the trip line in `delivery.validation.ts`. */
 const lineSchema = z.object({
-  productName: z.string().trim().min(1, 'Product name is required').max(200),
-  model: z.string().trim().min(1, 'Model is required').max(120),
+  productName: z.string().trim().min(1, 'delivery.line.productRequired').max(200),
+  model: z.string().trim().min(1, 'delivery.line.modelRequired').max(120),
   qty: z.coerce
-    .number({ error: 'Quantity must be a number' })
-    .int('Quantity must be a whole number')
-    .min(1, 'Quantity must be at least 1')
-    .max(100000, 'Quantity is too large'),
+    .number({ error: 'delivery.line.qtyNotNumber' })
+    .int('delivery.line.qtyWhole')
+    .min(1, 'delivery.line.qtyAtLeastOne')
+    .max(100000, 'delivery.line.qtyTooLarge'),
 })
 type LineInput = z.input<typeof lineSchema>
 export type LineValues = z.output<typeof lineSchema>
@@ -68,6 +70,8 @@ export function LineEditorDialog({
   onOpenChange,
   onSave,
 }: LineEditorDialogProps) {
+  const t = useT()
+
   const {
     register,
     control,
@@ -87,19 +91,25 @@ export function LineEditorDialog({
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{mode.kind === 'add' ? 'Add a product' : 'Change this line'}</DialogTitle>
+          <DialogTitle>
+            {mode.kind === 'add' ? t('delivery.line.addTitle') : t('delivery.line.changeTitle')}
+          </DialogTitle>
           <DialogDescription>
             {mode.kind === 'add'
               ? `A product on the lorry that ${challanNumber} does not list. It is recorded as added.`
               : source
-                ? `The challan orders ${source.productName} ${source.model} × ${source.ordered}. A different product or model here is recorded as a replacement for it.`
-                : 'A line added to this trip.'}
+                ? t('delivery.line.replaceDescription', {
+                    product: source.productName,
+                    model: source.model,
+                    ordered: formatNumber(source.ordered),
+                  })
+                : t('delivery.line.addDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <form noValidate onSubmit={handleSubmit(onSave)} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="line-model">Model</Label>
+            <Label htmlFor="line-model">{t('delivery.line.model')}</Label>
             <SuggestInput
               id="line-model"
               field="model"
@@ -112,7 +122,7 @@ export function LineEditorDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="line-product">Product name</Label>
+            <Label htmlFor="line-product">{t('delivery.line.productName')}</Label>
             <ProductSuggestInput
               id="line-product"
               registration={register('productName')}
@@ -125,7 +135,7 @@ export function LineEditorDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="line-qty">Quantity on this trip</Label>
+            <Label htmlFor="line-qty">{t('delivery.line.qtyOnTrip')}</Label>
             <Input
               id="line-qty"
               type="number"
@@ -140,9 +150,11 @@ export function LineEditorDialog({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
-            <Button type="submit">{mode.kind === 'add' ? 'Add product' : 'Save line'}</Button>
+            <Button type="submit">
+              {mode.kind === 'add' ? t('delivery.line.addButton') : t('delivery.line.saveButton')}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

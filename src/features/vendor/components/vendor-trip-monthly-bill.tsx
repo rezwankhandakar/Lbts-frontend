@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
-import { plural, taka } from '@/features/delivery/lib/delivery-meta'
+import { taka } from '@/features/delivery/lib/delivery-meta'
 import type { VendorMonthlyBill } from '../types'
 import { DueAmount } from './vendor-trip-money'
+import { countOf, useT } from '@/lib/i18n'
 
 function Tile({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -21,18 +22,20 @@ function Tile({ label, value }: { label: string; value: ReactNode }) {
  * same figures the Vendor Bills page in Accounts shows for those months.
  */
 export function MonthlyBill({ bill }: { bill: VendorMonthlyBill }) {
+  const t = useT()
+
   return (
     <section aria-label="Monthly bill" className="space-y-1.5">
       <p className="text-xs font-medium">
         Monthly bill · {bill.label}
         <span className="font-normal text-muted-foreground">
           {' '}
-          · {plural(bill.tripCount, 'trip')}
+          · {countOf(bill.tripCount, 'nouns.trip', t)}
         </span>
         {bill.blankBills > 0 && (
           <span className="font-normal text-tone-rose">
             {' '}
-            · {plural(bill.blankBills, 'trip')} without a full bill
+            · {countOf(bill.blankBills, 'nouns.trip', t)} without a full bill
           </span>
         )}
       </p>

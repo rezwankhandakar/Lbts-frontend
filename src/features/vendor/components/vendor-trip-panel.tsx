@@ -100,7 +100,7 @@ export function VendorTripPanel({ vendor }: { vendor: VendorRecord }) {
           meta={meta}
           onPageChange={(page) => setParams((current) => ({ ...current, page }))}
           isFetching={query.isFetching}
-          noun={['trip', 'trips']}
+          nounKey="nouns.trip"
         />
       )}
 

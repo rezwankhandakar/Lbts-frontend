@@ -10,9 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useT } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { LOCATION_REVIEW_META, LOCATION_STATUS_META } from '@/features/location/lib/location-meta'
-import { CHALLAN_STATUS_META, challanStatusMeta } from '../lib/challan-meta'
+import { challanStatusMeta } from '../lib/challan-meta'
 import { BacklogChips } from './backlog-chips'
 import { ChallanAdvancedFilters } from './challan-advanced-filters'
 import { ChallanDateChips } from './challan-date-chips'
@@ -47,17 +49,17 @@ interface ChallanFiltersProps {
 const CONTROL = 'h-9'
 const TRIGGER = cn(CONTROL, 'w-full sm:w-[10.5rem]')
 
-function locationLabel(value: unknown): string {
-  if (value === 'verified') return 'Location set'
-  if (value === 'pending') return 'Location pending'
-  if (value === 'review') return 'Unconfirmed match'
-  return 'Any location'
+function locationLabel(value: unknown, t: Translator): string {
+  if (value === 'verified') return t('challan.filters.locationSet')
+  if (value === 'pending') return t('challan.filters.locationPending')
+  if (value === 'review') return t('challan.filters.unconfirmedMatch')
+  return t('challan.filters.anyLocation')
 }
 
-function statusLabel(value: unknown): string {
+function statusLabel(value: unknown, t: Translator): string {
   return typeof value === 'string' && value !== 'all'
-    ? challanStatusMeta(value).label
-    : 'Any status'
+    ? challanStatusMeta(value, t).label
+    : t('challan.filters.anyStatus')
 }
 
 /**
@@ -83,6 +85,8 @@ export function ChallanFilters({
   currentUserId,
   hideBatchFilter,
 }: ChallanFiltersProps) {
+  const t = useT()
+
   const [expanded, setExpanded] = useState(false)
 
   const advancedCount =
@@ -116,8 +120,8 @@ export function ChallanFilters({
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="Search challan no, SL, customer, address, product"
-              aria-label="Search challans"
+              placeholder={t('challan.filters.searchPlaceholder')}
+              aria-label={t('challan.filters.searchAria')}
               className={cn(CONTROL, 'pl-9')}
             />
           </div>
@@ -127,23 +131,23 @@ export function ChallanFilters({
               value={params.status}
               onValueChange={(value) => onChange({ status: value as ChallanStatusFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by status">
+              <SelectTrigger className={TRIGGER} aria-label={t('challan.filters.statusAria')}>
                 <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
-                <SelectValue>{statusLabel}</SelectValue>
+                <SelectValue>{(value) => statusLabel(value, t)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any status</SelectItem>
+                  <SelectItem value="all">{t('challan.filters.anyStatus')}</SelectItem>
                   {CHALLAN_STATUSES.map((status) => (
                     <SelectItem key={status} value={status}>
                       <span
                         className={cn(
                           'size-1.5 shrink-0 rounded-full',
-                          CHALLAN_STATUS_META[status].dot,
+                          challanStatusMeta(status, t).dot,
                         )}
                         aria-hidden
                       />
-                      {CHALLAN_STATUS_META[status].label}
+                      {challanStatusMeta(status, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -158,33 +162,33 @@ export function ChallanFilters({
               value={params.location}
               onValueChange={(value) => onChange({ location: value as ChallanLocationFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by location">
+              <SelectTrigger className={TRIGGER} aria-label={t('challan.filters.locationAria')}>
                 <MapPin className="size-3.5 text-muted-foreground" aria-hidden />
-                <SelectValue>{locationLabel}</SelectValue>
+                <SelectValue>{(value) => locationLabel(value, t)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any location</SelectItem>
+                  <SelectItem value="all">{t('challan.filters.anyLocation')}</SelectItem>
                   <SelectItem value="verified">
                     <span
                       className={cn('size-1.5 shrink-0 rounded-full', LOCATION_STATUS_META.Verified.dot)}
                       aria-hidden
                     />
-                    Location set
+                    {t('challan.filters.locationSet')}
                   </SelectItem>
                   <SelectItem value="pending">
                     <span
                       className={cn('size-1.5 shrink-0 rounded-full', LOCATION_STATUS_META.Pending.dot)}
                       aria-hidden
                     />
-                    Location pending
+                    {t('challan.filters.locationPending')}
                   </SelectItem>
                   <SelectItem value="review">
                     <span
                       className={cn('size-1.5 shrink-0 rounded-full', LOCATION_REVIEW_META.dot)}
                       aria-hidden
                     />
-                    Unconfirmed match
+                    {t('challan.filters.unconfirmedMatch')}
                   </SelectItem>
                 </SelectGroup>
               </SelectContent>
@@ -198,7 +202,7 @@ export function ChallanFilters({
               aria-controls="challan-advanced-filters"
             >
               <SlidersHorizontal data-icon="inline-start" aria-hidden />
-              More filters
+              {t('common.actions.moreFilters')}
               {advancedCount > 0 && (
                 <span className="ml-0.5 inline-flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground tabular-nums">
                   {advancedCount}

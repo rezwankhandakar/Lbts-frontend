@@ -1,3 +1,5 @@
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { batchStatusMeta, challanStatusMeta, dispatchMetaFor } from '../lib/challan-meta'
 
@@ -13,7 +15,8 @@ interface StatusBadgeProps {
  * is a status.
  */
 export function ChallanStatusBadge({ status, className }: StatusBadgeProps) {
-  const meta = challanStatusMeta(status)
+  const t = useT()
+  const meta = challanStatusMeta(status, t)
 
   return (
     <span
@@ -56,7 +59,8 @@ export function DispatchBadge({
   /** For a caller that draws the quantities itself, beside a progress bar. */
   hideQty?: boolean
 }) {
-  const meta = dispatchMetaFor(record)
+  const t = useT()
+  const meta = dispatchMetaFor(record, t)
 
   return (
     <span
@@ -71,7 +75,10 @@ export function DispatchBadge({
       {meta.label}
       {!hideQty && record.dispatchStatus === 'Partial' && (
         <span className="font-medium tabular-nums opacity-80">
-          {record.dispatchedQty} of {record.totalQty}
+          {t('challan.dispatch.ofTotal', {
+            sent: formatNumber(record.dispatchedQty),
+            total: formatNumber(record.totalQty),
+          })}
         </span>
       )}
     </span>
@@ -80,7 +87,8 @@ export function DispatchBadge({
 
 /** The same, for a source batch: still processing, or every page accounted for. */
 export function ChallanBatchStatusBadge({ status, className }: StatusBadgeProps) {
-  const meta = batchStatusMeta(status)
+  const t = useT()
+  const meta = batchStatusMeta(status, t)
 
   return (
     <span

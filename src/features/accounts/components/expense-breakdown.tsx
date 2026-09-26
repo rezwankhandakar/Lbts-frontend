@@ -1,5 +1,6 @@
 import { PieChart } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { taka } from '../lib/accounts-meta'
 import type { ProfitLossReport } from '../types'
@@ -18,6 +19,8 @@ interface ExpenseBreakdownProps {
  * it again clears the filter.
  */
 export function ExpenseBreakdown({ report, selectedName, onSelect }: ExpenseBreakdownProps) {
+  const t = useT()
+
   if (!report) {
     return <Skeleton className="h-64 rounded-xl" />
   }
@@ -29,7 +32,7 @@ export function ExpenseBreakdown({ report, selectedName, onSelect }: ExpenseBrea
     return (
       <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
         <PieChart className="size-6 text-muted-foreground" aria-hidden />
-        <p className="text-sm text-muted-foreground">No office expense this month.</p>
+        <p className="text-sm text-muted-foreground">{t('accounts.expense.noneThisMonth')}</p>
       </div>
     )
   }

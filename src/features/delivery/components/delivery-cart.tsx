@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { PackageOpen, ScanBarcode } from 'lucide-react'
 import type { TripCart } from '../hooks/use-trip-cart'
 import { lineChange } from '../lib/cart'
-import { plural } from '../lib/delivery-meta'
+
 import type { CartChallan } from '../types'
 import { CartChallanCard } from './cart-challan-card'
 import type { CartCardDialog } from './cart-challan-card'
@@ -10,6 +10,7 @@ import { ChallanPartyDialog } from './challan-party-dialog'
 import { LineEditorDialog } from './line-editor-dialog'
 import type { LineEditorMode } from './line-editor-dialog'
 import { SplitChallanDialog } from './split-challan-dialog'
+import { countOf, useT } from '@/lib/i18n'
 
 /** What the line editor opens as: a new line, or an existing one with its source. */
 function lineModeFor(challan: CartChallan, key: string | null): LineEditorMode | null {
@@ -48,6 +49,8 @@ interface DeliveryCartProps {
  * the dialog.
  */
 export function DeliveryCart({ cart, onDialogChange }: DeliveryCartProps) {
+  const t = useT()
+
   const [dialog, setDialog] = useState<CartCardDialog | null>(null)
 
   const open = (next: CartCardDialog | null) => {
@@ -65,14 +68,14 @@ export function DeliveryCart({ cart, onDialogChange }: DeliveryCartProps) {
         <span className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
           <PackageOpen className="size-5" aria-hidden />
         </span>
-        <p className="mt-3 text-sm font-semibold">No challans on this trip yet</p>
+        <p className="mt-3 text-sm font-semibold">{t('delivery.cart.empty')}</p>
         <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
           Search above, or pick up the printed challans and scan their barcodes one after another —
           each one lands here with what is still to go.
         </p>
         <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <ScanBarcode className="size-3.5" aria-hidden />
-          No need to click anywhere first
+          {t('delivery.cart.emptyHint')}
         </p>
       </div>
     )
@@ -83,8 +86,8 @@ export function DeliveryCart({ cart, onDialogChange }: DeliveryCartProps) {
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        {plural(cart.summary.challans, 'challan')} · {plural(cart.summary.qty, 'piece')}
-        {cart.summary.changedLines > 0 && ` · ${plural(cart.summary.changedLines, 'line')} changed`}
+        {countOf(cart.summary.challans, 'nouns.challan', t)} · {countOf(cart.summary.qty, 'nouns.piece', t)}
+        {cart.summary.changedLines > 0 && ` · ${countOf(cart.summary.changedLines, 'nouns.line', t)} changed`}
       </p>
 
       {cart.state.challans.map((challan, index) => (

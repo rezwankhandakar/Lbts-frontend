@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import {
   Sheet,
@@ -13,6 +14,8 @@ interface MobileSidebarProps {
 }
 
 export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
+  const t = useT()
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -22,8 +25,8 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
         showCloseButton={false}
       >
         <SheetHeader className="sr-only">
-          <SheetTitle>Navigation</SheetTitle>
-          <SheetDescription>Links to each module in the application.</SheetDescription>
+          <SheetTitle>{t('shell.navigationTitle')}</SheetTitle>
+          <SheetDescription>{t('shell.navigationDescription')}</SheetDescription>
         </SheetHeader>
         <AppSidebar onNavigate={() => onOpenChange(false)} />
       </SheetContent>

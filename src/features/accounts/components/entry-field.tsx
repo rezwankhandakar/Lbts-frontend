@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { Label } from '@/components/ui/label'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface EntryFieldProps {
@@ -18,15 +20,22 @@ interface EntryFieldProps {
  * every entry form.
  */
 export function EntryField({ id, label, optional, error, hint, className, children }: EntryFieldProps) {
+  const t = useT()
+
   return (
     <div className={cn('grid content-start gap-1.5', className)}>
       <Label htmlFor={id}>
         {label}
-        {optional && <span className="font-normal text-muted-foreground"> (optional)</span>}
+        {optional && (
+          <span className="font-normal text-muted-foreground">
+            {' '}
+            {t('common.labels.optionalSuffix')}
+          </span>
+        )}
       </Label>
       {children}
       {error ? (
-        <p className="text-xs text-destructive">{error}</p>
+        <p className="text-xs text-destructive">{t(error as TranslationKey)}</p>
       ) : (
         hint && <div className="text-xs text-muted-foreground">{hint}</div>
       )}

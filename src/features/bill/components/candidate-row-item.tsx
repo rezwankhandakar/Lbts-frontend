@@ -2,6 +2,7 @@ import { Ban, Check, Receipt } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { RowStatusBadge, KindTag } from '@/features/trip-do/components/trip-do-badges'
 import { formatTaka } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { shortBillNumber } from '../lib/bill-meta'
 import type { BillCandidateRow } from '../types'
@@ -21,6 +22,8 @@ interface CandidateRowItemProps {
  * in place of its tick box — already on this bill, or on which other one.
  */
 export function CandidateRowItem({ row, billId, addable, blockedByUnit, selected, onToggle }: CandidateRowItemProps) {
+  const t = useT()
+
   const onThisBill = row.bill?.billId === billId
 
   return (
@@ -37,12 +40,15 @@ export function CandidateRowItem({ row, billId, addable, blockedByUnit, selected
           <Checkbox
             checked={selected}
             onCheckedChange={() => onToggle(row)}
-            aria-label={`Add ${row.challanNumber} ${row.model || row.productName}`}
+            aria-label={t('bill.search.addRowAria', {
+        challan: row.challanNumber,
+        model: row.model || row.productName,
+      })}
           />
         ) : onThisBill ? (
-          <Check className="size-4 text-tone-emerald" aria-label="Already on this bill" />
+          <Check className="size-4 text-tone-emerald" aria-label={t('bill.search.alreadyOn')} />
         ) : blockedByUnit && !row.bill ? (
-          <Ban className="size-3.5 text-tone-amber" aria-label="Another unit's Trip DO" />
+          <Ban className="size-3.5 text-tone-amber" aria-label={t('bill.search.otherUnitAria')} />
         ) : (
           <Receipt className="size-3.5 text-muted-foreground" aria-hidden />
         )}
@@ -54,7 +60,8 @@ export function CandidateRowItem({ row, billId, addable, blockedByUnit, selected
           <KindTag kind={row.kind} />
         </span>
         <span className="mt-0.5 block truncate text-[11.5px] text-muted-foreground">
-          SL {row.challanSlNumber} · {[row.thana, row.district].filter(Boolean).join(', ') || 'No location'}
+          SL {row.challanSlNumber} ·{' '}
+          {[row.thana, row.district].filter(Boolean).join(', ') || t('bill.noLocation')}
           {row.locationType ? ` · ${row.locationType}` : ''}
         </span>
       </span>
@@ -78,9 +85,13 @@ export function CandidateRowItem({ row, billId, addable, blockedByUnit, selected
                 ? 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald'
                 : 'border-border bg-muted text-muted-foreground',
             )}
-            title={onThisBill ? 'Already on this bill' : `On ${row.bill.billNumber}`}
+            title={
+              onThisBill
+                ? t('bill.search.alreadyOn')
+                : t('bill.search.onBill', { bill: row.bill.billNumber })
+            }
           >
-            {onThisBill ? 'On this bill' : shortBillNumber(row.bill.billNumber)}
+            {onThisBill ? t('bill.onThisBill') : shortBillNumber(row.bill.billNumber)}
           </span>
         ) : (
           <RowStatusBadge status={row.deliveryStatus} />

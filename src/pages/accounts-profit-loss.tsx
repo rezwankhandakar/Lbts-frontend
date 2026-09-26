@@ -10,12 +10,15 @@ import { TrendChart } from '@/features/accounts/components/trend-chart'
 import { useProfitLoss } from '@/features/accounts/hooks/use-accounts'
 import { comparePeriods, defaultReportRange, periodParam } from '@/features/accounts/lib/accounts-meta'
 import type { PeriodRange } from '@/features/accounts/lib/accounts-meta'
+import { useT } from '@/lib/i18n'
 
 /**
  * Profit and loss over any run of months: Walton's final bills against trip
  * rent, labour bills and office expenses.
  */
 export function AccountsProfitLossPage() {
+  const t = useT()
+
   const [range, setRange] = useState<PeriodRange>(defaultReportRange)
   const from = periodParam(range.from)
   const to = periodParam(range.to)
@@ -25,7 +28,7 @@ export function AccountsProfitLossPage() {
 
   return (
     <AccountsShell
-      title="Profit & Loss"
+      title={t('accounts.pages.profitLoss.title')}
       description="Walton's audited final bills are the income; trip rent, labour bills and every office expense are the cost. A month without its final bill carries costs and no income until one is entered."
     >
       <div className="grid gap-5">
@@ -33,7 +36,7 @@ export function AccountsProfitLossPage() {
 
         {backwards ? (
           <p className="rounded-xl border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
-            The report has to end on or after the month it starts.
+            {t('accounts.pages.profitLoss.rangeBackwards')}
           </p>
         ) : query.isError ? (
           <p className="rounded-xl border bg-card px-4 py-10 text-center text-sm text-muted-foreground">{query.error.message}</p>
@@ -47,14 +50,17 @@ export function AccountsProfitLossPage() {
             <PlSummary report={report} />
 
             {report.months.length > 1 && (
-              <Panel title="Income against cost" description="Month by month — hover a month for its profit.">
+              <Panel
+                title={t('accounts.pages.profitLoss.incomeAgainstCost')}
+                description={t('accounts.pages.profitLoss.incomeAgainstCostHint')}
+              >
                 <div className="p-4 sm:p-5">
                   <TrendChart months={report.months} />
                 </div>
               </Panel>
             )}
 
-            <Panel title="Statement by month">
+            <Panel title={t('accounts.pages.profitLoss.statementByMonth')}>
               <PlMonthTable report={report} />
             </Panel>
 

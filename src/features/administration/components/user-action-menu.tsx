@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { USER_ACTIONS, actionsForStatus } from '../administration-actions'
 import type { UserActionId } from '../administration-actions'
@@ -37,6 +38,7 @@ export function UserActionMenu({
   onChangeRole,
   onAction,
 }: UserActionMenuProps) {
+  const t = useT()
   const actions = actionsForStatus(user.status)
 
   return (
@@ -46,7 +48,7 @@ export function UserActionMenu({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Actions for ${user.name}`}
+            aria-label={t('administration.actionsFor', { name: user.name })}
             className="text-muted-foreground hover:text-foreground"
           />
         }
@@ -69,12 +71,12 @@ export function UserActionMenu({
           onClick={() => onViewDetails(user)}
         >
           <Eye className="text-muted-foreground" aria-hidden />
-          View details
+          {t('administration.viewDetails')}
         </DropdownMenuItem>
 
         {isSelf ? (
           <p className="px-1.5 py-2 text-[11px] leading-snug text-muted-foreground">
-            You cannot change your own role or account status. Ask another Admin.
+            {t('administration.cannotChangeSelf')}
           </p>
         ) : (
           <>
@@ -83,7 +85,7 @@ export function UserActionMenu({
               onClick={() => onChangeRole(user)}
             >
               <UserRoundCog className="text-tone-indigo" aria-hidden />
-              Change role
+              {t('administration.changeRole')}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
@@ -99,7 +101,7 @@ export function UserActionMenu({
                   onClick={() => onAction(user, id)}
                 >
                   <Icon aria-hidden />
-                  {action.label}
+                  {t(action.labelKey)}
                 </DropdownMenuItem>
               )
             })}

@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { defaultLinkQty, evenParts, linkOutcome, splitProblem } from './split-parts.ts'
+import {
+  MAX_SPLIT_PARTS,
+  defaultLinkQty,
+  evenParts,
+  linkOutcome,
+  splitProblem,
+} from './split-parts.ts'
 
 describe('dividing a Trip DO row', () => {
   it('divides a row as evenly as whole pieces allow, larger parts first', () => {
@@ -13,15 +19,38 @@ describe('dividing a Trip DO row', () => {
     assert.deepEqual(evenParts(2, 5), [1, 1])
   })
 
+  /*
+   * A refusal is a key and the numbers that go in it, not a sentence — the
+   * file is import-free and a sentence built here could only ever be English.
+   * So these assert on the *decision*: which refusal, about which numbers.
+   * That is also the half worth pinning, since the wording is the thing most
+   * likely to be reworded.
+   */
   it('accepts parts that add up to the row and nothing else', () => {
     assert.equal(splitProblem([3, 2], 5), null)
-    assert.match(splitProblem([3, 1], 5) ?? '', /1 still to place/)
-    assert.match(splitProblem([3, 3], 5) ?? '', /1 too many/)
+
+    assert.deepEqual(splitProblem([3, 1], 5), {
+      key: 'tripDo.split.stillToPlace',
+      values: { short: 1, sum: 4, total: 5 },
+    })
+    assert.deepEqual(splitProblem([3, 3], 5), {
+      key: 'tripDo.split.tooMany',
+      values: { over: 1, sum: 6, total: 5 },
+    })
   })
 
   it('refuses a split of one part or a part of zero', () => {
-    assert.match(splitProblem([5], 5) ?? '', /at least two/)
-    assert.match(splitProblem([5, 0], 5) ?? '', /at least one piece/)
+    assert.deepEqual(splitProblem([5], 5), { key: 'tripDo.split.atLeastTwo' })
+    assert.deepEqual(splitProblem([5, 0], 5), { key: 'tripDo.split.everyPart' })
+  })
+
+  it('refuses more parts than the row may be split into', () => {
+    const tooMany = Array.from({ length: MAX_SPLIT_PARTS + 1 }, () => 1)
+
+    assert.deepEqual(splitProblem(tooMany, tooMany.length), {
+      key: 'tripDo.split.tooManyParts',
+      values: { max: MAX_SPLIT_PARTS },
+    })
   })
 
   it('offers the whole row when the gate pass has room, and what is left when it does not', () => {

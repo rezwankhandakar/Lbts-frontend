@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { TripDoRowRecord } from '../types'
 import type { RowActions } from './trip-do-sheet-row'
+import { useT } from '@/lib/i18n'
 
 interface TripDoRowMenuProps extends RowActions {
   row: TripDoRowRecord
@@ -29,6 +30,8 @@ export function TripDoRowMenu({
   onMerge,
   onUnlink,
 }: TripDoRowMenuProps) {
+  const t = useT()
+
   const navigate = useNavigate()
   const gatePassId = row.link?.gatePassId ?? null
 
@@ -52,7 +55,7 @@ export function TripDoRowMenu({
           <>
             <DropdownMenuItem onClick={() => navigate(`/bills/${row.bill?.billId}`)}>
               <Receipt aria-hidden />
-              Open {row.bill.billNumber}
+              {t('tripDo.rowMenu.openBill', { bill: row.bill.billNumber })}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
@@ -61,22 +64,22 @@ export function TripDoRowMenu({
           <>
             <DropdownMenuItem onClick={() => onLink(row)}>
               <Link2 aria-hidden />
-              {row.link ? 'Change Trip DO' : 'Set Trip DO'}
+              {row.link ? t('tripDo.changeTripDo') : t('tripDo.setTripDo')}
             </DropdownMenuItem>
             <DropdownMenuItem disabled={row.qty < 2} onClick={() => onSplit(row)}>
               <Split aria-hidden />
-              Split quantity
+              {t('tripDo.rowMenu.splitQuantity')}
             </DropdownMenuItem>
             {row.partCount > 1 && (
               <DropdownMenuItem onClick={() => onMerge(row)}>
                 <Merge aria-hidden />
-                Merge parts back
+                {t('tripDo.rowMenu.mergeParts')}
               </DropdownMenuItem>
             )}
             {row.link && (
               <DropdownMenuItem variant="destructive" onClick={() => onUnlink(row)}>
                 <Unlink aria-hidden />
-                Remove Trip DO
+                {t('tripDo.rowMenu.removeTripDo')}
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
@@ -85,12 +88,12 @@ export function TripDoRowMenu({
 
         <DropdownMenuItem onClick={() => navigate(`/challan/${row.challanId}`)}>
           <ReceiptText aria-hidden />
-          Open challan
+          {t('tripDo.rowMenu.openChallan')}
         </DropdownMenuItem>
         {gatePassId && (
           <DropdownMenuItem onClick={() => navigate(`/gate-pass/${gatePassId}`)}>
             <ScanLine aria-hidden />
-            Open gate pass
+            {t('tripDo.rowMenu.openGatePass')}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

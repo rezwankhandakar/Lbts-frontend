@@ -2,7 +2,8 @@ import { X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { formatTripDate } from '@/features/gate-pass/lib/gate-pass-meta'
-import { formatAmount } from '@/lib/format'
+import { formatAmount, formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { MAX_FLOOR_NUMBER, MAX_LABOUR_AMOUNT } from '../types'
 import type { LabourBillLinePatch, LabourBillLineRecord } from '../types'
@@ -53,6 +54,8 @@ export function LabourBillSheetRow({
   onSave,
   onRemove,
 }: LabourBillSheetRowProps) {
+  const t = useT()
+
   const save = (patch: LabourBillLinePatch) => onSave(line.id, patch)
 
   return (
@@ -79,11 +82,14 @@ export function LabourBillSheetRow({
             <button
               type="button"
               onClick={() =>
-                onRemove({ lineIds: groupLineIds, label: `challan ${line.challanNumber}` })
+                onRemove({
+                  lineIds: groupLineIds,
+                  label: t('labourBill.cells.challanLabel', { challan: line.challanNumber }),
+                })
               }
               className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-md text-muted-foreground opacity-0 transition group-hover/sl:opacity-100 hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100"
-              aria-label={`Take challan ${line.challanNumber} off the labour bill`}
-              title={`Take challan ${line.challanNumber} off the labour bill`}
+              aria-label={t('labourBill.cells.removeChallan', { challan: line.challanNumber })}
+              title={t('labourBill.cells.removeChallan', { challan: line.challanNumber })}
             >
               <X className="size-3.5" aria-hidden />
             </button>
@@ -111,7 +117,10 @@ export function LabourBillSheetRow({
           maxLength={60}
           disabled={!canEdit}
           placeholder={line.unit || '—'}
-          label={`Company for ${line.challanNumber} ${line.model}`}
+          label={t('labourBill.cells.company', {
+            challan: line.challanNumber,
+            model: line.model,
+          })}
           onCommit={(company) => save({ company })}
         />
       </td>
@@ -130,14 +139,19 @@ export function LabourBillSheetRow({
           <NoTripDoChip />
         )}
       </td>
-      <td className={cn(CELL, 'text-[13px] font-semibold tabular-nums')}>{line.qty}</td>
+      <td className={cn(CELL, 'text-[13px] font-semibold tabular-nums')}>
+        {formatNumber(line.qty)}
+      </td>
 
       <td className={cn(TYPED_CELL, 'w-[7.5rem]')}>
         <LabourCellInput
           value={line.labourAmount}
           max={MAX_LABOUR_AMOUNT}
           disabled={!canEdit}
-          label={`Ven, pulling and labour for ${line.challanNumber} ${line.model}`}
+          label={t('labourBill.cells.labour', {
+            challan: line.challanNumber,
+            model: line.model,
+          })}
           onCommit={(labourAmount) => save({ labourAmount })}
         />
       </td>
@@ -146,7 +160,10 @@ export function LabourBillSheetRow({
           value={line.floorNo}
           max={MAX_FLOOR_NUMBER}
           disabled={!canEdit}
-          label={`Floor number for ${line.challanNumber} ${line.model}`}
+          label={t('labourBill.cells.floorNo', {
+            challan: line.challanNumber,
+            model: line.model,
+          })}
           onCommit={(floorNo) => save({ floorNo })}
           className="text-center"
         />
@@ -156,7 +173,10 @@ export function LabourBillSheetRow({
           value={line.floorAmount}
           max={MAX_LABOUR_AMOUNT}
           disabled={!canEdit}
-          label={`Floor amount for ${line.challanNumber} ${line.model}`}
+          label={t('labourBill.cells.floorAmount', {
+            challan: line.challanNumber,
+            model: line.model,
+          })}
           onCommit={(floorAmount) => save({ floorAmount })}
         />
       </td>
@@ -169,9 +189,7 @@ export function LabourBillSheetRow({
         )}
       >
         {line.total === null ? (
-          <span title="Neither cell has been typed yet, so this row adds nothing to the bill">
-            Not set
-          </span>
+          <span title={t('labourBill.fields.untypedRow')}>{t('labourBill.notSet')}</span>
         ) : (
           formatAmount(line.total)
         )}
@@ -185,10 +203,16 @@ export function LabourBillSheetRow({
             onClick={() =>
               onRemove({
                 lineIds: [line.id],
-                label: `${line.challanNumber} · ${line.model || line.productName}`,
+                label: t('labourBill.cells.lineLabel', {
+                  challan: line.challanNumber,
+                  model: line.model || line.productName,
+                }),
               })
             }
-            aria-label={`Take ${line.challanNumber} ${line.model} off the labour bill`}
+            aria-label={t('labourBill.cells.removeLine', {
+              challan: line.challanNumber,
+              model: line.model,
+            })}
             className="text-muted-foreground hover:text-destructive"
           >
             <X aria-hidden />

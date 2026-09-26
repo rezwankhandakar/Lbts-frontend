@@ -23,9 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { LOCATION_TYPE_META } from '../lib/location-meta'
+import { locationTypeMeta } from '../lib/location-meta'
 import { LOCATION_TYPES } from '../types'
 import type { LocationRecord, LocationType } from '../types'
+import { useT } from '@/lib/i18n'
 
 /**
  * Mirrors `location.validation.ts`. The server enforces these; this exists so
@@ -40,14 +41,14 @@ const locationFormSchema = z.object({
   district: z
     .string()
     .trim()
-    .min(2, 'District must be at least 2 characters')
-    .max(120, 'District must be 120 characters or fewer'),
+    .min(2, 'location.validation.districtTooShort')
+    .max(120, 'location.validation.districtTooLong'),
   thana: z
     .string()
     .trim()
-    .min(2, 'Thana must be at least 2 characters')
-    .max(120, 'Thana must be 120 characters or fewer'),
-  locationType: z.enum(LOCATION_TYPES, { error: 'Choose a location type.' }),
+    .min(2, 'location.validation.thanaTooShort')
+    .max(120, 'location.validation.thanaTooLong'),
+  locationType: z.enum(LOCATION_TYPES, { error: 'location.validation.typeRequired' }),
   isActive: z.boolean(),
 })
 
@@ -84,6 +85,8 @@ export function LocationFormDialog({
   onOpenChange,
   onSubmit,
 }: LocationFormDialogProps) {
+  const t = useT()
+
   const {
     register,
     control,
@@ -131,11 +134,13 @@ export function LocationFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{record ? 'Edit location' : 'Add location'}</DialogTitle>
+          <DialogTitle>
+            {record ? t('location.form.editTitle') : t('location.form.addTitle')}
+          </DialogTitle>
           <DialogDescription>
             {record
-              ? 'Challans that already point at this row read their district, thana and location type through it, so correcting it here corrects all of them.'
-              : 'A district and thana pair, and what kind of place it is. Challans are matched against this list.'}
+              ? t('location.form.editDescription')
+              : t('location.form.addDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -147,7 +152,7 @@ export function LocationFormDialog({
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="location-district">District</Label>
+              <Label htmlFor="location-district">{t('location.table.district')}</Label>
               <Input
                 id="location-district"
                 autoComplete="off"
@@ -164,7 +169,7 @@ export function LocationFormDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="location-thana">Thana</Label>
+              <Label htmlFor="location-thana">{t('location.table.thana')}</Label>
               <Input
                 id="location-thana"
                 autoComplete="off"
@@ -182,7 +187,7 @@ export function LocationFormDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="location-type">Location</Label>
+            <Label htmlFor="location-type">{t('location.table.location')}</Label>
             <Select
               value={locationType}
               onValueChange={(value) =>
@@ -197,14 +202,14 @@ export function LocationFormDialog({
                 <SelectGroup>
                   {LOCATION_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
-                      {LOCATION_TYPE_META[type].label}
+                      {locationTypeMeta(type, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
             <p className="text-xs leading-snug text-muted-foreground">
-              {LOCATION_TYPE_META[locationType]?.description}
+              {locationTypeMeta(locationType, t).description}
             </p>
           </div>
 
@@ -217,7 +222,7 @@ export function LocationFormDialog({
               disabled={isPending}
             />
             <span className="min-w-0 flex-1">
-              <span className="block text-[13px] font-medium">In use</span>
+              <span className="block text-[13px] font-medium">{t('location.form.inUse')}</span>
               <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
                 An inactive location is offered nowhere and matched to nothing. Challans that
                 already reference it keep the district, thana and type it gives them.
@@ -232,11 +237,11 @@ export function LocationFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />}
-              {record ? 'Save changes' : 'Add location'}
+              {record ? t('common.actions.saveChanges') : t('location.addLocation')}
             </Button>
           </DialogFooter>
         </form>

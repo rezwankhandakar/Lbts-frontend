@@ -15,12 +15,16 @@ import { currentPeriod, periodParam, periodRange, taka } from '@/features/accoun
 import { canWriteAccounts } from '@/features/accounts/types'
 import type { Period } from '@/features/accounts/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 export function AccountsExpensesPage() {
+  const t = useT()
+
   return (
     <AccountsShell
-      title="Expenses"
-      description="Every office expense, month by month, grouped by the name it was recorded under. Type the name when you add an expense — names used before are suggested."
+      title={t('accounts.pages.expenses.title')}
+      description={t('accounts.pages.expenses.description')}
     >
       <ExpensesBody />
     </AccountsShell>
@@ -29,6 +33,8 @@ export function AccountsExpensesPage() {
 
 /** Inside the shell, so the entry form it opens is the module's one. */
 function ExpensesBody() {
+  const t = useT()
+
   const canWrite = canWriteAccounts(useCurrentRole())
   const dialog = useEntryDialog()
   const [period, setPeriod] = useState<Period>(currentPeriod)
@@ -52,19 +58,43 @@ function ExpensesBody() {
         {canWrite && (
           <Button onClick={() => dialog.open({ kind: 'Expense', preset: { date: range.defaultDay } })}>
             <Plus data-icon="inline-start" aria-hidden />
-            Add expense
+            {t('accounts.kinds.Expense.action')}
           </Button>
         )}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatTile label="Office expenses" value={taka(month?.officeExpense ?? 0)} hint="Every office expense this month" icon={Receipt} tone="rose" isLoading={report.isPending} />
-        <StatTile label="Expense names used" value={String(report.data?.expenseByName.length ?? 0)} hint="This month" icon={Tags} tone="violet" isLoading={report.isPending} />
-        <StatTile label="Trip rent + labour" value={taka((month?.tripRent ?? 0) + (month?.labourBill ?? 0))} hint="For comparison — from vendor trip bills" icon={Receipt} tone="orange" isLoading={report.isPending} />
+        <StatTile
+          label={t('accounts.pages.expenses.officeExpenses')}
+          value={taka(month?.officeExpense ?? 0)}
+          hint={t('accounts.pages.expenses.officeHint')}
+          icon={Receipt}
+          tone="rose"
+          isLoading={report.isPending}
+        />
+        <StatTile
+          label={t('accounts.pages.expenses.namesUsed')}
+          value={formatNumber(report.data?.expenseByName.length ?? 0)}
+          hint={t('accounts.pages.expenses.thisMonth')}
+          icon={Tags}
+          tone="violet"
+          isLoading={report.isPending}
+        />
+        <StatTile
+          label={t('accounts.pages.expenses.rentAndLabour')}
+          value={taka((month?.tripRent ?? 0) + (month?.labourBill ?? 0))}
+          hint={t('accounts.pages.expenses.rentAndLabourHint')}
+          icon={Receipt}
+          tone="orange"
+          isLoading={report.isPending}
+        />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_1.6fr]">
-        <Panel title="By expense name" description="Press one to see only its expenses.">
+        <Panel
+          title={t('accounts.pages.expenses.byName')}
+          description={t('accounts.pages.expenses.byNameHint')}
+        >
           <ExpenseBreakdown
             report={report.data}
             selectedName={list.params.expenseName}
@@ -72,7 +102,7 @@ function ExpensesBody() {
           />
         </Panel>
 
-        <section aria-label="Expenses" className="overflow-hidden rounded-xl border bg-card shadow-sm">
+        <section aria-label={t('accounts.pages.expenses.listAria')} className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <CashBookToolbar params={list.params} onChange={list.applyFilters} onReset={list.reset} isFiltered={list.isFiltered} showKind={false} />
           <EntryList
             records={query.data?.records ?? []}
@@ -84,7 +114,7 @@ function ExpensesBody() {
             emptyDescription="Office rent, bills, salary, conveyance — any cost the office pays is an expense."
           />
           {meta && !query.isError && (
-            <ListPagination meta={meta} onPageChange={list.setPage} isFetching={query.isFetching} noun={['expense', 'expenses']} />
+            <ListPagination meta={meta} onPageChange={list.setPage} isFetching={query.isFetching} nounKey="nouns.expense" />
           )}
         </section>
       </div>

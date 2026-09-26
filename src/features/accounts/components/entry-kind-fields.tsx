@@ -8,6 +8,7 @@ import { EntryField } from './entry-field'
 import { ExpenseNameField } from './expense-name-field'
 import { TripField } from './trip-field'
 import { VendorPaymentFields } from './vendor-payment-fields'
+import { useT } from '@/lib/i18n'
 
 export interface KindFieldsProps {
   draft: EntryDraft
@@ -45,6 +46,8 @@ function PartyInput({
 
 /** The middle of the entry form: what only this kind of entry asks. */
 export function EntryKindFields(props: KindFieldsProps) {
+  const t = useT()
+
   const { draft, set, errors } = props
 
   switch (draft.kind) {
@@ -58,7 +61,7 @@ export function EntryKindFields(props: KindFieldsProps) {
       return (
         <div className="grid gap-4 sm:grid-cols-2">
           <ExpenseNameField value={draft.expenseName} error={errors.expenseName} onChange={(expenseName) => set({ expenseName })} />
-          <PartyInput label="Paid to" value={draft.party} onChange={(party) => set({ party })} />
+          <PartyInput label={t('accounts.kindFields.paidTo')} value={draft.party} onChange={(party) => set({ party })} />
         </div>
       )
 
@@ -66,13 +69,13 @@ export function EntryKindFields(props: KindFieldsProps) {
       return (
         <div className="grid gap-4 sm:grid-cols-2">
           <PartyInput
-            label="Given to"
+            label={t('accounts.kindFields.givenTo')}
             optional={false}
             value={draft.party}
             error={errors.party}
             onChange={(party) => set({ party })}
           />
-          <EntryField id="entry-phone" label="Their mobile" optional>
+          <EntryField id="entry-phone" label={t('accounts.kindFields.theirMobile')} optional>
             <Input
               id="entry-phone"
               inputMode="tel"
@@ -82,7 +85,12 @@ export function EntryKindFields(props: KindFieldsProps) {
               onChange={(event) => set({ partyPhone: event.target.value })}
             />
           </EntryField>
-          <EntryField id="entry-purpose" label="What it is for" optional className="sm:col-span-2">
+          <EntryField
+            id="entry-purpose"
+            label={t('accounts.kindFields.whatFor')}
+            optional
+            className="sm:col-span-2"
+          >
             <Input
               id="entry-purpose"
               value={draft.purpose}
@@ -102,7 +110,7 @@ export function EntryKindFields(props: KindFieldsProps) {
         <div className="grid gap-4">
           <AdvanceField {...props} />
           <ExpenseNameField
-            label="Spent on"
+            label={t('accounts.kindFields.spentOn')}
             value={draft.expenseName}
             error={errors.expenseName}
             onChange={(expenseName) => set({ expenseName })}
@@ -114,7 +122,7 @@ export function EntryKindFields(props: KindFieldsProps) {
       return (
         <div className="grid gap-4">
           <TripField {...props} />
-          <PartyInput label="Received by" value={draft.party} onChange={(party) => set({ party })} />
+          <PartyInput label={t('accounts.kindFields.receivedBy')} value={draft.party} onChange={(party) => set({ party })} />
         </div>
       )
 
@@ -122,7 +130,7 @@ export function EntryKindFields(props: KindFieldsProps) {
       return (
         <div className="grid gap-4">
           <VendorPaymentFields {...props} />
-          <PartyInput label="Received by" value={draft.party} onChange={(party) => set({ party })} />
+          <PartyInput label={t('accounts.kindFields.receivedBy')} value={draft.party} onChange={(party) => set({ party })} />
         </div>
       )
   }

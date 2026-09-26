@@ -11,6 +11,7 @@ import {
   ComboboxValue,
 } from '@/components/ui/combobox'
 import { Label } from '@/components/ui/label'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useDistricts, useThanas } from '../hooks/use-locations'
 import type { LocationType } from '../types'
@@ -75,6 +76,8 @@ export function LocationSelect({
   idPrefix = 'location',
   className,
 }: LocationSelectProps) {
+  const t = useT()
+
   const [district, setDistrict] = useState(value?.district ?? '')
 
   /**
@@ -157,7 +160,7 @@ export function LocationSelect({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor={`${idPrefix}-district`} className="text-[13px] font-medium">
-            District
+            {t('location.district')}
           </Label>
           <Combobox
             items={districtItems}
@@ -167,11 +170,13 @@ export function LocationSelect({
           >
             <ComboboxTrigger id={`${idPrefix}-district`} className="w-full">
               <MapPin className="size-3.5 text-muted-foreground" aria-hidden />
-              <ComboboxValue placeholder={districts.isPending ? 'Loading…' : 'Choose a district'} />
+              <ComboboxValue placeholder={
+                districts.isPending ? t('common.states.loading') : t('location.select.chooseDistrict')
+              } />
             </ComboboxTrigger>
             <ComboboxContent>
-              <ComboboxInput placeholder="Search districts…" />
-              <ComboboxEmpty>No district matches that.</ComboboxEmpty>
+              <ComboboxInput placeholder={t('location.select.searchDistricts')} />
+              <ComboboxEmpty>{t('location.select.noDistrict')}</ComboboxEmpty>
               <ComboboxList>
                 {(name: string) => (
                   <ComboboxItem key={name} value={name}>
@@ -185,7 +190,7 @@ export function LocationSelect({
 
         <div className="space-y-1.5">
           <Label htmlFor={`${idPrefix}-thana`} className="text-[13px] font-medium">
-            Thana
+            {t('location.thana')}
           </Label>
           <Combobox
             items={thanaItems}
@@ -198,11 +203,13 @@ export function LocationSelect({
               {thanas.isFetching && district ? (
                 <Loader2 className="size-3.5 animate-spin text-muted-foreground" aria-hidden />
               ) : null}
-              <ComboboxValue placeholder={district ? 'Choose a thana' : 'Choose a district first'} />
+              <ComboboxValue placeholder={
+                district ? t('location.select.chooseThana') : t('location.select.chooseDistrictFirst')
+              } />
             </ComboboxTrigger>
             <ComboboxContent>
-              <ComboboxInput placeholder="Search thanas…" />
-              <ComboboxEmpty>No thana matches that.</ComboboxEmpty>
+              <ComboboxInput placeholder={t('location.select.searchThanas')} />
+              <ComboboxEmpty>{t('location.select.noThana')}</ComboboxEmpty>
               <ComboboxList>
                 {(option: ThanaChoice) => (
                   <ComboboxItem key={option.value} value={option}>
@@ -218,17 +225,17 @@ export function LocationSelect({
       {/* The third value, shown rather than entered: it belongs to the pair,
           and this is where that becomes visible. */}
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <span className="font-medium">Location</span>
+        <span className="font-medium">{t('location.table.location')}</span>
         {value ? (
           <LocationTypeBadge value={value.locationType} />
         ) : (
-          <span>Set automatically once a thana is chosen.</span>
+          <span>{t('location.select.setAutomatically')}</span>
         )}
       </div>
 
       {districts.isError && (
         <p className="text-xs text-destructive" role="alert">
-          The location list could not be loaded. The challan can still be saved without one.
+          {t('location.lookupFailed')}
         </p>
       )}
 

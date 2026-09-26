@@ -14,7 +14,9 @@ import {
   UserCheck,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import { daysAgo } from '@/lib/day-grouping'
+import { formatDayLong } from '@/lib/i18n'
 import type {
   NotificationCategory,
   NotificationModule,
@@ -44,8 +46,13 @@ import type {
  * vanishes — the rule `lib/roles.ts` and `layout/nav-accents.ts` both state.
  */
 
-interface ModuleMeta {
+/** What a module says. The label is resolved by the lookup below. */
+interface ModuleMeta extends ModulePresentation {
   label: string
+}
+
+/** The untranslatable half: colour and icon, and nothing it says. */
+interface ModulePresentation {
   icon: LucideIcon
   /** Soft tinted pill: background, hairline border and text in one hue. */
   badge: string
@@ -54,44 +61,38 @@ interface ModuleMeta {
   dot: string
 }
 
-export const NOTIFICATION_MODULE_META: Record<NotificationModule, ModuleMeta> = {
+export const NOTIFICATION_MODULE_META: Record<NotificationModule, ModulePresentation> = {
   Account: {
-    label: 'Account',
     icon: ShieldCheck,
     badge: 'border-tone-violet/25 bg-tone-violet/10 text-tone-violet',
     chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
     dot: 'bg-tone-violet',
   },
   'Gate Pass': {
-    label: 'Gate Pass',
     icon: ScanLine,
     badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
     chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
     dot: 'bg-tone-cyan',
   },
   Delivery: {
-    label: 'Delivery',
     icon: PackageCheck,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
     dot: 'bg-tone-amber',
   },
   Vendor: {
-    label: 'Vendor',
     icon: Building2,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
     dot: 'bg-tone-emerald',
   },
   Billing: {
-    label: 'Billing',
     icon: Receipt,
     badge: 'border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo',
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
     dot: 'bg-tone-indigo',
   },
   Accounts: {
-    label: 'Accounts',
     icon: Landmark,
     badge: 'border-tone-violet/25 bg-tone-violet/10 text-tone-violet',
     chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
@@ -99,8 +100,7 @@ export const NOTIFICATION_MODULE_META: Record<NotificationModule, ModuleMeta> = 
   },
 }
 
-const UNKNOWN_MODULE: ModuleMeta = {
-  label: 'System',
+const UNKNOWN_MODULE: ModulePresentation = {
   icon: BellRing,
   badge: 'border-border bg-muted text-muted-foreground',
   chip: 'bg-muted text-muted-foreground ring-border',
@@ -113,8 +113,12 @@ const UNKNOWN_MODULE: ModuleMeta = {
  * retired one never makes an unread message unreadable, and that only holds if
  * every layer between the collection and the screen reads it safely.
  */
-export function notificationModuleMeta(value: string): ModuleMeta {
-  return NOTIFICATION_MODULE_META[value as NotificationModule] ?? UNKNOWN_MODULE
+export function notificationModuleMeta(value: string, t: Translator): ModuleMeta {
+  const known = NOTIFICATION_MODULE_META[value as NotificationModule]
+
+  return known
+    ? { ...known, label: t(`notification.modules.${value as NotificationModule}` as TranslationKey) }
+    : { ...UNKNOWN_MODULE, label: t('notification.modules.unknown') }
 }
 
 interface CategoryMeta {
@@ -124,46 +128,31 @@ interface CategoryMeta {
   description: string
 }
 
-export const NOTIFICATION_CATEGORY_META: Record<NotificationCategory, CategoryMeta> = {
-  approvals: {
-    label: 'Approvals',
-    icon: UserCheck,
-    description: 'Accounts waiting for someone to approve them and assign a role.',
-  },
-  review: {
-    label: 'Review',
-    icon: CheckCheck,
-    description: 'Gate passes submitted for checking, verified, or sent back.',
-  },
-  compliance: {
-    label: 'Compliance',
-    icon: AlertTriangle,
-    description: 'Certificates about to lapse, and deliveries closed with no signed copy.',
-  },
-  operations: {
-    label: 'Operations',
-    icon: Truck,
-    description: 'Goods back at the depot, and other facts about the day’s trips.',
-  },
-  money: {
-    label: 'Money',
-    icon: Banknote,
-    description: 'Bills signed off, and payments recorded against a vendor.',
-  },
-  account: {
-    label: 'Your account',
-    icon: ShieldCheck,
-    description:
-      'Your own role and account status. This one cannot be switched off — an account that stops working without a word is worse than an interruption.',
-  },
+export const NOTIFICATION_CATEGORY_META: Record<NotificationCategory, { icon: LucideIcon }> = {
+  approvals: { icon: UserCheck },
+  review: { icon: CheckCheck },
+  compliance: { icon: AlertTriangle },
+  operations: { icon: Truck },
+  money: { icon: Banknote },
+  account: { icon: ShieldCheck },
 }
 
-export function notificationCategoryMeta(value: string): CategoryMeta {
-  return NOTIFICATION_CATEGORY_META[value as NotificationCategory] ?? NOTIFICATION_CATEGORY_META.operations
+export function notificationCategoryMeta(value: string, t: Translator): CategoryMeta {
+  const category: NotificationCategory =
+    value in NOTIFICATION_CATEGORY_META ? (value as NotificationCategory) : 'operations'
+
+  return {
+    icon: NOTIFICATION_CATEGORY_META[category].icon,
+    label: t(`notification.categories.${category}.label` as TranslationKey),
+    description: t(`notification.categories.${category}.description` as TranslationKey),
+  }
 }
 
-interface PriorityMeta {
+interface PriorityMeta extends PriorityPresentation {
   label: string
+}
+
+interface PriorityPresentation {
   /** A hairline down the row's leading edge. Only the two that earn it. */
   emphasis: string | null
   /** The dot on the bell, and the tile. */
@@ -172,23 +161,20 @@ interface PriorityMeta {
   icon: LucideIcon
 }
 
-export const NOTIFICATION_PRIORITY_META: Record<NotificationPriority, PriorityMeta> = {
+export const NOTIFICATION_PRIORITY_META: Record<NotificationPriority, PriorityPresentation> = {
   info: {
-    label: 'For information',
     emphasis: null,
     dot: 'bg-brand-indigo',
     badge: 'border-border bg-muted text-muted-foreground',
     icon: Info,
   },
   attention: {
-    label: 'Needs attention',
     emphasis: 'bg-tone-amber',
     dot: 'bg-brand-amber',
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     icon: AlertTriangle,
   },
   urgent: {
-    label: 'Urgent',
     emphasis: 'bg-tone-rose',
     dot: 'bg-tone-rose',
     badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
@@ -196,8 +182,14 @@ export const NOTIFICATION_PRIORITY_META: Record<NotificationPriority, PriorityMe
   },
 }
 
-export function notificationPriorityMeta(value: string): PriorityMeta {
-  return NOTIFICATION_PRIORITY_META[value as NotificationPriority] ?? NOTIFICATION_PRIORITY_META.info
+export function notificationPriorityMeta(value: string, t: Translator): PriorityMeta {
+  const priority: NotificationPriority =
+    value in NOTIFICATION_PRIORITY_META ? (value as NotificationPriority) : 'info'
+
+  return {
+    ...NOTIFICATION_PRIORITY_META[priority],
+    label: t(`notification.priorities.${priority}` as TranslationKey),
+  }
 }
 
 /**
@@ -257,42 +249,43 @@ export function notificationPath(record: NotificationRecord): string | null {
 }
 
 /** What the link is called, so a button says where it goes. */
-export function notificationLinkLabel(record: NotificationRecord): string {
+export function notificationLinkLabel(record: NotificationRecord, t: Translator): string {
   switch (record.entityType) {
     case 'GatePass':
-      return 'Open gate pass'
+      return t('notification.links.gatePass')
     case 'Challan':
-      return 'Open challan'
+      return t('notification.links.challan')
     case 'Trip':
-      return 'Open trip'
+      return t('notification.links.trip')
     case 'Vendor':
-      return 'Open vendor'
+      return t('notification.links.vendor')
     case 'Bill':
     case 'LabourBill':
-      return 'Open bill'
+      return t('notification.links.bill')
     case 'User':
-      return 'Open Administration'
+      return t('notification.links.administration')
     case 'AccountsEntry':
-      return 'Open cash book'
+      return t('notification.links.cashBook')
     default:
-      return 'Open'
+      return t('notification.links.generic')
   }
 }
 
-const DAY_HEADING = new Intl.DateTimeFormat(undefined, {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-})
-
-/** "Today", "Yesterday", then the full date — the question the reader is asking. */
-export function dayHeading(iso: string): string {
+/**
+ * "Today", "Yesterday", then the full date — the question the reader is asking.
+ *
+ * The full date comes from `formatDayLong`, which is cached per locale and
+ * already knows how to write a Bengali month; the two words come from the
+ * shared `time` branch, because the activity journal's headings say exactly
+ * the same thing and a second copy is how the two lists in one shell come to
+ * disagree.
+ */
+export function dayHeading(iso: string, t: Translator): string {
   const days = daysAgo(iso, new Date())
 
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  return DAY_HEADING.format(new Date(iso))
+  if (days === 0) return t('time.today')
+  if (days === 1) return t('time.yesterday')
+  return formatDayLong(new Date(iso))
 }
 
 /**

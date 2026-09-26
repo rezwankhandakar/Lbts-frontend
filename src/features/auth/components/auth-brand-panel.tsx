@@ -1,21 +1,23 @@
 import { Network, Route, ShieldCheck } from 'lucide-react'
 import { BrandLockup } from '@/components/shared/brand'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
-const BENEFITS = [
+const BENEFITS: { icon: typeof Network; titleKey: TranslationKey; copyKey: TranslationKey }[] = [
   {
     icon: Network,
-    title: 'Connected operations',
-    copy: 'Every movement, one system of record.',
+    titleKey: 'auth.brand.connected.title',
+    copyKey: 'auth.brand.connected.copy',
   },
   {
     icon: Route,
-    title: 'Route & schedule visibility',
-    copy: 'See the whole line-haul at a glance.',
+    titleKey: 'auth.brand.routes.title',
+    copyKey: 'auth.brand.routes.copy',
   },
   {
     icon: ShieldCheck,
-    title: 'Role-based team access',
-    copy: 'People see exactly what they should.',
+    titleKey: 'auth.brand.access.title',
+    copyKey: 'auth.brand.access.copy',
   },
 ]
 
@@ -53,6 +55,8 @@ function RouteMotif() {
 }
 
 export function AuthBrandPanel() {
+  const t = useT()
+
   return (
     <aside className="relative hidden overflow-hidden bg-gradient-to-br from-brand-from to-brand-to p-10 text-primary-foreground lg:flex lg:flex-col lg:justify-between xl:p-12">
       {/* Faint survey grid, then a soft light source, then the route motif. */}
@@ -70,22 +74,22 @@ export function AuthBrandPanel() {
 
       <div className="relative max-w-md">
         <h2 className="text-[2rem] leading-[1.15] font-semibold tracking-tight text-balance xl:text-4xl">
-          Move your business forward.
+          {t('auth.brandHeadline')}
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-pretty text-primary-foreground/75">
-          Manage your line-haul and business transport operations from one connected platform.
+          {t('auth.brandBody')}
         </p>
 
         <ul className="mt-9 space-y-5">
           {BENEFITS.map((benefit) => (
-            <li key={benefit.title} className="flex items-start gap-3.5">
+            <li key={benefit.titleKey} className="flex items-start gap-3.5">
               <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/12 ring-1 ring-primary-foreground/15">
                 <benefit.icon className="size-4" aria-hidden />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-medium">{benefit.title}</p>
+                <p className="text-sm font-medium">{t(benefit.titleKey)}</p>
                 <p className="mt-0.5 text-[13px] leading-snug text-primary-foreground/65">
-                  {benefit.copy}
+                  {t(benefit.copyKey)}
                 </p>
               </div>
             </li>

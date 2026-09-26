@@ -5,6 +5,11 @@ import { Label } from '@/components/ui/label'
 import { useVehicleSearch } from '../hooks/use-trip-lookups'
 import type { TripVehicleOption } from '../types'
 import { VehicleSearchResults } from './vehicle-search-results'
+import { useT } from '@/lib/i18n'
+
+/** What the hint points at: the tail somebody types, and the plate it finds. */
+const EXAMPLE_DIGITS = '1234'
+const EXAMPLE_PLATE = 'DHAKA METRO-TA-11-1234'
 
 interface VehicleSearchProps {
   onSelect: (option: TripVehicleOption) => void
@@ -27,6 +32,8 @@ interface VehicleSearchProps {
  * A combobox in the ARIA sense: arrows move, Enter chooses, Escape clears.
  */
 export function VehicleSearch({ onSelect, autoFocus }: VehicleSearchProps) {
+  const t = useT()
+
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const listId = useId()
@@ -48,7 +55,7 @@ export function VehicleSearch({ onSelect, autoFocus }: VehicleSearchProps) {
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <Label htmlFor={`${listId}-input`}>Registration number</Label>
+        <Label htmlFor={`${listId}-input`}>{t('delivery.vehicle.registrationNumber')}</Label>
         <div className="relative">
           <Search
             className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
@@ -93,9 +100,12 @@ export function VehicleSearch({ onSelect, autoFocus }: VehicleSearchProps) {
           )}
         </div>
         <p className="text-xs leading-snug text-muted-foreground">
-          Type the last digits on the plate — <span className="font-mono">1234</span> finds{' '}
-          <span className="font-mono">DHAKA METRO-TA-11-1234</span>. Only vehicles that can take a
-          trip are listed.
+          {/* The two examples are data rather than copy, so they stay out of
+              the dictionary and read the same in every language. */}
+          {t('delivery.vehicle.searchHint', {
+            digits: EXAMPLE_DIGITS,
+            plate: EXAMPLE_PLATE,
+          })}
         </p>
       </div>
 

@@ -14,6 +14,7 @@ import { challanChanges } from '../lib/cart'
 import { ChallanChangeNotice } from './challan-change-notice'
 import { shortTripNumber } from '../lib/delivery-meta'
 import { SummaryFigures } from './summary-figures'
+import { useT } from '@/lib/i18n'
 
 interface ConfirmTripDialogProps {
   workspace: TripWorkspace
@@ -31,6 +32,8 @@ interface ConfirmTripDialogProps {
  * spent now is not given back.
  */
 export function ConfirmTripDialog({ workspace, open, onOpenChange, onConfirm }: ConfirmTripDialogProps) {
+  const t = useT()
+
   const { vehicle, driver, cart, editing, isSaving, tripDate } = workspace
   if (!vehicle || !driver) {
     return null
@@ -50,7 +53,7 @@ export function ConfirmTripDialog({ workspace, open, onOpenChange, onConfirm }: 
     ['Vehicle', vehicle.vehicle.registrationNo],
     ['Vendor', `${vehicle.vendor.name} (${vehicle.vendor.vendorCode})`],
     ['Driver', `${driver.name} · ${driver.mobile}`],
-    ['Trip date', formatDay(tripDate)],
+    [t('delivery.summary.tripDate'), formatDay(tripDate)],
   ]
 
   return (
@@ -58,12 +61,14 @@ export function ConfirmTripDialog({ workspace, open, onOpenChange, onConfirm }: 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {editing ? `Save ${shortTripNumber(editing.tripNumber)}?` : 'Create this delivery?'}
+            {editing
+              ? t('delivery.confirm.saveTitle', { trip: shortTripNumber(editing.tripNumber) })
+              : t('delivery.confirm.createTitle')}
           </DialogTitle>
           <DialogDescription>
             {editing
-              ? 'The trip keeps its number. Every challan on it is re-read against the current paper.'
-              : `The trip is assigned to ${vehicle.vendor.name} and numbered from their own serial. A number, once given, is never reused.`}
+              ? t('delivery.confirm.saveDescription')
+              : t('delivery.confirm.createDescription', { vendor: vehicle.vendor.name })}
           </DialogDescription>
         </DialogHeader>
 
@@ -105,7 +110,7 @@ export function ConfirmTripDialog({ workspace, open, onOpenChange, onConfirm }: 
 
         <DialogFooter>
           <Button type="button" variant="outline" disabled={isSaving} onClick={() => onOpenChange(false)}>
-            Back to the cart
+            {t('delivery.confirm.backToCart')}
           </Button>
           <Button type="button" disabled={isSaving} onClick={onConfirm}>
             {isSaving ? (
@@ -113,7 +118,7 @@ export function ConfirmTripDialog({ workspace, open, onOpenChange, onConfirm }: 
             ) : (
               <Send data-icon="inline-start" aria-hidden />
             )}
-            {editing ? 'Save trip' : 'Confirm delivery'}
+            {editing ? t('delivery.confirm.saveTrip') : t('delivery.confirm.confirmDelivery')}
           </Button>
         </DialogFooter>
       </DialogContent>

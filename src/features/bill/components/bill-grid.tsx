@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { BillRecord } from '../types'
 import { BillCard } from './bill-card'
+import { useT } from '@/lib/i18n'
 
 interface BillGridProps {
   records: BillRecord[]
@@ -35,10 +36,12 @@ export function BillGrid({
   onReset,
   onCreate,
 }: BillGridProps) {
+  const t = useT()
+
   if (isLoading) {
     return (
       <div className={GRID} aria-busy="true">
-        <span className="sr-only">Loading bills</span>
+        <span className="sr-only">{t('bill.list.loading')}</span>
         {Array.from({ length: 8 }, (_, index) => (
           <Skeleton key={index} className="h-[14.5rem] rounded-xl" />
         ))}
@@ -52,11 +55,13 @@ export function BillGrid({
         <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
           <TriangleAlert className="size-5" aria-hidden />
         </div>
-        <h3 className="mt-4 text-base font-semibold tracking-tight">Could not load bills</h3>
+        <h3 className="mt-4 text-base font-semibold tracking-tight">
+          {t('bill.list.loadFailed')}
+        </h3>
         <p className="mt-1.5 max-w-sm text-sm text-pretty text-muted-foreground">{errorMessage}</p>
         <Button variant="outline" size="sm" className="mt-5" onClick={onRetry} disabled={isFetching}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          {isFetching ? 'Retrying…' : 'Try again'}
+          {isFetching ? t('bill.list.retrying') : t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -68,12 +73,14 @@ export function BillGrid({
         <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
           <SearchX className="size-5" aria-hidden />
         </div>
-        <h3 className="mt-4 text-base font-semibold tracking-tight">No bills match</h3>
+        <h3 className="mt-4 text-base font-semibold tracking-tight">
+          {t('bill.list.noMatches')}
+        </h3>
         <p className="mt-1.5 max-w-md text-sm text-pretty text-muted-foreground">
-          No bill matches the current search, status, month, year or unit.
+          {t('bill.list.noMatchesHint')}
         </p>
         <Button variant="outline" size="sm" className="mt-5" onClick={onReset}>
-          Clear filters
+          {t('common.actions.clearFilters')}
         </Button>
       </div>
     )
@@ -83,14 +90,14 @@ export function BillGrid({
     return (
       <EmptyState
         icon={ReceiptText}
-        title="No bills yet"
-        description="A bill is one unit's month of Trip DOs, laid out as the Excel sheet the office sends. Open a slot, search its Trip DOs, and every row you add is marked billed on the Trip DO sheet, the challan and the gate pass."
+        title={t('bill.list.empty')}
+        description={t('bill.listDescription')}
         className="min-h-[22rem] border-dashed shadow-none"
         action={
           canCreate ? (
             <Button onClick={onCreate}>
               <Plus data-icon="inline-start" aria-hidden />
-              Open the first bill
+              {t('bill.list.openFirst')}
             </Button>
           ) : undefined
         }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { Camera, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ALLOWED_PHOTO_EXTENSIONS, isAllowedPhoto } from '@/features/vendor/lib/photo-rules'
+import { useT } from '@/lib/i18n'
 
 interface DriverPhotoFieldProps {
   file: File | null
@@ -19,6 +20,8 @@ interface DriverPhotoFieldProps {
  * after one.
  */
 export function DriverPhotoField({ file, onChange, disabled }: DriverPhotoFieldProps) {
+  const t = useT()
+
   const fileInput = useRef<HTMLInputElement>(null)
   const preview = useMemo(() => (file ? URL.createObjectURL(file) : null), [file])
 
@@ -33,7 +36,7 @@ export function DriverPhotoField({ file, onChange, disabled }: DriverPhotoFieldP
   return (
     <fieldset className="space-y-3">
       <legend className="w-full border-b pb-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-        Photo
+        {t('delivery.driver.photo')}
       </legend>
 
       <div className="flex items-center gap-3 pt-1">
@@ -54,7 +57,7 @@ export function DriverPhotoField({ file, onChange, disabled }: DriverPhotoFieldP
               disabled={disabled}
               onClick={() => fileInput.current?.click()}
             >
-              {file ? 'Choose another' : 'Choose a photo'}
+              {file ? t('delivery.driver.chooseAnotherPhoto') : t('delivery.driver.choosePhoto')}
             </Button>
             {file && (
               <Button
@@ -65,7 +68,7 @@ export function DriverPhotoField({ file, onChange, disabled }: DriverPhotoFieldP
                 onClick={() => onChange(null)}
               >
                 <X data-icon="inline-start" aria-hidden />
-                Remove
+                {t('common.actions.remove')}
               </Button>
             )}
           </div>
@@ -77,7 +80,7 @@ export function DriverPhotoField({ file, onChange, disabled }: DriverPhotoFieldP
         <input
           ref={fileInput}
           type="file"
-          aria-label="Driver photo"
+          aria-label={t('delivery.driver.photoAria')}
           accept="image/jpeg,image/png,image/webp"
           className="sr-only"
           disabled={disabled}

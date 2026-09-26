@@ -1,4 +1,5 @@
 import type { GroupTotals } from '../lib/labour-bill-math'
+import type { Translator } from '@/lib/i18n'
 import type { UserRole } from '@/lib/roles'
 
 /**
@@ -301,15 +302,15 @@ export interface LabourSignedCopyList {
  * so the sheet says "still on the road" and "declared lost" apart rather than
  * drawing the same blank for both.
  */
-export function signedCopyGapOf(challan: LabourSignedCopyChallan): string {
+export function signedCopyGapOf(challan: LabourSignedCopyChallan, t: Translator): string {
   if (challan.trips === 0) {
-    return 'This challan is on no trip yet, so there is no signed copy to print.'
+    return t('labourBill.copies.noTrip')
   }
   if (challan.awaiting > 0) {
-    return 'The signed copy for this delivery has not come back yet.'
+    return t('labourBill.copies.notBack')
   }
   if (challan.declaredMissing > 0) {
-    return 'The signed copy for this delivery was declared lost.'
+    return t('labourBill.copies.declaredLost')
   }
-  return 'Everything on this challan came back, so nobody signed for it.'
+  return t('labourBill.copies.allReturned')
 }

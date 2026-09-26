@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/use-auth-store'
 import { useDriver } from '@/features/vendor/hooks/use-fleet'
 import { DeliveryPageHeader } from '@/features/delivery/components/delivery-page-header'
 import { DeliveryWorkspace } from '@/features/delivery/components/delivery-workspace'
+import { tripStatusMeta } from '@/features/delivery/lib/delivery-meta'
 import { TripLoadError } from '@/features/delivery/components/trip-load-error'
 import { useTrip } from '@/features/delivery/hooks/use-deliveries'
 import { shortTripNumber } from '@/features/delivery/lib/delivery-meta'
@@ -18,6 +19,7 @@ import type { TripDriverChoice } from '@/features/delivery/hooks/use-trip-worksp
 import { fromTrip } from '@/features/delivery/lib/cart'
 import { canChangeTrip, tripIsEditable } from '@/features/delivery/types'
 import type { ChallanCandidate, TripRecord, TripVehicleOption } from '@/features/delivery/types'
+import { useT } from '@/lib/i18n'
 
 /**
  * Correcting a trip that has not left the gate.
@@ -29,6 +31,8 @@ import type { ChallanCandidate, TripRecord, TripVehicleOption } from '@/features
  * confirmed.
  */
 export function DeliveryEditPage() {
+  const t = useT()
+
   const { id } = useParams<{ id: string }>()
   const role = useCurrentRole()
   const userId = useAuthStore((state) => state.profile?.id ?? null)
@@ -61,14 +65,18 @@ export function DeliveryEditPage() {
       <div className="mx-auto w-full max-w-3xl">
         <EmptyState
           icon={Lock}
-          title={`${shortTripNumber(trip.tripNumber)} cannot be edited`}
+          title={t('delivery.workspace.cannotEdit', {
+            trip: shortTripNumber(trip.tripNumber),
+          })}
           description={
             tripIsEditable(trip.status)
-              ? 'Only the operator who created this trip, or an Admin or Manager, can change it.'
-              : `It is ${trip.status}: the load has left the gate and the manifest is fixed. Move it back to Assigned to correct it.`
+              ? t('delivery.workspace.notYours')
+              : t('delivery.workspace.leftTheGate', {
+                  status: tripStatusMeta(trip.status, t).label,
+                })
           }
           action={
-            <Button render={<Link to={`/delivery/${trip.id}`} />}>Back to the trip</Button>
+            <Button render={<Link to={`/delivery/${trip.id}`} />}>{t('delivery.workspace.backToTrip')}</Button>
           }
         />
       </div>
@@ -110,6 +118,8 @@ interface EditWorkspaceProps {
 
 /** Mounted once everything has loaded, so the workspace is seeded exactly once. */
 function EditWorkspace({ trip, vehicle, driver, candidates }: EditWorkspaceProps) {
+  const t = useT()
+
   const workspace = useTripWorkspace({
     trip,
     vehicle,
@@ -120,12 +130,8 @@ function EditWorkspace({ trip, vehicle, driver, candidates }: EditWorkspaceProps
   return (
     <div className="mx-auto w-full max-w-7xl">
       <DeliveryPageHeader
-        title={
-          <>
-            Edit <span className="font-mono">{shortTripNumber(trip.tripNumber)}</span>
-          </>
-        }
-        description="Correct the load, the delivery details or who drives it. The trip keeps its number and its vendor."
+        title={t('delivery.workspace.editTitle', { trip: shortTripNumber(trip.tripNumber) })}
+        description={t('delivery.workspace.editDescription')}
         back={{ to: `/delivery/${trip.id}`, label: shortTripNumber(trip.tripNumber) }}
       />
       <DeliveryWorkspace workspace={workspace} />

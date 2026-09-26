@@ -1,4 +1,6 @@
 import { CircleCheck, TriangleAlert } from 'lucide-react'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { SessionProgress } from '../lib/challan-session'
 
@@ -33,6 +35,8 @@ export function SessionProgressPanel({
   progress,
   className,
 }: SessionProgressPanelProps) {
+  const t = useT()
+
   return (
     <div className={cn('flex min-w-0 items-center gap-2.5', className)}>
       <div
@@ -41,7 +45,7 @@ export function SessionProgressPanel({
         aria-valuenow={progress.percent}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Pages filed as challans"
+        aria-label={t('challan.queue.filedAria')}
       >
         <div
           className={cn(
@@ -55,11 +59,14 @@ export function SessionProgressPanel({
       {progress.isComplete ? (
         <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-tone-emerald">
           <CircleCheck className="size-3.5" aria-hidden />
-          Complete
+          {t('challan.queue.complete')}
         </span>
       ) : (
         <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-          {progress.assignedPages}/{pageCount} pages
+          {t('challan.queue.pagesOf', {
+            assigned: formatNumber(progress.assignedPages),
+            total: formatNumber(pageCount),
+          })}
         </span>
       )}
 
@@ -69,12 +76,13 @@ export function SessionProgressPanel({
       {progress.pending > 0 && (
         <span
           className="flex shrink-0 items-center gap-1 text-xs text-tone-amber"
-          title={`${progress.pending} ${
-            progress.pending === 1 ? 'challan is' : 'challans are'
-          } still only in this browser. Nothing is saved until you file each one, and closing this page loses what has not been filed.`}
+          title={t('challan.queue.pendingWarning', {
+            count: progress.pending,
+            n: formatNumber(progress.pending),
+          })}
         >
           <TriangleAlert className="size-3.5" aria-hidden />
-          {progress.pending} not filed
+          {t('challan.queue.notFiled', { n: formatNumber(progress.pending) })}
         </span>
       )}
     </div>

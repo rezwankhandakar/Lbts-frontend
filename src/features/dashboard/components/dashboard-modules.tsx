@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
 import { navSections, canSeeNavItem } from '@/app/nav-config'
 import type { NavItem } from '@/app/nav-config'
-import { formatTaka } from '@/lib/format'
+import { useFormatters, useT } from '@/lib/i18n'
+import type { Formatters, Translator } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { DashboardData } from '../types'
 
@@ -25,7 +26,9 @@ import type { DashboardData } from '../types'
  * guards the URL and the API refuses the request either way.
  */
 export function DashboardModules({ dashboard }: { dashboard: DashboardData }) {
-  const cards = moduleCards(dashboard)
+  const t = useT()
+  const format = useFormatters()
+  const cards = moduleCards(dashboard, t, format)
   const links = jumpLinks(dashboard, cards)
 
   if (cards.length === 0 && links.length === 0) {
@@ -36,10 +39,10 @@ export function DashboardModules({ dashboard }: { dashboard: DashboardData }) {
     <section aria-labelledby="modules-heading" className="space-y-2.5">
       <header>
         <h2 id="modules-heading" className="text-[13px] font-semibold tracking-tight">
-          Your modules
+          {t('dashboard.modules.heading')}
         </h2>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          What each one holds, and a way into it.
+          {t('dashboard.modules.subtitle')}
         </p>
       </header>
 
@@ -52,7 +55,7 @@ export function DashboardModules({ dashboard }: { dashboard: DashboardData }) {
       )}
 
       {links.length > 0 && (
-        <nav aria-label="Other modules" className="flex flex-wrap gap-2 pt-0.5">
+        <nav aria-label={t('dashboard.modules.otherModules')} className="flex flex-wrap gap-2 pt-0.5">
           {links.map((item) => (
             <Link
               key={item.path}
@@ -60,7 +63,7 @@ export function DashboardModules({ dashboard }: { dashboard: DashboardData }) {
               className="group inline-flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-xs font-medium shadow-sm transition-colors outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring"
             >
               <item.icon className={cn('size-3.5 shrink-0', ACCENT_TEXT[item.accent])} aria-hidden />
-              {item.label}
+              {t(item.labelKey)}
               <ArrowRight
                 className="size-3 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
                 aria-hidden
@@ -108,25 +111,43 @@ interface ModuleCardData {
   failed: boolean
 }
 
-function moduleCards(dashboard: DashboardData): ModuleCardData[] {
+/**
+ * The cards, built with the translator and the formatters handed in rather
+ * than reached for. It is a plain function rather than a hook, so it cannot
+ * call `useT` itself — and passing them keeps it exactly what it was: a pure
+ * mapping from figures to a card, with nothing in it that knows about React.
+ */
+function moduleCards(
+  dashboard: DashboardData,
+  t: Translator,
+  format: Formatters,
+): ModuleCardData[] {
   const cards: ModuleCardData[] = []
-  const n = (value: number): string => value.toLocaleString()
+  const n = (value: number): string => format.number(value)
 
   if (dashboard.can.gatePass) {
     const s = dashboard.gatePass.data
     cards.push({
       icon: ScanLine,
-      title: 'Gate Pass',
-      description: 'Trips recorded against a scanned hard copy.',
+      title: t('nav.items.gatePass'),
+      description: t('dashboard.modules.gatePass.description'),
       chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
       to: '/gate-pass',
-      headlineLabel: 'On record',
+      headlineLabel: t('dashboard.modules.onRecord'),
       headline: s && n(s.total),
       figures: s
         ? [
-            { label: 'Verified', value: n(s.verified), className: 'text-tone-emerald' },
-            { label: 'Awaiting check', value: n(s.submitted), className: 'text-tone-amber' },
-            { label: 'Drafts', value: n(s.draft) },
+            {
+              label: t('dashboard.modules.gatePass.verified'),
+              value: n(s.verified),
+              className: 'text-tone-emerald',
+            },
+            {
+              label: t('dashboard.modules.gatePass.awaitingCheck'),
+              value: n(s.submitted),
+              className: 'text-tone-amber',
+            },
+            { label: t('dashboard.modules.gatePass.drafts'), value: n(s.draft) },
           ]
         : [],
       pending: dashboard.gatePass.isPending,
@@ -138,24 +159,24 @@ function moduleCards(dashboard: DashboardData): ModuleCardData[] {
     const s = dashboard.challan.data
     cards.push({
       icon: ReceiptText,
-      title: 'Challan',
-      description: "Deliveries filed out of the office's PDFs.",
+      title: t('nav.items.challan'),
+      description: t('dashboard.modules.challan.description'),
       chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
       to: '/challan',
-      headlineLabel: 'On record',
+      headlineLabel: t('dashboard.modules.onRecord'),
       headline: s && n(s.total),
       figures: s
         ? [
-            { label: 'Pieces', value: n(s.totalQty) },
+            { label: t('dashboard.modules.challan.pieces'), value: n(s.totalQty) },
             /*
              * The charge total sits beside the count of challans nothing could
              * price, never on its own: a figure that quietly leaves records
              * out is worse than no figure, which is the rule the records list
              * follows for the same pair.
              */
-            { label: 'Charged', value: formatTaka(s.totalAmount) },
+            { label: t('dashboard.modules.challan.charged'), value: format.taka(s.totalAmount) },
             {
-              label: 'Source PDFs open',
+              label: t('dashboard.modules.challan.sourcePdfsOpen'),
               value: n(s.batchesProcessing),
               className: s.batchesProcessing > 0 ? 'text-tone-amber' : undefined,
             },
@@ -170,21 +191,25 @@ function moduleCards(dashboard: DashboardData): ModuleCardData[] {
     const s = dashboard.delivery.data
     cards.push({
       icon: PackageCheck,
-      title: 'Delivery',
-      description: 'Trips, and the challans that went out on them.',
+      title: t('nav.items.delivery'),
+      description: t('dashboard.modules.delivery.description'),
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
       to: '/delivery',
-      headlineLabel: 'Trips run',
+      headlineLabel: t('dashboard.modules.delivery.tripsRun'),
       headline: s && n(s.total),
       figures: s
         ? [
-            { label: 'Signed for', value: n(s.completed), className: 'text-tone-emerald' },
             {
-              label: 'Awaiting copies',
+              label: t('dashboard.modules.delivery.signedFor'),
+              value: n(s.completed),
+              className: 'text-tone-emerald',
+            },
+            {
+              label: t('dashboard.modules.delivery.awaitingCopies'),
               value: n(s.open),
               className: s.open > 0 ? 'text-tone-amber' : undefined,
             },
-            { label: 'Pieces today', value: n(s.todayQty) },
+            { label: t('dashboard.modules.delivery.piecesToday'), value: n(s.todayQty) },
           ]
         : [],
       pending: dashboard.delivery.isPending,
@@ -203,16 +228,16 @@ function moduleCards(dashboard: DashboardData): ModuleCardData[] {
     const lapsing = s ? s.expiredDocuments + s.expiringDocuments : 0
     cards.push({
       icon: Building2,
-      title: 'Vendors',
-      description: 'The fleet behind the trips, and its papers.',
+      title: t('nav.items.vendors'),
+      description: t('dashboard.modules.vendor.description'),
       chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
       to: '/vendors',
-      headlineLabel: 'Active vendors',
+      headlineLabel: t('dashboard.modules.vendor.activeVendors'),
       headline: s && n(s.active),
       figures: s
         ? [
-            { label: 'Vehicles', value: n(s.vehicles) },
-            { label: 'Drivers', value: n(s.drivers) },
+            { label: t('dashboard.modules.vendor.vehicles'), value: n(s.vehicles) },
+            { label: t('dashboard.modules.vendor.drivers'), value: n(s.drivers) },
             /*
              * "In date" rather than "0", for the reason the vendor dashboard's
              * fleet strip gives: a zero here reads as a count of documents
@@ -220,8 +245,16 @@ function moduleCards(dashboard: DashboardData): ModuleCardData[] {
              * thing to tell somebody whose papers are all filed and all valid.
              */
             lapsing > 0
-              ? { label: 'Papers lapsing', value: n(lapsing), className: 'text-tone-amber' }
-              : { label: 'Papers', value: 'In date', className: 'text-tone-emerald' },
+              ? {
+                  label: t('dashboard.modules.vendor.papersLapsing'),
+                  value: n(lapsing),
+                  className: 'text-tone-amber',
+                }
+              : {
+                  label: t('dashboard.modules.vendor.papers'),
+                  value: t('dashboard.modules.vendor.inDate'),
+                  className: 'text-tone-emerald',
+                },
           ]
         : [],
       pending: dashboard.vendor.isPending,
@@ -253,6 +286,8 @@ function jumpLinks(dashboard: DashboardData, cards: ModuleCardData[]): NavItem[]
 }
 
 function ModuleCard({ card }: { card: ModuleCardData }) {
+  const t = useT()
+
   return (
     <Link
       to={card.to}
@@ -290,7 +325,7 @@ function ModuleCard({ card }: { card: ModuleCardData }) {
 
       {card.failed ? (
         <p className="mt-4 border-t pt-3 text-[11px] text-muted-foreground">
-          These figures could not be loaded.
+          {t('dashboard.figuresFailed')}
         </p>
       ) : (
         <dl className="mt-4 grid gap-1.5 border-t pt-3">

@@ -13,6 +13,7 @@ import {
 } from '@/features/product-rate/hooks/use-product-rates'
 import { canManageProductRates } from '@/features/product-rate/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { useT } from '@/lib/i18n'
 
 /**
  * The Product Rate card: what a delivery is charged, per product and per
@@ -37,6 +38,8 @@ import { useCurrentRole } from '@/hooks/use-current-role'
  * renders.
  */
 export function ProductRatesPage() {
+  const t = useT()
+
   const role = useCurrentRole()
   const canManage = canManageProductRates(role)
 
@@ -60,8 +63,8 @@ export function ProductRatesPage() {
   return (
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
-        title="Product Rates"
-        description="What each product is charged for delivery, in each of the three areas. A challan line is priced from this card when its product and location are both known, and the figure is copied onto the record — so correcting a rate here changes what is charged next and never rewrites what has already been charged."
+        title={t('productRate.title')}
+        description={t('productRate.description')}
       />
 
       {canManage && (
@@ -71,7 +74,7 @@ export function ProductRatesPage() {
       )}
 
       <section
-        aria-label="Product rate card"
+        aria-label={t('productRate.cardAria')}
         className="overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <ProductRateFilters
@@ -94,7 +97,7 @@ export function ProductRatesPage() {
           isLoading={ratesQuery.isPending}
           isFetching={ratesQuery.isFetching}
           isError={ratesQuery.isError}
-          errorMessage={ratesQuery.error?.message ?? 'Something went wrong.'}
+          errorMessage={ratesQuery.error?.message ?? t('errors.generic')}
           isFiltered={isFiltered}
           canManage={canManage}
           onRetry={() => void ratesQuery.refetch()}
@@ -110,7 +113,7 @@ export function ProductRatesPage() {
             meta={meta}
             onPageChange={setPage}
             isFetching={ratesQuery.isFetching}
-            noun={['rate', 'rates']}
+            nounKey="nouns.rate"
           />
         )}
       </section>

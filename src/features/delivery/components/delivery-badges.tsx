@@ -1,5 +1,6 @@
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { LINE_CHANGE_META, completionMeta, tripStatusMeta } from '../lib/delivery-meta'
+import { completionMeta, lineChangeMeta, tripStatusMeta } from '../lib/delivery-meta'
 import { highlightPlate } from '../lib/plate'
 import type { CompletionMethod, LineChange } from '../types'
 
@@ -25,7 +26,9 @@ export function TripStatusBadge({
   progress?: { done: number; total: number }
   className?: string
 }) {
-  const meta = tripStatusMeta(value)
+  const t = useT()
+
+  const meta = tripStatusMeta(value, t)
   const showProgress = progress !== undefined && value !== 'Completed' && progress.total > 0
 
   return (
@@ -66,7 +69,9 @@ export function DeliveryOutcomeBadge({
   method?: CompletionMethod | null
   className?: string
 }) {
-  const meta = completionMeta({ outcome: value, completionMethod: method })
+  const t = useT()
+
+  const meta = completionMeta({ outcome: value, completionMethod: method }, t)
 
   return (
     <span
@@ -98,11 +103,13 @@ export function LineChangeBadge({
   detail?: string
   className?: string
 }) {
+  const t = useT()
+
   if (change === 'as-ordered') {
     return null
   }
 
-  const meta = LINE_CHANGE_META[change]
+  const meta = lineChangeMeta(change, t)
 
   return (
     <span

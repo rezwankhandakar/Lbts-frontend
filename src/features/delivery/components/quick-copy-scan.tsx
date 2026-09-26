@@ -4,7 +4,14 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { ScannerPairingDialog } from '@/components/shared/scanner-pairing-dialog'
 import { useScanner } from '@/hooks/use-scanner'
-import { SCANNER_STATE_COPY, SCANNER_TONES } from '@/lib/scanner-messages'
+import {
+  SCANNER_STATE_COPY,
+  SCANNER_TONES,
+  scannerDescriptionKey,
+  scannerTitleKey,
+} from '@/lib/scanner-messages'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import type { ScanSource } from '@/lib/scanner-agent'
 import { cn } from '@/lib/utils'
 import {
@@ -22,9 +29,9 @@ interface QuickCopyScanProps {
   onFile: (file: File, pageCount: number | null) => void
 }
 
-const SOURCES: { value: ScanSource; label: string }[] = [
-  { value: 'flatbed', label: 'Glass' },
-  { value: 'feeder', label: 'Feeder' },
+const SOURCES: { value: ScanSource; labelKey: TranslationKey }[] = [
+  { value: 'flatbed', labelKey: 'delivery.copy.glass' },
+  { value: 'feeder', labelKey: 'delivery.copy.feeder' },
 ]
 
 /**
@@ -43,9 +50,11 @@ const SOURCES: { value: ScanSource; label: string }[] = [
 export function QuickCopyScan({
   uploading,
   disabled = false,
-  scanLabel = 'Scan signed copy',
+  scanLabel,
   onFile,
 }: QuickCopyScanProps) {
+  const t = useT()
+
   const fileInput = useRef<HTMLInputElement>(null)
   const [pairing, setPairing] = useState(false)
 
@@ -98,7 +107,7 @@ export function QuickCopyScan({
         {scanning ? (
           <Button type="button" size="lg" variant="outline" className="flex-1" onClick={scanner.cancel}>
             <Square data-icon="inline-start" aria-hidden />
-            Stop scanning
+            {t('delivery.copy.stopScanning')}
           </Button>
         ) : (
           <Button
@@ -113,7 +122,7 @@ export function QuickCopyScan({
             ) : (
               <ScanLine data-icon="inline-start" aria-hidden />
             )}
-            {uploading ? 'Filing the copy…' : scanLabel}
+            {uploading ? t('delivery.copy.filingCopy') : (scanLabel ?? t('delivery.copy.scan'))}
           </Button>
         )}
 
@@ -125,7 +134,7 @@ export function QuickCopyScan({
           onClick={() => fileInput.current?.click()}
         >
           <FileUp data-icon="inline-start" aria-hidden />
-          Attach a file
+          {t('common.actions.attachFile')}
         </Button>
       </div>
 
@@ -133,13 +142,13 @@ export function QuickCopyScan({
         <span className="flex items-center gap-1.5" aria-live="polite">
           <span className={cn('size-1.5 shrink-0 rounded-full', tone.dot)} aria-hidden />
           <span className="font-medium">
-            {copy.title}
+            {t(scannerTitleKey(scanner.state))}
             {scanning && scanner.pages > 0 && ` · ${scanner.pages} ${scanner.pages === 1 ? 'sheet' : 'sheets'}`}
           </span>
         </span>
 
         {hasFeeder && !scanning && (
-          <span className="inline-flex rounded-md border p-0.5" role="group" aria-label="Scan from">
+          <span className="inline-flex rounded-md border p-0.5" role="group" aria-label={t('delivery.copy.scanFromAria')}>
             {SOURCES.map((source) => (
               <button
                 key={source.value}
@@ -153,7 +162,7 @@ export function QuickCopyScan({
                     : 'text-muted-foreground',
                 )}
               >
-                {source.label}
+                {t(source.labelKey)}
               </button>
             ))}
           </span>
@@ -161,18 +170,18 @@ export function QuickCopyScan({
 
         {scanner.state === 'unpaired' && (
           <Button type="button" variant="outline" size="sm" className="h-7" onClick={() => setPairing(true)}>
-            Connect the scanner
+            {t('delivery.copy.connectScanner')}
           </Button>
         )}
-        {copy.retryLabel && !scanning && (
+        {copy.retryLabelKey && !scanning && (
           <Button type="button" variant="ghost" size="sm" className="h-7" onClick={scanner.check}>
-            {copy.retryLabel}
+            {t(copy.retryLabelKey)}
           </Button>
         )}
       </div>
 
       <p className="text-xs leading-snug text-muted-foreground">
-        {!canScan && !scanning && scanner.state !== 'checking' ? `${copy.description} ` : ''}
+        {!canScan && !scanning && scanner.state !== 'checking' ? `${t(scannerDescriptionKey(scanner.state))} ` : ''}
         {ALLOWED_DOCUMENT_FILE_EXTENSIONS}. Two sheets are saved as one PDF.
       </p>
 

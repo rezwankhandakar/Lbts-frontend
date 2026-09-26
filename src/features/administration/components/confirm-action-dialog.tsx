@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { USER_ACTIONS } from '../administration-actions'
 import type { UserActionId } from '../administration-actions'
@@ -42,6 +43,7 @@ export function ConfirmActionDialog({
   onOpenChange,
   onConfirm,
 }: ConfirmActionDialogProps) {
+  const t = useT()
   const [note, setNote] = useState('')
 
   // Reset between openings so a reason typed for one account cannot follow the
@@ -75,8 +77,10 @@ export function ConfirmActionDialog({
               aria-hidden
             />
           </AlertDialogMedia>
-          <AlertDialogTitle>{definition.title}</AlertDialogTitle>
-          <AlertDialogDescription>{definition.body(user.name)}</AlertDialogDescription>
+          <AlertDialogTitle>{t(definition.titleKey)}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t(definition.bodyKey, { name: user.name })}
+          </AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="rounded-lg border bg-muted/40 px-3 py-2 text-[13px]">
@@ -87,27 +91,27 @@ export function ConfirmActionDialog({
         {definition.notable && (
           <div className="space-y-1.5">
             <Label htmlFor="action-note" className="text-xs text-muted-foreground">
-              Reason (optional)
+              {t('administration.confirm.reasonLabel')}
             </Label>
             <Textarea
               id="action-note"
               value={note}
               maxLength={240}
               rows={2}
-              placeholder="Recorded on the account, visible to administrators."
+              placeholder={t('administration.confirm.reasonPlaceholder')}
               onChange={(event) => setNote(event.target.value)}
             />
           </div>
         )}
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>{t('common.actions.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             variant={definition.destructive ? 'destructive' : 'default'}
             disabled={isPending}
             onClick={() => onConfirm(note.trim())}
           >
-            {isPending ? 'Working…' : definition.confirmLabel}
+            {isPending ? t('administration.confirm.working') : t(definition.confirmLabelKey)}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

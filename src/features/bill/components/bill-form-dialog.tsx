@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useBillUnits } from '../hooks/use-bills'
 import { useCreateBill, useUpdateBill } from '../hooks/use-bill-mutations'
@@ -45,6 +46,8 @@ export function BillFormDialog({ open, onOpenChange, bill = null }: BillFormDial
 const HAS_UNIT = /[A-Z0-9]/
 
 function BillForm({ bill, onDone }: { bill: BillRecord | null; onDone: () => void }) {
+  const t = useT()
+
   const navigate = useNavigate()
   const now = new Date()
   const [month, setMonth] = useState(bill?.month ?? now.getMonth() + 1)
@@ -60,7 +63,7 @@ function BillForm({ bill, onDone }: { bill: BillRecord | null; onDone: () => voi
 
   const unitValue = unit.trim().toUpperCase()
   const unitLocked = Boolean(bill && bill.lineCount > 0)
-  const unitError = touched && !HAS_UNIT.test(unitValue) ? 'Enter the unit this bill is for.' : null
+  const unitError = touched && !HAS_UNIT.test(unitValue) ? t('bill.form.unitRequired') : null
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
@@ -84,18 +87,20 @@ function BillForm({ bill, onDone }: { bill: BillRecord | null; onDone: () => voi
   return (
     <form onSubmit={submit} className="grid gap-5" noValidate>
       <DialogHeader>
-        <DialogTitle>{bill ? `Edit ${bill.billNumber}` : 'Open a bill slot'}</DialogTitle>
+        <DialogTitle>
+          {bill ? t('bill.form.editTitle', { bill: bill.billNumber }) : t('bill.form.openTitle')}
+        </DialogTitle>
         <DialogDescription>
           {bill
-            ? 'Correct the billing month, the unit or the note. The bill number stays.'
-            : 'Choose the billing month and the unit, then add its Trip DOs — the Excel bill builds itself as you go.'}
+            ? t('bill.form.editDescription')
+            : t('bill.form.openDescription')}
         </DialogDescription>
       </DialogHeader>
 
       <BillPeriodPicker month={month} year={year} onMonthChange={setMonth} onYearChange={setYear} />
 
       <div className="grid gap-1.5">
-        <Label htmlFor="bill-unit">Unit</Label>
+        <Label htmlFor="bill-unit">{t('bill.form.unit')}</Label>
         <Input
           id="bill-unit"
           value={unit}
@@ -113,7 +118,7 @@ function BillForm({ bill, onDone }: { bill: BillRecord | null; onDone: () => voi
           {units.data?.map((option) => <option key={option} value={option} />)}
         </datalist>
         {!unitLocked && units.data && units.data.length > 0 && (
-          <div className="flex flex-wrap gap-1.5" aria-label="Units on record">
+          <div className="flex flex-wrap gap-1.5" aria-label={t('bill.toolbar.unitsAria')}>
             {units.data.slice(0, 10).map((option) => (
               <button
                 key={option}
@@ -135,8 +140,8 @@ function BillForm({ bill, onDone }: { bill: BillRecord | null; onDone: () => voi
         <p id="bill-unit-hint" className={cn('text-xs', unitError ? 'text-destructive' : 'text-muted-foreground')}>
           {unitError ??
             (unitLocked
-              ? 'The unit is fixed while the bill carries rows.'
-              : 'Only Trip DOs whose gate pass carries this unit can be added.')}
+              ? t('bill.form.unitFixed')
+              : t('bill.search.onlyThisUnit'))}
         </p>
       </div>
 
@@ -144,7 +149,10 @@ function BillForm({ bill, onDone }: { bill: BillRecord | null; onDone: () => voi
 
       <div className="grid gap-1.5">
         <Label htmlFor="bill-note">
-          Note <span className="font-normal text-muted-foreground">(optional)</span>
+          {t('common.labels.note')}{' '}
+          <span className="font-normal text-muted-foreground">
+            {t('common.labels.optionalSuffix')}
+          </span>
         </Label>
         <Textarea
           id="bill-note"
@@ -157,11 +165,11 @@ function BillForm({ bill, onDone }: { bill: BillRecord | null; onDone: () => voi
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone} disabled={isPending}>
-          Cancel
+          {t('common.actions.cancel')}
         </Button>
         <Button type="submit" disabled={isPending}>
           {isPending && <Loader2 className="animate-spin" data-icon="inline-start" aria-hidden />}
-          {bill ? 'Save changes' : 'Open bill'}
+          {bill ? t('common.actions.saveChanges') : t('bill.form.openBill')}
         </Button>
       </DialogFooter>
     </form>

@@ -1,4 +1,5 @@
 import { MAX_PDF_BYTES } from './gate-pass-document'
+import { t } from '@/lib/i18n'
 import { formatBytes } from './gate-pass-meta'
 import type { ScannedDocument } from '@/lib/scanner-agent'
 
@@ -53,7 +54,7 @@ async function reencodeAsPng(file: File): Promise<ArrayBuffer> {
   try {
     bitmap = await createImageBitmap(file)
   } catch {
-    throw new MergeDocumentsError(`${file.name} could not be read as an image.`)
+    throw new MergeDocumentsError(t('gatePass.documentRules.imageUnreadable', { file: file.name }))
   }
 
   const canvas = document.createElement('canvas')
@@ -63,7 +64,7 @@ async function reencodeAsPng(file: File): Promise<ArrayBuffer> {
   const context = canvas.getContext('2d')
   if (!context) {
     bitmap.close()
-    throw new MergeDocumentsError('This browser could not convert that image. Scan it as a PDF.')
+    throw new MergeDocumentsError(t('gatePass.documentRules.imageConvertFailed'))
   }
 
   context.drawImage(bitmap, 0, 0)
@@ -71,7 +72,7 @@ async function reencodeAsPng(file: File): Promise<ArrayBuffer> {
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
   if (!blob) {
-    throw new MergeDocumentsError('This browser could not convert that image. Scan it as a PDF.')
+    throw new MergeDocumentsError(t('gatePass.documentRules.imageConvertFailed'))
   }
 
   return blob.arrayBuffer()
@@ -103,7 +104,7 @@ function hasPdfSignature(bytes: Uint8Array): boolean {
  */
 export async function joinDocuments(files: File[], stem: string): Promise<ScannedDocument> {
   if (files.length < 2) {
-    throw new MergeDocumentsError('Choose at least two sheets to join.')
+    throw new MergeDocumentsError(t('gatePass.documentRules.needTwoSheets'))
   }
 
   const { PDFDocument } = await import('pdf-lib')
@@ -114,14 +115,14 @@ export async function joinDocuments(files: File[], stem: string): Promise<Scanne
 
     if (file.type === 'application/pdf') {
       if (!hasPdfSignature(bytes)) {
-        throw new MergeDocumentsError(`${file.name} is not a readable PDF.`)
+        throw new MergeDocumentsError(t('gatePass.documentRules.pdfUnreadable', { file: file.name }))
       }
 
       let source
       try {
         source = await PDFDocument.load(bytes)
       } catch {
-        throw new MergeDocumentsError(`${file.name} could not be opened. It may be damaged.`)
+        throw new MergeDocumentsError(t('gatePass.documentRules.unopenable', { file: file.name }))
       }
 
       const indices = source.getPageIndices()

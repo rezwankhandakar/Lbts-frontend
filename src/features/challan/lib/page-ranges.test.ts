@@ -6,7 +6,6 @@ import {
   batchProgress,
   checkRange,
   checkRangeAgainst,
-  describeRange,
   findOverlaps,
   pageCountOf,
   rangesOverlap,
@@ -28,11 +27,6 @@ describe('what a range covers', () => {
     assert.equal(pageCountOf({ startPage: 1, endPage: 2 }), 2)
     assert.equal(pageCountOf({ startPage: 6, endPage: 6 }), 1)
     assert.equal(pageCountOf({ startPage: 7, endPage: 9 }), 3)
-  })
-
-  it('reads back the way somebody would say it aloud', () => {
-    assert.equal(describeRange({ startPage: 6, endPage: 6 }), 'page 6')
-    assert.equal(describeRange({ startPage: 3, endPage: 5 }), 'pages 3–5')
   })
 })
 
@@ -86,7 +80,7 @@ describe('a range against what is already claimed', () => {
   it('names what already owns the pages it refuses', () => {
     const problem = checkRangeAgainst({ startPage: 4, endPage: 5 }, 24, claimed)
     assert.equal(problem?.code, 'overlap')
-    assert.match(problem?.message ?? '', /LBTS-CH-2026-000002/)
+    assert.match(String(problem?.values?.challans ?? ''), /LBTS-CH-2026-000002/)
   })
 
   it('lists every collision a wide selection makes, in page order', () => {

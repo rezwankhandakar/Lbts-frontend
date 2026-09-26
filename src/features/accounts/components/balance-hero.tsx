@@ -1,8 +1,10 @@
 import { ArrowDownLeft, ArrowRight, ArrowUpRight, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatPercent } from '@/lib/format'
 import { signedTaka, taka } from '../lib/accounts-meta'
 import type { AccountsOverview, CashFigures } from '../types'
+import { useT } from '@/lib/i18n'
 
 /**
  * Cash, first — and only cash. Vendor bills, advances and expenses are paid
@@ -19,6 +21,8 @@ import type { AccountsOverview, CashFigures } from '../types'
  * reads as the page's headline in either.
  */
 export function BalanceHero({ overview }: { overview: AccountsOverview | undefined }) {
+  const t = useT()
+
   if (!overview) {
     return <Skeleton className="h-[26rem] rounded-3xl sm:h-72 lg:h-60" />
   }
@@ -35,14 +39,16 @@ export function BalanceHero({ overview }: { overview: AccountsOverview | undefin
         <div className="min-w-0">
           <span className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-3 py-1 text-[11px] font-medium tracking-[0.14em] uppercase ring-1 ring-primary-foreground/15">
             <Wallet className="size-3.5" aria-hidden />
-            Cash balance
+            {t('accounts.hero.cashBalance')}
           </span>
 
           <p className="mt-4 text-5xl font-semibold tracking-tight tabular-nums sm:text-6xl">{signedTaka(cash.balance)}</p>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {cash.wallets.length === 0 ? (
-              <span className="text-sm text-primary-foreground/75">No cash wallet yet</span>
+              <span className="text-sm text-primary-foreground/75">
+                {t('accounts.hero.noCashWallet')}
+              </span>
             ) : (
               cash.wallets.map((wallet) => (
                 <span
@@ -60,7 +66,7 @@ export function BalanceHero({ overview }: { overview: AccountsOverview | undefin
             to="/accounts/cash"
             className="group mt-5 inline-flex items-center gap-1.5 rounded-xl bg-primary-foreground/15 px-3.5 py-2 text-xs font-medium ring-1 ring-primary-foreground/20 transition outline-none hover:bg-primary-foreground/25 focus-visible:ring-2 focus-visible:ring-primary-foreground/60"
           >
-            Cash in &amp; out by month and year
+            {t('accounts.hero.byMonthAndYear')}
             <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
           </Link>
         </div>
@@ -80,6 +86,8 @@ export function BalanceHero({ overview }: { overview: AccountsOverview | undefin
  * figures on their own is not.
  */
 function FlowCard({ label, figures }: { label: string; figures: CashFigures }) {
+  const t = useT()
+
   const share =
     figures.moneyIn > 0
       ? Math.min(100, Math.round((figures.moneyOut / figures.moneyIn) * 100))
@@ -88,23 +96,23 @@ function FlowCard({ label, figures }: { label: string; figures: CashFigures }) {
         : 0
   const note =
     figures.moneyIn > 0
-      ? `${share}% of cash in has gone out`
+      ? t('accounts.cash.shareGoneOut', { share: formatPercent(share) })
       : figures.moneyOut > 0
-        ? 'Paid out of what was already on hand'
-        : 'Nothing has moved yet'
+        ? t('accounts.hero.paidFromHand')
+        : t('accounts.hero.nothingMoved')
 
   return (
     <div className="rounded-2xl bg-primary-foreground/10 p-4 ring-1 ring-primary-foreground/15">
       <div className="flex items-center justify-between gap-2">
         <p className="truncate text-[11px] font-medium tracking-wider text-primary-foreground/70 uppercase">{label}</p>
         <span className="shrink-0 rounded-full bg-primary-foreground/15 px-2 py-0.5 text-[11px] font-medium tabular-nums">
-          Net {signedTaka(figures.net)}
+          {t('accounts.hero.net', { amount: signedTaka(figures.net) })}
         </span>
       </div>
 
       <dl className="mt-3 grid gap-2">
-        <Flow icon={ArrowDownLeft} label="In" value={figures.moneyIn} />
-        <Flow icon={ArrowUpRight} label="Out" value={figures.moneyOut} />
+        <Flow icon={ArrowDownLeft} label={t('accounts.cash.in')} value={figures.moneyIn} />
+        <Flow icon={ArrowUpRight} label={t('accounts.cash.out')} value={figures.moneyOut} />
       </dl>
 
       <div className="mt-3.5 h-1.5 overflow-hidden rounded-full bg-primary-foreground/15" aria-hidden>

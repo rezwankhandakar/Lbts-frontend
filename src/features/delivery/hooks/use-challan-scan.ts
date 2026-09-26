@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
+import { countOf, t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { scanChallan } from '../api/delivery-api'
 import { isFullyDispatched } from '../lib/cart'
@@ -50,7 +51,7 @@ export function useChallanScan({ cart, add, excludeTripId }: ChallanScanArgs) {
       if (already) {
         scanTone('warn')
         setLast({ kind: 'duplicate', code, challanNumber: already.challanNumber })
-        toast.info(`${already.challanNumber} is already on this trip`)
+        toast.info(t('delivery.finder.alreadyOn', { challan: already.challanNumber }))
         return
       }
 
@@ -61,22 +62,27 @@ export function useChallanScan({ cart, add, excludeTripId }: ChallanScanArgs) {
         if (cart.challans.some((challan) => challan.challanId === candidate.id)) {
           scanTone('warn')
           setLast({ kind: 'duplicate', code, challanNumber: candidate.challanNumber })
-          toast.info(`${candidate.challanNumber} is already on this trip`)
+          toast.info(t('delivery.finder.alreadyOn', { challan: candidate.challanNumber }))
         } else if (isFullyDispatched(candidate)) {
           scanTone('warn')
           setLast({ kind: 'dispatched', code, candidate })
-          toast.warning(`${candidate.challanNumber} has already gone out in full`, {
-            description: `On ${candidate.trips
-              .map((trip) => shortTripNumber(trip.tripNumber))
-              .join(', ')}.`,
-            action: { label: 'Add anyway', onClick: () => add(candidate) },
+          toast.warning(t('delivery.finder.goneOutInFull', { challan: candidate.challanNumber }), {
+            description: t('delivery.finder.onTrips', {
+              trips: candidate.trips
+                .map((trip) => shortTripNumber(trip.tripNumber))
+                .join(', '),
+            }),
+            action: { label: t('delivery.finder.addAnyway'), onClick: () => add(candidate) },
           })
         } else {
           add(candidate)
           scanTone('ok')
           setLast({ kind: 'added', code, candidate })
-          toast.success(`${candidate.challanNumber} added`, {
-            description: `${candidate.customerName} · ${candidate.remaining} pcs`,
+          toast.success(t('delivery.finder.addedToast', { challan: candidate.challanNumber }), {
+            description: t('delivery.finder.addedNote', {
+              customer: candidate.customerName,
+              pieces: countOf(candidate.remaining, 'nouns.pc', t),
+            }),
           })
         }
       } catch (error) {

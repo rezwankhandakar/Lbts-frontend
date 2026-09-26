@@ -2,10 +2,11 @@ import type { ReactNode } from 'react'
 import { CircleDashed, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { localToday, monthRange, plural, taka } from '@/features/delivery/lib/delivery-meta'
+import { localToday, monthRange, taka } from '@/features/delivery/lib/delivery-meta'
 import { cn } from '@/lib/utils'
 import type { VendorTripFilterPatch, VendorTripListParams, VendorTripPageMeta } from '../types'
 import { MonthlyBill } from './vendor-trip-monthly-bill'
+import { countOf, useT } from '@/lib/i18n'
 
 interface VendorTripFiltersProps {
   params: VendorTripListParams
@@ -77,6 +78,8 @@ export function VendorTripFilters({
   isFiltered,
   meta,
 }: VendorTripFiltersProps) {
+  const t = useT()
+
   return (
     <div className="space-y-3 border-b p-3 sm:p-4">
       <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
@@ -188,7 +191,7 @@ export function VendorTripFilters({
       {meta && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            {plural(meta.total, 'trip')} · {plural(meta.totalQty, 'piece')} · Trip rent{' '}
+            {countOf(meta.total, 'nouns.trip', t)} · {countOf(meta.totalQty, 'nouns.piece', t)} · Trip rent{' '}
             {taka(meta.totalRent)} · Labour bill {taka(meta.totalLabour)}
           </p>
           <MonthlyBill bill={meta.monthlyBill} />

@@ -10,8 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { monthName, monthNames, useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { MONTH_NAMES, labourBillYearOptions } from '../types'
+import { labourBillYearOptions } from '../types'
 import type { LabourBillFilterPatch, LabourBillListParams, LabourBillStatusFilter } from '../types'
 
 interface LabourBillListToolbarProps {
@@ -22,10 +24,10 @@ interface LabourBillListToolbarProps {
   summary?: ReactNode
 }
 
-const STATUS_OPTIONS: { value: LabourBillStatusFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'Draft', label: 'Drafts' },
-  { value: 'Finalized', label: 'Finalized' },
+const STATUS_OPTIONS: { value: LabourBillStatusFilter; labelKey: TranslationKey }[] = [
+  { value: 'all', labelKey: 'labourBill.toolbar.all' },
+  { value: 'Draft', labelKey: 'labourBill.toolbar.drafts' },
+  { value: 'Finalized', labelKey: 'labourBill.toolbar.finalized' },
 ]
 
 const ANY = 'any'
@@ -38,6 +40,8 @@ export function LabourBillListToolbar({
   isFiltered,
   summary,
 }: LabourBillListToolbarProps) {
+  const t = useT()
+
   const years = labourBillYearOptions(params.year ?? new Date().getFullYear()).reverse()
 
   return (
@@ -52,14 +56,14 @@ export function LabourBillListToolbar({
             type="search"
             value={params.search}
             onChange={(event) => onChange({ search: event.target.value })}
-            aria-label="Search labour bills by number, company or note"
+            aria-label={t('labourBill.toolbar.searchAria')}
             className="pl-8.5"
           />
         </div>
 
         <div
           role="radiogroup"
-          aria-label="Labour bill status"
+          aria-label={t('labourBill.toolbar.statusAria')}
           className="inline-flex w-fit rounded-lg border bg-card p-0.5"
         >
           {STATUS_OPTIONS.map((option) => (
@@ -76,7 +80,7 @@ export function LabourBillListToolbar({
                   : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              {option.label}
+              {t(option.labelKey)}
             </button>
           ))}
         </div>
@@ -87,15 +91,19 @@ export function LabourBillListToolbar({
             value={params.month === null ? ANY : String(params.month)}
             onValueChange={(value) => onChange({ month: value === ANY ? null : Number(value) })}
           >
-            <SelectTrigger className="h-8 w-[8.5rem]" aria-label="Billing month">
+            <SelectTrigger className="h-8 w-[8.5rem]" aria-label={t('labourBill.toolbar.monthAria')}>
               <SelectValue>
-                {(value) => (value === ANY || !value ? 'Any month' : MONTH_NAMES[Number(value) - 1])}
+                {(value) =>
+                  value === ANY || !value
+                    ? t('labourBill.toolbar.anyMonth')
+                    : monthName(Number(value))
+                }
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value={ANY}>Any month</SelectItem>
-                {MONTH_NAMES.map((name, index) => (
+                <SelectItem value={ANY}>{t('labourBill.toolbar.anyMonth')}</SelectItem>
+                {monthNames().map((name, index) => (
                   <SelectItem key={name} value={String(index + 1)}>
                     {name}
                   </SelectItem>
@@ -108,12 +116,16 @@ export function LabourBillListToolbar({
             value={params.year === null ? ANY : String(params.year)}
             onValueChange={(value) => onChange({ year: value === ANY ? null : Number(value) })}
           >
-            <SelectTrigger className="h-8 w-[7rem]" aria-label="Billing year">
-              <SelectValue>{(value) => (value === ANY || !value ? 'Any year' : String(value))}</SelectValue>
+            <SelectTrigger className="h-8 w-[7rem]" aria-label={t('labourBill.toolbar.yearAria')}>
+              <SelectValue>
+                {(value) =>
+                  value === ANY || !value ? t('labourBill.toolbar.anyYear') : String(value)
+                }
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value={ANY}>Any year</SelectItem>
+                <SelectItem value={ANY}>{t('labourBill.toolbar.anyYear')}</SelectItem>
                 {years.map((year) => (
                   <SelectItem key={year} value={String(year)}>
                     {year}
@@ -126,7 +138,7 @@ export function LabourBillListToolbar({
           {isFiltered && (
             <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
               <X data-icon="inline-start" aria-hidden />
-              Clear
+              {t('common.actions.clear')}
             </Button>
           )}
         </div>

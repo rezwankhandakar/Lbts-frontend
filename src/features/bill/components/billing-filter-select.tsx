@@ -6,8 +6,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { BILLING_FILTER_LABELS } from '../lib/bill-meta'
+import { BILLING_FILTER_KEYS } from '../lib/bill-meta'
 import type { BillingFilter } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface BillingFilterSelectProps {
   id: string
@@ -20,16 +21,18 @@ interface BillingFilterSelectProps {
  * gate pass lists, so the two can never word the same question differently.
  */
 export function BillingFilterSelect({ id, value, onChange }: BillingFilterSelectProps) {
+  const t = useT()
+
   return (
     <Select value={value} onValueChange={(next) => onChange(next as BillingFilter)}>
       <SelectTrigger id={id} className="w-full">
-        <SelectValue>{(current) => BILLING_FILTER_LABELS[(current as BillingFilter) ?? 'all']}</SelectValue>
+        <SelectValue>{(current) => t(BILLING_FILTER_KEYS[(current as BillingFilter) ?? 'all'])}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          {(Object.keys(BILLING_FILTER_LABELS) as BillingFilter[]).map((option) => (
+          {(Object.keys(BILLING_FILTER_KEYS) as BillingFilter[]).map((option) => (
             <SelectItem key={option} value={option}>
-              {BILLING_FILTER_LABELS[option]}
+              {t(BILLING_FILTER_KEYS[option])}
             </SelectItem>
           ))}
         </SelectGroup>

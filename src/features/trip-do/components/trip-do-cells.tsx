@@ -1,5 +1,6 @@
 import { Split } from 'lucide-react'
 import { shortTripNumber } from '@/features/delivery/lib/cart'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { TripDoRowRecord } from '../types'
 
@@ -66,8 +67,10 @@ export function TripNumbersCell({ tripNumbers }: { tripNumbers: string[] }) {
 
 /** ISD, OSD-Metro or OSD-Thana — or a flag saying nobody has worked it out yet. */
 export function LocationCell({ locationType }: { locationType: string | null }) {
+  const t = useT()
+
   if (!locationType) {
-    return <span className="text-[11px] font-medium text-tone-amber">Pending</span>
+    return <span className="text-[11px] font-medium text-tone-amber">{t('tripDo.pending')}</span>
   }
   return (
     <span className="rounded-md border bg-background px-1.5 py-px font-mono text-[11px]">

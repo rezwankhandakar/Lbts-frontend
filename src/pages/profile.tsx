@@ -11,6 +11,7 @@ import { PersonalInformationCard } from '@/features/profile/components/personal-
 import { ProfileHero } from '@/features/profile/components/profile-hero'
 import { ProfileSkeleton } from '@/features/profile/components/profile-skeleton'
 import { SecurityCard } from '@/features/profile/components/security-card'
+import { useT } from '@/lib/i18n'
 import { useProfileView } from '@/features/profile/use-profile'
 import { useAuthStore } from '@/stores/use-auth-store'
 
@@ -30,6 +31,7 @@ import { useAuthStore } from '@/stores/use-auth-store'
  * Firebase is what stores those.
  */
 export function ProfilePage() {
+  const t = useT()
   const { profile, isLoading, isError, error, retry } = useProfileView()
   const firebaseUser = useAuthStore((state) => state.firebaseUser)
 
@@ -44,22 +46,22 @@ export function ProfilePage() {
     return (
       <div className="mx-auto w-full max-w-6xl">
         <PageHeader
-          title="Profile"
-          description="Manage your personal information, account details and security."
+          title={t('pages.profile')}
+          description={t('profile.pageDescription')}
         />
         <EmptyState
           icon={UserRoundX}
-          title="Your profile could not be loaded"
+          title={t('profile.loadFailed')}
           description={
             isError
-              ? (error?.message ?? 'The server did not answer. It may still be waking up.')
-              : 'The server did not answer. It may still be waking up.'
+              ? (error?.message ?? t('profile.serverSilent'))
+              : t('profile.serverSilent')
           }
-          footnote="A first request after an idle period can take up to a minute."
+          footnote={t('profile.coldStartNote')}
           action={
             <Button variant="outline" onClick={retry}>
               <RotateCcw data-icon="inline-start" aria-hidden />
-              Try again
+              {t('common.actions.retry')}
             </Button>
           }
         />
@@ -68,13 +70,13 @@ export function ProfilePage() {
   }
 
   const canChangePassword = hasPasswordProvider(firebaseUser)
-  const providers = providerLabels(firebaseUser)
+  const providers = providerLabels(firebaseUser, t)
 
   return (
     <div className="mx-auto w-full max-w-6xl">
       <PageHeader
-        title="Profile"
-        description="Manage your personal information, account details and security."
+        title={t('pages.profile')}
+        description={t('profile.pageDescription')}
       />
 
       <ProfileHero profile={profile} onEdit={() => setEditing(true)} />

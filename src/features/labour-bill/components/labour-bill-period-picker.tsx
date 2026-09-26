@@ -1,6 +1,8 @@
 import { Label } from '@/components/ui/label'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { MONTH_NAMES, labourBillYearOptions } from '../types'
+import { monthNames } from '@/lib/i18n'
+import { labourBillYearOptions } from '../types'
 
 interface LabourBillPeriodPickerProps {
   month: number
@@ -24,11 +26,13 @@ export function LabourBillPeriodPicker({
   onMonthChange,
   onYearChange,
 }: LabourBillPeriodPickerProps) {
+  const t = useT()
+
   return (
     <div className="grid gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Label id="labour-period-label">Billing month</Label>
-        <div role="radiogroup" aria-label="Year" className="inline-flex rounded-lg border bg-muted/50 p-0.5">
+        <Label id="labour-period-label">{t('labourBill.form.billingMonth')}</Label>
+        <div role="radiogroup" aria-label={t('labourBill.toolbar.yearGroupAria')} className="inline-flex rounded-lg border bg-muted/50 p-0.5">
           {labourBillYearOptions(year).map((option) => (
             <button
               key={option}
@@ -51,7 +55,7 @@ export function LabourBillPeriodPicker({
       </div>
 
       <div role="radiogroup" aria-labelledby="labour-period-label" className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
-        {MONTH_NAMES.map((name, index) => {
+        {monthNames().map((name, index) => {
           const value = index + 1
           const active = value === month
           return (

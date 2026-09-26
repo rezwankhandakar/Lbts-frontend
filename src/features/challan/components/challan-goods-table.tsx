@@ -1,7 +1,8 @@
 import { Layers } from 'lucide-react'
 import { rateDescription, rateLabel } from '@/features/product-rate/lib/rate-format'
-import { formatAmount } from '@/lib/format'
+import { BLANK, formatAmount, formatNumber } from '@/lib/format'
 import type { ChallanRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface ChallanGoodsTableProps {
   record: ChallanRecord
@@ -25,6 +26,8 @@ const HEAD = 'pb-2 text-[11px] font-medium tracking-wide text-muted-foreground u
  * away on the location editor.
  */
 export function ChallanGoodsTable({ record }: ChallanGoodsTableProps) {
+  const t = useT()
+
   const isPriced = record.totalAmount !== null
 
   return (
@@ -33,12 +36,14 @@ export function ChallanGoodsTable({ record }: ChallanGoodsTableProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b">
-              <th className={`${HEAD} text-left`}>Product</th>
-              <th className={`${HEAD} text-left`}>Model</th>
-              <th className={`${HEAD} hidden text-left sm:table-cell`}>Capacity</th>
-              <th className={`${HEAD} text-right`}>Qty</th>
-              <th className={`${HEAD} text-right`}>Rate</th>
-              <th className={`${HEAD} text-right`}>Amount</th>
+              <th className={`${HEAD} text-left`}>{t('challan.goods.product')}</th>
+              <th className={`${HEAD} text-left`}>{t('challan.goods.model')}</th>
+              <th className={`${HEAD} hidden text-left sm:table-cell`}>
+                {t('challan.goods.capacity')}
+              </th>
+              <th className={`${HEAD} text-right`}>{t('challan.goods.qty')}</th>
+              <th className={`${HEAD} text-right`}>{t('challan.goods.rate')}</th>
+              <th className={`${HEAD} text-right`}>{t('challan.goods.amount')}</th>
             </tr>
           </thead>
 
@@ -48,24 +53,24 @@ export function ChallanGoodsTable({ record }: ChallanGoodsTableProps) {
                 <td className="py-2 pr-3 wrap-break-word">{item.productName}</td>
                 <td className="py-2 pr-3 wrap-break-word">{item.model}</td>
                 <td className="hidden py-2 pr-3 text-xs text-muted-foreground sm:table-cell">
-                  {item.capacity || '—'}
+                  {item.capacity || BLANK}
                 </td>
-                <td className="py-2 text-right tabular-nums">{item.qty}</td>
+                <td className="py-2 text-right tabular-nums">{formatNumber(item.qty)}</td>
 
                 <td
                   className="py-2 pl-3 text-right whitespace-nowrap tabular-nums"
-                  title={item.rate ? rateDescription(item.rate.rate) : 'No rate applied.'}
+                  title={item.rate ? rateDescription(item.rate.rate, t) : t('productRate.rate.none')}
                 >
                   <span className="inline-flex items-center gap-1.5">
                     {item.rate?.rate.kind === 'tiered' && (
                       <Layers className="size-3 shrink-0 text-tone-amber" aria-hidden />
                     )}
-                    {item.rate ? rateLabel(item.rate.rate) : '—'}
+                    {item.rate ? rateLabel(item.rate.rate) : BLANK}
                   </span>
                 </td>
 
                 <td className="py-2 pl-3 text-right tabular-nums">
-                  {item.rate ? formatAmount(item.rate.amount) : '—'}
+                  {item.rate ? formatAmount(item.rate.amount) : BLANK}
                 </td>
               </tr>
             ))}
@@ -74,12 +79,14 @@ export function ChallanGoodsTable({ record }: ChallanGoodsTableProps) {
           <tfoot>
             <tr className="border-t">
               <td colSpan={3} className={`${HEAD} pt-2 text-left`}>
-                Total
+                {t('challan.goods.total')}
               </td>
-              <td className="pt-2 text-right font-semibold tabular-nums">{record.totalQty}</td>
+              <td className="pt-2 text-right font-semibold tabular-nums">
+                {formatNumber(record.totalQty)}
+              </td>
               <td />
               <td className="pt-2 pl-3 text-right font-semibold tabular-nums">
-                {isPriced ? formatAmount(record.totalAmount) : '—'}
+                {isPriced ? formatAmount(record.totalAmount) : BLANK}
               </td>
             </tr>
           </tfoot>
@@ -102,6 +109,8 @@ export function ChallanGoodsTable({ record }: ChallanGoodsTableProps) {
  * says how many lines it leaves out.
  */
 function ChargeNote({ record }: { record: ChallanRecord }) {
+  const t = useT()
+
   if (record.unpricedItems === 0) {
     return null
   }
@@ -110,17 +119,22 @@ function ChargeNote({ record }: { record: ChallanRecord }) {
     return (
       <p className="text-xs leading-snug text-muted-foreground">
         {record.locationStatus === 'Pending'
-          ? 'Nothing is charged yet: the rate depends on where this went, and the location has not been set. Setting it prices every line automatically.'
-          : 'Nothing is charged: none of these products is on the rate card for this location. Adding them to Product Rates and correcting the challan prices it.'}
+          ? t('challan.goods.noLocationYet')
+          : t('challan.goods.notOnCard')}
       </p>
     )
   }
 
   return (
     <p className="text-xs leading-snug text-muted-foreground">
-      This total covers {record.items.length - record.unpricedItems} of {record.items.length} lines.{' '}
-      {record.unpricedItems === 1 ? 'One product is' : `${record.unpricedItems} products are`} not on
-      the rate card for this location.
+      {t('challan.goods.partialTotal', {
+        priced: formatNumber(record.items.length - record.unpricedItems),
+        total: formatNumber(record.items.length),
+        unpriced: t('challan.goods.unpricedProducts', {
+          count: record.unpricedItems,
+          n: formatNumber(record.unpricedItems),
+        }),
+      })}
     </p>
   )
 }

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { shortTripNumber } from '@/features/delivery/lib/cart'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { gatePassProductStatusMeta } from '../lib/trip-do-meta'
 import type { GatePassProductLine } from '../types'
@@ -11,7 +12,9 @@ import { KindTag, ProductStatusBadge, RowStatusBadge } from './trip-do-badges'
  * pass, three on this challan and two on that one" is read in one place.
  */
 export function GatePassProductLineCard({ line }: { line: GatePassProductLine }) {
-  const meta = gatePassProductStatusMeta(line.status)
+  const t = useT()
+
+  const meta = gatePassProductStatusMeta(line.status, t)
   const percent = line.qty > 0 ? Math.min(100, Math.round((line.linkedQty / line.qty) * 100)) : 0
 
   return (
@@ -40,7 +43,7 @@ export function GatePassProductLineCard({ line }: { line: GatePassProductLine })
 
       {line.rows.length === 0 ? (
         <p className="mt-2.5 text-xs text-muted-foreground">
-          No challan row has this line as its Trip DO yet.
+          {t('tripDo.gatePassPanel.noneYet')}
         </p>
       ) : (
         <ul className="mt-2.5 space-y-1">

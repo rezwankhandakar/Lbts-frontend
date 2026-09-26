@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 
 /**
  * Shaped like the details page so the swap to real content does not jolt the
@@ -6,9 +7,11 @@ import { Skeleton } from '@/components/ui/skeleton'
  * placeholder text reads as data.
  */
 export function ChallanDetailsSkeleton() {
+  const t = useT()
+
   return (
     <div className="mx-auto w-full max-w-7xl" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading challan</span>
+      <span className="sr-only">{t('challan.loading')}</span>
 
       <div className="mb-5 space-y-2">
         <Skeleton className="h-4 w-32" />

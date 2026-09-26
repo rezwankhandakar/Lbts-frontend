@@ -34,9 +34,9 @@ export type CarriedField = (typeof CARRIED_FIELDS)[number]
 export type CarriedValues = Record<CarriedField, string>
 
 /** What each tick box calls its field, when it names it out loud. */
-export const CARRIED_LABELS: Record<CarriedField, string> = {
-  customerName: 'Customer name',
-  zonePo: 'Zone / PO',
+export const CARRIED_LABEL_KEYS: Record<CarriedField, string> = {
+  customerName: 'challan.entry.customerName',
+  zonePo: 'challan.entry.zonePo',
 }
 
 /**

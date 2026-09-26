@@ -6,9 +6,10 @@ import { StatTile } from '@/features/accounts/components/account-atoms'
 import { AccountsShell } from '@/features/accounts/components/accounts-shell'
 import { LabourMonthCard } from '@/features/accounts/components/labour-month-card'
 import { useLabourReceivables } from '@/features/accounts/hooks/use-accounts'
-import { SETTLEMENT_META, taka } from '@/features/accounts/lib/accounts-meta'
+import { settlementMeta, taka } from '@/features/accounts/lib/accounts-meta'
 import { SETTLEMENT_STATUSES } from '@/features/accounts/types'
 import type { LabourReceivableListParams } from '@/features/accounts/types'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 /**
@@ -20,9 +21,11 @@ import { cn } from '@/lib/utils'
  * recorded from.
  */
 export function AccountsLabourBillsPage() {
+  const t = useT()
+
   return (
     <AccountsShell
-      title="Walton Labour Bill"
+      title={t('accounts.pages.labourBill.title')}
       description="What each month's labour bill came to, and what has arrived. Open a month to see its CSDs — Walton settles each of them separately, so each has its own card and its own payment."
     >
       <LabourBillsBody />
@@ -31,6 +34,8 @@ export function AccountsLabourBillsPage() {
 }
 
 function LabourBillsBody() {
+  const t = useT()
+
   const [params, setParams] = useState<LabourReceivableListParams>({
     page: 1,
     limit: 24,
@@ -47,7 +52,7 @@ function LabourBillsBody() {
     <div className="grid gap-5">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile
-          label="Labour billed"
+          label={t('accounts.pages.labourBill.labourBilled')}
           value={taka(totals?.billedAmount ?? 0)}
           hint={totals && `${totals.total} ${totals.total === 1 ? 'month' : 'months'}`}
           icon={HardHat}
@@ -55,25 +60,25 @@ function LabourBillsBody() {
           isLoading={query.isPending}
         />
         <StatTile
-          label="Received"
+          label={t('accounts.pages.labourBill.received')}
           value={taka(totals?.receivedAmount ?? 0)}
-          hint="Walton payments against a CSD"
+          hint={t('accounts.pages.labourBill.receivedHint')}
           icon={Wallet}
           tone="emerald"
           isLoading={query.isPending}
         />
         <StatTile
-          label="Still to receive"
+          label={t('accounts.pages.labourBill.stillToReceive')}
           value={taka(totals?.outstanding ?? 0)}
-          hint="Across every CSD of every month"
+          hint={t('accounts.pages.labourBill.stillHint')}
           icon={HandCoins}
           tone="amber"
           isLoading={query.isPending}
         />
         <StatTile
-          label="Months"
+          label={t('accounts.pages.labourBill.months')}
           value={(totals?.total ?? 0).toLocaleString()}
-          hint="Matching these filters"
+          hint={t('accounts.pages.labourBill.monthsHint')}
           icon={CalendarRange}
           tone="violet"
           isLoading={query.isPending}
@@ -81,7 +86,11 @@ function LabourBillsBody() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div role="radiogroup" aria-label="Year" className="flex flex-wrap gap-1 rounded-lg border bg-card p-0.5">
+        <div
+          role="radiogroup"
+          aria-label={t('accounts.pages.finalBills.yearAria')}
+          className="flex flex-wrap gap-1 rounded-lg border bg-card p-0.5"
+        >
           {[null, ...years].map((year) => (
             <button
               key={year ?? 'all'}
@@ -96,11 +105,15 @@ function LabourBillsBody() {
                   : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              {year ?? 'All years'}
+              {year ?? t('accounts.pages.finalBills.allYears')}
             </button>
           ))}
         </div>
-        <div role="radiogroup" aria-label="Payment" className="flex flex-wrap gap-1 rounded-lg border bg-card p-0.5">
+        <div
+          role="radiogroup"
+          aria-label={t('accounts.pages.finalBills.paymentAria')}
+          className="flex flex-wrap gap-1 rounded-lg border bg-card p-0.5"
+        >
           {(['all', ...SETTLEMENT_STATUSES] as const).map((status) => (
             <button
               key={status}
@@ -115,7 +128,9 @@ function LabourBillsBody() {
                   : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              {status === 'all' ? 'Any payment' : SETTLEMENT_META[status].received}
+              {status === 'all'
+                ? t('accounts.receivable.anyPayment')
+                : settlementMeta(status, t).received}
             </button>
           ))}
         </div>
@@ -134,10 +149,9 @@ function LabourBillsBody() {
       ) : query.data.records.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border bg-card px-4 py-16 text-center">
           <HardHat className="size-7 text-muted-foreground" aria-hidden />
-          <p className="text-sm font-medium">No labour bill to receive against</p>
+          <p className="text-sm font-medium">{t('accounts.pages.labourBill.noneToReceive')}</p>
           <p className="max-w-md text-xs text-muted-foreground">
-            A month appears here as soon as a labour bill is opened for it and challans are scanned
-            in. What each CSD comes to is read off that sheet, so there is nothing to enter.
+            {t('accounts.pages.labourBill.noneHint')}
           </p>
         </div>
       ) : (
@@ -154,7 +168,7 @@ function LabourBillsBody() {
             meta={query.data.meta}
             onPageChange={(page) => setParams((current) => ({ ...current, page }))}
             isFetching={query.isFetching}
-            noun={['month', 'months']}
+            nounKey="nouns.month"
           />
         </div>
       )}

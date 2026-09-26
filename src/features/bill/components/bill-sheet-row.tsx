@@ -5,6 +5,7 @@ import { rateDescription, rateLabel } from '@/features/product-rate/lib/rate-for
 import { KindTag } from '@/features/trip-do/components/trip-do-badges'
 import { formatTripDate } from '@/features/gate-pass/lib/gate-pass-meta'
 import { formatAmount } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { BillLineRecord } from '../types'
 
@@ -30,13 +31,15 @@ function Dash() {
 
 /** A row whose sheet row moved, or is gone, carries a mark beside its customer. */
 function DriftMark({ drift }: { drift: BillLineRecord['drift'] }) {
+  const t = useT()
+
   if (drift === 'none') {
     return null
   }
   return drift === 'changed' ? (
-    <TriangleAlert className="size-3.5 shrink-0 text-tone-amber" aria-label="Changed on the Trip DO sheet since it was added" />
+    <TriangleAlert className="size-3.5 shrink-0 text-tone-amber" aria-label={t('bill.search.changedAria')} />
   ) : (
-    <CircleOff className="size-3.5 shrink-0 text-tone-rose" aria-label="No longer on the Trip DO sheet" />
+    <CircleOff className="size-3.5 shrink-0 text-tone-rose" aria-label={t('bill.search.goneAria')} />
   )
 }
 
@@ -46,6 +49,8 @@ function DriftMark({ drift }: { drift: BillLineRecord['drift'] }) {
  * can never disagree about which rows share a number.
  */
 export function BillSheetRow({ line, groupLineIds, banded, canRemove, onRemove }: BillSheetRowProps) {
+  const t = useT()
+
   return (
     <tr
       className={cn(
@@ -63,10 +68,10 @@ export function BillSheetRow({ line, groupLineIds, banded, canRemove, onRemove }
           {canRemove && (
             <button
               type="button"
-              onClick={() => onRemove({ lineIds: groupLineIds, label: `Trip DO ${line.tripDo}` })}
+              onClick={() => onRemove({ lineIds: groupLineIds, label: t('bill.details.tripDoAria', { tripDo: line.tripDo }) })}
               className="absolute top-1 right-1 flex size-5 items-center justify-center rounded-md text-muted-foreground opacity-0 transition group-hover/sl:opacity-100 hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100"
-              aria-label={`Take Trip DO ${line.tripDo} off the bill`}
-              title={`Take Trip DO ${line.tripDo} off the bill`}
+              aria-label={t('bill.details.removeTripDo', { tripDo: line.tripDo })}
+              title={t('bill.details.removeTripDo', { tripDo: line.tripDo })}
             >
               <X className="size-3.5" aria-hidden />
             </button>
@@ -91,18 +96,18 @@ export function BillSheetRow({ line, groupLineIds, banded, canRemove, onRemove }
         {line.locationType ? (
           <span className="rounded-md border bg-background px-1.5 py-px font-mono text-[11px]">{line.locationType}</span>
         ) : (
-          <span className="text-[11px] font-medium text-tone-amber">Pending</span>
+          <span className="text-[11px] font-medium text-tone-amber">{t('bill.pending')}</span>
         )}
       </td>
       <td className={cn(CELL, 'font-mono text-[12px]')}>{line.unit || <Dash />}</td>
       <td className={cn(CELL, 'font-mono text-[12px] whitespace-nowrap')}>{line.model || <Dash />}</td>
       <td className={cn(CELL, 'text-[13px] font-semibold tabular-nums')}>{line.qty}</td>
-      <td className={cn(CELL, 'whitespace-nowrap tabular-nums')} title={rateDescription(line.rate)}>
+      <td className={cn(CELL, 'whitespace-nowrap tabular-nums')} title={rateDescription(line.rate, t)}>
         {line.rate ? rateLabel(line.rate) : <Dash />}
       </td>
       <td className={cn(CELL, 'font-semibold whitespace-nowrap tabular-nums')}>
         {line.amount === null ? (
-          <span className="text-tone-amber" title="No rate on the card for this line, so it adds nothing">
+          <span className="text-tone-amber" title={t('bill.search.noRate')}>
             —
           </span>
         ) : (
@@ -121,7 +126,7 @@ export function BillSheetRow({ line, groupLineIds, banded, canRemove, onRemove }
       </td>
       <td className={cn(CELL, 'min-w-[9rem] text-muted-foreground')}>{line.capacity || <Dash />}</td>
       <td className={cn(CELL, 'whitespace-nowrap')}>
-        {line.kind === 'Order' ? <span className="sr-only">None</span> : <KindTag kind={line.kind} />}
+        {line.kind === 'Order' ? <span className="sr-only">{t('bill.details.none')}</span> : <KindTag kind={line.kind} />}
       </td>
 
       {canRemove && (
@@ -129,8 +134,14 @@ export function BillSheetRow({ line, groupLineIds, banded, canRemove, onRemove }
           <Button
             variant="ghost"
             size="icon-xs"
-            onClick={() => onRemove({ lineIds: [line.id], label: `${line.challanNumber} · ${line.model || line.productName}` })}
-            aria-label={`Take ${line.challanNumber} ${line.model} off the bill`}
+            onClick={() => onRemove({ lineIds: [line.id], label: t('bill.details.lineLabel', {
+                challan: line.challanNumber,
+                model: line.model || line.productName,
+              }) })}
+            aria-label={t('bill.details.removeLine', {
+              challan: line.challanNumber,
+              model: line.model,
+            })}
             className="text-muted-foreground hover:text-destructive"
           >
             <X aria-hidden />

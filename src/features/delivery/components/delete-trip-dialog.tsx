@@ -1,6 +1,7 @@
 import { ConfirmDialog } from '@/features/vendor/components/confirm-dialog'
 import { shortTripNumber } from '../lib/delivery-meta'
 import type { TripActions } from '../hooks/use-trip-actions'
+import { useT } from '@/lib/i18n'
 
 /**
  * Deleting a trip that never left the gate. The shared confirmation the Vendor
@@ -15,22 +16,22 @@ export function DeleteTripDialog({
   actions: TripActions
   onDeleted?: () => void
 }) {
+  const t = useT()
+
   const trip = actions.deleting
 
   return (
     <ConfirmDialog
       open={trip !== null}
       isPending={actions.isDeleting}
-      title={trip ? `Delete ${shortTripNumber(trip.tripNumber)}?` : 'Delete trip?'}
-      description={
-        <>
-          Only a trip that has not been dispatched can be deleted. Every challan on it is released
-          for another trip. The trip number is <strong>not reused</strong> — the vendor&apos;s serial
-          simply skips it.
-        </>
+      title={
+        trip
+          ? t('delivery.trip.deleteTitle', { trip: shortTripNumber(trip.tripNumber) })
+          : t('delivery.trip.deleteTitleGeneric')
       }
-      confirmLabel="Delete trip"
-      pendingLabel="Deleting…"
+      description={t('delivery.trip.deleteDescription')}
+      confirmLabel={t('delivery.trip.deleteTrip')}
+      pendingLabel={t('delivery.trip.deleting')}
       cancelLabel="Keep it"
       onOpenChange={(open) => !open && actions.cancelDelete()}
       onConfirm={() => actions.confirmDelete(onDeleted)}

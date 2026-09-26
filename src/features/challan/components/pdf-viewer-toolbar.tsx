@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { formatNumber, formatPercent } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ViewerControls } from '../hooks/use-viewer-controls'
 
@@ -44,12 +46,14 @@ export function PdfViewerToolbar({
   isFullscreen,
   onToggleFullscreen,
 }: PdfViewerToolbarProps) {
+  const t = useT()
+
   const zoomLabel =
     controls.zoom === 'fit-width'
-      ? 'Fit'
+      ? t('challan.pdf.fitLabel')
       : controls.zoom === 'fit-page'
-        ? 'Page'
-        : `${Math.round(controls.zoom * 100)}%`
+        ? t('challan.pdf.fitPageLabel')
+        : formatPercent(Math.round(controls.zoom * 100))
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-t bg-card px-2.5 py-2">
@@ -60,7 +64,7 @@ export function PdfViewerToolbar({
           className={BUTTON}
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
-          aria-label="Previous page"
+          aria-label={t('challan.pdf.previousPage')}
         >
           <ChevronLeft aria-hidden />
         </Button>
@@ -77,10 +81,12 @@ export function PdfViewerToolbar({
                 onPageChange(next)
               }
             }}
-            aria-label="Page number"
+            aria-label={t('challan.pdf.pageNumber')}
             className="h-7 w-14 px-1.5 text-center text-xs tabular-nums"
           />
-          <span className="whitespace-nowrap">of {pageCount}</span>
+          <span className="whitespace-nowrap">
+            {t('challan.pdf.ofPages', { pages: formatNumber(pageCount) })}
+          </span>
         </div>
 
         <Button
@@ -89,7 +95,7 @@ export function PdfViewerToolbar({
           className={BUTTON}
           disabled={page >= pageCount}
           onClick={() => onPageChange(page + 1)}
-          aria-label="Next page"
+          aria-label={t('challan.pdf.nextPage')}
         >
           <ChevronRight aria-hidden />
         </Button>
@@ -101,7 +107,7 @@ export function PdfViewerToolbar({
           size="icon-sm"
           className={BUTTON}
           onClick={controls.zoomOut}
-          aria-label="Zoom out"
+          aria-label={t('challan.pdf.zoomOut')}
         >
           <ZoomOut aria-hidden />
         </Button>
@@ -115,7 +121,7 @@ export function PdfViewerToolbar({
           size="icon-sm"
           className={BUTTON}
           onClick={controls.zoomIn}
-          aria-label="Zoom in"
+          aria-label={t('challan.pdf.zoomIn')}
         >
           <ZoomIn aria-hidden />
         </Button>
@@ -126,7 +132,7 @@ export function PdfViewerToolbar({
           className={cn(BUTTON, controls.zoom === 'fit-width' && 'text-primary')}
           onClick={controls.fitWidth}
         >
-          Width
+          {t('challan.pdf.fitWidthLabel')}
         </Button>
 
         <Button
@@ -134,7 +140,7 @@ export function PdfViewerToolbar({
           size="icon-sm"
           className={cn(BUTTON, controls.zoom === 'fit-page' && 'text-primary')}
           onClick={controls.fitPage}
-          aria-label="Fit the whole page"
+          aria-label={t('challan.pdf.fitPage')}
         >
           <Scan aria-hidden />
         </Button>
@@ -144,7 +150,7 @@ export function PdfViewerToolbar({
           size="icon-sm"
           className={BUTTON}
           onClick={controls.rotate}
-          aria-label="Rotate"
+          aria-label={t('challan.pdf.rotate')}
         >
           <RotateCw aria-hidden />
         </Button>
@@ -155,7 +161,9 @@ export function PdfViewerToolbar({
             size="icon-sm"
             className={BUTTON}
             onClick={onToggleFullscreen}
-            aria-label={isFullscreen ? 'Leave fullscreen' : 'Fullscreen'}
+            aria-label={
+              isFullscreen ? t('challan.pdf.leaveFullscreen') : t('challan.pdf.fullscreen')
+            }
           >
             {isFullscreen ? <Minimize2 aria-hidden /> : <Maximize2 aria-hidden />}
           </Button>

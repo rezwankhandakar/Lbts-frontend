@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { scanReceipt } from '../api/delivery-api'
 import { normalizeScan } from '@/lib/barcode-wedge'
@@ -49,10 +50,15 @@ export function useReceiptScan({ trip, currentChallanId }: ReceiptScanOptions = 
       if (trip && local) {
         scanTone('ok')
         if (local.challanId === currentChallanId) {
-          toast.info(`${local.challanNumber} is already open`)
+          toast.info(t('delivery.receipt.alreadyOpen', { challan: local.challanNumber }))
           return
         }
-        toast.success(`${local.challanNumber} on ${shortTripNumber(trip.tripNumber)}`)
+        toast.success(
+          t('delivery.receipt.openedOn', {
+            challan: local.challanNumber,
+            trip: shortTripNumber(trip.tripNumber),
+          }),
+        )
         navigate(`/delivery/${trip.id}/challans/${local.challanId}`)
         return
       }
@@ -63,14 +69,22 @@ export function useReceiptScan({ trip, currentChallanId }: ReceiptScanOptions = 
         scanTone('ok')
 
         const tripLabel = shortTripNumber(result.trip.tripNumber)
-        toast.success(`${result.challanNumber} on ${tripLabel}`, {
-          description:
-            result.otherTrips.length > 0
-              ? `It also went out on ${result.otherTrips
-                  .map((other) => shortTripNumber(other.tripNumber))
-                  .join(', ')}.`
-              : undefined,
-        })
+        toast.success(
+          t('delivery.receipt.openedOn', {
+            challan: result.challanNumber,
+            trip: tripLabel,
+          }),
+          {
+            description:
+              result.otherTrips.length > 0
+                ? t('delivery.finder.alsoWentOut', {
+                    trips: result.otherTrips
+                      .map((other) => shortTripNumber(other.tripNumber))
+                      .join(', '),
+                  })
+                : undefined,
+          },
+        )
 
         navigate(`/delivery/${result.trip.id}/challans/${result.challanId}`)
       } catch (error) {

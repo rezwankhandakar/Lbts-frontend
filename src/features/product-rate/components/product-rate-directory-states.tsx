@@ -1,6 +1,7 @@
 import { Plus, RefreshCcw, SearchX, Tags, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 
 /**
  * Shaped like a populated list so the swap to real rows does not jolt the
@@ -8,9 +9,11 @@ import { Skeleton } from '@/components/ui/skeleton'
  * invented rates read as data, and invented *money* read as data is worse.
  */
 export function ProductRateDirectorySkeleton({ rows = 8 }: { rows?: number }) {
+  const t = useT()
+
   return (
     <div className="divide-y" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading product rates</span>
+      <span className="sr-only">{t('productRate.directory.loading')}</span>
       {Array.from({ length: rows }, (_, index) => (
         <div key={index} className="flex items-center gap-3 px-4 py-3.5">
           <div className="min-w-0 flex-1 space-y-2">
@@ -47,6 +50,8 @@ export function ProductRateDirectoryEmpty({
   onReset,
   onAdd,
 }: EmptyProps) {
+  const t = useT()
+
   const Icon = isFiltered ? SearchX : Tags
 
   return (
@@ -56,25 +61,27 @@ export function ProductRateDirectoryEmpty({
       </div>
 
       <h3 className="mt-4 text-base font-semibold tracking-tight">
-        {isFiltered ? 'No products found' : 'The rate card is empty'}
+        {isFiltered
+          ? t('productRate.directory.noneFound')
+          : t('productRate.directory.empty')}
       </h3>
 
       <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-pretty text-muted-foreground">
         {isFiltered
-          ? 'No product, model or capacity matches your current filters.'
-          : 'The supplied rate card is installed automatically when the API connects to the database. If it is still empty, add the products you need — challans can be filed either way, and their lines are simply left uncharged.'}
+          ? t('productRate.directory.filteredHint')
+          : t('productRate.directory.emptyHint')}
       </p>
 
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
         {isFiltered && (
           <Button variant="outline" size="sm" onClick={onReset}>
-            Clear filters
+            {t('common.actions.clearFilters')}
           </Button>
         )}
         {canManage && (
           <Button size="sm" onClick={onAdd}>
             <Plus data-icon="inline-start" aria-hidden />
-            Add a product
+            {t('productRate.addFirst')}
           </Button>
         )}
       </div>
@@ -89,18 +96,22 @@ interface ErrorProps {
 }
 
 export function ProductRateDirectoryError({ message, onRetry, isRetrying }: ErrorProps) {
+  const t = useT()
+
   return (
     <div className="flex flex-col items-center px-6 py-16 text-center" role="alert">
       <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
         <TriangleAlert className="size-5" aria-hidden />
       </div>
-      <h3 className="mt-4 text-base font-semibold tracking-tight">Could not load the rate card</h3>
+      <h3 className="mt-4 text-base font-semibold tracking-tight">
+        {t('productRate.directory.loadFailed')}
+      </h3>
       <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-pretty text-muted-foreground">
         {message}
       </p>
       <Button variant="outline" size="sm" className="mt-5" onClick={onRetry} disabled={isRetrying}>
         <RefreshCcw data-icon="inline-start" aria-hidden />
-        {isRetrying ? 'Retrying…' : 'Try again'}
+        {isRetrying ? t('productRate.directory.retrying') : t('common.actions.retry')}
       </Button>
     </div>
   )

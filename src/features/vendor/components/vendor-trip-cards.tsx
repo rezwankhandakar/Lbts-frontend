@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react'
 import { TripStatusBadge } from '@/features/delivery/components/delivery-badges'
-import { plural, shortTripNumber, taka } from '@/features/delivery/lib/delivery-meta'
+import { shortTripNumber, taka } from '@/features/delivery/lib/delivery-meta'
 import { cn } from '@/lib/utils'
 import { formatDay } from '../lib/vendor-meta'
 import type { VendorTripRecord } from '../types'
 import { netOf, tripProgress } from '../lib/trip-figures'
 import { TripCharge } from './vendor-trip-list-parts'
+import { countOf, useT } from '@/lib/i18n'
 
 function Figure({
   label,
@@ -40,6 +41,8 @@ export function VendorTripCards({
   records: VendorTripRecord[]
   onOpen: (trip: VendorTripRecord) => void
 }) {
+  const t = useT()
+
   return (
     <ul className="divide-y xl:hidden">
       {records.map((trip) => (
@@ -63,7 +66,7 @@ export function VendorTripCards({
               <span className="font-mono text-foreground">{trip.registrationNo}</span>
               <span>{trip.driverName}</span>
               <span>
-                {plural(trip.challanCount, 'challan')} · {trip.totalQty} pcs
+                {countOf(trip.challanCount, 'nouns.challan', t)} · {trip.totalQty} pcs
                 {trip.returnedQty > 0 && (
                   <span className="text-tone-rose"> · {trip.returnedQty} back</span>
                 )}

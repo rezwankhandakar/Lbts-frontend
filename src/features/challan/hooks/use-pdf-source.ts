@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { formatNumber } from '@/lib/format'
+import { countOf, t } from '@/lib/i18n'
 import { SourcePdfError, openSourcePdf } from '../lib/pdf-source'
 import type { SourcePdf } from '../lib/pdf-source'
 
@@ -72,7 +74,11 @@ export function usePdfSource(): PdfSourceController {
             // Never becomes the session's source, so its worker goes with it.
             void next.doc.loadingTask.destroy()
             setError(
-              `That file has ${next.pageCount} ${next.pageCount === 1 ? 'page' : 'pages'} and this batch was started from a ${expect.pageCount}-page PDF, so it is not the same document. Open the file this batch came from — "${expect.fileName}".`,
+              t('challan.source.wrongPageCount', {
+                pages: countOf(next.pageCount, 'nouns.page', t),
+                expected: formatNumber(expect.pageCount),
+                file: expect.fileName,
+              }),
             )
             return
           }
@@ -83,7 +89,7 @@ export function usePdfSource(): PdfSourceController {
           setError(
             failure instanceof SourcePdfError
               ? failure.message
-              : 'That PDF could not be opened. Try the file again.',
+              : t('challan.source.openFailed'),
           )
         })
         .finally(() => setIsOpening(false))

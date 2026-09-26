@@ -11,6 +11,7 @@ import type { TripActions } from '../hooks/use-trip-actions'
 import { shortTripNumber } from '../lib/delivery-meta'
 import { tripIsEditable } from '../types'
 import type { TripRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 /**
  * A trip's row menu. What is offered follows the same two rules the server
@@ -24,6 +25,8 @@ import type { TripRecord } from '../types'
  * on the trip's own page, one challan at a time.
  */
 export function TripRowMenu({ trip, actions }: { trip: TripRecord; actions: TripActions }) {
+  const t = useT()
+
   const canChange = actions.canChange(trip)
   const editable = tripIsEditable(trip.status)
 
@@ -34,7 +37,7 @@ export function TripRowMenu({ trip, actions }: { trip: TripRecord; actions: Trip
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Actions for ${shortTripNumber(trip.tripNumber)}`}
+            aria-label={t('delivery.trip.actionsAria', { trip: shortTripNumber(trip.tripNumber) })}
           >
             <EllipsisVertical aria-hidden />
           </Button>
@@ -49,7 +52,7 @@ export function TripRowMenu({ trip, actions }: { trip: TripRecord; actions: Trip
         {trip.status === 'Open' && (
           <DropdownMenuItem onClick={() => actions.open(trip)}>
             <PackageCheck aria-hidden />
-            File a signed copy
+            {t('delivery.trip.fileSignedCopy')}
           </DropdownMenuItem>
         )}
 
@@ -58,7 +61,7 @@ export function TripRowMenu({ trip, actions }: { trip: TripRecord; actions: Trip
             {editable && (
               <DropdownMenuItem onClick={() => actions.edit(trip)}>
                 <PencilLine aria-hidden />
-                Edit trip
+                {t('delivery.trip.editTrip')}
               </DropdownMenuItem>
             )}
             {editable && (
@@ -66,7 +69,7 @@ export function TripRowMenu({ trip, actions }: { trip: TripRecord; actions: Trip
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive" onClick={() => actions.askDelete(trip)}>
                   <Trash2 aria-hidden />
-                  Delete trip
+                  {t('delivery.trip.deleteTrip')}
                 </DropdownMenuItem>
               </>
             )}

@@ -3,7 +3,8 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { KIND_META, SETTLEMENT_META, VENDOR_STATUS_META } from '../lib/accounts-meta'
+import { useT } from '@/lib/i18n'
+import { KIND_META, settlementMeta, vendorStatusMeta } from '../lib/accounts-meta'
 import type { EntryKind, SettlementStatus, VendorBillStatus } from '../types'
 
 export function KindIcon({ kind, className }: { kind: EntryKind; className?: string }) {
@@ -21,12 +22,14 @@ export function KindIcon({ kind, className }: { kind: EntryKind; className?: str
 const PILL = 'inline-flex h-5 items-center rounded-full px-2 text-[11px] font-medium whitespace-nowrap ring-1'
 
 export function VendorBillBadge({ status }: { status: VendorBillStatus }) {
-  const meta = VENDOR_STATUS_META[status]
+  const t = useT()
+  const meta = vendorStatusMeta(status, t)
   return <span className={cn(PILL, meta.badge)}>{meta.label}</span>
 }
 
 export function SettlementBadge({ status, receiving = false }: { status: SettlementStatus; receiving?: boolean }) {
-  const meta = SETTLEMENT_META[status]
+  const t = useT()
+  const meta = settlementMeta(status, t)
   return <span className={cn(PILL, meta.badge)}>{receiving ? meta.received : meta.label}</span>
 }
 

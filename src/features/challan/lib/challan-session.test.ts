@@ -7,7 +7,7 @@ import {
   clearSkipped,
   firstUnassignedPage,
   hasUnsavedWork,
-  labelFor,
+  positionOf,
   markSubmitted,
   nextPendingAfter,
   progressOf,
@@ -294,7 +294,7 @@ describe('checking a range inside the session', () => {
     ])
 
     assert.equal(problem?.code, 'overlap')
-    assert.match(problem?.message ?? '', /LBTS-CH-2026-000099/)
+    assert.match(String(problem?.values?.challans ?? ''), /LBTS-CH-2026-000099/)
   })
 
   it('does not count a challan filed in this session twice over', () => {
@@ -399,8 +399,8 @@ describe('a page that is not a challan', () => {
 describe('naming an entry before it has a number', () => {
   it('numbers it by its place in the queue', () => {
     const session = addEntry(addEntry(startSession(24)))
-    assert.equal(labelFor(session, session.entries[0].id), 'Challan 01')
-    assert.equal(labelFor(session, session.entries[2].id), 'Challan 03')
+    assert.equal(positionOf(session, session.entries[0].id), 1)
+    assert.equal(positionOf(session, session.entries[2].id), 3)
   })
 })
 

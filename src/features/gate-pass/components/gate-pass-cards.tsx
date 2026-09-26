@@ -1,10 +1,12 @@
 import { Paperclip } from 'lucide-react'
 import { BillingStatusBadge } from '@/features/bill/components/bill-badges'
+import { formatNumber } from '@/lib/format'
 import { formatTripDate, itemSummary } from '../lib/gate-pass-meta'
 import type { GatePassRecord } from '../types'
 import { GatePassActionMenu } from './gate-pass-action-menu'
 import type { GatePassActions } from './gate-pass-action-menu'
 import { GatePassStatusBadge } from './gate-pass-status-badge'
+import { useT } from '@/lib/i18n'
 
 interface GatePassCardsProps {
   records: GatePassRecord[]
@@ -21,6 +23,8 @@ interface GatePassCardsProps {
  * looking for — and puts the rest underneath in the order it is asked about.
  */
 export function GatePassCards({ records, actions, onOpen }: GatePassCardsProps) {
+  const t = useT()
+
   return (
     <ul className="divide-y">
       {records.map((record) => (
@@ -38,7 +42,7 @@ export function GatePassCards({ records, actions, onOpen }: GatePassCardsProps) 
                 {record.document && (
                   <Paperclip
                     className="size-3 text-muted-foreground"
-                    aria-label="Has a scanned document"
+                    aria-label={t('gatePass.hasDocument')}
                   />
                 )}
               </span>
@@ -46,7 +50,7 @@ export function GatePassCards({ records, actions, onOpen }: GatePassCardsProps) 
               <span className="mt-1 block truncate text-[13px]">{record.customerName}</span>
 
               <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                {itemSummary(record)} · {record.totalQty}
+                {itemSummary(record, t)} · {formatNumber(record.totalQty)}
               </span>
 
               <span className="mt-0.5 block truncate text-xs text-muted-foreground">

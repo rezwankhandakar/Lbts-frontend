@@ -1,11 +1,11 @@
 import { CircleCheck, CircleSlash, PauseCircle, RotateCcw, Trash2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { TranslationKey } from '@/lib/i18n'
 import type { UserStatus } from '@/lib/roles'
 
 export type UserActionId = 'approve' | 'reject' | 'suspend' | 'reactivate' | 'delete'
 
 export interface UserActionDef {
-  label: string
   icon: LucideIcon
   /** Target lifecycle state, or null for delete, which removes the account. */
   status: UserStatus | null
@@ -15,10 +15,21 @@ export interface UserActionDef {
   destructive: boolean
   /** Reject and suspend accept a short reason, recorded on the account. */
   notable: boolean
-  confirmLabel: string
-  title: string
-  body: (name: string) => string
-  success: (name: string) => string
+  /**
+   * The wording moved to the message tree; what is left here is the shape of
+   * the action — what it does, what it looks like, and whether it is the sort
+   * of thing that wants a reason or a red button.
+   *
+   * `body` and `success` used to be functions of a name and are now messages
+   * carrying a `{name}` placeholder. That is the substantive change rather
+   * than a mechanical one: a function pinned the name to one position in one
+   * language, and Bangla does not put it there.
+   */
+  labelKey: TranslationKey
+  confirmLabelKey: TranslationKey
+  titleKey: TranslationKey
+  bodyKey: TranslationKey
+  successKey: TranslationKey
 }
 
 /**
@@ -28,67 +39,64 @@ export interface UserActionDef {
  */
 export const USER_ACTIONS: Record<UserActionId, UserActionDef> = {
   approve: {
-    label: 'Approve',
     icon: CircleCheck,
     status: 'Active',
     menuClass: 'text-tone-emerald focus:bg-tone-emerald/10 focus:text-tone-emerald',
     destructive: false,
     notable: false,
-    confirmLabel: 'Approve account',
-    title: 'Approve this account?',
-    body: (name) => `${name} will be able to sign in and use LBTS with their assigned role.`,
-    success: (name) => `${name}'s account was approved`,
+    labelKey: 'administration.actions.approve.label',
+    confirmLabelKey: 'administration.actions.approve.confirmLabel',
+    titleKey: 'administration.actions.approve.title',
+    bodyKey: 'administration.actions.approve.body',
+    successKey: 'administration.actions.approve.success',
   },
   reject: {
-    label: 'Reject',
     icon: CircleSlash,
     status: 'Rejected',
     menuClass: 'text-tone-rose focus:bg-tone-rose/10 focus:text-tone-rose',
     destructive: false,
     notable: true,
-    confirmLabel: 'Reject account',
-    title: 'Reject this account?',
-    body: (name) =>
-      `${name} will be refused access. The account stays on record, and an Admin can approve it later.`,
-    success: (name) => `${name}'s account was rejected`,
+    labelKey: 'administration.actions.reject.label',
+    confirmLabelKey: 'administration.actions.reject.confirmLabel',
+    titleKey: 'administration.actions.reject.title',
+    bodyKey: 'administration.actions.reject.body',
+    successKey: 'administration.actions.reject.success',
   },
   suspend: {
-    label: 'Suspend',
     icon: PauseCircle,
     status: 'Suspended',
     menuClass: 'text-tone-orange focus:bg-tone-orange/10 focus:text-tone-orange',
     destructive: false,
     notable: true,
-    confirmLabel: 'Suspend account',
-    title: 'Suspend this account?',
-    body: (name) =>
-      `${name} will lose access immediately and cannot sign in until the account is reactivated.`,
-    success: (name) => `${name}'s account was suspended`,
+    labelKey: 'administration.actions.suspend.label',
+    confirmLabelKey: 'administration.actions.suspend.confirmLabel',
+    titleKey: 'administration.actions.suspend.title',
+    bodyKey: 'administration.actions.suspend.body',
+    successKey: 'administration.actions.suspend.success',
   },
   reactivate: {
-    label: 'Reactivate',
     icon: RotateCcw,
     status: 'Active',
     menuClass: 'text-tone-emerald focus:bg-tone-emerald/10 focus:text-tone-emerald',
     destructive: false,
     notable: false,
-    confirmLabel: 'Reactivate account',
-    title: 'Reactivate this account?',
-    body: (name) => `${name} will regain access to LBTS with their current role.`,
-    success: (name) => `${name}'s account was reactivated`,
+    labelKey: 'administration.actions.reactivate.label',
+    confirmLabelKey: 'administration.actions.reactivate.confirmLabel',
+    titleKey: 'administration.actions.reactivate.title',
+    bodyKey: 'administration.actions.reactivate.body',
+    successKey: 'administration.actions.reactivate.success',
   },
   delete: {
-    label: 'Delete',
     icon: Trash2,
     status: null,
     menuClass: 'text-destructive focus:bg-destructive/10 focus:text-destructive',
     destructive: true,
     notable: false,
-    confirmLabel: 'Delete user',
-    title: 'Delete this user?',
-    body: (name) =>
-      `This permanently removes ${name}'s account from LBTS and from the sign-in provider. This action cannot be undone.`,
-    success: (name) => `${name}'s account was deleted`,
+    labelKey: 'administration.actions.delete.label',
+    confirmLabelKey: 'administration.actions.delete.confirmLabel',
+    titleKey: 'administration.actions.delete.title',
+    bodyKey: 'administration.actions.delete.body',
+    successKey: 'administration.actions.delete.success',
   },
 }
 

@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { formatPadded } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { checkPageRange } from '../api/challan-api'
 import {
   activeEntry,
@@ -8,7 +10,7 @@ import {
   checkEntryRange,
   clearSkipped,
   hasUnsavedWork,
-  labelFor,
+  positionOf,
   makeId,
   markSubmitted,
   progressOf,
@@ -104,6 +106,19 @@ export function useChallanSession(
   const active = activeEntry(session)
 
   /**
+   * "Challan 03" — the name of an entry that has no challan number yet.
+   *
+   * The position comes out of `challan-session.ts` and the word out of the
+   * dictionary, so a language switch renames the tiles and the overlap message
+   * with everything else.
+   */
+  const t = useT()
+  const nameFor = useCallback(
+    (id: string) => t('challan.queue.challanN', { n: formatPadded(positionOf(session, id), 2) }),
+    [session, t],
+  )
+
+  /**
    * What the server already holds for this session's source file.
    *
    * Debounced, because clicking through a page strip moves the range on every
@@ -151,8 +166,8 @@ export function useChallanSession(
     if (!active) {
       return null
     }
-    return checkEntryRange(session, active.id, rangeQuery.data?.claimed ?? [])
-  }, [session, active, rangeQuery.data])
+    return checkEntryRange(session, active.id, rangeQuery.data?.claimed ?? [], nameFor)
+  }, [session, active, rangeQuery.data, nameFor])
 
   const select = useCallback((id: string) => setSession((current) => selectEntry(current, id)), [])
   const add = useCallback(() => setSession((current) => addEntry(current)), [])
@@ -184,7 +199,7 @@ export function useChallanSession(
     sessionKey,
     session,
     active,
-    activeLabel: active ? labelFor(session, active.id) : 'Challan',
+    activeLabel: active ? nameFor(active.id) : t('challan.queue.challan'),
     progress: progressOf(session),
     rangeProblem,
     isCheckingRange: rangeQuery.isFetching,
@@ -197,6 +212,6 @@ export function useChallanSession(
     skipActive,
     unskipAll,
     markFiled,
-    labelOf: useCallback((id: string) => labelFor(session, id), [session]),
+    labelOf: nameFor,
   }
 }

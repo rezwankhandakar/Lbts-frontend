@@ -8,6 +8,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { formatTripDate } from '@/features/gate-pass/lib/gate-pass-meta'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { signedCopyGapOf } from '../types'
 import { useLabourSignedCopies } from '../hooks/use-labour-bill-signed-copies'
@@ -34,6 +36,8 @@ interface SignedCopyButtonProps {
  * nobody signed for anything. A blank would read as all three.
  */
 export function SignedCopyButton({ challanId, challanNumber, className }: SignedCopyButtonProps) {
+  const t = useT()
+
   const { byChallan, isLoading, view } = useLabourSignedCopies()
   const challan = byChallan.get(challanId)
 
@@ -43,7 +47,7 @@ export function SignedCopyButton({ challanId, challanNumber, className }: Signed
     return null
   }
 
-  const label = `Signed copy for challan ${challanNumber}`
+  const label = t('labourBill.copies.rowAria', { challan: challanNumber })
   const styles = cn('text-muted-foreground hover:text-primary', className)
 
   if (challan.copies.length === 0) {
@@ -52,8 +56,8 @@ export function SignedCopyButton({ challanId, challanNumber, className }: Signed
         variant="ghost"
         size="icon-xs"
         disabled
-        aria-label={`${label}: none yet`}
-        title={signedCopyGapOf(challan)}
+        aria-label={t('labourBill.copies.rowNoneAria', { label })}
+        title={signedCopyGapOf(challan, t)}
         className={cn(styles, 'opacity-40')}
       >
         <FileSignature aria-hidden />
@@ -67,7 +71,10 @@ export function SignedCopyButton({ challanId, challanNumber, className }: Signed
         variant="ghost"
         size="icon-xs"
         aria-label={label}
-        title={`${label} · ${challan.copies[0].tripNumber}`}
+        title={t('labourBill.copies.rowOneTitle', {
+          label,
+          trip: challan.copies[0].tripNumber,
+        })}
         className={styles}
         onClick={() => view(challan.copies[0], challanNumber)}
       >
@@ -83,8 +90,13 @@ export function SignedCopyButton({ challanId, challanNumber, className }: Signed
           <Button
             variant="ghost"
             size="icon-xs"
-            aria-label={`${label}: ${challan.copies.length} trips`}
-            title={`${challan.copies.length} signed copies — this challan went out on more than one trip`}
+            aria-label={t('labourBill.copies.rowTripsAria', {
+              label,
+              n: formatNumber(challan.copies.length),
+            })}
+            title={t('labourBill.copies.rowTripsTitle', {
+              n: formatNumber(challan.copies.length),
+            })}
             className={styles}
           />
         }
@@ -94,7 +106,10 @@ export function SignedCopyButton({ challanId, challanNumber, className }: Signed
 
       <DropdownMenuContent align="start" className="min-w-52">
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-          {challanNumber} went out on {challan.copies.length} trips
+          {t('labourBill.copies.wentOutOn', {
+            challan: challanNumber,
+            n: formatNumber(challan.copies.length),
+          })}
         </DropdownMenuLabel>
         {challan.copies.map((copy) => (
           <DropdownMenuItem key={copy.tripId} onClick={() => view(copy, challanNumber)}>

@@ -1,6 +1,7 @@
 import { shortTripNumber } from '@/features/delivery/lib/cart'
 import { formatTripDate } from '@/features/gate-pass/lib/gate-pass-meta'
 import { formatTaka } from '@/lib/format'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import type { ColumnValue, TripDoColumnId } from '../types'
 import { rowStatusMeta } from './trip-do-meta'
 
@@ -12,30 +13,31 @@ import { rowStatusMeta } from './trip-do-meta'
 
 export interface SheetColumn {
   id: TripDoColumnId
-  label: string
+  /** A key rather than a heading — the sheet is a screen, and the screen follows the language. */
+  labelKey: TranslationKey
   className?: string
 }
 
 export const COLUMNS: SheetColumn[] = [
-  { id: 'date', label: 'Date' },
-  { id: 'trip', label: 'Trip Number' },
-  { id: 'status', label: 'Delivery Status' },
-  { id: 'customer', label: 'Customer' },
-  { id: 'address', label: 'Address' },
-  { id: 'district', label: 'District' },
-  { id: 'thana', label: 'Thana' },
-  { id: 'location', label: 'Location' },
-  { id: 'receiver', label: 'Receiver number' },
-  { id: 'zone', label: 'Zone' },
-  { id: 'product', label: 'Product name' },
-  { id: 'model', label: 'Model' },
-  { id: 'qty', label: 'Qty', className: 'text-right' },
-  { id: 'rate', label: 'Rate', className: 'text-right' },
-  { id: 'amount', label: 'Amount', className: 'text-right' },
-  { id: 'capacity', label: 'Capacity' },
-  { id: 'csd', label: 'CSD' },
-  { id: 'unit', label: 'Unit' },
-  { id: 'bill', label: 'Bill' },
+  { id: 'date', labelKey: 'tripDo.columns.date' },
+  { id: 'trip', labelKey: 'tripDo.columns.trip' },
+  { id: 'status', labelKey: 'tripDo.columns.status' },
+  { id: 'customer', labelKey: 'tripDo.columns.customer' },
+  { id: 'address', labelKey: 'tripDo.columns.address' },
+  { id: 'district', labelKey: 'tripDo.columns.district' },
+  { id: 'thana', labelKey: 'tripDo.columns.thana' },
+  { id: 'location', labelKey: 'tripDo.columns.location' },
+  { id: 'receiver', labelKey: 'tripDo.columns.receiver' },
+  { id: 'zone', labelKey: 'tripDo.columns.zone' },
+  { id: 'product', labelKey: 'tripDo.columns.product' },
+  { id: 'model', labelKey: 'tripDo.columns.model' },
+  { id: 'qty', labelKey: 'tripDo.columns.qty', className: 'text-right' },
+  { id: 'rate', labelKey: 'tripDo.columns.rate', className: 'text-right' },
+  { id: 'amount', labelKey: 'tripDo.columns.amount', className: 'text-right' },
+  { id: 'capacity', labelKey: 'tripDo.columns.capacity' },
+  { id: 'csd', labelKey: 'tripDo.columns.csd' },
+  { id: 'unit', labelKey: 'tripDo.columns.unit' },
+  { id: 'bill', labelKey: 'tripDo.columns.bill' },
 ]
 
 /** `flat:1100` or `tiered:5:60:24`, as the Rate cell would print it. */
@@ -52,15 +54,19 @@ function rateKeyLabel(key: string): string {
 }
 
 /** A dropdown value as the cell in its column draws it. */
-export function columnValueLabel(column: TripDoColumnId, value: ColumnValue): string {
+export function columnValueLabel(
+  column: TripDoColumnId,
+  value: ColumnValue,
+  t: Translator,
+): string {
   if (value === null || value === '') {
-    return '(Blanks)'
+    return t('common.states.blanks')
   }
   switch (column) {
     case 'date':
       return formatTripDate(String(value))
     case 'status':
-      return rowStatusMeta(String(value)).label
+      return rowStatusMeta(String(value), t).label
     case 'trip':
       return shortTripNumber(String(value))
     case 'amount':

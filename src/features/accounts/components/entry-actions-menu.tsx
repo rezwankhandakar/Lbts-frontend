@@ -11,7 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useDeleteEntry, useRemoveEntryVoucher } from '../hooks/use-accounts-mutations'
 import { useEntryDialog } from '../hooks/use-entry-dialog'
-import { KIND_META, taka } from '../lib/accounts-meta'
+import { useT } from '@/lib/i18n'
+import { kindMeta, taka } from '../lib/accounts-meta'
 import type { EntryRecord } from '../types'
 
 /**
@@ -19,6 +20,7 @@ import type { EntryRecord } from '../types'
  * greyed-out menu is a promise of something that will never be allowed.
  */
 export function EntryActionsMenu({ entry }: { entry: EntryRecord }) {
+  const t = useT()
   const dialog = useEntryDialog()
   const remove = useDeleteEntry()
   const removeVoucher = useRemoveEntryVoucher()
@@ -29,7 +31,7 @@ export function EntryActionsMenu({ entry }: { entry: EntryRecord }) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<Button variant="ghost" size="icon-sm" aria-label={`Actions for ${entry.entryNumber}`} />}
+          render={<Button variant="ghost" size="icon-sm" aria-label={t('accounts.list.actionsFor', { entry: entry.entryNumber })} />}
         >
           <MoreHorizontal aria-hidden />
         </DropdownMenuTrigger>
@@ -44,12 +46,12 @@ export function EntryActionsMenu({ entry }: { entry: EntryRecord }) {
           {entry.voucher ? (
             <DropdownMenuItem onClick={() => setDroppingVoucher(true)}>
               <Paperclip aria-hidden />
-              Remove voucher
+              {t('accounts.voucher.remove')}
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem onClick={() => dialog.edit(entry)}>
               <Paperclip aria-hidden />
-              Attach a voucher
+              {t('accounts.voucher.attach')}
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
@@ -63,10 +65,10 @@ export function EntryActionsMenu({ entry }: { entry: EntryRecord }) {
       <ConfirmDialog
         open={droppingVoucher}
         isPending={removeVoucher.isPending}
-        title={`Remove the voucher from ${entry.entryNumber}?`}
-        description="The entry itself is untouched — the figures, the wallet and the day stay exactly as they are. Only the file behind it is deleted, and it cannot be recovered."
-        confirmLabel="Remove voucher"
-        pendingLabel="Removing…"
+        title={t('accounts.voucher.removeTitle', { entry: entry.entryNumber })}
+        description={t('accounts.voucher.removeDescription')}
+        confirmLabel={t('accounts.voucher.remove')}
+        pendingLabel={t('accounts.voucher.removing')}
         onOpenChange={setDroppingVoucher}
         onConfirm={() =>
           removeVoucher.mutate(entry.id, { onSuccess: () => setDroppingVoucher(false) })
@@ -76,10 +78,13 @@ export function EntryActionsMenu({ entry }: { entry: EntryRecord }) {
       <ConfirmDialog
         open={confirming}
         isPending={remove.isPending}
-        title={`Delete ${entry.entryNumber}?`}
-        description={`This ${KIND_META[entry.kind].label.toLowerCase()} of ${taka(entry.amount)} is removed from the books, and every balance and total it counted in is recalculated without it.`}
-        confirmLabel="Delete entry"
-        pendingLabel="Deleting…"
+        title={t('accounts.voucher.deleteTitle', { entry: entry.entryNumber })}
+        description={t('accounts.voucher.deleteDescription', {
+          kind: kindMeta(entry.kind, t).label.toLowerCase(),
+          amount: taka(entry.amount),
+        })}
+        confirmLabel={t('accounts.voucher.deleteConfirm')}
+        pendingLabel={t('accounts.voucher.deleting')}
         onOpenChange={setConfirming}
         onConfirm={() => remove.mutate(entry.id, { onSuccess: () => setConfirming(false) })}
       />

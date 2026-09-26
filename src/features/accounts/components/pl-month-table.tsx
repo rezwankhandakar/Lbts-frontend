@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { signedTaka, taka } from '../lib/accounts-meta'
 import type { ProfitLossMonth, ProfitLossReport } from '../types'
@@ -11,6 +12,8 @@ const profitTone = (profit: number) => (profit < 0 ? 'text-tone-rose' : 'text-to
  * month is asked about and puts the cost split under them.
  */
 export function PlMonthTable({ report }: { report: ProfitLossReport }) {
+  const t = useT()
+
   const { summary } = report
   const months = [...report.months].reverse()
 
@@ -20,14 +23,14 @@ export function PlMonthTable({ report }: { report: ProfitLossReport }) {
         <table className="w-full min-w-[48rem] text-sm">
           <thead>
             <tr className="border-b text-left text-xs text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">Month</th>
-              <th className="px-2 py-2.5 text-right font-medium">Final bill</th>
-              <th className="px-2 py-2.5 text-right font-medium">Trip rent</th>
-              <th className="px-2 py-2.5 text-right font-medium">Labour</th>
-              <th className="px-2 py-2.5 text-right font-medium">Office</th>
-              <th className="px-2 py-2.5 text-right font-medium">Total cost</th>
-              <th className="px-2 py-2.5 text-right font-medium">Profit</th>
-              <th className="px-4 py-2.5 text-right font-medium">Margin</th>
+              <th className="px-4 py-2.5 font-medium">{t('accounts.profit.month')}</th>
+              <th className="px-2 py-2.5 text-right font-medium">{t('accounts.finalBill.finalBill')}</th>
+              <th className="px-2 py-2.5 text-right font-medium">{t('accounts.profit.tripRent')}</th>
+              <th className="px-2 py-2.5 text-right font-medium">{t('accounts.profit.labour')}</th>
+              <th className="px-2 py-2.5 text-right font-medium">{t('accounts.profit.office')}</th>
+              <th className="px-2 py-2.5 text-right font-medium">{t('accounts.profit.totalCost')}</th>
+              <th className="px-2 py-2.5 text-right font-medium">{t('accounts.profit.profit')}</th>
+              <th className="px-4 py-2.5 text-right font-medium">{t('accounts.profit.margin')}</th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -53,7 +56,7 @@ export function PlMonthTable({ report }: { report: ProfitLossReport }) {
           </tbody>
           <tfoot>
             <tr className="border-t bg-muted/30 font-semibold">
-              <td className="px-4 py-2.5">Total</td>
+              <td className="px-4 py-2.5">{t('accounts.profit.total')}</td>
               <td className="px-2 py-2.5 text-right tabular-nums">{taka(summary.income)}</td>
               <td className="px-2 py-2.5 text-right tabular-nums">{taka(summary.tripRent)}</td>
               <td className="px-2 py-2.5 text-right tabular-nums">{taka(summary.labourBill)}</td>
@@ -74,7 +77,7 @@ export function PlMonthTable({ report }: { report: ProfitLossReport }) {
         ))}
         <li className="grid gap-1.5 bg-muted/30 px-4 py-3">
           <div className="flex items-baseline justify-between gap-2 text-sm font-semibold">
-            <span>Total</span>
+            <span>{t('accounts.profit.total')}</span>
             <span className={cn('tabular-nums', profitTone(summary.profit))}>{signedTaka(summary.profit)}</span>
           </div>
           <p className="text-xs text-muted-foreground tabular-nums">
@@ -89,10 +92,12 @@ export function PlMonthTable({ report }: { report: ProfitLossReport }) {
 
 /** One month on a phone: what came in, what it cost, and what that left. */
 function MonthCard({ month }: { month: ProfitLossMonth }) {
+  const t = useT()
+
   const costs = [
-    { label: 'Trip rent', value: month.tripRent },
-    { label: 'Labour', value: month.labourBill },
-    { label: 'Office', value: month.officeExpense },
+    { label: t('accounts.profit.tripRent'), value: month.tripRent },
+    { label: t('accounts.profit.labour'), value: month.labourBill },
+    { label: t('accounts.profit.office'), value: month.officeExpense },
   ]
 
   return (
@@ -104,11 +109,11 @@ function MonthCard({ month }: { month: ProfitLossMonth }) {
 
       <dl className="grid grid-cols-2 gap-2 text-xs">
         <div>
-          <dt className="text-muted-foreground">Final bill</dt>
+          <dt className="text-muted-foreground">{t('accounts.finalBill.finalBill')}</dt>
           <dd className="font-semibold tabular-nums">{month.finalBillCount + month.labourBillCount > 0 ? taka(month.income) : '—'}</dd>
         </div>
         <div className="text-right">
-          <dt className="text-muted-foreground">Total cost</dt>
+          <dt className="text-muted-foreground">{t('accounts.profit.totalCost')}</dt>
           <dd className="font-semibold tabular-nums">{taka(month.totalCost)}</dd>
         </div>
       </dl>

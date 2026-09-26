@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { useUnsavedChanges } from '@/hooks/use-unsaved-changes'
 import type { DriverRecord } from '@/features/vendor/types'
@@ -106,9 +107,17 @@ export function useTripWorkspace(seed: WorkspaceSeed = {}): TripWorkspace {
   const selectVehicle = useCallback(
     (option: TripVehicleOption | null) => {
       if (option && editing && option.vendor.id !== editing.vendor.id) {
-        toast.error(`${shortTripNumber(editing.tripNumber)} is ${editing.vendor.name}'s trip`, {
-          description: `Choose one of their vehicles, or delete this trip and confirm a new one under ${option.vendor.name}.`,
-        })
+        toast.error(
+          t('delivery.summary.wrongVendor', {
+            trip: shortTripNumber(editing.tripNumber),
+            vendor: editing.vendor.name,
+          }),
+          {
+            description: t('delivery.summary.wrongVendorHint', {
+              vendor: option.vendor.name,
+            }),
+          },
+        )
         return
       }
 
@@ -170,20 +179,27 @@ export function useTripWorkspace(seed: WorkspaceSeed = {}): TripWorkspace {
   const blockers = useMemo(() => {
     const reasons: string[] = []
     if (!vehicle) {
-      reasons.push('Choose a vehicle.')
+      reasons.push(t('delivery.summary.chooseVehicle'))
     } else if (vehicle.blocker) {
-      reasons.push(`${vehicle.vehicle.registrationNo} cannot take a trip. ${vehicle.blocker}`)
+      reasons.push(
+        t('delivery.summary.vehicleBlocked', {
+          plate: vehicle.vehicle.registrationNo,
+          reason: vehicle.blocker,
+        }),
+      )
     }
     if (!driver) {
-      reasons.push('Choose the driver for this trip.')
+      reasons.push(t('delivery.summary.chooseDriver'))
     } else if (driver.status !== 'Active') {
-      reasons.push(`${driver.name} is ${driver.status} and cannot drive.`)
+      reasons.push(
+        t('delivery.summary.driverBlocked', { name: driver.name, status: driver.status }),
+      )
     }
     if (cart.summary.challans === 0) {
-      reasons.push('Add at least one challan.')
+      reasons.push(t('delivery.summary.addChallan'))
     }
     if (!tripDate) {
-      reasons.push('Choose the trip date.')
+      reasons.push(t('delivery.summary.chooseDate'))
     }
     return reasons
   }, [vehicle, driver, cart.summary.challans, tripDate])

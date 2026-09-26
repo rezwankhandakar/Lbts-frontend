@@ -3,6 +3,7 @@ import { Camera, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials } from '@/features/auth/user-display'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { ACCEPTED_IMAGE_ATTRIBUTE, validateImageFile } from '../profile-photo'
 import { useRemoveProfilePhoto, useUploadProfilePhoto } from '../use-profile'
@@ -34,6 +35,7 @@ interface Preview {
  * on focus alike, because an affordance only visible to a mouse is not one.
  */
 export function AvatarUploader({ name, photoUrl, compact = false }: AvatarUploaderProps) {
+  const t = useT()
   const inputRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<Preview | null>(null)
   const [confirmingRemove, setConfirmingRemove] = useState(false)
@@ -57,9 +59,9 @@ export function AvatarUploader({ name, photoUrl, compact = false }: AvatarUpload
       return
     }
 
-    const problem = validateImageFile(file)
+    const problem = validateImageFile(file, t)
     if (problem) {
-      toast.error('That image cannot be used', { description: problem })
+      toast.error(t('profile.photo.cannotUse'), { description: problem })
       return
     }
 
@@ -87,7 +89,7 @@ export function AvatarUploader({ name, photoUrl, compact = false }: AvatarUpload
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={busy}
-          aria-label={photoUrl ? 'Change profile photo' : 'Upload a profile photo'}
+          aria-label={photoUrl ? t('profile.photo.changeAria') : t('profile.photo.uploadAria')}
           className={cn(
             'group relative block rounded-full outline-none',
             'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',

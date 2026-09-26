@@ -2,6 +2,7 @@ import { ArrowUpRight, Check, Undo2, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { formatRelative } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   notificationCategoryMeta,
@@ -59,9 +60,11 @@ export function NotificationItem({
   onToggleRead,
   onDismiss,
 }: NotificationItemProps) {
-  const module = notificationModuleMeta(record.module)
-  const category = notificationCategoryMeta(record.category)
-  const priority = notificationPriorityMeta(record.priority)
+  const t = useT()
+
+  const module = notificationModuleMeta(record.module, t)
+  const category = notificationCategoryMeta(record.category, t)
+  const priority = notificationPriorityMeta(record.priority, t)
   const CategoryIcon = category.icon
 
   const unread = record.readAt === null
@@ -134,7 +137,7 @@ export function NotificationItem({
               render={<Link to={path} />}
               onClick={() => onOpen?.(record)}
             >
-              {notificationLinkLabel(record)}
+              {notificationLinkLabel(record, t)}
               <ArrowUpRight aria-hidden />
             </Button>
           )}
@@ -146,7 +149,7 @@ export function NotificationItem({
             onClick={() => onToggleRead(record)}
           >
             {unread ? <Check aria-hidden /> : <Undo2 aria-hidden />}
-            {unread ? 'Mark read' : 'Unread'}
+            {unread ? t('notification.item.markRead') : t('notification.item.markUnread')}
           </Button>
 
           {onDismiss && (
@@ -155,7 +158,7 @@ export function NotificationItem({
               size="icon-xs"
               className="ml-auto text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               onClick={() => onDismiss(record)}
-              aria-label={`Dismiss: ${record.title}`}
+              aria-label={t('notification.item.dismiss', { title: record.title })}
             >
               <X aria-hidden />
             </Button>

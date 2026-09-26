@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useT } from '@/lib/i18n'
 import {
   getScannerAgentUrl,
   getScannerToken,
@@ -38,6 +39,7 @@ interface ScannerPairingDialogProps {
  * a support call.
  */
 export function ScannerPairingDialog({ open, onOpenChange, onPaired }: ScannerPairingDialogProps) {
+  const t = useT()
   const [token, setToken] = useState(() => getScannerToken())
   const [url, setUrl] = useState(() => getScannerAgentUrl())
 
@@ -54,35 +56,32 @@ export function ScannerPairingDialog({ open, onOpenChange, onPaired }: ScannerPa
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <KeyRound className="size-4 text-primary" aria-hidden />
-            Connect the scanner
+            {t('scanner.pairing.title')}
           </DialogTitle>
-          <DialogDescription>
-            Start the LBTS Scanner Agent on this computer. It prints a pairing code the first time
-            it runs; paste it here.
-          </DialogDescription>
+          <DialogDescription>{t('scanner.pairing.description')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="scanner-token" className="text-[13px] font-medium">
-              Pairing code
+              {t('scanner.pairing.codeLabel')}
             </Label>
             <Input
               id="scanner-token"
               value={token}
               onChange={(event) => setToken(event.target.value)}
-              placeholder="Paste the code from the helper window"
+              placeholder={t('scanner.pairing.codePlaceholder')}
               autoComplete="off"
               spellCheck={false}
             />
             <p className="text-xs text-muted-foreground">
-              Stored in this browser only. It is not sent to the LBTS server.
+              {t('scanner.pairing.codeNote')}
             </p>
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="scanner-url" className="text-[13px] font-medium">
-              Helper address
+              {t('scanner.pairing.addressLabel')}
             </Label>
             <Input
               id="scanner-url"
@@ -93,17 +92,17 @@ export function ScannerPairingDialog({ open, onOpenChange, onPaired }: ScannerPa
               spellCheck={false}
             />
             <p className="text-xs text-muted-foreground">
-              Change this only if the helper was started on a different port.
+              {t('scanner.pairing.addressNote')}
             </p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
           <Button onClick={save} disabled={token.trim().length === 0}>
-            Connect
+            {t('scanner.pairing.connect')}
           </Button>
         </DialogFooter>
       </DialogContent>

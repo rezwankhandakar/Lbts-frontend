@@ -1,3 +1,5 @@
+import type { TranslationKey } from '@/lib/i18n'
+
 /**
  * Every state the scanner panel can be in, and what the operator is told.
  *
@@ -38,120 +40,53 @@ export type ScannerState =
 export type ScannerTone = 'neutral' | 'active' | 'good' | 'warning' | 'bad'
 
 export interface ScannerStateCopy {
-  title: string
-  description: string
   tone: ScannerTone
   /** True while the agent is working and the panel should read as busy. */
   busy?: boolean
-  /** Label for the recovery action, when retrying is the right answer. */
-  retryLabel?: string
+  /**
+   * Which recovery action this failure calls for, when retrying is the right
+   * answer at all — and the absence of one is as meaningful as its presence.
+   * A key rather than a label, for the reason the titles below are derived.
+   */
+  retryLabelKey?: TranslationKey
 }
 
+/**
+ * What each state *is*, with what it says moved to the message tree.
+ *
+ * The title and description are **derived from the state's own name** —
+ * `scanner.states.<state>.title` — rather than stored here, so a state cannot
+ * be added without wording, and the two can never drift onto different names.
+ * What stays is the part that is not language: the tone, whether the panel
+ * reads as busy, and whether there is anything useful to press.
+ */
 export const SCANNER_STATE_COPY: Record<ScannerState, ScannerStateCopy> = {
-  idle: {
-    title: 'Scanner not checked',
-    description: 'Check whether a scanner is available on this computer.',
-    tone: 'neutral',
-    retryLabel: 'Check scanner',
-  },
-  checking: {
-    title: 'Checking for a scanner',
-    description: 'Looking for the LBTS scanner helper on this computer.',
-    tone: 'active',
-    busy: true,
-  },
-  'agent-missing': {
-    title: 'Scanner helper not running',
-    description:
-      'Scanning needs the LBTS Scanner Agent running on this computer. Start it, then check again. You can still attach a scan from a file.',
-    tone: 'warning',
-    retryLabel: 'Check again',
-  },
-  unpaired: {
-    title: 'Scanner not connected',
-    description:
-      'The scanner helper is running but this browser has not been paired with it yet. Connect it with the pairing code the helper printed.',
-    tone: 'warning',
-    retryLabel: 'Connect scanner',
-  },
-  unsupported: {
-    title: 'Scanning is not available here',
-    description:
-      'The scanner helper runs on the Windows computer the scanner is connected to. Attach a scan from a file instead.',
-    tone: 'neutral',
-  },
-  ready: {
-    title: 'Scanner ready',
-    description: 'Place the gate pass on the glass or in the feeder, then start the scan.',
-    tone: 'good',
-  },
-  'no-device': {
-    title: 'No scanner detected',
-    description:
-      'The helper is running but found no scanner. Check that the scanner is switched on and on the same network, then try again.',
-    tone: 'warning',
-    retryLabel: 'Try again',
-  },
-  scanning: {
-    title: 'Scanning',
-    description: 'Capturing the page. Do not open the lid or remove the paper.',
-    tone: 'active',
-    busy: true,
-  },
-  processing: {
-    title: 'Preparing the document',
-    description: 'Assembling the scanned pages.',
-    tone: 'active',
-    busy: true,
-  },
-  completed: {
-    title: 'Scan complete',
-    description: 'Check that the whole gate pass is readable before you submit.',
-    tone: 'good',
-  },
-  busy: {
-    title: 'Scanner busy',
-    description: 'The scanner is working on another job. Wait for it to finish, then try again.',
-    tone: 'warning',
-    retryLabel: 'Try again',
-  },
-  'no-paper': {
-    title: 'No paper detected',
-    description: 'The document feeder is empty. Load the gate pass and start the scan again.',
-    tone: 'warning',
-    retryLabel: 'Try again',
-  },
-  'cover-open': {
-    title: 'Scanner cover is open',
-    description: 'Close the scanner lid, then start the scan again.',
-    tone: 'warning',
-    retryLabel: 'Try again',
-  },
-  'paper-jam': {
-    title: 'Paper jam',
-    description: 'Clear the jam at the scanner, then start the scan again.',
-    tone: 'bad',
-    retryLabel: 'Try again',
-  },
-  'driver-error': {
-    title: 'The scanner did not respond',
-    description:
-      'The scanner driver stopped answering. Restarting the scanner usually clears it. You can also attach a scan from a file.',
-    tone: 'bad',
-    retryLabel: 'Try again',
-  },
-  'network-error': {
-    title: 'Lost contact with the scanner helper',
-    description: 'The helper stopped answering. Check that it is still running on this computer.',
-    tone: 'bad',
-    retryLabel: 'Check again',
-  },
-  failed: {
-    title: 'The scan did not complete',
-    description: 'Nothing was captured. Try again, or attach a scan from a file.',
-    tone: 'bad',
-    retryLabel: 'Try again',
-  },
+  idle: { tone: 'neutral', retryLabelKey: 'scanner.retry.checkScanner' },
+  checking: { tone: 'active', busy: true },
+  'agent-missing': { tone: 'warning', retryLabelKey: 'scanner.retry.checkAgain' },
+  unpaired: { tone: 'warning', retryLabelKey: 'scanner.retry.connectScanner' },
+  unsupported: { tone: 'neutral' },
+  ready: { tone: 'good' },
+  'no-device': { tone: 'warning', retryLabelKey: 'scanner.retry.tryAgain' },
+  scanning: { tone: 'active', busy: true },
+  processing: { tone: 'active', busy: true },
+  completed: { tone: 'good' },
+  busy: { tone: 'warning', retryLabelKey: 'scanner.retry.tryAgain' },
+  'no-paper': { tone: 'warning', retryLabelKey: 'scanner.retry.tryAgain' },
+  'cover-open': { tone: 'warning', retryLabelKey: 'scanner.retry.tryAgain' },
+  'paper-jam': { tone: 'bad', retryLabelKey: 'scanner.retry.tryAgain' },
+  'driver-error': { tone: 'bad', retryLabelKey: 'scanner.retry.tryAgain' },
+  'network-error': { tone: 'bad', retryLabelKey: 'scanner.retry.checkAgain' },
+  failed: { tone: 'bad', retryLabelKey: 'scanner.retry.tryAgain' },
+}
+
+/** Where a state's own wording lives. The state name is the key. */
+export function scannerTitleKey(state: ScannerState): TranslationKey {
+  return `scanner.states.${state}.title` as TranslationKey
+}
+
+export function scannerDescriptionKey(state: ScannerState): TranslationKey {
+  return `scanner.states.${state}.description` as TranslationKey
 }
 
 /**

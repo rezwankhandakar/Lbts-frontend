@@ -13,27 +13,29 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { EntryDialogProvider } from './entry-dialog-provider'
 
 interface AccountsTab {
-  label: string
+  labelKey: TranslationKey
   to: string
   icon: LucideIcon
   end?: boolean
 }
 
 const TABS: AccountsTab[] = [
-  { label: 'Overview', to: '/accounts', icon: LayoutGrid, end: true },
-  { label: 'Cash', to: '/accounts/cash', icon: Banknote },
-  { label: 'Cash Book', to: '/accounts/cash-book', icon: BookOpenText },
-  { label: 'Vendor Bills', to: '/accounts/vendor-bills', icon: Truck },
-  { label: 'Advances', to: '/accounts/advances', icon: HandCoins },
-  { label: 'Expenses', to: '/accounts/expenses', icon: Receipt },
-  { label: 'Walton Final Bill', to: '/accounts/final-bills', icon: FileBadge },
-  { label: 'Walton Labour Bill', to: '/accounts/labour-bills', icon: HardHat },
-  { label: 'Profit & Loss', to: '/accounts/profit-loss', icon: ChartNoAxesCombined },
-  { label: 'Wallets', to: '/accounts/wallets', icon: Wallet },
+  { labelKey: 'accounts.nav.overview', to: '/accounts', icon: LayoutGrid, end: true },
+  { labelKey: 'accounts.nav.cash', to: '/accounts/cash', icon: Banknote },
+  { labelKey: 'accounts.nav.cashBook', to: '/accounts/cash-book', icon: BookOpenText },
+  { labelKey: 'accounts.nav.vendorBills', to: '/accounts/vendor-bills', icon: Truck },
+  { labelKey: 'accounts.nav.advances', to: '/accounts/advances', icon: HandCoins },
+  { labelKey: 'accounts.nav.expenses', to: '/accounts/expenses', icon: Receipt },
+  { labelKey: 'accounts.nav.finalBills', to: '/accounts/final-bills', icon: FileBadge },
+  { labelKey: 'accounts.nav.labourBills', to: '/accounts/labour-bills', icon: HardHat },
+  { labelKey: 'accounts.nav.profitLoss', to: '/accounts/profit-loss', icon: ChartNoAxesCombined },
+  { labelKey: 'accounts.nav.wallets', to: '/accounts/wallets', icon: Wallet },
 ]
 
 interface AccountsShellProps {
@@ -50,6 +52,8 @@ interface AccountsShellProps {
  * than wrapping into three rows of pills nobody can read.
  */
 export function AccountsShell({ title, description, actions, children }: AccountsShellProps) {
+  const t = useT()
+
   return (
     <EntryDialogProvider>
       <div className="mx-auto w-full max-w-[1400px]">
@@ -62,7 +66,7 @@ export function AccountsShell({ title, description, actions, children }: Account
         </div>
 
         <nav
-          aria-label="Accounts sections"
+          aria-label={t('accounts.sectionsAria')}
           className="-mx-4 mb-6 overflow-x-auto border-b px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
         >
           <ul className="flex min-w-max gap-1">
@@ -81,7 +85,7 @@ export function AccountsShell({ title, description, actions, children }: Account
                   }
                 >
                   <tab.icon className="size-4" aria-hidden />
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </NavLink>
               </li>
             ))}

@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { roleMeta } from '@/lib/roles'
 import { cn } from '@/lib/utils'
 import { actorInitials } from '../lib/activity-meta'
@@ -25,6 +26,8 @@ interface ActivityActorProps {
  * in August.
  */
 export function ActivityActor({ actor, variant = 'compact', className }: ActivityActorProps) {
+  const t = useT()
+
   if (!actor) {
     /**
      * A row with no actor. Nothing invents a name here: a made-up "System" in
@@ -38,12 +41,12 @@ export function ActivityActor({ actor, variant = 'compact', className }: Activit
         >
           —
         </span>
-        <span className="text-xs">No actor recorded</span>
+        <span className="text-xs">{t('activity.noActor')}</span>
       </span>
     )
   }
 
-  const meta = roleMeta(actor.role)
+  const meta = roleMeta(actor.role, t)
 
   return (
     <span className={cn('inline-flex min-w-0 items-center gap-1.5', className)}>

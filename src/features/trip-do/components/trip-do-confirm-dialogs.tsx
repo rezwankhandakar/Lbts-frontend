@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { formatTaka } from '@/lib/format'
 import type { TripDoPageMeta, TripDoRowRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 interface UnlinkDialogProps {
   row: TripDoRowRecord | null
@@ -21,6 +22,8 @@ interface UnlinkDialogProps {
 
 /** Taking a Trip DO off a row. Says where the pieces go: back to waiting. */
 export function UnlinkTripDoDialog({ row, open, isPending, onOpenChange, onConfirm }: UnlinkDialogProps) {
+  const t = useT()
+
   if (!row?.link) {
     return null
   }
@@ -37,13 +40,13 @@ export function UnlinkTripDoDialog({ row, open, isPending, onOpenChange, onConfi
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Keep it</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>{t('tripDo.remove.keep')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isPending}
             className="bg-destructive/10 text-destructive hover:bg-destructive/20"
           >
-            {isPending ? 'Removing…' : 'Remove Trip DO'}
+            {isPending ? t('tripDo.remove.removing') : t('tripDo.remove.confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -65,6 +68,8 @@ interface ExportDialogProps {
  * rather than last month.
  */
 export function ExportTripDoDialog({ meta, open, isExporting, onCancel, onConfirm }: ExportDialogProps) {
+  const t = useT()
+
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && onCancel()}>
       <AlertDialogContent>
@@ -81,9 +86,9 @@ export function ExportTripDoDialog({ meta, open, isExporting, onCancel, onConfir
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isExporting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isExporting}>{t('common.actions.cancel')}</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} disabled={isExporting}>
-            {isExporting ? 'Building…' : 'Download .xlsx'}
+            {isExporting ? t('tripDo.export.building') : t('tripDo.export.download')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

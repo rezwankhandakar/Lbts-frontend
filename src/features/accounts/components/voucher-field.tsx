@@ -10,6 +10,7 @@ import {
   formatBytes,
 } from '@/lib/document-file-rules'
 import type { EntryVoucher } from '../types'
+import { useT } from '@/lib/i18n'
 
 /** A file staged for upload, and how many sheets produced it. */
 export interface StagedVoucher {
@@ -49,6 +50,8 @@ interface VoucherFieldProps {
  * the object key contains the entry id — see `useSaveEntryVoucher`.
  */
 export function VoucherField({ staged, current, disabled, onChange }: VoucherFieldProps) {
+  const t = useT()
+
   const fileInput = useRef<HTMLInputElement>(null)
   const [scanning, setScanning] = useState(false)
 
@@ -97,7 +100,7 @@ export function VoucherField({ staged, current, disabled, onChange }: VoucherFie
             variant="ghost"
             size="icon"
             className="size-7"
-            aria-label="Remove the chosen voucher"
+            aria-label={t('accounts.voucher.removeChosen')}
             disabled={disabled}
             onClick={() => onChange(null)}
           >
@@ -115,7 +118,7 @@ export function VoucherField({ staged, current, disabled, onChange }: VoucherFie
               onClick={() => fileInput.current?.click()}
             >
               <FileUp data-icon="inline-start" aria-hidden />
-              {current ? 'Replace the file' : 'Attach a file'}
+              {current ? t('accounts.voucher.replaceFile') : t('common.actions.attachFile')}
             </Button>
 
             {!scanning && (
@@ -127,14 +130,17 @@ export function VoucherField({ staged, current, disabled, onChange }: VoucherFie
                 onClick={() => setScanning(true)}
               >
                 <ScanLine data-icon="inline-start" aria-hidden />
-                Scan it
+                {t('accounts.voucher.scanIt')}
               </Button>
             )}
           </div>
 
           {current && (
             <p className="text-xs text-muted-foreground">
-              Holding {current.originalName} ({formatBytes(current.size)}). A new file replaces it.
+              {t('accounts.voucher.holding', {
+                name: current.originalName,
+                size: formatBytes(current.size),
+              })}
             </p>
           )}
 

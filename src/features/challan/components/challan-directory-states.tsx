@@ -2,6 +2,7 @@ import { FileStack, Plus, RefreshCcw, SearchX, TriangleAlert } from 'lucide-reac
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 
 /**
  * Shaped like the populated card grid so the swap to real records does not
@@ -9,9 +10,11 @@ import { Skeleton } from '@/components/ui/skeleton'
  * "loading", invented records read as data.
  */
 export function ChallanDirectorySkeleton({ rows = 4 }: { rows?: number }) {
+  const t = useT()
+
   return (
     <div className="grid gap-3 bg-muted/30 p-3 lg:grid-cols-2" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading challans</span>
+      <span className="sr-only">{t('challan.list.loading')}</span>
       {Array.from({ length: rows }, (_, index) => (
         <div key={index} className="rounded-xl border bg-card shadow-xs">
           <div className="flex items-start gap-3 border-b px-4 py-3">
@@ -57,6 +60,8 @@ interface EmptyProps {
  * different: one is a filter to clear, the other is a PDF to open.
  */
 export function ChallanDirectoryEmpty({ isFiltered, canCreate, onReset }: EmptyProps) {
+  const t = useT()
+
   const Icon = isFiltered ? SearchX : FileStack
 
   return (
@@ -66,25 +71,25 @@ export function ChallanDirectoryEmpty({ isFiltered, canCreate, onReset }: EmptyP
       </div>
 
       <h3 className="mt-4 text-base font-semibold tracking-tight">
-        {isFiltered ? 'No challans found' : 'No challans yet'}
+        {isFiltered ? t('challan.list.noneFound') : t('challan.list.noneYet')}
       </h3>
 
       <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-pretty text-muted-foreground">
         {isFiltered
-          ? 'No challan records match your current filters.'
-          : 'Open the challan PDF that arrived from the corporate office, mark out each challan, and file them one at a time.'}
+          ? t('challan.list.filteredHint')
+          : t('challan.list.emptyHint')}
       </p>
 
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
         {isFiltered && (
           <Button variant="outline" size="sm" onClick={onReset}>
-            Clear filters
+            {t('common.actions.clearFilters')}
           </Button>
         )}
         {canCreate && (
           <Button size="sm" render={<Link to="/challan/new" />}>
             <Plus data-icon="inline-start" aria-hidden />
-            Open a challan PDF
+            {t('challan.openChallanPdf')}
           </Button>
         )}
       </div>
@@ -99,18 +104,22 @@ interface ErrorProps {
 }
 
 export function ChallanDirectoryError({ message, onRetry, isRetrying }: ErrorProps) {
+  const t = useT()
+
   return (
     <div className="flex flex-col items-center px-6 py-16 text-center" role="alert">
       <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
         <TriangleAlert className="size-5" aria-hidden />
       </div>
-      <h3 className="mt-4 text-base font-semibold tracking-tight">Could not load challans</h3>
+      <h3 className="mt-4 text-base font-semibold tracking-tight">
+        {t('challan.list.loadFailed')}
+      </h3>
       <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-pretty text-muted-foreground">
         {message}
       </p>
       <Button variant="outline" size="sm" className="mt-5" onClick={onRetry} disabled={isRetrying}>
         <RefreshCcw data-icon="inline-start" aria-hidden />
-        {isRetrying ? 'Retrying…' : 'Try again'}
+        {isRetrying ? t('challan.list.retrying') : t('common.actions.retry')}
       </Button>
     </div>
   )

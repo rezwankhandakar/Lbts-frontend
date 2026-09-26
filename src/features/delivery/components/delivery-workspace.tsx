@@ -13,6 +13,7 @@ import { OverageDialog } from './overage-dialog'
 import { TripCreatedPanel } from './trip-created-panel'
 import { TripParties } from './trip-parties'
 import { WorkspaceStep } from './workspace-step'
+import { useT } from '@/lib/i18n'
 
 /**
  * Building a trip: the vehicle and driver on one side, the challans on the
@@ -24,6 +25,8 @@ import { WorkspaceStep } from './workspace-step'
  * server's over-allocation question, when it comes, through its own.
  */
 export function DeliveryWorkspace({ workspace }: { workspace: TripWorkspace }) {
+  const t = useT()
+
   const role = useCurrentRole()
   const [cartDialogOpen, setCartDialogOpen] = useState(false)
   const [reviewing, setReviewing] = useState(false)
@@ -55,8 +58,8 @@ export function DeliveryWorkspace({ workspace }: { workspace: TripWorkspace }) {
         <div className="min-w-0 space-y-6">
           <WorkspaceStep
             step={1}
-            title="Vehicle and driver"
-            description="Find the lorry by its plate. Its vendor and assigned driver fill in; the driver can be changed for this trip alone."
+            title={t('delivery.workspace.stepVehicle')}
+            description={t('delivery.workspace.stepVehicleHint')}
             done={workspace.vehicle !== null && workspace.driver?.status === 'Active'}
           >
             <TripParties
@@ -71,8 +74,8 @@ export function DeliveryWorkspace({ workspace }: { workspace: TripWorkspace }) {
 
           <WorkspaceStep
             step={2}
-            title="Challans"
-            description="Add the challans going on this lorry. Trim a quantity, replace a model, add a product or split a challan across trips."
+            title={t('delivery.workspace.stepChallans')}
+            description={t('delivery.workspace.stepChallansHint')}
             done={cart.summary.challans > 0}
           >
             <div className="space-y-5">

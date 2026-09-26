@@ -1,10 +1,11 @@
 import { Printer, PrinterCheck, Repeat, Undo2 } from 'lucide-react'
 import { BillingFlag } from '@/features/bill/components/bill-badges'
-import { formatDateTime } from '@/lib/format'
+import { formatNumber } from '@/lib/format'
+import { countOf, useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   LOCATION_REVIEW_META,
-  LOCATION_STATUS_META,
+  locationStatusMeta,
   locationSourceLabel,
 } from '@/features/location/lib/location-meta'
 import { isReviewableLocation } from '@/features/location/types'
@@ -36,7 +37,8 @@ export function DeliveryProgressBar({
   >
   className?: string
 }) {
-  const meta = dispatchMetaFor(record)
+  const t = useT()
+  const meta = dispatchMetaFor(record, t)
   const total = record.totalQty
   const sent = Math.min(record.dispatchedQty, total)
   const percent = total > 0 ? Math.round((sent / total) * 100) : 0
@@ -44,7 +46,11 @@ export function DeliveryProgressBar({
   return (
     <div
       className={cn('flex items-center gap-2', className)}
-      title={`${sent} of ${total} dispatched. ${meta.description}`}
+      title={t('challan.dispatch.progressTitle', {
+        sent: formatNumber(sent),
+        total: formatNumber(total),
+        description: meta.description,
+      })}
     >
       <div className="h-1 w-14 overflow-hidden rounded-full bg-muted sm:w-20">
         <div
@@ -53,7 +59,10 @@ export function DeliveryProgressBar({
         />
       </div>
       <span className="text-[11px] text-muted-foreground tabular-nums">
-        {sent}/{total}
+        {t('challan.dispatch.sentSlash', {
+          sent: formatNumber(sent),
+          total: formatNumber(total),
+        })}
       </span>
     </div>
   )
@@ -72,6 +81,7 @@ export function ReturnFlags({
   record: Pick<ChallanRecord, 'returnedQty' | 'resentQty'>
   className?: string
 }) {
+  const t = useT()
   const atDepot = atDepotQty(record)
   const resent = record.resentQty ?? 0
 
@@ -82,18 +92,21 @@ export function ReturnFlags({
   return (
     <div
       className={cn('flex flex-wrap items-center gap-x-3 gap-y-0.5', className)}
-      title={`${record.returnedQty} piece(s) came back off a trip; ${resent} went out again.`}
+      title={t('challan.dispatch.returnTitle', {
+        returned: countOf(record.returnedQty ?? 0, 'nouns.piece', t),
+        resent: countOf(resent, 'nouns.piece', t),
+      })}
     >
       {atDepot > 0 && (
         <span className={cn(FLAG, 'text-tone-rose')}>
           <Undo2 className="size-3 shrink-0" aria-hidden />
-          {atDepot} back at depot
+          {t('challan.dispatch.backAtDepot', { n: formatNumber(atDepot) })}
         </span>
       )}
       {resent > 0 && (
         <span className={cn(FLAG, 'text-tone-cyan')}>
           <Repeat className="size-3 shrink-0" aria-hidden />
-          {resent} re-sent
+          {t('challan.dispatch.resent', { n: formatNumber(resent) })}
         </span>
       )}
     </div>
@@ -116,9 +129,16 @@ export function ChallanRecordFlags({
   record: ChallanRecord
   className?: string
 }) {
-  const printedBy = record.printedBy ? ` by ${record.printedBy.name}` : ''
+  const t = useT()
+
+  const format = useFormatters()
+
+  const when = record.printedAt ? format.dateTime(record.printedAt) : ''
+  const printedTitle = record.printedBy
+    ? t('challan.printMark.printedAtBy', { when, name: record.printedBy.name })
+    : t('challan.printMark.printedAt', { when })
   const location = record.resolvedLocation
-  const pending = LOCATION_STATUS_META.Pending
+  const pending = locationStatusMeta('Pending', t)
   const review = LOCATION_REVIEW_META
 
   return (
@@ -126,15 +146,15 @@ export function ChallanRecordFlags({
       {record.printedAt ? (
         <span
           className={cn(FLAG, 'text-tone-violet')}
-          title={`Printed ${formatDateTime(record.printedAt)}${printedBy}`}
+          title={printedTitle}
         >
           <PrinterCheck className="size-3 shrink-0" aria-hidden />
-          Printed
+          {t('challan.printMark.printed')}
         </span>
       ) : (
         <span className={cn(FLAG, 'text-muted-foreground')}>
           <Printer className="size-3 shrink-0" aria-hidden />
-          Not printed
+          {t('challan.printMark.notPrinted')}
         </span>
       )}
 
@@ -151,10 +171,10 @@ export function ChallanRecordFlags({
         location && (
           <span
             className={cn(FLAG, 'text-tone-orange')}
-            title={`${locationSourceLabel(location.source)}. Nobody has confirmed it yet.`}
+            title={t('location.reviewTitle', { source: locationSourceLabel(location.source, t) })}
           >
             <review.icon className="size-3 shrink-0" aria-hidden />
-            {review.label} location
+            {t('location.unconfirmedLocation')}
           </span>
         )
       )}

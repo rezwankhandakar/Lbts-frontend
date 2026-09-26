@@ -21,6 +21,15 @@
  * - **Nothing is invented.** Every figure is a real count from the same
  *   aggregation its own module's page reads, so a row here can never claim
  *   something the page it leads to would disagree with.
+ *
+ * A fourth rule arrived with the second language: **a row states which figure
+ * it is about and never how that figure reads.** The wording lives in
+ * `dashboard.attention.rows.<id>`, keyed by the row's own id, and the number
+ * travels as a number so the message can pluralise on it and the formatter can
+ * shape its digits. What used to be a `plural()` helper and a `toLocaleString`
+ * with `en-IN` welded into it are both gone: an `s` on the end of a noun is a
+ * fact about English, and pinned Latin digits are a fact about neither
+ * language this app speaks.
  */
 
 /**
@@ -53,11 +62,38 @@ export type AttentionIcon =
   | 'layers'
 
 export interface AttentionRow {
+  /**
+   * The row's identity **and** where its wording lives: every row reads from
+   * `dashboard.attention.rows.<id>`. One name rather than two is what stops a
+   * row being added with a key nobody wrote, and the hyphens survive the move
+   * because a message key is a string rather than an identifier.
+   */
   id: string
   severity: AttentionSeverity
   icon: AttentionIcon
-  title: string
-  detail: string
+  /**
+   * Keys rather than sentences, typed as plain `string` rather than
+   * `TranslationKey` because this file stays import-free — the same compromise
+   * `AttentionIcon` already makes by naming a Lucide icon instead of importing
+   * one. The component casts, and the dictionary is what proves the key is
+   * real.
+   */
+  titleKey: string
+  detailKey: string
+  /** What the link is called, for a reader hearing the row rather than seeing it. */
+  actionKey: string
+  /**
+   * The figure the title states, left as a **number** on purpose.
+   *
+   * It does two jobs that pull in opposite directions: the plural has to be
+   * chosen from the raw count, and the screen has to show ১২ rather than 12.
+   * So the row carries the number and the component passes both — `count` for
+   * the choice and `n` for the print. A row that interpolated a pre-formatted
+   * string here could not be pluralised at all.
+   */
+  count?: number
+  /** The same, for the rows that state an amount of money rather than a count. */
+  taka?: number
   /**
    * What the row is ranked by. A count of records for most rows and an amount
    * in taka for the money ones — it never reaches the screen, where the title
@@ -68,8 +104,6 @@ export interface AttentionRow {
   to: string
   /** The filter that answers the row. See `AttentionSeed`. */
   seed?: AttentionSeed
-  /** What the link is called, for a reader hearing the row rather than seeing it. */
-  action: string
 }
 
 /**
@@ -111,7 +145,10 @@ export type AttentionSeed =
     }
   | { key: 'challanFilters'; value: { amount: 'unpriced' | 'partial' } }
   | { key: 'challanFilters'; value: { location: 'pending' | 'review' } }
-  | { key: 'challanFilters'; value: { dispatch: 'pending' | 'partial' | 'sent' | 'delivered' | 'returned' } }
+  | {
+      key: 'challanFilters'
+      value: { dispatch: 'pending' | 'partial' | 'sent' | 'delivered' | 'returned' }
+    }
   | { key: 'tripFilters'; value: { status: 'Open' | 'Completed' } }
   | { key: 'vendorFilters'; value: { compliance: 'expired' | 'expiring' | 'clear' } }
   | { key: 'userFilters'; value: { status: 'Pending' | 'Active' | 'Rejected' | 'Suspended' } }
@@ -146,18 +183,12 @@ export interface AttentionInput {
   users?: { pending: number }
 }
 
-/** `৳12,345`, in the Indian grouping the rest of the app formats money with. */
-function taka(amount: number): string {
-  return `৳${Math.round(amount).toLocaleString('en-IN')}`
-}
+/** Where a row's own wording lives. The id is the key. */
+const ROW = 'dashboard.attention.rows.'
 
-function plural(count: number, one: string, many = `${one}s`): string {
-  return `${count.toLocaleString()} ${count === 1 ? one : many}`
-}
-
-const GATE_PASS = 'Open Gate Pass'
-const CHALLAN = 'Open Challan'
-const VENDORS = 'Open Vendors'
+const GATE_PASS = 'dashboard.attention.actions.gatePass'
+const CHALLAN = 'dashboard.attention.actions.challan'
+const VENDORS = 'dashboard.attention.actions.vendors'
 
 /**
  * The rows, most urgent first.
@@ -178,12 +209,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'critical',
         icon: 'undo',
         weight: rejected,
-        title: `${plural(rejected, 'gate pass', 'gate passes')} sent back`,
-        detail:
-          'A reviewer found something wrong and returned these. Each one is corrected and resent — until then it carries a verdict nobody has answered.',
+        count: rejected,
+        titleKey: `${ROW}gate-pass-rejected.title`,
+        detailKey: `${ROW}gate-pass-rejected.detail`,
         to: '/gate-pass',
         seed: { key: 'gatePassFilters', value: { columns: { status: ['Rejected'] } } },
-        action: GATE_PASS,
+        actionKey: GATE_PASS,
       })
     }
 
@@ -193,12 +224,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'clock',
         weight: submitted,
-        title: `${plural(submitted, 'gate pass', 'gate passes')} awaiting a check`,
-        detail:
-          'Filed with their scan and waiting to be verified against it. A verification says these values match this paper.',
+        count: submitted,
+        titleKey: `${ROW}gate-pass-submitted.title`,
+        detailKey: `${ROW}gate-pass-submitted.detail`,
         to: '/gate-pass',
         seed: { key: 'gatePassFilters', value: { columns: { status: ['Submitted'] } } },
-        action: GATE_PASS,
+        actionKey: GATE_PASS,
       })
     }
 
@@ -208,12 +239,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'file-clock',
         weight: draft,
-        title: `${plural(draft, 'gate pass', 'gate passes')} still a draft`,
-        detail:
-          'Started and never submitted. A draft is in no report and no count, so it is work that has not landed anywhere yet.',
+        count: draft,
+        titleKey: `${ROW}gate-pass-draft.title`,
+        detailKey: `${ROW}gate-pass-draft.detail`,
         to: '/gate-pass',
         seed: { key: 'gatePassFilters', value: { columns: { status: ['Draft'] } } },
-        action: GATE_PASS,
+        actionKey: GATE_PASS,
       })
     }
   }
@@ -232,12 +263,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'critical',
         icon: 'coins',
         weight: c.partialAmount,
-        title: `${plural(c.partialAmount, 'challan')} only partly charged`,
-        detail:
-          'Some lines carry a rate and some do not, so the amount looks complete and is not. Usually a product the rate card does not name yet.',
+        count: c.partialAmount,
+        titleKey: `${ROW}challan-partial-amount.title`,
+        detailKey: `${ROW}challan-partial-amount.detail`,
         to: '/challan',
         seed: { key: 'challanFilters', value: { amount: 'partial' } },
-        action: CHALLAN,
+        actionKey: CHALLAN,
       })
     }
 
@@ -247,12 +278,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'coins',
         weight: c.blankAmount,
-        title: `${plural(c.blankAmount, 'challan')} with no amount`,
-        detail:
-          'Nothing on the rate card answered these lines, or the challan has no location yet and the card has no column to read.',
+        count: c.blankAmount,
+        titleKey: `${ROW}challan-blank-amount.title`,
+        detailKey: `${ROW}challan-blank-amount.detail`,
         to: '/challan',
         seed: { key: 'challanFilters', value: { amount: 'unpriced' } },
-        action: CHALLAN,
+        actionKey: CHALLAN,
       })
     }
 
@@ -262,11 +293,11 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'layers',
         weight: c.batchesProcessing,
-        title: `${plural(c.batchesProcessing, 'source PDF')} unfinished`,
-        detail:
-          'Pages in these files belong to no challan and are not marked blank. A batch cannot be downloaded or printed until every page is accounted for.',
+        count: c.batchesProcessing,
+        titleKey: `${ROW}challan-batches.title`,
+        detailKey: `${ROW}challan-batches.detail`,
         to: '/challan/batches',
-        action: 'Open source PDFs',
+        actionKey: 'dashboard.attention.actions.sourcePdfs',
       })
     }
 
@@ -276,12 +307,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'map-pin',
         weight: c.locationPending,
-        title: `${plural(c.locationPending, 'challan')} without a location`,
-        detail:
-          'Nothing could be determined from the thana, the district or the address. A blank beats a wrong one — these are settled by hand, two clicks each.',
+        count: c.locationPending,
+        titleKey: `${ROW}challan-location-pending.title`,
+        detailKey: `${ROW}challan-location-pending.detail`,
         to: '/challan',
         seed: { key: 'challanFilters', value: { location: 'pending' } },
-        action: CHALLAN,
+        actionKey: CHALLAN,
       })
     }
 
@@ -291,12 +322,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'scan-eye',
         weight: c.locationReview,
-        title: `${plural(c.locationReview, 'location')} nobody has confirmed`,
-        detail:
-          'A spelling normalised, a near-enough row picked, or a shortlist chosen from. A wrong district on a filed challan is invisible to everything downstream.',
+        count: c.locationReview,
+        titleKey: `${ROW}challan-location-review.title`,
+        detailKey: `${ROW}challan-location-review.detail`,
         to: '/challan',
         seed: { key: 'challanFilters', value: { location: 'review' } },
-        action: CHALLAN,
+        actionKey: CHALLAN,
       })
     }
 
@@ -306,12 +337,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'undo',
         weight: c.returnedAtDepot,
-        title: `${plural(c.returnedAtDepot, 'challan')} back at the depot`,
-        detail:
-          'Goods went out, came back off a trip and have not gone out again. These still read Pending, because they are still waiting for a lorry.',
+        count: c.returnedAtDepot,
+        titleKey: `${ROW}challan-returned.title`,
+        detailKey: `${ROW}challan-returned.detail`,
         to: '/challan',
         seed: { key: 'challanFilters', value: { dispatch: 'returned' } },
-        action: CHALLAN,
+        actionKey: CHALLAN,
       })
     }
   }
@@ -322,12 +353,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
       severity: 'warning',
       icon: 'file-clock',
       weight: input.delivery.open,
-      title: `${plural(input.delivery.open, 'trip')} awaiting a signed copy`,
-      detail:
-        'A trip closes when every receiver’s signed challan is scanned back in, or the copy is declared lost. Scanning one is a single barcode read.',
+      count: input.delivery.open,
+      titleKey: `${ROW}delivery-open.title`,
+      detailKey: `${ROW}delivery-open.detail`,
       to: '/delivery',
       seed: { key: 'tripFilters', value: { status: 'Open' } },
-      action: 'Open Delivery',
+      actionKey: 'dashboard.attention.actions.delivery',
     })
   }
 
@@ -338,12 +369,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'critical',
         icon: 'triangle-alert',
         weight: input.vendor.expiredDocuments,
-        title: `${plural(input.vendor.expiredDocuments, 'vendor document')} expired`,
-        detail:
-          'A lorry or a driver whose papers have lapsed should not go out. File the renewed certificate against the vehicle or the driver.',
+        count: input.vendor.expiredDocuments,
+        titleKey: `${ROW}vendor-expired.title`,
+        detailKey: `${ROW}vendor-expired.detail`,
         to: '/vendors',
         seed: { key: 'vendorFilters', value: { compliance: 'expired' } },
-        action: VENDORS,
+        actionKey: VENDORS,
       })
     }
 
@@ -353,12 +384,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'file-clock',
         weight: input.vendor.expiringDocuments,
-        title: `${plural(input.vendor.expiringDocuments, 'vendor document')} expiring soon`,
-        detail:
-          'Inside thirty days of the expiry date. Renew before it passes and the vehicle or driver stops being assignable.',
+        count: input.vendor.expiringDocuments,
+        titleKey: `${ROW}vendor-expiring.title`,
+        detailKey: `${ROW}vendor-expiring.detail`,
         to: '/vendors',
         seed: { key: 'vendorFilters', value: { compliance: 'expiring' } },
-        action: VENDORS,
+        actionKey: VENDORS,
       })
     }
   }
@@ -375,12 +406,12 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
       severity: 'warning',
       icon: 'user-plus',
       weight: input.users.pending,
-      title: `${plural(input.users.pending, 'account')} waiting for approval`,
-      detail:
-        'A new account is created with the least privilege and no access at all until it is approved. Whoever signed up cannot do anything yet.',
+      count: input.users.pending,
+      titleKey: `${ROW}users-pending.title`,
+      detailKey: `${ROW}users-pending.detail`,
       to: '/administration',
       seed: { key: 'userFilters', value: { status: 'Pending' } },
-      action: 'Open Administration',
+      actionKey: 'dashboard.attention.actions.administration',
     })
   }
 
@@ -393,11 +424,11 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'critical',
         icon: 'receipt',
         weight: a.vendorDueBlankBills,
-        title: `${plural(a.vendorDueBlankBills, 'trip')} without a full bill`,
-        detail:
-          'Rent or labour has not been entered, so the vendor’s month reads lower than what is actually owed. It is the one way a month looks paid when it is not.',
+        count: a.vendorDueBlankBills,
+        titleKey: `${ROW}accounts-blank-bills.title`,
+        detailKey: `${ROW}accounts-blank-bills.detail`,
         to: '/accounts/vendor-bills',
-        action: 'Open Vendor Bills',
+        actionKey: 'dashboard.attention.actions.vendorBills',
       })
     }
 
@@ -407,11 +438,11 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'receipt',
         weight: a.vendorDue,
-        title: `${taka(a.vendorDue)} owed to vendors`,
-        detail:
-          'Trip rent and labour billed, less advances and payments. Each month settles on its own — the Vendor Bills page shows them apart.',
+        taka: a.vendorDue,
+        titleKey: `${ROW}accounts-vendor-due.title`,
+        detailKey: `${ROW}accounts-vendor-due.detail`,
         to: '/accounts/vendor-bills',
-        action: 'Open Vendor Bills',
+        actionKey: 'dashboard.attention.actions.vendorBills',
       })
     }
 
@@ -421,11 +452,11 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'coins',
         weight: a.receivableOutstanding,
-        title: `${taka(a.receivableOutstanding)} to come in from Walton`,
-        detail:
-          'Final bills and labour bill CSDs together, less what has already been received against them.',
+        taka: a.receivableOutstanding,
+        titleKey: `${ROW}accounts-receivable.title`,
+        detailKey: `${ROW}accounts-receivable.detail`,
         to: '/accounts/final-bills',
-        action: 'Open Final Bills',
+        actionKey: 'dashboard.attention.actions.finalBills',
       })
     }
 
@@ -435,11 +466,11 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'clock',
         weight: a.pendingFinalBills,
-        title: `${plural(a.pendingFinalBills, 'bill')} waiting on an audit`,
-        detail:
-          'Submitted to Walton with no approved figure typed back in yet. A month without one is listed as pending and is not counted as income.',
+        count: a.pendingFinalBills,
+        titleKey: `${ROW}accounts-pending-final.title`,
+        detailKey: `${ROW}accounts-pending-final.detail`,
         to: '/accounts/final-bills',
-        action: 'Open Final Bills',
+        actionKey: 'dashboard.attention.actions.finalBills',
       })
     }
 
@@ -449,11 +480,11 @@ export function attentionRows(input: AttentionInput): AttentionRow[] {
         severity: 'warning',
         icon: 'coins',
         weight: a.advancesOutstanding,
-        title: `${taka(a.advancesOutstanding)} out on advances`,
-        detail:
-          'Money handed out and not yet returned in cash. An advance is settled by cash coming back and by nothing else.',
+        taka: a.advancesOutstanding,
+        titleKey: `${ROW}accounts-advances.title`,
+        detailKey: `${ROW}accounts-advances.detail`,
         to: '/accounts/advances',
-        action: 'Open Advances',
+        actionKey: 'dashboard.attention.actions.advances',
       })
     }
   }

@@ -15,7 +15,8 @@ import {
   updateWallet,
   uploadEntryVoucher,
 } from '../api/accounts-api'
-import { KIND_META } from '../lib/accounts-meta'
+import { t } from '@/lib/i18n'
+import { kindMeta } from '../lib/accounts-meta'
 import type { EntryRecord, FinalBillInput, FinalBillRecord, WalletInput, WalletRecord } from '../types'
 import { accountsKeys, reportAccountsError } from './use-accounts'
 
@@ -41,7 +42,11 @@ export function useSaveEntry(): UseMutationResult<
   return useMutation({
     mutationFn: ({ id, body }) => (id ? updateEntry({ id, body }) : createEntry(body)),
     onSuccess: (entry, variables) => {
-      toast.success(`${KIND_META[entry.kind].label} ${variables.id ? 'updated' : 'saved'}`, {
+      toast.success(
+        variables.id
+          ? t('accounts.toasts.kindUpdated', { kind: kindMeta(entry.kind, t).label })
+          : t('accounts.toasts.kindSaved', { kind: kindMeta(entry.kind, t).label }),
+        {
         description: `${entry.entryNumber} · ${taka(entry.amount)}`,
       })
       void invalidate()
@@ -79,7 +84,7 @@ export function useRemoveEntryVoucher(): UseMutationResult<EntryRecord, ApiError
   return useMutation({
     mutationFn: removeEntryVoucher,
     onSuccess: (entry) => {
-      toast.success(`Voucher removed from ${entry.entryNumber}`)
+      toast.success(t('accounts.toasts.voucherRemoved', { entry: entry.entryNumber }))
       void invalidate()
     },
     onError: reportAccountsError,
@@ -91,7 +96,7 @@ export function useDeleteEntry(): UseMutationResult<{ id: string; entryNumber: s
   return useMutation({
     mutationFn: deleteEntry,
     onSuccess: (result) => {
-      toast.success(`${result.entryNumber} deleted`)
+      toast.success(t('accounts.toasts.entryDeleted', { entry: result.entryNumber }))
       void invalidate()
     },
     onError: reportAccountsError,
@@ -107,7 +112,11 @@ export function useSaveWallet(): UseMutationResult<
   return useMutation({
     mutationFn: ({ id, input }) => (id ? updateWallet({ id, input }) : createWallet(input as WalletInput)),
     onSuccess: (wallet, variables) => {
-      toast.success(`${wallet.name} ${variables.id ? 'updated' : 'added'}`)
+      toast.success(
+        variables.id
+          ? t('accounts.toasts.walletUpdated', { name: wallet.name })
+          : t('accounts.toasts.walletAdded', { name: wallet.name }),
+      )
       void invalidate()
     },
     onError: reportAccountsError,
@@ -119,8 +128,13 @@ export function useDeleteWallet(): UseMutationResult<{ id: string; outcome: 'del
   return useMutation({
     mutationFn: deleteWallet,
     onSuccess: (result) => {
-      toast.success(result.outcome === 'deleted' ? 'Wallet deleted' : 'Wallet closed', {
-        description: result.outcome === 'closed' ? 'It has entries, so its history is kept.' : undefined,
+      toast.success(
+        result.outcome === 'deleted'
+          ? t('accounts.toasts.walletDeleted')
+          : t('accounts.toasts.walletClosed'),
+        {
+          description:
+            result.outcome === 'closed' ? t('accounts.toasts.walletClosedNote') : undefined,
       })
       void invalidate()
     },
@@ -137,7 +151,11 @@ export function useSaveFinalBill(): UseMutationResult<
   return useMutation({
     mutationFn: ({ id, input }) => (id ? updateFinalBill({ id, input }) : createFinalBill(input)),
     onSuccess: (bill, variables) => {
-      toast.success(`Final bill ${variables.id ? 'updated' : 'saved'}`, {
+      toast.success(
+        variables.id
+          ? t('accounts.toasts.finalBillUpdated')
+          : t('accounts.toasts.finalBillSaved'),
+        {
         description: `${bill.unit} · ${bill.periodLabel} · ${taka(bill.finalAmount)}`,
       })
       void invalidate()
@@ -151,7 +169,7 @@ export function useDeleteFinalBill(): UseMutationResult<{ id: string; label: str
   return useMutation({
     mutationFn: deleteFinalBill,
     onSuccess: (result) => {
-      toast.success(`Final bill for ${result.label} deleted`)
+      toast.success(t('accounts.toasts.finalBillDeleted', { label: result.label }))
       void invalidate()
     },
     onError: reportAccountsError,

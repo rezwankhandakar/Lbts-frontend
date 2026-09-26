@@ -2,6 +2,8 @@ import { FileCheck2, FilePen, Receipt, Wallet } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatTaka } from '@/lib/format'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { BillFilterPatch, BillListParams, BillPageMeta } from '../types'
 
@@ -27,6 +29,8 @@ interface Tile {
  * bills are still drafts" is a question somebody sits down with.
  */
 export function BillOverview({ meta, isLoading, params, onChange }: BillOverviewProps) {
+  const t = useT()
+
   if (isLoading || !meta) {
     return (
       <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-busy="true">
@@ -39,21 +43,21 @@ export function BillOverview({ meta, isLoading, params, onChange }: BillOverview
 
   const tiles: Tile[] = [
     {
-      label: 'Billed amount',
+      label: t('bill.stats.billedAmount'),
       value: formatTaka(meta.totalAmount),
-      hint: `${meta.totalQty.toLocaleString()} pcs across these bills`,
+      hint: t('bill.stats.pcsAcross', { n: formatNumber(meta.totalQty) }),
       icon: Wallet,
       chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
     },
     {
-      label: 'Bills',
+      label: t('bill.stats.bills'),
       value: meta.total.toLocaleString(),
       hint: 'matching the filters',
       icon: Receipt,
       chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
     },
     {
-      label: 'Drafts',
+      label: t('bill.stats.drafts'),
       value: meta.draftBills.toLocaleString(),
       hint: 'still being prepared',
       icon: FilePen,
@@ -61,7 +65,7 @@ export function BillOverview({ meta, isLoading, params, onChange }: BillOverview
       filter: { pressed: params.status === 'Draft', apply: { status: 'Draft' }, clear: { status: 'all' } },
     },
     {
-      label: 'Finalized',
+      label: t('bill.stats.finalized'),
       value: meta.finalizedBills.toLocaleString(),
       hint: 'signed off and sent',
       icon: FileCheck2,

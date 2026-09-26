@@ -1,5 +1,7 @@
 import { MapPin, Phone, Plus, RotateCcw, StickyNote, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   challanChanges,
@@ -9,7 +11,7 @@ import {
   missingSources,
   overagesOf,
 } from '../lib/cart'
-import { PARTY_LABELS, whereOf } from '../lib/delivery-meta'
+import { PARTY_LABEL_KEYS, whereOf } from '../lib/delivery-meta'
 import type { CartChallan } from '../types'
 import { CartChallanMenu } from './cart-challan-menu'
 import { ChallanChangeNotice } from './challan-change-notice'
@@ -38,6 +40,8 @@ interface CartChallanCardProps {
  * badges rather than a comparison with the PDF.
  */
 export function CartChallanCard({ challan, position, cart, onOpenDialog }: CartChallanCardProps) {
+  const t = useT()
+
   const edited = editedFields(challan)
   const missing = missingSources(challan)
   const later = leftForLater(challan)
@@ -47,7 +51,7 @@ export function CartChallanCard({ challan, position, cart, onOpenDialog }: CartC
 
   return (
     <article
-      aria-label={`Challan ${challan.challanNumber}`}
+      aria-label={t('delivery.cart.challanAria', { challan: challan.challanNumber })}
       className={cn(
         'rounded-xl border bg-card shadow-xs transition-shadow hover:shadow-sm',
         overages.length > 0 && 'border-tone-orange/40',
@@ -61,13 +65,15 @@ export function CartChallanCard({ challan, position, cart, onOpenDialog }: CartC
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="font-mono text-sm font-bold tracking-tight">{challan.challanNumber}</span>
-            <span className="text-[11px] text-muted-foreground tabular-nums">SL {challan.slNumber}</span>
+            <span className="text-[11px] text-muted-foreground tabular-nums">{t('delivery.slWith', { sl: formatNumber(challan.slNumber) })}</span>
             {edited.length > 0 && (
               <span
                 className="rounded-full border border-tone-amber/25 bg-tone-amber/10 px-2 py-px text-[11px] font-semibold text-tone-amber"
-                title={`Changed for this trip: ${edited.map((field) => PARTY_LABELS[field]).join(', ')}`}
+                title={t('delivery.cart.editedFor', {
+                  fields: edited.map((field) => t(PARTY_LABEL_KEYS[field])).join(', '),
+                })}
               >
-                Details edited
+                {t('delivery.cart.detailsEdited')}
               </span>
             )}
             {later > 0 && (
@@ -88,8 +94,7 @@ export function CartChallanCard({ challan, position, cart, onOpenDialog }: CartC
           <span className="min-w-0 wrap-break-word">
             {challan.deliveryAddress}
             <span className="block">
-              Thana: <span className="text-foreground">{thana}</span> · District:{' '}
-              <span className="text-foreground">{district}</span>
+              {t('delivery.cart.where', { thana, district })}
             </span>
           </span>
         </p>
@@ -141,7 +146,7 @@ export function CartChallanCard({ challan, position, cart, onOpenDialog }: CartC
           onClick={() => onOpenDialog({ kind: 'line', challanId: challan.challanId, key: null })}
         >
           <Plus data-icon="inline-start" aria-hidden />
-          Add product
+          {t('delivery.cart.addProduct')}
         </Button>
         {missing.map((source) => (
           <Button
@@ -152,7 +157,7 @@ export function CartChallanCard({ challan, position, cart, onOpenDialog }: CartC
             onClick={() => cart.restore(challan.challanId, source.index)}
           >
             <RotateCcw data-icon="inline-start" aria-hidden />
-            Add back {source.productName}
+            {t('delivery.cart.addBack', { product: source.productName })}
           </Button>
         ))}
         <span className="ml-auto text-xs text-muted-foreground tabular-nums">

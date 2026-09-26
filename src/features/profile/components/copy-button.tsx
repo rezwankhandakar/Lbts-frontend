@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Check, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface CopyButtonProps {
@@ -19,6 +20,7 @@ interface CopyButtonProps {
  * copy that did not happen.
  */
 export function CopyButton({ value, label }: CopyButtonProps) {
+  const t = useT()
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -41,7 +43,9 @@ export function CopyButton({ value, label }: CopyButtonProps) {
       variant="ghost"
       size="icon-sm"
       onClick={copy}
-      aria-label={copied ? `${label} copied` : `Copy ${label}`}
+      aria-label={
+        copied ? t('profile.copy.copied', { label }) : t('profile.copy.copy', { label })
+      }
       className={cn('text-muted-foreground', copied && 'text-tone-emerald')}
     >
       {copied ? (

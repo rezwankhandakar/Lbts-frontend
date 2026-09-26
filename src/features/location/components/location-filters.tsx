@@ -9,8 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { LOCATION_TYPE_META } from '../lib/location-meta'
+import { LOCATION_TYPE_META, locationTypeMeta } from '../lib/location-meta'
+import type { TranslationKey } from '@/lib/i18n'
 import { LOCATION_TYPES } from '../types'
 import type {
   LocationActiveFilter,
@@ -30,16 +32,10 @@ interface LocationFiltersProps {
 
 const TRIGGER = 'h-8 w-full sm:w-[10.5rem]'
 
-function typeLabel(value: unknown): string {
-  return typeof value === 'string' && value !== 'all'
-    ? (LOCATION_TYPE_META[value as keyof typeof LOCATION_TYPE_META]?.label ?? value)
-    : 'Any location type'
-}
-
-const ACTIVE_LABELS: Record<LocationActiveFilter, string> = {
-  all: 'Active and inactive',
-  active: 'Active only',
-  inactive: 'Inactive only',
+const ACTIVE_KEYS: Record<LocationActiveFilter, TranslationKey> = {
+  all: 'location.filters.activeAll',
+  active: 'location.filters.activeOnly',
+  inactive: 'location.filters.inactiveOnly',
 }
 
 /**
@@ -62,6 +58,8 @@ export function LocationFilters({
   canManage,
   summary,
 }: LocationFiltersProps) {
+  const t = useT()
+
   const isFiltered =
     params.search !== '' ||
     params.district !== '' ||
@@ -81,8 +79,8 @@ export function LocationFilters({
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="District or thana"
-              aria-label="Search locations"
+              placeholder={t('location.filters.searchPlaceholder')}
+              aria-label={t('location.filters.searchAria')}
               className="pl-8.5"
             />
           </div>
@@ -92,20 +90,26 @@ export function LocationFilters({
               value={params.locationType}
               onValueChange={(value) => onChange({ locationType: value as LocationTypeFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by location type">
+              <SelectTrigger className={TRIGGER} aria-label={t('location.filters.typeAria')}>
                 <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
-                <SelectValue>{typeLabel}</SelectValue>
+                <SelectValue>
+                  {(value) =>
+                    typeof value === 'string' && value !== 'all'
+                      ? locationTypeMeta(value, t).label
+                      : t('location.anyType')
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any location type</SelectItem>
+                  <SelectItem value="all">{t('location.anyType')}</SelectItem>
                   {LOCATION_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
                       <span
                         className={cn('size-1.5 shrink-0 rounded-full', LOCATION_TYPE_META[type].dot)}
                         aria-hidden
                       />
-                      {LOCATION_TYPE_META[type].label}
+                      {locationTypeMeta(type, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -116,16 +120,16 @@ export function LocationFilters({
               value={params.active}
               onValueChange={(value) => onChange({ active: value as LocationActiveFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by whether it is in use">
+              <SelectTrigger className={TRIGGER} aria-label={t('location.filters.activeAria')}>
                 <SelectValue>
-                  {(value) => ACTIVE_LABELS[(value as LocationActiveFilter) ?? 'all']}
+                  {(value) => t(ACTIVE_KEYS[(value as LocationActiveFilter) ?? 'all'])}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {(Object.keys(ACTIVE_LABELS) as LocationActiveFilter[]).map((value) => (
+                  {(Object.keys(ACTIVE_KEYS) as LocationActiveFilter[]).map((value) => (
                     <SelectItem key={value} value={value}>
-                      {ACTIVE_LABELS[value]}
+                      {t(ACTIVE_KEYS[value])}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -135,14 +139,14 @@ export function LocationFilters({
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
 
             {canManage && (
               <Button size="sm" onClick={onAdd}>
                 <Plus data-icon="inline-start" aria-hidden />
-                Add location
+                {t('location.addLocation')}
               </Button>
             )}
           </div>

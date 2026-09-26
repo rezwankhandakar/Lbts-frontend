@@ -19,6 +19,8 @@ import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useFormatters, useT } from '@/lib/i18n'
+import type { Formatters, TranslationKey, Translator } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { StatusFilter as UserStatusFilter } from '@/features/administration/types'
 import type { ChallanListParams } from '@/features/challan/types'
@@ -112,6 +114,8 @@ const VISIBLE = 5
  * the button.
  */
 export function DashboardAttention({ dashboard }: { dashboard: DashboardData }) {
+  const t = useT()
+  const format = useFormatters()
   const [expanded, setExpanded] = useState(false)
 
   const rows = dashboard.attention
@@ -123,15 +127,18 @@ export function DashboardAttention({ dashboard }: { dashboard: DashboardData }) 
     <section aria-labelledby="attention-heading" className="space-y-2.5">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2 id="attention-heading" className="text-[13px] font-semibold tracking-tight">
-          Needs attention
+          {t('dashboard.attention.heading')}
         </h2>
         {summary.total > 0 && (
           <p className="text-xs text-muted-foreground tabular-nums">
             {summary.critical > 0 && (
-              <span className="font-medium text-destructive">{summary.critical} urgent</span>
+              <span className="font-medium text-destructive">
+                {t('dashboard.attention.urgent', { n: format.number(summary.critical) })}
+              </span>
             )}
             {summary.critical > 0 && summary.warning > 0 && ' · '}
-            {summary.warning > 0 && <>{summary.warning} to work through</>}
+            {summary.warning > 0 &&
+              t('dashboard.attention.toWorkThrough', { n: format.number(summary.warning) })}
           </p>
         )}
       </header>
@@ -172,7 +179,9 @@ export function DashboardAttention({ dashboard }: { dashboard: DashboardData }) 
                 aria-hidden
                 className={cn('transition-transform', expanded && 'rotate-180')}
               />
-              {expanded ? 'Show less' : `Show ${hidden} more`}
+              {expanded
+                ? t('common.actions.showLess')
+                : t('dashboard.attention.showMore', { n: format.number(hidden) })}
             </Button>
           )}
 
@@ -180,13 +189,13 @@ export function DashboardAttention({ dashboard }: { dashboard: DashboardData }) 
           {dashboard.hasError && (
             <p className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1 text-xs text-muted-foreground">
               <TriangleAlert className="size-3.5 shrink-0 text-destructive" aria-hidden />
-              Some figures could not be loaded, so this list may be incomplete.
+              {t('dashboard.attention.partialFailure')}
               <button
                 type="button"
                 onClick={dashboard.refetchFailed}
                 className="font-medium text-foreground underline underline-offset-2 outline-none hover:no-underline focus-visible:ring-2 focus-visible:ring-ring"
               >
-                Try again
+                {t('common.actions.retry')}
               </button>
             </p>
           )}
@@ -197,8 +206,14 @@ export function DashboardAttention({ dashboard }: { dashboard: DashboardData }) 
 }
 
 function AttentionCard({ row }: { row: AttentionRow }) {
+  const t = useT()
+  const format = useFormatters()
   const Icon = ICONS[row.icon]
   const critical = row.severity === 'critical'
+
+  const title = rowTitle(row, t, format)
+  const detail = t(row.detailKey as TranslationKey)
+  const action = t(row.actionKey as TranslationKey)
 
   return (
     <Link
@@ -210,7 +225,7 @@ function AttentionCard({ row }: { row: AttentionRow }) {
        * from it and Clear still clears.
        */
       state={row.seed ? seedState(row.seed) : undefined}
-      aria-label={`${row.title}. ${row.action}.`}
+      aria-label={t('dashboard.attention.rowAria', { title, action })}
       className={cn(
         'group flex items-start gap-3 rounded-xl border p-3.5 text-left transition-colors outline-none',
         'focus-visible:ring-2 focus-visible:ring-ring',
@@ -232,10 +247,8 @@ function AttentionCard({ row }: { row: AttentionRow }) {
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-medium text-pretty">{row.title}</p>
-        <p className="mt-0.5 text-xs leading-snug text-pretty text-muted-foreground">
-          {row.detail}
-        </p>
+        <p className="text-[13px] font-medium text-pretty">{title}</p>
+        <p className="mt-0.5 text-xs leading-snug text-pretty text-muted-foreground">{detail}</p>
       </div>
 
       <ChevronRight
@@ -256,6 +269,8 @@ function AttentionCard({ row }: { row: AttentionRow }) {
  * records it cannot see.
  */
 function SettledRow({ asked }: { asked: boolean }) {
+  const t = useT()
+
   return (
     <div className="flex items-start gap-3 rounded-xl border border-tone-emerald/25 bg-tone-emerald/[0.06] p-4">
       <span
@@ -266,12 +281,14 @@ function SettledRow({ asked }: { asked: boolean }) {
       </span>
       <div className="min-w-0">
         <p className="text-[13px] font-medium">
-          {asked ? 'Nothing is outstanding' : 'Nothing to show here'}
+          {asked
+            ? t('dashboard.attention.settledTitle')
+            : t('dashboard.attention.unaskedTitle')}
         </p>
         <p className="mt-0.5 text-xs leading-snug text-pretty text-muted-foreground">
           {asked
-            ? 'Every gate pass is checked, every challan is placed and charged, every signed copy is in and every document on file is in date.'
-            : 'This account does not read any module that reports a backlog. The modules it can reach are listed below.'}
+            ? t('dashboard.attention.settledBody')
+            : t('dashboard.attention.unaskedBody')}
         </p>
       </div>
     </div>
@@ -279,16 +296,38 @@ function SettledRow({ asked }: { asked: boolean }) {
 }
 
 function ErrorRow({ onRetry }: { onRetry: () => void }) {
+  const t = useT()
+
   return (
     <div className="flex flex-col items-start gap-3 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
       <p className="flex items-start gap-2.5 text-sm text-muted-foreground">
         <TriangleAlert className="mt-px size-4 shrink-0 text-destructive" aria-hidden />
-        Nothing could be loaded, so there is no way to say what is outstanding.
+        {t('dashboard.attention.nothingLoaded')}
       </p>
       <Button variant="outline" size="sm" onClick={onRetry} className="shrink-0">
         <RefreshCcw data-icon="inline-start" aria-hidden />
-        Try again
+        {t('common.actions.retry')}
       </Button>
     </div>
   )
+}
+
+/**
+ * A row's title, with the figure it states put back into it.
+ *
+ * `attention.ts` carries the number and the key and decides nothing about
+ * how either reads. Here is where they meet: `count` chooses the plural and
+ * `n` is the shaped figure that gets printed, which are the same number doing
+ * two jobs that cannot share a placeholder. A money row states `{amount}`
+ * instead and has no plural at all.
+ */
+function rowTitle(row: AttentionRow, t: Translator, format: Formatters): string {
+  const key = row.titleKey as TranslationKey
+
+  if (row.taka !== undefined) {
+    return t(key, { amount: format.taka(row.taka) })
+  }
+
+  const count = row.count ?? 0
+  return t(key, { count, n: format.number(count) })
 }

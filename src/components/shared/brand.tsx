@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 /**
@@ -87,6 +88,8 @@ export function BrandLockup({
   size = 'default',
   className,
 }: BrandLockupProps) {
+  const t = useT()
+
   const scale = LOCKUP_SIZES[size]
 
   return (
@@ -112,7 +115,7 @@ export function BrandLockup({
                 inverted ? 'text-primary-foreground/70' : 'text-muted-foreground',
               )}
             >
-              Line Business Transport Service
+              {t('app.fullName')}
             </p>
           )}
         </div>

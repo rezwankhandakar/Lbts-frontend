@@ -15,13 +15,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { FieldError } from '@/features/vendor/components/form-parts'
-import { PARTY_LABELS } from '../lib/delivery-meta'
+import { PARTY_LABEL_KEYS } from '../lib/delivery-meta'
 import type { CartChallan, CartParty } from '../types'
+import { useT } from '@/lib/i18n'
 
 /** Mirrors the trip challan fields in `delivery.validation.ts`. */
 const partySchema = z.object({
-  customerName: z.string().trim().min(1, 'Customer name is required').max(200),
-  deliveryAddress: z.string().trim().min(1, 'Delivery address is required').max(500),
+  customerName: z.string().trim().min(1, 'delivery.party.customerRequired').max(200),
+  deliveryAddress: z.string().trim().min(1, 'delivery.party.addressRequired').max(500),
   thana: z.string().trim().max(120),
   district: z.string().trim().max(120),
   receiverMobile: z
@@ -29,7 +30,7 @@ const partySchema = z.object({
     .trim()
     .refine(
       (value) => /^(?:\+?88)?01\d{9}$/.test(value.replace(/[\s-]/g, '')) || /^[\d+\-() ]{6,20}$/.test(value),
-      'Enter a valid receiver mobile, for example 01712345678.',
+      'delivery.party.mobileInvalid',
     ),
   note: z.string().trim().max(400),
 })
@@ -58,6 +59,8 @@ const FIELDS: (keyof CartParty)[] = ['customerName', 'receiverMobile', 'thana', 
  * somebody typing.
  */
 export function ChallanPartyDialog({ challan, onOpenChange, onSave }: ChallanPartyDialogProps) {
+  const t = useT()
+
   const {
     register,
     control,
@@ -94,7 +97,7 @@ export function ChallanPartyDialog({ challan, onOpenChange, onSave }: ChallanPar
         <DialogHeader>
           <DialogTitle>Delivery details · {challan.challanNumber}</DialogTitle>
           <DialogDescription>
-            Changes here are for this trip only. The filed challan keeps what it printed.
+            {t('delivery.party.forThisTripOnly')}
           </DialogDescription>
         </DialogHeader>
 
@@ -104,7 +107,7 @@ export function ChallanPartyDialog({ challan, onOpenChange, onSave }: ChallanPar
           className="space-y-4"
         >
           <div className="space-y-1.5">
-            <Label htmlFor="party-deliveryAddress">{PARTY_LABELS.deliveryAddress}</Label>
+            <Label htmlFor="party-deliveryAddress">{t(PARTY_LABEL_KEYS.deliveryAddress)}</Label>
             <Textarea id="party-deliveryAddress" rows={2} {...register('deliveryAddress')} />
             <FieldError error={errors.deliveryAddress?.message} />
             {hint('deliveryAddress')}
@@ -113,7 +116,7 @@ export function ChallanPartyDialog({ challan, onOpenChange, onSave }: ChallanPar
           <div className="grid gap-4 sm:grid-cols-2">
             {FIELDS.map((field) => (
               <div key={field} className="space-y-1.5">
-                <Label htmlFor={`party-${field}`}>{PARTY_LABELS[field]}</Label>
+                <Label htmlFor={`party-${field}`}>{t(PARTY_LABEL_KEYS[field])}</Label>
                 <Input
                   id={`party-${field}`}
                   inputMode={field === 'receiverMobile' ? 'tel' : undefined}
@@ -128,7 +131,8 @@ export function ChallanPartyDialog({ challan, onOpenChange, onSave }: ChallanPar
 
           <div className="space-y-1.5">
             <Label htmlFor="party-note">
-              Note for the driver <span className="text-muted-foreground">(optional)</span>
+              {t('delivery.party.noteForDriver')}{' '}
+              <span className="text-muted-foreground">{t('common.labels.optionalSuffix')}</span>
             </Label>
             <Textarea id="party-note" rows={2} {...register('note')} />
             <FieldError error={errors.note?.message} />
@@ -142,12 +146,12 @@ export function ChallanPartyDialog({ challan, onOpenChange, onSave }: ChallanPar
               onClick={() => reset({ ...challan.original, note: values.note ?? '' })}
             >
               <RotateCcw data-icon="inline-start" aria-hidden />
-              Use the challan&apos;s details
+              {t('delivery.party.useChallanDetails')}
             </Button>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
-            <Button type="submit">Save for this trip</Button>
+            <Button type="submit">{t('delivery.party.saveForTrip')}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

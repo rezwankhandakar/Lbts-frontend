@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { saveBlob } from '@/lib/save-blob'
 import { exportLabourBill } from '../api/labour-bill-api'
@@ -19,12 +20,12 @@ export function useLabourBillExport(): { isExporting: boolean; download: (id: st
         return
       }
       setIsExporting(true)
-      const toastId = toast.loading('Building the labour bill…')
+      const toastId = toast.loading(t('labourBill.actions.buildingToast'))
 
       void exportLabourBill(id)
         .then(({ blob, filename }) => {
           saveBlob(blob, filename)
-          toast.success('Labour bill downloaded', { id: toastId, description: filename })
+          toast.success(t('labourBill.actions.downloaded'), { id: toastId, description: filename })
         })
         .catch((error: ApiError) => {
           toast.dismiss(toastId)

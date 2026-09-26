@@ -1,5 +1,7 @@
 import { CircleCheckBig, FileQuestion, PackageCheck, Truck, Undo2, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { formatNumber, formatTaka } from '@/lib/i18n'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import type {
   CarryingKind,
   ChallanChange,
@@ -16,11 +18,20 @@ import type {
  *
  * Every class is a full literal string: Tailwind scans source text, so a
  * template like `text-tone-${tone}` would generate nothing.
+ *
+ * **What each table holds is the untranslatable half.** An icon and a set of
+ * classes belong to a classification; the words belong to whoever is reading,
+ * so every lookup here takes a `Translator` and reads them from the
+ * dictionary. Requiring the argument is what makes that a compiler error
+ * rather than a stale label nobody notices after a language switch.
  */
 
-export interface TripStatusMeta {
+export interface TripStatusMeta extends TripStatusPresentation {
   label: string
   description: string
+}
+
+export interface TripStatusPresentation {
   icon: LucideIcon
   badge: string
   dot: string
@@ -28,23 +39,19 @@ export interface TripStatusMeta {
   tile: string
 }
 
-export const TRIP_STATUS_META: Record<TripStatus, TripStatusMeta> = {
-  /**
-   * Stored as `Open`, read as "Awaiting copy": the word says what the trip is
-   * waiting for, and the badge adds how far along it is (`· 2/3`). Only the
-   * label changed — the value, the filter and every query still say `Open`.
-   */
+/**
+ * Stored as `Open`, read as "Awaiting copy": the word says what the trip is
+ * waiting for, and the badge adds how far along it is (`· 2/3`). Only the
+ * label changed — the value, the filter and every query still say `Open`.
+ */
+export const TRIP_STATUS_META: Record<TripStatus, TripStatusPresentation> = {
   Open: {
-    label: 'Awaiting copy',
-    description: 'A challan on this trip is still waiting for its signed copy.',
     icon: Truck,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     dot: 'bg-tone-amber',
     tile: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
   },
   Completed: {
-    label: 'Completed',
-    description: 'Every challan on the trip has been signed for.',
     icon: CircleCheckBig,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
@@ -52,8 +59,14 @@ export const TRIP_STATUS_META: Record<TripStatus, TripStatusMeta> = {
   },
 }
 
-export function tripStatusMeta(value: string): TripStatusMeta {
-  return TRIP_STATUS_META[value as TripStatus] ?? TRIP_STATUS_META.Open
+export function tripStatusMeta(value: string, t: Translator): TripStatusMeta {
+  const status: TripStatus = value in TRIP_STATUS_META ? (value as TripStatus) : 'Open'
+
+  return {
+    ...TRIP_STATUS_META[status],
+    label: t(`delivery.tripStatuses.${status}.label` as TranslationKey),
+    description: t(`delivery.tripStatuses.${status}.description` as TranslationKey),
+  }
 }
 
 /**
@@ -65,9 +78,12 @@ export { shortTripNumber } from './cart'
 
 // --- Completing a delivery -------------------------------------------------
 
-export interface DeliveryOutcomeMeta {
+export interface DeliveryOutcomeMeta extends OutcomePresentation {
   label: string
   description: string
+}
+
+interface OutcomePresentation {
   icon: LucideIcon
   badge: string
   dot: string
@@ -81,43 +97,48 @@ export interface DeliveryOutcomeMeta {
  * yet", and the challan still waiting for its copy is precisely the one
  * somebody is looking for.
  */
-export const DELIVERY_OUTCOME_META: Record<DeliveryOutcome, DeliveryOutcomeMeta> = {
+export const DELIVERY_OUTCOME_META: Record<DeliveryOutcome, OutcomePresentation> = {
   Pending: {
-    label: 'Awaiting copy',
-    description: 'The signed challan copy has not been scanned in yet.',
     icon: Truck,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     dot: 'bg-tone-amber',
   },
   Complete: {
-    label: 'Complete',
-    description: 'The receiver signed for it and the copy is on record.',
     icon: PackageCheck,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
   },
 }
 
-export function deliveryOutcomeMeta(value: string): DeliveryOutcomeMeta {
-  return DELIVERY_OUTCOME_META[value as DeliveryOutcome] ?? DELIVERY_OUTCOME_META.Pending
+export function deliveryOutcomeMeta(value: string, t: Translator): DeliveryOutcomeMeta {
+  const outcome: DeliveryOutcome =
+    value in DELIVERY_OUTCOME_META ? (value as DeliveryOutcome) : 'Pending'
+
+  return {
+    ...DELIVERY_OUTCOME_META[outcome],
+    label: t(`delivery.outcomes.${outcome}.label` as TranslationKey),
+    description: t(`delivery.outcomes.${outcome}.description` as TranslationKey),
+  }
 }
 
 /**
- * The three ways a delivery is complete, each drawn as its own word — "Complete"
- * alone would hide that one of them has no signed copy behind it.
+ * The two ways a delivery closes without a signature, each drawn as its own
+ * word — "Complete" alone would hide that one of them has no signed copy
+ * behind it.
+ *
+ * `SignedCopy` is deliberately absent: it *is* the Complete outcome, and
+ * saying so in two tables is how the two come to disagree.
  */
-export const COMPLETION_METHOD_META: Record<CompletionMethod, DeliveryOutcomeMeta> = {
-  SignedCopy: DELIVERY_OUTCOME_META.Complete,
+const COMPLETION_METHOD_META: Record<
+  Exclude<CompletionMethod, 'SignedCopy'>,
+  OutcomePresentation
+> = {
   Returned: {
-    label: 'Returned',
-    description: 'Everything came back. Nothing was delivered, so no signed copy is needed.',
     icon: Undo2,
     badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
     dot: 'bg-tone-rose',
   },
   CopyMissing: {
-    label: 'Copy missing',
-    description: 'Completed without the signed copy, on the operator’s word.',
     icon: FileQuestion,
     badge: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
     dot: 'bg-tone-orange',
@@ -125,13 +146,23 @@ export const COMPLETION_METHOD_META: Record<CompletionMethod, DeliveryOutcomeMet
 }
 
 /** A delivery's badge meta: why it is complete when it is, else awaiting copy. */
-export function completionMeta(challan: {
-  outcome: string
-  completionMethod: CompletionMethod | null
-}): DeliveryOutcomeMeta {
-  return challan.outcome === 'Complete' && challan.completionMethod
-    ? COMPLETION_METHOD_META[challan.completionMethod]
-    : deliveryOutcomeMeta(challan.outcome)
+export function completionMeta(
+  challan: {
+    outcome: string
+    completionMethod: CompletionMethod | null
+  },
+  t: Translator,
+): DeliveryOutcomeMeta {
+  const method = challan.completionMethod
+  if (challan.outcome !== 'Complete' || method === null || method === 'SignedCopy') {
+    return deliveryOutcomeMeta(challan.outcome, t)
+  }
+
+  return {
+    ...COMPLETION_METHOD_META[method],
+    label: t(`delivery.completionMethods.${method}.label` as TranslationKey),
+    description: t(`delivery.completionMethods.${method}.description` as TranslationKey),
+  }
 }
 
 export interface CarryingKindMeta {
@@ -141,51 +172,61 @@ export interface CarryingKindMeta {
 }
 
 /** What was hired for the last few metres — a vehicle, or people. */
-export const CARRYING_KIND_META: Record<CarryingKind, CarryingKindMeta> = {
-  Vehicle: {
-    label: 'Vehicle',
-    hint: 'A rickshaw van, a CNG — whatever took it the last stretch.',
-    icon: Truck,
-  },
-  Labour: {
-    label: 'Labour',
-    hint: 'People hired to carry it in or up.',
-    icon: Users,
-  },
+const CARRYING_KIND_ICONS: Record<CarryingKind, LucideIcon> = {
+  Vehicle: Truck,
+  Labour: Users,
+}
+
+export function carryingKindMeta(kind: CarryingKind, t: Translator): CarryingKindMeta {
+  return {
+    icon: CARRYING_KIND_ICONS[kind],
+    label: t(`delivery.carryingKinds.${kind}.label` as TranslationKey),
+    hint: t(`delivery.carryingKinds.${kind}.hint` as TranslationKey),
+  }
 }
 
 /** The returns badge, used wherever a line or a challan reports one. */
 export const RETURN_META = {
-  label: 'Returned',
+  labelKey: 'delivery.returned',
   icon: Undo2,
   badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
-} as const
+} as const satisfies { labelKey: TranslationKey; icon: LucideIcon; badge: string }
 
 /**
  * A floor, as a person says it. `null` is nobody said, and `0` is the ground
  * floor — two different answers, and a dash for the first would read as the
  * second.
+ *
+ * English agrees the ordinal suffix with the number and Bangla does not, so
+ * the suffix is not a string this file builds: it chooses between four whole
+ * messages, with `Intl.PluralRules` in ordinal mode saying which. Bangla
+ * writes the same sentence in all four, which is what a language with no
+ * ordinal agreement should do.
  */
-export function floorLabel(floorNo: number | null): string {
-  if (floorNo === null) {
-    return 'Not recorded'
-  }
-  if (floorNo === 0) {
-    return 'Ground floor'
-  }
-  const suffix = floorNo % 10 === 1 && floorNo % 100 !== 11
-    ? 'st'
-    : floorNo % 10 === 2 && floorNo % 100 !== 12
-      ? 'nd'
-      : floorNo % 10 === 3 && floorNo % 100 !== 13
-        ? 'rd'
-        : 'th'
-  return `${floorNo}${suffix} floor`
+const ORDINAL_KEYS: Record<Intl.LDMLPluralRule, TranslationKey> = {
+  one: 'delivery.floorSt',
+  two: 'delivery.floorNd',
+  few: 'delivery.floorRd',
+  other: 'delivery.floorTh',
+  zero: 'delivery.floorTh',
+  many: 'delivery.floorTh',
 }
 
-/** Taka, as this operation writes it. */
+const ORDINAL = new Intl.PluralRules('en', { type: 'ordinal' })
+
+export function floorLabel(floorNo: number | null, t: Translator): string {
+  if (floorNo === null) {
+    return t('delivery.floorNotRecorded')
+  }
+  if (floorNo === 0) {
+    return t('delivery.groundFloor')
+  }
+  return t(ORDINAL_KEYS[ORDINAL.select(floorNo)], { n: formatNumber(floorNo) })
+}
+
+/** Taka, as this operation writes it. Kept as this module's name for the shared formatter. */
 export function taka(amount: number): string {
-  return `৳${amount.toLocaleString()}`
+  return formatTaka(amount)
 }
 
 export interface LineChangeMeta {
@@ -203,95 +244,86 @@ export interface LineChangeMeta {
  * paper, so they are two words: a split leaves the rest on the challan for
  * another trip, a cut takes it off the challan for good.
  */
-export const LINE_CHANGE_META: Record<LineChange, LineChangeMeta> = {
-  'as-ordered': {
-    label: 'As ordered',
-    description: 'The product, the model and the quantity the challan orders.',
-    badge: 'border-border bg-muted text-muted-foreground',
-  },
-  split: {
-    label: 'Split',
-    description: 'Part of this line goes on a later trip. The challan keeps the rest.',
-    badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
-  },
-  reduced: {
-    label: 'Cut',
-    description:
-      'Fewer than the challan orders, with nothing held back — the challan is corrected down to what went.',
-    badge: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
-  },
-  increased: {
-    label: 'More',
-    description: 'More than the challan orders — the challan is corrected up to what went.',
-    badge: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
-  },
-  substituted: {
-    label: 'Replaced',
-    description:
-      'A different product or model standing in for the one on the challan, which it replaces there too.',
-    badge: 'border-tone-violet/25 bg-tone-violet/10 text-tone-violet',
-  },
-  added: {
-    label: 'Added',
-    description: 'A product the challan never listed. It is added to the challan as well.',
-    badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
-  },
+const LINE_CHANGE_BADGES: Record<LineChange, string> = {
+  'as-ordered': 'border-border bg-muted text-muted-foreground',
+  split: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
+  reduced: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
+  increased: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
+  substituted: 'border-tone-violet/25 bg-tone-violet/10 text-tone-violet',
+  added: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
 }
 
-const CHANGE_VERB: Record<ChallanChange['kind'], string> = {
-  reduced: 'cut to',
-  increased: 'raised to',
-  removed: 'removed',
-  added: 'added',
+export function lineChangeMeta(change: LineChange, t: Translator): LineChangeMeta {
+  return {
+    badge: LINE_CHANGE_BADGES[change],
+    label: t(`delivery.lineChanges.${change}.label` as TranslationKey),
+    description: t(`delivery.lineChanges.${change}.description` as TranslationKey),
+  }
 }
 
 /**
  * One change a trip makes to a challan, as a sentence somebody can check
  * against the paper: "Refrigerator WFN-1D5 cut to 3 (was 4)".
+ *
+ * Four whole messages rather than a verb dropped into a shared frame: the verb
+ * sits between the product and the figure in English and after both in
+ * Bangla, so one template could only ever read correctly in one of them.
  */
-export function changeSentence(change: ChallanChange): string {
-  const product = `${change.productName} ${change.model}`.trim()
+export function changeSentence(change: ChallanChange, t: Translator): string {
+  const values = {
+    product: `${change.productName} ${change.model}`.trim(),
+    from: formatNumber(change.from),
+    to: formatNumber(change.to),
+  }
 
   switch (change.kind) {
     case 'removed':
-      return `${product} removed (was ${change.from})`
+      return t('delivery.changes.removed', values)
     case 'added':
-      return `${product} added (${change.to})`
+      return t('delivery.changes.added', values)
+    case 'increased':
+      return t('delivery.changes.raisedTo', values)
     default:
-      return `${product} ${CHANGE_VERB[change.kind]} ${change.to} (was ${change.from})`
+      return t('delivery.changes.cutTo', values)
   }
 }
 
 /** The numbers behind a line's change badge — "2 of 4", "for WFA-2D4" — when there are any. */
-export function lineDetail(line: {
-  change: LineChange
-  qty: number
-  source: { model: string; qty: number } | null
-}): string | undefined {
+export function lineDetail(
+  line: {
+    change: LineChange
+    qty: number
+    source: { model: string; qty: number } | null
+  },
+  t: Translator,
+): string | undefined {
   if (!line.source) {
     return undefined
   }
   switch (line.change) {
     case 'split':
-      return `${line.qty} of ${line.source.qty} · rest on another trip`
+      return t('delivery.lineDetail.split', {
+        qty: formatNumber(line.qty),
+        ordered: formatNumber(line.source.qty),
+      })
     case 'reduced':
     case 'increased':
-      return `challan was ${line.source.qty}`
+      return t('delivery.lineDetail.corrected', { ordered: formatNumber(line.source.qty) })
     case 'substituted':
-      return `for ${line.source.model}`
+      return t('delivery.lineDetail.substituted', { model: line.source.model })
     default:
       return undefined
   }
 }
 
 /** Labels for the delivery fields a trip may correct. */
-export const PARTY_LABELS = {
-  customerName: 'Customer',
-  deliveryAddress: 'Delivery address',
-  thana: 'Thana',
-  district: 'District',
-  receiverMobile: 'Receiver',
-} as const
+export const PARTY_LABEL_KEYS = {
+  customerName: 'delivery.partyLabels.customerName',
+  deliveryAddress: 'delivery.partyLabels.deliveryAddress',
+  thana: 'delivery.partyLabels.thana',
+  district: 'delivery.partyLabels.district',
+  receiverMobile: 'delivery.partyLabels.receiverMobile',
+} as const satisfies Record<string, TranslationKey>
 
 /**
  * Thana and district for a card: what the challan printed, or — when it
@@ -346,6 +378,13 @@ export function newSubmissionKey(): string {
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
-export function plural(count: number, one: string, many = `${one}s`): string {
-  return `${count.toLocaleString()} ${count === 1 ? one : many}`
+/**
+ * "3 challans" — a counted noun.
+ *
+ * Both forms are passed in rather than derived from a trailing `s`: the caller
+ * is the only thing that knows which noun it means, and a language that does
+ * not pluralise simply hands over the same string twice.
+ */
+export function plural(count: number, one: string, many: string): string {
+  return `${formatNumber(count)} ${count === 1 ? one : many}`
 }

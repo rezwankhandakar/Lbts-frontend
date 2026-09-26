@@ -2,6 +2,7 @@ import { ChevronRight, CircleCheckBig, FileClock, FileWarning, HandCoins, Truck 
 import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { taka } from '../lib/accounts-meta'
 import type { AccountsOverview } from '../types'
@@ -20,6 +21,8 @@ interface Item {
  * and a line saying so — the list is a to-do list, not a set of statuses.
  */
 export function AttentionPanel({ overview }: { overview: AccountsOverview | undefined }) {
+  const t = useT()
+
   if (!overview) {
     return <Skeleton className="h-72 rounded-xl" />
   }
@@ -39,7 +42,7 @@ export function AttentionPanel({ overview }: { overview: AccountsOverview | unde
       icon: FileWarning,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
       title: `${overview.vendorDue.blankBills} ${overview.vendorDue.blankBills === 1 ? 'trip has' : 'trips have'} no bill entered`,
-      detail: 'Rent or labour bill is blank on the trip, so it counts as nothing',
+      detail: t('accounts.attention.blankBillDetail'),
       to: '/accounts/vendor-bills',
     })
   }
@@ -48,7 +51,7 @@ export function AttentionPanel({ overview }: { overview: AccountsOverview | unde
       icon: FileClock,
       chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
       title: `${overview.pendingFinalBills} Excel ${overview.pendingFinalBills === 1 ? 'bill is' : 'bills are'} awaiting a final bill`,
-      detail: 'Last six months — no income is counted until the final figure is entered',
+      detail: t('accounts.attention.pendingFinalDetail'),
       to: '/accounts/final-bills',
     })
   }
@@ -72,12 +75,17 @@ export function AttentionPanel({ overview }: { overview: AccountsOverview | unde
   }
 
   return (
-    <Panel title="Needs attention" description="What is still owed, blank or unsettled.">
+    <Panel
+      title={t('accounts.attention.heading')}
+      description={t('accounts.attention.description')}
+    >
       {items.length === 0 ? (
         <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
           <CircleCheckBig className="size-6 text-tone-emerald" aria-hidden />
-          <p className="text-sm font-medium">All caught up</p>
-          <p className="text-xs text-muted-foreground">Nothing is owed, blank or waiting.</p>
+          <p className="text-sm font-medium">{t('accounts.attention.allCaughtUp')}</p>
+          <p className="text-xs text-muted-foreground">
+            {t('accounts.attention.nothingWaiting')}
+          </p>
         </div>
       ) : (
         <ul className="divide-y">

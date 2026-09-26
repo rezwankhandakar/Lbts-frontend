@@ -508,6 +508,13 @@ export function checkEntryRange(
   session: ChallanSession,
   entryId: string,
   claimedOnServer: ClaimedRange[] = [],
+  /**
+   * What to call an entry that has no challan number yet, because it is still
+   * only in this browser. The caller passes the translated form; the default is
+   * the bare position, which is the only honest thing a language-free file can
+   * say about it.
+   */
+  nameFor: (id: string) => string = (id) => String(positionOf(session, id)),
 ): RangeProblem | null {
   const entry = session.entries.find((item) => item.id === entryId)
   if (!entry) {
@@ -519,7 +526,7 @@ export function checkEntryRange(
     .map((other) => ({
       startPage: other.startPage,
       endPage: other.endPage,
-      challanNumber: other.challanNumber ?? labelFor(session, other.id),
+      challanNumber: other.challanNumber ?? nameFor(other.id),
     }))
 
   /**
@@ -546,10 +553,16 @@ export function checkEntryRange(
   )
 }
 
-/** "Challan 03" — what an unfiled entry is called before it has a number. */
-export function labelFor(session: ChallanSession, id: string): string {
-  const index = session.entries.findIndex((entry) => entry.id === id)
-  return index === -1 ? 'Challan' : `Challan ${String(index + 1).padStart(2, '0')}`
+/**
+ * Where an entry sits in the queue, 1-based, or 0 when it is not in it.
+ *
+ * It used to return "Challan 03". The word in front of the number belongs
+ * outside this file — it imports nothing so `node --test` can load it, and a
+ * queue position is arithmetic rather than language. `challan.queue.challanN`
+ * is the sentence, and every caller has a translator.
+ */
+export function positionOf(session: ChallanSession, id: string): number {
+  return session.entries.findIndex((entry) => entry.id === id) + 1
 }
 
 /**

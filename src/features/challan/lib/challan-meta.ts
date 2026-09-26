@@ -11,6 +11,10 @@ import {
   Undo2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+
+import { formatFileSize, formatNumber } from '@/lib/format'
+import type { TranslationKey, Translator } from '@/lib/i18n'
+import type { RangeProblem } from './page-ranges'
 import type {
   ChallanBatchStatus,
   ChallanStatus,
@@ -38,24 +42,25 @@ interface ToneClasses {
   chip: string
 }
 
-export interface ChallanStatusMeta extends ToneClasses {
+/** What a status says, once a translator has been asked. */
+export interface ChallanStatusMeta extends StatusPresentation {
   label: string
   description: string
+}
+
+/** The untranslatable half: an icon and the classes, and nothing it says. */
+export interface StatusPresentation extends ToneClasses {
   icon: LucideIcon
 }
 
-export const CHALLAN_STATUS_META: Record<ChallanStatus, ChallanStatusMeta> = {
+export const CHALLAN_STATUS_META: Record<ChallanStatus, StatusPresentation> = {
   Submitted: {
-    label: 'Submitted',
-    description: 'Filed, numbered and stored with its barcode back page.',
     icon: FileCheck2,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
   },
   Amended: {
-    label: 'Amended',
-    description: 'Corrected after filing — by hand, or by a trip that carried it.',
     icon: PencilLine,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     dot: 'bg-tone-amber',
@@ -70,34 +75,26 @@ export const CHALLAN_STATUS_META: Record<ChallanStatus, ChallanStatusMeta> = {
  * row, and an absent one would read as "no information" rather than "nothing
  * has gone". The same rule the Location module's status badge follows.
  */
-export const DISPATCH_META: Record<DispatchStatus, ChallanStatusMeta> = {
+export const DISPATCH_META: Record<DispatchStatus, StatusPresentation> = {
   Pending: {
-    label: 'Not dispatched',
-    description: 'Filed, and on no trip yet.',
     icon: PackageX,
     badge: 'border-border bg-muted text-muted-foreground',
     dot: 'bg-muted-foreground',
     chip: 'bg-muted text-muted-foreground ring-border',
   },
   Partial: {
-    label: 'Partly sent',
-    description: 'Split across trips, with something still to go.',
     icon: PackageOpen,
     badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
     dot: 'bg-tone-cyan',
     chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
   },
   Dispatched: {
-    label: 'Sent',
-    description: 'Everything on it has left the gate; the signed copy is not back yet.',
     icon: Truck,
     badge: 'border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo',
     dot: 'bg-tone-indigo',
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
   },
   Delivered: {
-    label: 'Delivered',
-    description: 'Every trip carrying it has its signed copy in.',
     icon: PackageCheck,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
@@ -105,8 +102,14 @@ export const DISPATCH_META: Record<DispatchStatus, ChallanStatusMeta> = {
   },
 }
 
-export function dispatchMeta(value: string): ChallanStatusMeta {
-  return DISPATCH_META[value as DispatchStatus] ?? DISPATCH_META.Pending
+export function dispatchMeta(value: string, t: Translator): ChallanStatusMeta {
+  const status: DispatchStatus = value in DISPATCH_META ? (value as DispatchStatus) : 'Pending'
+
+  return {
+    ...DISPATCH_META[status],
+    label: t(`challan.dispatchStatuses.${status}.label` as TranslationKey),
+    description: t(`challan.dispatchStatuses.${status}.description` as TranslationKey),
+  }
 }
 
 /**
@@ -114,9 +117,7 @@ export function dispatchMeta(value: string): ChallanStatusMeta {
  * stored status stays `Pending` — it is still waiting for a lorry, and the
  * filters say so — and only the word on the badge says why.
  */
-export const RETURNED_DISPATCH_META: ChallanStatusMeta = {
-  label: 'Returned',
-  description: 'Went out and came back; waiting at the depot for another trip.',
+const RETURNED_DISPATCH_META: StatusPresentation = {
   icon: Undo2,
   badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
   dot: 'bg-tone-rose',
@@ -128,34 +129,37 @@ export function atDepotQty(record: { returnedQty?: number; resentQty?: number })
   return Math.max(0, (record.returnedQty ?? 0) - (record.resentQty ?? 0))
 }
 
-export function dispatchMetaFor(record: {
-  dispatchStatus: string
-  returnedQty?: number
-  resentQty?: number
-}): ChallanStatusMeta {
-  return record.dispatchStatus === 'Pending' && atDepotQty(record) > 0
-    ? RETURNED_DISPATCH_META
-    : dispatchMeta(record.dispatchStatus)
+export function dispatchMetaFor(
+  record: {
+    dispatchStatus: string
+    returnedQty?: number
+    resentQty?: number
+  },
+  t: Translator,
+): ChallanStatusMeta {
+  if (record.dispatchStatus === 'Pending' && atDepotQty(record) > 0) {
+    return {
+      ...RETURNED_DISPATCH_META,
+      label: t('challan.dispatchStatuses.Returned.label'),
+      description: t('challan.dispatchStatuses.Returned.description'),
+    }
+  }
+  return dispatchMeta(record.dispatchStatus, t)
 }
 
-export interface ChallanBatchStatusMeta extends ToneClasses {
+export interface ChallanBatchStatusMeta extends StatusPresentation {
   label: string
   description: string
-  icon: LucideIcon
 }
 
-export const CHALLAN_BATCH_STATUS_META: Record<ChallanBatchStatus, ChallanBatchStatusMeta> = {
+export const CHALLAN_BATCH_STATUS_META: Record<ChallanBatchStatus, StatusPresentation> = {
   Processing: {
-    label: 'Processing',
-    description: 'Pages of this source PDF have not been filed as challans yet.',
     icon: Loader,
     badge: 'border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo',
     dot: 'bg-tone-indigo',
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
   },
   Completed: {
-    label: 'Completed',
-    description: 'Every page of the source PDF belongs to a submitted challan.',
     icon: CircleCheck,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
@@ -164,9 +168,7 @@ export const CHALLAN_BATCH_STATUS_META: Record<ChallanBatchStatus, ChallanBatchS
 }
 
 /** Neutral presentation for a value this client does not recognise. */
-const UNKNOWN: ChallanStatusMeta = {
-  label: 'Unknown',
-  description: 'Unrecognised status',
+const UNKNOWN: StatusPresentation = {
   icon: CircleSlash,
   badge: 'border-border bg-muted text-muted-foreground',
   dot: 'bg-muted-foreground',
@@ -177,51 +179,102 @@ const UNKNOWN: ChallanStatusMeta = {
  * Tolerant lookups. A record written before this vocabulary was fixed still
  * has to render as something, rather than throwing on `undefined.badge`.
  */
-export function challanStatusMeta(value: string): ChallanStatusMeta {
-  return value in CHALLAN_STATUS_META
-    ? CHALLAN_STATUS_META[value as ChallanStatus]
-    : { ...UNKNOWN, label: value || 'Unknown' }
+export function challanStatusMeta(value: string, t: Translator): ChallanStatusMeta {
+  if (value in CHALLAN_STATUS_META) {
+    const status = value as ChallanStatus
+    return {
+      ...CHALLAN_STATUS_META[status],
+      label: t(`challan.statuses.${status}.label` as TranslationKey),
+      description: t(`challan.statuses.${status}.description` as TranslationKey),
+    }
+  }
+  return {
+    ...UNKNOWN,
+    label: value || t('challan.statuses.unknown.label'),
+    description: t('challan.statuses.unknown.description'),
+  }
 }
 
-export function batchStatusMeta(value: string): ChallanBatchStatusMeta {
-  return value in CHALLAN_BATCH_STATUS_META
-    ? CHALLAN_BATCH_STATUS_META[value as ChallanBatchStatus]
-    : { ...UNKNOWN, label: value || 'Unknown' }
+export function batchStatusMeta(value: string, t: Translator): ChallanBatchStatusMeta {
+  if (value in CHALLAN_BATCH_STATUS_META) {
+    const status = value as ChallanBatchStatus
+    return {
+      ...CHALLAN_BATCH_STATUS_META[status],
+      label: t(`challan.batchStatuses.${status}.label` as TranslationKey),
+      description: t(`challan.batchStatuses.${status}.description` as TranslationKey),
+    }
+  }
+  return {
+    ...UNKNOWN,
+    label: value || t('challan.statuses.unknown.label'),
+    description: t('challan.statuses.unknown.description'),
+  }
 }
 
-/** "page 4" or "pages 4–6", for a sentence a person reads. */
-export function formatRange(range: PageRange): string {
-  return range.startPage === range.endPage
-    ? `page ${range.startPage}`
-    : `pages ${range.startPage}–${range.endPage}`
+/**
+ * "page 4" or "pages 4–6", for a sentence a person reads.
+ *
+ * The count chooses the whole message rather than an `s` on the end of a noun:
+ * English agrees the noun with the number, Bangla does not, and a sentence
+ * assembled from a stem and a suffix can only ever be right in one of them.
+ */
+export function formatRange(range: PageRange, t: Translator): string {
+  return t('challan.pages.range', {
+    count: range.startPage === range.endPage ? 1 : 2,
+    range: formatRangeShort(range),
+  })
 }
 
 /** "4" or "4–6", for a chip with no room for a word. */
 export function formatRangeShort(range: PageRange): string {
   return range.startPage === range.endPage
-    ? String(range.startPage)
-    : `${range.startPage}–${range.endPage}`
+    ? formatNumber(range.startPage)
+    : `${formatNumber(range.startPage)}–${formatNumber(range.endPage)}`
 }
 
 /** "pages 3–4 and 7–9", for a list of gaps in a sentence. */
-export function formatRanges(ranges: PageRange[]): string {
+export function formatRanges(ranges: PageRange[], t: Translator): string {
   if (ranges.length === 0) {
-    return 'none'
+    return t('challan.pages.none')
   }
 
-  const parts = ranges.map((range) =>
-    range.startPage === range.endPage
-      ? String(range.startPage)
-      : `${range.startPage}–${range.endPage}`,
-  )
+  const parts = ranges.map(formatRangeShort)
+  const single = ranges.length === 1 && ranges[0].startPage === ranges[0].endPage
 
-  const label = ranges.length === 1 && ranges[0].startPage === ranges[0].endPage ? 'page' : 'pages'
+  return t('challan.pages.range', {
+    count: single ? 1 : 2,
+    range:
+      parts.length === 1
+        ? parts[0]
+        : t('challan.pages.listJoin', {
+            head: parts.slice(0, -1).join(', '),
+            last: parts[parts.length - 1],
+          }),
+  })
+}
 
-  if (parts.length === 1) {
-    return `${label} ${parts[0]}`
+/**
+ * A page-range problem, as a sentence.
+ *
+ * `page-ranges.ts` is import-free so it can be loaded by `node --test`, which
+ * means it hands back a key and the raw values its message needs. Numbers are
+ * formatted here — a page number reads in Bengali digits on a Bangla page —
+ * and the overlap case builds its own `{range}` through `formatRange`, because
+ * "page 4" against "pages 4–6" is a decision only the count can make.
+ */
+export function rangeProblemText(problem: RangeProblem, t: Translator): string {
+  const values: Record<string, string | number> = {}
+
+  for (const key of Object.keys(problem.values ?? {})) {
+    const value: string | number = problem.values?.[key] ?? ''
+    values[key] = typeof value === 'number' && key !== 'count' ? formatNumber(value) : value
   }
 
-  return `${label} ${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
+  if (problem.code === 'overlap') {
+    values.range = formatRangeShort(problem.range)
+  }
+
+  return t(problem.messageKey as TranslationKey, values)
 }
 
 /**
@@ -237,17 +290,9 @@ export function shortChallanNumber(challanNumber: string): string {
   return parts.length > 2 ? parts.slice(-2).join('-') : challanNumber
 }
 
+/** Delegates to the shared formatter, so a size reads the same everywhere. */
 export function formatBytes(bytes: number | null): string {
-  if (bytes === null) {
-    return '—'
-  }
-  if (bytes < 1024) {
-    return `${bytes} B`
-  }
-  if (bytes < 1024 * 1024) {
-    return `${Math.round(bytes / 1024)} KB`
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  return formatFileSize(bytes)
 }
 
 /** Today as YYYY-MM-DD in the viewer's own calendar, for date inputs. */

@@ -4,9 +4,10 @@ import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { useCarryOver } from '@/hooks/use-carry-over'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { LastGatePassEntry } from '../hooks/use-last-entry'
-import { CARRIED_FIELDS, CARRIED_LABELS } from '../lib/carried-fields'
+import { CARRIED_FIELDS } from '../lib/carried-fields'
 import type { CarriedField } from '../lib/carried-fields'
 import { EMPTY_GATE_PASS_FORM, EMPTY_ITEM, gatePassFormSchema } from '../schemas/gate-pass-schemas'
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
@@ -50,12 +51,6 @@ interface GatePassEntryFormProps {
   onDirtyChange?: (isDirty: boolean) => void
 }
 
-/** "Trip date, CSD, Unit, Customer name and Vehicle number" — a sentence. */
-function carriedFieldSentence(): string {
-  const labels = CARRIED_FIELDS.map((field) => CARRIED_LABELS[field])
-  return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`
-}
-
 /**
  * The nine values that make up a gate pass, in challan order.
  *
@@ -80,6 +75,8 @@ export function GatePassEntryForm({
   onSubmit,
   onDirtyChange,
 }: GatePassEntryFormProps) {
+  const t = useT()
+
   const {
     register,
     control,
@@ -145,23 +142,32 @@ export function GatePassEntryForm({
             role="status"
           >
             <Info className="mt-px size-3.5 shrink-0 text-tone-amber" aria-hidden />
+            {/* One sentence rather than four fragments with bold between
+                them: the order of "from X" and the list in front of it is
+                English's, and a stitched-together banner could only ever read
+                correctly in one language. */}
             <span>
-              {carriedFieldSentence()} from{' '}
-              <span className="font-medium text-foreground">{carried.sourceLabel}</span> are shown
-              above their boxes. Tick <span className="font-medium">Same as last</span> on any that
-              match this sheet; the rest stay empty until you type them.
+              {t('gatePass.carry.banner', {
+                fields: t('gatePass.carry.fields'),
+                source: carried.sourceLabel,
+                tick: t('gatePass.carry.sameAsLast'),
+              })}
             </span>
           </p>
         )}
 
-        <FieldGroup icon={Route} title="Trip" description="The delivery order and where it left from.">
+        <FieldGroup
+          icon={Route}
+          title={t('gatePass.sections.trip')}
+          description={t('gatePass.sections.tripHint')}
+        >
           <TripFields register={register} errors={errors} carry={carry} />
         </FieldGroup>
 
         <FieldGroup
           icon={Building2}
-          title="Delivery"
-          description="Who the goods are going to, and what is carrying them."
+          title={t('gatePass.sections.delivery')}
+          description={t('gatePass.sections.deliveryHint')}
         >
           <DeliveryFields
             register={register}
@@ -174,8 +180,8 @@ export function GatePassEntryForm({
 
         <FieldGroup
           icon={Tag}
-          title="Reference"
-          description="Optional. Filed against a zone or a purchase order."
+          title={t('gatePass.sections.reference')}
+          description={t('gatePass.sections.referenceHint')}
         >
           <ReferenceFields
             register={register}
@@ -187,8 +193,8 @@ export function GatePassEntryForm({
 
         <FieldGroup
           icon={Boxes}
-          title="Goods"
-          description="What is on the vehicle. Add a row for each product on the challan."
+          title={t('gatePass.sections.goods')}
+          description={t('gatePass.sections.goodsHint')}
         >
           <GatePassItemRows
             fields={items.fields}
@@ -209,9 +215,9 @@ export function GatePassEntryForm({
           {blockedReason ? (
             <span className="text-tone-amber">{blockedReason}</span>
           ) : hasDocument ? (
-            <span className="text-tone-emerald">Document attached</span>
+            <span className="text-tone-emerald">{t('gatePass.footer.documentAttached')}</span>
           ) : (
-            'A scanned document is required to submit.'
+            t('gatePass.footer.documentRequired')
           )}
         </p>
 
@@ -225,7 +231,7 @@ export function GatePassEntryForm({
               onClick={() => void handleSubmit(onSaveDraft)()}
             >
               <Save data-icon="inline-start" aria-hidden />
-              Save draft
+              {t('gatePass.footer.saveDraft')}
             </Button>
           )}
 
@@ -248,7 +254,9 @@ export function GatePassEntryForm({
 
       <p className={cn('sr-only')} aria-live="polite">
         {blockedReason ??
-          (hasDocument ? 'A scanned document is attached.' : 'No scanned document yet.')}
+          (hasDocument
+            ? t('gatePass.footer.attachedSr')
+            : t('gatePass.footer.noDocumentSr'))}
       </p>
     </form>
   )

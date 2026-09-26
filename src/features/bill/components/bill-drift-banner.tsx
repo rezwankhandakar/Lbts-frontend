@@ -1,5 +1,7 @@
 import { RefreshCcw, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 interface BillDriftBannerProps {
   drift: { changed: number; missing: number }
@@ -15,15 +17,30 @@ interface BillDriftBannerProps {
  * again; a finalized bill keeps what it charged, and says so.
  */
 export function BillDriftBanner({ drift, isDraft, canRefresh, isRefreshing, onRefresh }: BillDriftBannerProps) {
+  const t = useT()
+
   const total = drift.changed + drift.missing
   if (total === 0) {
     return null
   }
 
-  const parts = [
-    drift.changed > 0 && `${drift.changed} ${drift.changed === 1 ? 'row has' : 'rows have'} changed`,
-    drift.missing > 0 && `${drift.missing} ${drift.missing === 1 ? 'row is' : 'rows are'} no longer on the sheet`,
-  ].filter(Boolean)
+  /* Two clauses and a joiner, each its own message — see the labour bill's. */
+  const changed =
+    drift.changed > 0
+      ? t('bill.details.driftChanged', {
+          count: drift.changed,
+          n: formatNumber(drift.changed),
+        })
+      : ''
+  const missing =
+    drift.missing > 0
+      ? t('bill.details.driftMissing', {
+          count: drift.missing,
+          n: formatNumber(drift.missing),
+        })
+      : ''
+  const summary =
+    changed && missing ? t('bill.details.driftBoth', { changed, missing }) : changed || missing
 
   return (
     <div
@@ -34,18 +51,18 @@ export function BillDriftBanner({ drift, isDraft, canRefresh, isRefreshing, onRe
         <TriangleAlert className="size-4.5" aria-hidden />
       </span>
       <div className="flex-1 text-sm">
-        <p className="font-medium">The Trip DO sheet has moved since these rows were added</p>
+        <p className="font-medium">{t('bill.details.driftTitle')}</p>
         <p className="mt-0.5 text-pretty text-muted-foreground">
-          {parts.join(' and ')}.{' '}
-          {isDraft
-            ? 'Refresh to copy the sheet again — rows that are gone are taken off. A bill cannot be finalized until it matches.'
-            : 'This bill is finalized, so it keeps what it charged. Reopen it to bring it up to date.'}
+          {t('bill.details.driftSentence', {
+            summary,
+            hint: isDraft ? t('bill.details.driftHint') : t('bill.details.finalizedHint'),
+          })}
         </p>
       </div>
       {isDraft && canRefresh && (
         <Button variant="outline" size="sm" onClick={onRefresh} disabled={isRefreshing} className="shrink-0">
           <RefreshCcw className={isRefreshing ? 'animate-spin' : undefined} data-icon="inline-start" aria-hidden />
-          {isRefreshing ? 'Refreshing…' : 'Refresh from Trip DO'}
+          {isRefreshing ? t('bill.details.refreshing') : t('bill.details.refresh')}
         </Button>
       )}
     </div>

@@ -7,6 +7,8 @@ import { LabourBillActionsMenu } from './labour-bill-actions-menu'
 import type { LabourBillDialog } from './labour-bill-actions-menu'
 import { LabourBillStatusBadge } from './labour-bill-badges'
 import { LabourBillStats } from './labour-bill-stats'
+import { useT } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 
 interface LabourBillHeroProps {
   bill: LabourBillRecord
@@ -19,18 +21,40 @@ interface LabourBillHeroProps {
   onOpen: (dialog: Exclude<LabourBillDialog, null>) => void
 }
 
-/** Who opened it, and — the part that matters later — who signed it off or reopened it. */
-function provenance(bill: LabourBillRecord): string {
+/**
+ * Who opened it, and — the part that matters later — who signed it off or
+ * reopened it.
+ *
+ * Each clause is a whole message rather than a date with a name appended:
+ * "finalized on the 3rd by Rahim" puts the actor last in English and before
+ * the verb in Bangla, so there is nothing here a template could assemble.
+ */
+function provenance(bill: LabourBillRecord, t: Translator): string {
   const parts = [
-    `Opened ${formatDateTime(bill.createdAt)}${bill.createdBy ? ` by ${bill.createdBy.name}` : ''}`,
+    bill.createdBy
+      ? t('labourBill.details.openedBy', {
+          when: formatDateTime(bill.createdAt),
+          name: bill.createdBy.name,
+        })
+      : t('labourBill.details.opened', { when: formatDateTime(bill.createdAt) }),
   ]
   if (bill.status === 'Finalized' && bill.finalizedAt) {
     parts.push(
-      `finalized ${formatDateTime(bill.finalizedAt)}${bill.finalizedBy ? ` by ${bill.finalizedBy.name}` : ''}`,
+      bill.finalizedBy
+        ? t('labourBill.details.finalizedOnBy', {
+            when: formatDateTime(bill.finalizedAt),
+            name: bill.finalizedBy.name,
+          })
+        : t('labourBill.details.finalizedOn', { when: formatDateTime(bill.finalizedAt) }),
     )
   } else if (bill.reopenedAt) {
     parts.push(
-      `reopened ${formatDateTime(bill.reopenedAt)}${bill.reopenedBy ? ` by ${bill.reopenedBy.name}` : ''}`,
+      bill.reopenedBy
+        ? t('labourBill.details.reopenedOnBy', {
+            when: formatDateTime(bill.reopenedAt),
+            name: bill.reopenedBy.name,
+          })
+        : t('labourBill.details.reopenedOn', { when: formatDateTime(bill.reopenedAt) }),
     )
   }
   return parts.join(' · ')
@@ -47,6 +71,8 @@ export function LabourBillHero({
   onRefresh,
   onOpen,
 }: LabourBillHeroProps) {
+  const t = useT()
+
   return (
     <section className="relative mb-5 overflow-hidden rounded-2xl border bg-card shadow-sm">
       <div
@@ -61,7 +87,7 @@ export function LabourBillHero({
             className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="size-3.5" aria-hidden />
-            All labour bills
+            {t('labourBill.allBills')}
           </Link>
 
           <div className="mt-3 flex flex-wrap items-center gap-2.5">
@@ -85,7 +111,7 @@ export function LabourBillHero({
           </p>
 
           {bill.note && <p className="mt-2 max-w-xl text-sm text-pretty">{bill.note}</p>}
-          <p className="mt-2 text-xs text-muted-foreground">{provenance(bill)}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{provenance(bill, t)}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -94,7 +120,7 @@ export function LabourBillHero({
               reader: printing what already exists changes no record. */}
           <Button variant="outline" onClick={() => onOpen('copies')}>
             <FileSignature data-icon="inline-start" aria-hidden />
-            Signed copies
+            {t('labourBill.signedCopies')}
           </Button>
           <Button variant="outline" onClick={onExport} disabled={isExporting}>
             {isExporting ? (
@@ -102,7 +128,7 @@ export function LabourBillHero({
             ) : (
               <Download data-icon="inline-start" aria-hidden />
             )}
-            {isExporting ? 'Building…' : 'Download Excel'}
+            {isExporting ? t('labourBill.details.building') : t('labourBill.details.downloadExcel')}
           </Button>
           <LabourBillActionsMenu
             bill={bill}

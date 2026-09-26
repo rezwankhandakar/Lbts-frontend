@@ -5,8 +5,10 @@ import {
   useModelMatches,
   useProductNameMatches,
 } from '@/features/product-rate/hooks/use-product-rates'
+import { formatNumber } from '@/lib/format'
 import { SuggestInput } from './suggest-input'
 import type { PriorityOption } from './suggest-input'
+import { useT } from '@/lib/i18n'
 
 interface ProductSuggestInputProps {
   id: string
@@ -62,6 +64,8 @@ export function ProductSuggestInput({
   onPick,
   invalid,
 }: ProductSuggestInputProps) {
+  const t = useT()
+
   const debouncedModel = useDebouncedValue(model.trim(), DEBOUNCE_MS)
   const matchesQuery = useModelMatches(
     debouncedModel,
@@ -152,10 +156,13 @@ export function ProductSuggestInput({
       value: name.productName,
       hint:
         name.modelCount === 0
-          ? 'Priced whatever the model'
-          : `${name.modelCount} ${name.modelCount === 1 ? 'model' : 'models'} on the card`,
+          ? t('productRate.pricedAnyModel')
+          : t('productRate.modelsOnCard', {
+              count: name.modelCount,
+              n: formatNumber(name.modelCount),
+            }),
     }))
-  }, [matches, names])
+  }, [matches, names, t])
 
   return (
     <SuggestInput
@@ -166,7 +173,7 @@ export function ProductSuggestInput({
       onPick={onPick}
       invalid={invalid}
       priorityOptions={priorityOptions}
-      priorityLabel="From the rate card"
+      priorityLabel={t('productRate.fromCard')}
     />
   )
 }

@@ -1,3 +1,5 @@
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface PasswordStrengthProps {
@@ -16,15 +18,21 @@ const CHECKS = [
   (value: string) => /[0-9]/.test(value),
 ]
 
-const LEVELS = [
-  { label: 'Too short', bar: 'bg-destructive', text: 'text-destructive' },
-  { label: 'Weak', bar: 'bg-destructive', text: 'text-destructive' },
-  { label: 'Fair', bar: 'bg-warning', text: 'text-warning' },
-  { label: 'Good', bar: 'bg-info', text: 'text-info' },
-  { label: 'Strong', bar: 'bg-success', text: 'text-success' },
+/**
+ * Indexed by how many of the four checks passed, so the table stays what it
+ * was — a colour per level — with the word moved out to the message tree.
+ */
+const LEVELS: { labelKey: TranslationKey; bar: string; text: string }[] = [
+  { labelKey: 'auth.password.tooShort', bar: 'bg-destructive', text: 'text-destructive' },
+  { labelKey: 'auth.password.weak', bar: 'bg-destructive', text: 'text-destructive' },
+  { labelKey: 'auth.password.fair', bar: 'bg-warning', text: 'text-warning' },
+  { labelKey: 'auth.password.good', bar: 'bg-info', text: 'text-info' },
+  { labelKey: 'auth.password.strong', bar: 'bg-success', text: 'text-success' },
 ]
 
 export function PasswordStrength({ value }: PasswordStrengthProps) {
+  const t = useT()
+
   if (!value) {
     return null
   }
@@ -46,7 +54,7 @@ export function PasswordStrength({ value }: PasswordStrengthProps) {
         ))}
       </div>
       <p className={cn('text-xs', level.text)} aria-live="polite">
-        Password strength: {level.label}
+        {t('auth.password.strength', { level: t(level.labelKey) })}
       </p>
     </div>
   )

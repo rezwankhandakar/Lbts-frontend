@@ -15,6 +15,7 @@ import { DeliveryExtrasSection } from './delivery-extras-section'
 import { ReceivedCopySection } from './received-copy-section'
 import { ReturnChoice } from './return-choice'
 import type { ReturnChoiceValue } from './return-choice'
+import { useT } from '@/lib/i18n'
 
 interface DeliveryCompletionEditorProps {
   trip: TripRecord
@@ -38,6 +39,8 @@ interface DeliveryCompletionEditorProps {
  * belongs to one delivery.
  */
 export function DeliveryCompletionEditor({ trip, challan, canWrite }: DeliveryCompletionEditorProps) {
+  const t = useT()
+
   const save = useSaveCompletion()
   const [drafts, setDrafts] = useState<ReturnQuantities | null>(null)
   const [pending, setPending] = useState<ReturnChoiceValue | null>(null)
@@ -88,7 +91,7 @@ export function DeliveryCompletionEditor({ trip, challan, canWrite }: DeliveryCo
 
       {canWrite && (
         <section className="space-y-2.5">
-          <h2 className="text-sm font-semibold tracking-tight">What happened to the goods?</h2>
+          <h2 className="text-sm font-semibold tracking-tight">{t('delivery.completion.heading')}</h2>
           <ReturnChoice
             value={drafts !== null ? 'partial' : storedChoice}
             pending={pending}
@@ -100,9 +103,9 @@ export function DeliveryCompletionEditor({ trip, challan, canWrite }: DeliveryCo
             <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2">
               <p className="min-w-48 flex-1 text-xs text-muted-foreground">
                 {draftQty === 0
-                  ? 'Set how many of each product came back on the lines above.'
+                  ? t('delivery.completion.setReturned')
                   : `${draftQty} of ${challan.totalQty} came back · ${challan.totalQty - draftQty} delivered.`}{' '}
-                Returned goods stay on the challan for another trip.
+                {t('delivery.completion.returnedStay')}
               </p>
               <Button
                 type="button"
@@ -111,7 +114,7 @@ export function DeliveryCompletionEditor({ trip, challan, canWrite }: DeliveryCo
                 disabled={save.isPending}
                 onClick={() => setDrafts(null)}
               >
-                Cancel
+                {t('common.actions.cancel')}
               </Button>
               <Button
                 type="button"
@@ -124,7 +127,7 @@ export function DeliveryCompletionEditor({ trip, challan, canWrite }: DeliveryCo
                 ) : (
                   <Save data-icon="inline-start" aria-hidden />
                 )}
-                Save returns
+                {t('delivery.completion.saveReturns')}
               </Button>
             </div>
           )}

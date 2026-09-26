@@ -1,5 +1,6 @@
 import { Boxes, Wallet } from 'lucide-react'
-import { formatTaka } from '@/lib/format'
+import { formatNumber, formatTaka } from '@/lib/format'
+import { countOf, useT } from '@/lib/i18n'
 import type { PageMeta } from '../types'
 
 function Separator() {
@@ -11,6 +12,8 @@ function Separator() {
  * screen: how many challans, how many units, and what they were charged.
  */
 export function ChallanListSummary({ summary, meta }: { summary: string; meta?: PageMeta }) {
+  const t = useT()
+
   return (
     <div
       className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground"
@@ -25,8 +28,7 @@ export function ChallanListSummary({ summary, meta }: { summary: string; meta?: 
           <Separator />
           <span className="inline-flex items-center gap-1 tabular-nums">
             <Boxes className="size-3.5 text-tone-indigo" aria-hidden />
-            <span className="font-medium text-foreground">{meta.totalQty.toLocaleString()}</span>
-            units
+            {countOf(meta.totalQty, 'nouns.unit', t)}
           </span>
         </>
       )}
@@ -41,7 +43,9 @@ export function ChallanListSummary({ summary, meta }: { summary: string; meta?: 
             className="inline-flex items-center gap-1 tabular-nums"
             title={
               meta.unpricedChallans
-                ? `${meta.unpricedChallans} of these challans carry a line that is not on the rate card, so this total does not include them.`
+                ? t('challan.list.unpricedNote', {
+                    n: formatNumber(meta.unpricedChallans),
+                  })
                 : undefined
             }
           >

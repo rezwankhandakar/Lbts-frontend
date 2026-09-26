@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { formatDateTime } from '@/lib/format'
 import { formatDay } from '@/features/vendor/lib/vendor-meta'
 import type { TripRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 function Block({
   icon,
@@ -51,6 +52,8 @@ function Tel({ value }: { value: string }) {
  * module stopped treating as evidence.
  */
 export function TripSidePanel({ trip }: { trip: TripRecord }) {
+  const t = useT()
+
   const stamps: [string, string | null, string | null][] = [
     ['Created', trip.createdAt, trip.createdBy?.name ?? null],
     ['Completed', trip.completedAt, null],
@@ -58,7 +61,7 @@ export function TripSidePanel({ trip }: { trip: TripRecord }) {
 
   return (
     <div className="divide-y overflow-hidden rounded-xl border bg-card shadow-sm">
-      <Block icon={<Truck className="size-3.5" aria-hidden />} title="Vehicle" tone="text-primary">
+      <Block icon={<Truck className="size-3.5" aria-hidden />} title={t('delivery.vehicle.heading')} tone="text-primary">
         <p className="font-mono text-base font-bold">{trip.vehicle.registrationNo}</p>
         <p className="text-xs text-muted-foreground">
           {trip.vehicle.vehicleCode}
@@ -68,7 +71,7 @@ export function TripSidePanel({ trip }: { trip: TripRecord }) {
         </p>
       </Block>
 
-      <Block icon={<Building2 className="size-3.5" aria-hidden />} title="Vendor" tone="text-tone-emerald">
+      <Block icon={<Building2 className="size-3.5" aria-hidden />} title={t('delivery.vendor.heading')} tone="text-tone-emerald">
         <Link to={`/vendors/${trip.vendor.id}`} className="font-medium hover:underline">
           {trip.vendor.name}
         </Link>
@@ -78,7 +81,7 @@ export function TripSidePanel({ trip }: { trip: TripRecord }) {
         <Tel value={trip.vendor.mobile} />
       </Block>
 
-      <Block icon={<UserRound className="size-3.5" aria-hidden />} title="Driver" tone="text-tone-indigo">
+      <Block icon={<UserRound className="size-3.5" aria-hidden />} title={t('delivery.driver.heading')} tone="text-tone-indigo">
         <p className="font-medium">{trip.driver.name}</p>
         <p className="text-xs text-muted-foreground">
           {trip.driver.driverCode}
@@ -88,14 +91,14 @@ export function TripSidePanel({ trip }: { trip: TripRecord }) {
         <Tel value={trip.driver.mobile} />
         {trip.driverIsOverride && trip.assignedDriver && (
           <p className="mt-1 rounded-md bg-muted/60 px-2 py-1 text-[11px] text-muted-foreground">
-            Drove in place of {trip.assignedDriver.name}, the vehicle&apos;s assigned driver.
+            {t('delivery.driver.droveInPlace', { name: trip.assignedDriver.name })}
           </p>
         )}
       </Block>
 
       <div className="px-4 py-3">
         <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-          History
+          {t('delivery.trip.history')}
         </p>
         <ol className="mt-2 space-y-2">
           {stamps.map(([label, at, by]) => (
@@ -107,7 +110,11 @@ export function TripSidePanel({ trip }: { trip: TripRecord }) {
               <span className="min-w-0">
                 <span className="font-medium">{label}</span>{' '}
                 <span className="text-muted-foreground">
-                  {at ? `${formatDateTime(at)}${by ? ` · ${by}` : ''}` : 'Not yet'}
+                  {at
+                    ? by
+                      ? t('delivery.trip.byAt', { when: formatDateTime(at), name: by })
+                      : formatDateTime(at)
+                    : t('delivery.trip.notYet')}
                 </span>
               </span>
             </li>
@@ -117,7 +124,7 @@ export function TripSidePanel({ trip }: { trip: TripRecord }) {
 
       {trip.note && (
         <div className="px-4 py-3 text-xs">
-          <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">Note</p>
+          <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">{t('delivery.trip.note')}</p>
           <p className="mt-1 whitespace-pre-wrap">{trip.note}</p>
         </div>
       )}

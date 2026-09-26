@@ -10,6 +10,7 @@ import {
   Store,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 
 /**
  * Mirror of `LBTS-Backend/src/modules/user/user.constants.ts`. The backend is
@@ -34,6 +35,14 @@ interface ToneClasses {
   chip: string
 }
 
+/**
+ * A role or status as the UI renders it.
+ *
+ * `label` and `description` are **already translated** — every lookup below
+ * takes a `Translator` and resolves them, so a caller cannot accidentally
+ * render an English label on a Bangla page by forgetting a step. The classes
+ * and the icon are not translatable and never change.
+ */
 export interface RoleMeta extends ToneClasses {
   label: string
   /** Expands an abbreviation the business uses; never replaces the role value. */
@@ -47,47 +56,42 @@ export interface StatusMeta extends ToneClasses {
   icon: LucideIcon
 }
 
+/** The untranslatable half: what a value looks like, and nothing it says. */
+interface RolePresentation extends ToneClasses {
+  icon: LucideIcon
+}
+
 /**
  * Every class is a full literal string. Tailwind scans source text, so a
  * template like `text-tone-${tone}` would generate nothing and the colour
  * would silently vanish — the same rule as layout/nav-accents.ts.
  */
-export const ROLE_META: Record<UserRole, RoleMeta> = {
+export const ROLE_META: Record<UserRole, RolePresentation> = {
   Admin: {
-    label: 'Admin',
-    description: 'Full system administration',
     icon: ShieldCheck,
     badge: 'border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo',
     dot: 'bg-tone-indigo',
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
   },
   Manager: {
-    label: 'Manager',
-    description: 'Day-to-day operational management',
     icon: Briefcase,
     badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
     dot: 'bg-tone-cyan',
     chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
   },
   CEO: {
-    label: 'CEO',
-    description: 'Executive oversight',
     icon: Crown,
     badge: 'border-tone-violet/25 bg-tone-violet/10 text-tone-violet',
     dot: 'bg-tone-violet',
     chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
   },
   OpEx: {
-    label: 'OpEx',
-    description: 'Operation Executive',
     icon: Gauge,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
   },
   Vendor: {
-    label: 'Vendor',
-    description: 'External supplier or partner',
     icon: Store,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     dot: 'bg-tone-amber',
@@ -95,34 +99,26 @@ export const ROLE_META: Record<UserRole, RoleMeta> = {
   },
 }
 
-export const STATUS_META: Record<UserStatus, StatusMeta> = {
+export const STATUS_META: Record<UserStatus, RolePresentation> = {
   Pending: {
-    label: 'Pending',
-    description: 'Awaiting an administrator decision',
     icon: Clock,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     dot: 'bg-tone-amber',
     chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
   },
   Active: {
-    label: 'Active',
-    description: 'Approved and able to sign in',
     icon: CircleCheck,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
   },
   Rejected: {
-    label: 'Rejected',
-    description: 'Access request declined',
     icon: CircleSlash,
     badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
     dot: 'bg-tone-rose',
     chip: 'bg-tone-rose/10 text-tone-rose ring-tone-rose/20',
   },
   Suspended: {
-    label: 'Suspended',
-    description: 'Access withdrawn until reactivated',
     icon: CircleMinus,
     badge: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
     dot: 'bg-tone-orange',
@@ -150,15 +146,55 @@ export function isUserStatus(value: string): value is UserStatus {
  * Tolerant lookups. A record written before the role set was fixed still has
  * to render as something — an unrecognised value degrades to a neutral badge
  * rather than throwing on `undefined.badge`.
+ *
+ * **The translator is a required argument rather than a store read**, and that
+ * is deliberate. Reading the locale in here would make the words correct and
+ * the *rendering* stale: nothing would have subscribed, so a badge would keep
+ * its old language until something else happened to re-render it. Demanding a
+ * `Translator` makes the caller hold `useT()`, which is the subscription — so
+ * the type system enforces the one thing that cannot be checked at runtime.
+ *
+ * An unrecognised value keeps showing **its own raw string**, untranslated, for
+ * the reason a model code is never transliterated: it is data from the API, and
+ * the honest thing to show is what was actually stored.
  */
-export function roleMeta(value: string): RoleMeta {
-  return isUserRole(value)
-    ? ROLE_META[value]
-    : { ...UNKNOWN, label: value || 'Unknown', description: 'Unrecognised role' }
+export function roleMeta(value: string, t: Translator): RoleMeta {
+  if (isUserRole(value)) {
+    return {
+      ...ROLE_META[value],
+      label: t(`roles.${value}.label` as TranslationKey),
+      description: t(`roles.${value}.description` as TranslationKey),
+    }
+  }
+
+  return {
+    ...UNKNOWN,
+    label: value || t('roles.unknown.label'),
+    description: t('roles.unknown.description'),
+  }
 }
 
-export function statusMeta(value: string): StatusMeta {
-  return isUserStatus(value)
-    ? STATUS_META[value]
-    : { ...UNKNOWN, label: value || 'Unknown', description: 'Unrecognised status' }
+export function statusMeta(value: string, t: Translator): StatusMeta {
+  if (isUserStatus(value)) {
+    return {
+      ...STATUS_META[value],
+      label: t(`accountStatuses.${value}.label` as TranslationKey),
+      description: t(`accountStatuses.${value}.description` as TranslationKey),
+    }
+  }
+
+  return {
+    ...UNKNOWN,
+    label: value || t('accountStatuses.unknown.label'),
+    description: t('accountStatuses.unknown.description'),
+  }
+}
+
+/** Just the word, for a select trigger or a filter chip. */
+export function roleLabel(value: string, t: Translator): string {
+  return roleMeta(value, t).label
+}
+
+export function statusLabel(value: string, t: Translator): string {
+  return statusMeta(value, t).label
 }

@@ -1,4 +1,5 @@
 import { Lock, ShieldCheck } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 
 /**
  * States what the module is and who it is for. The "Admin only" badge is a
@@ -6,6 +7,8 @@ import { Lock, ShieldCheck } from 'lucide-react'
  * are standing in, it does not create the lock.
  */
 export function AdministrationHeader() {
+  const t = useT()
+
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex items-start gap-3.5">
@@ -17,16 +20,16 @@ export function AdministrationHeader() {
         </span>
 
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Administration</h1>
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('administration.title')}</h1>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-pretty text-muted-foreground">
-            Manage users, roles and account access.
+            {t('administration.subtitle')}
           </p>
         </div>
       </div>
 
       <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-tone-indigo/25 bg-tone-indigo/10 px-2.5 py-1 text-xs font-semibold text-tone-indigo">
         <Lock className="size-3.5" aria-hidden />
-        Admin only
+        {t('administration.adminOnly')}
       </span>
     </div>
   )

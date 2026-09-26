@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { FileUp, Loader2, ShieldCheck, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
+import { countOf, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { MAX_SOURCE_FILE_BYTES, MAX_SOURCE_PAGES } from '../types'
 
@@ -35,6 +37,8 @@ export function SourcePdfDropzone({
   error,
   onDismissError,
 }: SourcePdfDropzoneProps) {
+  const t = useT()
+
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
 
@@ -84,22 +88,19 @@ export function SourcePdfDropzone({
 
           <h2 className="mt-5 text-lg font-semibold tracking-tight text-balance">
             {isOpening
-              ? 'Opening the PDF…'
+              ? t('challan.pdf.openingPdf')
               : expecting
-                ? 'Open the same PDF again'
-                : 'Open the challan PDF'}
+                ? t('challan.pdf.openSameAgain')
+                : t('challan.pdf.openChallanPdf')}
           </h2>
 
           <p className="mt-2 max-w-md text-sm leading-relaxed text-pretty text-muted-foreground">
-            {expecting ? (
-              <>
-                <span className="font-medium text-foreground">{expecting.fileName}</span> — the{' '}
-                {expecting.pageCount}-page file this batch was started from. Drop it here or choose
-                it from this computer.
-              </>
-            ) : (
-              'The file Walton sent over WhatsApp, however many challans it holds. Drop it here or choose it from this computer.'
-            )}
+            {expecting
+              ? t('challan.pdf.expectingFile', {
+                  file: expecting.fileName,
+                  pages: countOf(expecting.pageCount, 'nouns.page', t),
+                })
+              : t('challan.pdf.dropzoneHint')}
           </p>
 
           <input
@@ -121,11 +122,14 @@ export function SourcePdfDropzone({
             onClick={() => inputRef.current?.click()}
           >
             <FileUp data-icon="inline-start" aria-hidden />
-            Choose a PDF
+            {t('challan.pdf.choosePdf')}
           </Button>
 
           <p className="mt-6 text-xs text-muted-foreground/70">
-            PDF up to {limitMb} MB, up to {MAX_SOURCE_PAGES} pages
+            {t('challan.pdf.limits', {
+              mb: formatNumber(limitMb),
+              pages: formatNumber(MAX_SOURCE_PAGES),
+            })}
           </p>
         </div>
       </div>
@@ -146,10 +150,10 @@ export function SourcePdfDropzone({
       <p className="mt-4 flex items-start gap-2.5 rounded-lg border bg-muted/30 px-3.5 py-3 text-xs leading-relaxed text-muted-foreground">
         <ShieldCheck className="mt-0.5 size-4 shrink-0 text-tone-emerald" aria-hidden />
         <span>
-          <span className="font-medium text-foreground">This PDF is never uploaded.</span> It is
-          opened here on this computer so you can read it and mark out each challan. Only the pages
-          of a challan you actually submit are sent to LBTS and stored — the rest of the file goes
-          when you close this page.
+          <span className="font-medium text-foreground">
+            {t('challan.pdf.neverUploaded')}
+          </span>{' '}
+          {t('challan.pdf.neverUploadedNote')}
         </span>
       </p>
     </div>

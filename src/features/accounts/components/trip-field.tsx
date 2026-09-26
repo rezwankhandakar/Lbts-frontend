@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { cn } from '@/lib/utils'
 import { useTripOptions } from '../hooks/use-accounts'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { formatDay, taka } from '../lib/accounts-meta'
 import type { TripOption } from '../types'
 import { LockedValue } from './entry-field'
@@ -21,6 +23,8 @@ function billLine(trip: TripOption): string {
  * lorry — and the newest trips are offered before anything is typed.
  */
 export function TripField({ draft, set, errors, request }: KindFieldsProps) {
+  const t = useT()
+
   const [q, setQ] = useState('')
   const debounced = useDebouncedValue(q.trim(), 300)
   const locked = request.locked?.includes('tripId')
@@ -33,8 +37,8 @@ export function TripField({ draft, set, errors, request }: KindFieldsProps) {
   if (locked) {
     return (
       <LockedValue
-        label="Trip"
-        value={request.tripSummary?.label ?? existing?.tripNumber ?? 'Selected trip'}
+        label={t('accounts.trip.label')}
+        value={request.tripSummary?.label ?? existing?.tripNumber ?? t('accounts.trip.selected')}
         detail={request.tripSummary?.detail}
       />
     )
@@ -42,7 +46,7 @@ export function TripField({ draft, set, errors, request }: KindFieldsProps) {
 
   return (
     <div className="grid gap-2">
-      <Label htmlFor="entry-trip-search">Trip</Label>
+      <Label htmlFor="entry-trip-search">{t('accounts.trip.label')}</Label>
       {(selected || existing) && draft.tripId && (
         <div className="flex items-center gap-3 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2.5">
           <Truck className="size-4 shrink-0 text-primary" aria-hidden />
@@ -76,10 +80,10 @@ export function TripField({ draft, set, errors, request }: KindFieldsProps) {
         )}
       </div>
       <p id="entry-trip-hint" className={cn('text-xs', errors.tripId ? 'text-destructive' : 'text-muted-foreground')}>
-        {errors.tripId ?? 'Search by trip number, vendor, driver or plate digits.'}
+        {errors.tripId ? t(errors.tripId as TranslationKey) : t('accounts.trip.searchHint')}
       </p>
 
-      <ul className="grid max-h-56 gap-1 overflow-y-auto rounded-lg border p-1" aria-label="Trips">
+      <ul className="grid max-h-56 gap-1 overflow-y-auto rounded-lg border p-1" aria-label={t('accounts.trip.listAria')}>
         {(options.data ?? []).map((trip) => (
           <li key={trip.id}>
             <button
@@ -106,7 +110,7 @@ export function TripField({ draft, set, errors, request }: KindFieldsProps) {
             </button>
           </li>
         ))}
-        {options.data?.length === 0 && <li className="px-2.5 py-3 text-xs text-muted-foreground">No trip matches.</li>}
+        {options.data?.length === 0 && <li className="px-2.5 py-3 text-xs text-muted-foreground">{t('accounts.trip.noMatch')}</li>}
         {options.isPending && <li className="px-2.5 py-3 text-xs text-muted-foreground">Loading trips…</li>}
       </ul>
     </div>

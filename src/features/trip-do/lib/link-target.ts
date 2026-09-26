@@ -23,11 +23,11 @@ export function linkTargetForRow(row: TripDoRowRecord): LinkTarget {
  */
 export function bulkLinkProblem(rows: readonly TripDoRowRecord[]): string | null {
   if (rows.length === 0) {
-    return 'Tick the rows that came out on one gate pass.'
+    return 'tripDo.assign.tickRows'
   }
   const keys = new Set(rows.map((row) => modelKey(row.model)))
   if (keys.size > 1) {
-    return 'The ticked rows carry different models. A Trip DO is set on one gate pass line at a time.'
+    return 'tripDo.assign.differentModels'
   }
   return null
 }

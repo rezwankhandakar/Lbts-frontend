@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useSaveCompletion } from '../hooks/use-deliveries'
 import { completionPayload } from '../lib/completion-payload'
@@ -25,6 +27,8 @@ interface DeliveryExtrasSectionProps {
  * record, and says in its closed header what that is.
  */
 export function DeliveryExtrasSection({ trip, challan, canWrite }: DeliveryExtrasSectionProps) {
+  const t = useT()
+
   const [open, setOpen] = useState(
     challan.floorNo !== null || challan.carrying.length > 0 || challan.deliveryNote !== '',
   )
@@ -51,9 +55,11 @@ export function DeliveryExtrasSection({ trip, challan, canWrite }: DeliveryExtra
   }, [challan, floor, note, carrying])
 
   const summary = [
-    challan.floorNo !== null ? floorLabel(challan.floorNo) : null,
-    challan.carryingTotal > 0 ? `Carrying ${taka(challan.carryingTotal)}` : null,
-    challan.deliveryNote ? 'Note' : null,
+    challan.floorNo !== null ? floorLabel(challan.floorNo, t) : null,
+    challan.carryingTotal > 0
+      ? t('delivery.extras.carryingWith', { amount: taka(challan.carryingTotal) })
+      : null,
+    challan.deliveryNote ? t('delivery.trip.note') : null,
   ]
     .filter(Boolean)
     .join(' · ')
@@ -61,7 +67,7 @@ export function DeliveryExtrasSection({ trip, challan, canWrite }: DeliveryExtra
   const onSave = () => {
     const floorNo = floor.trim() === '' ? null : Number.parseInt(floor, 10)
     if (floorNo !== null && (Number.isNaN(floorNo) || floorNo > MAX_FLOOR)) {
-      toast.error(`A floor has to be between 0 and ${MAX_FLOOR}, or left blank.`)
+      toast.error(t('delivery.extras.floorOutOfRange', { max: formatNumber(MAX_FLOOR) }))
       return
     }
     save.mutate({
@@ -81,8 +87,10 @@ export function DeliveryExtrasSection({ trip, challan, canWrite }: DeliveryExtra
       >
         <Building2 className="size-4 shrink-0 text-muted-foreground" aria-hidden />
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold tracking-tight">Floor, carrying &amp; note</span>
-          <span className="block text-xs text-muted-foreground">{summary || 'Optional'}</span>
+          <span className="block text-sm font-semibold tracking-tight">
+            {t('delivery.extras.heading')}
+          </span>
+          <span className="block text-xs text-muted-foreground">{summary || t('delivery.extras.optional')}</span>
         </span>
         <ChevronDown
           className={cn('size-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')}
@@ -94,7 +102,7 @@ export function DeliveryExtrasSection({ trip, challan, canWrite }: DeliveryExtra
         <div className="space-y-4 border-t px-4 py-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="delivery-floor">Carried up to which floor</Label>
+              <Label htmlFor="delivery-floor">{t('delivery.extras.floorLabel')}</Label>
               <Input
                 id="delivery-floor"
                 className="max-w-32"
@@ -104,13 +112,15 @@ export function DeliveryExtrasSection({ trip, challan, canWrite }: DeliveryExtra
                 onChange={(event) => setFloor(event.target.value.replace(/\D/g, ''))}
               />
               <p className="text-xs text-muted-foreground">
-                {floor.trim() === '' ? 'Blank if it never went up.' : floorLabel(Number.parseInt(floor, 10))}
+                {floor.trim() === ''
+                  ? t('delivery.extras.floorBlank')
+                  : floorLabel(Number.parseInt(floor, 10), t)}
                 {' · '}0 is the ground floor.
               </p>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="delivery-note">Delivery note</Label>
+              <Label htmlFor="delivery-note">{t('delivery.extras.noteLabel')}</Label>
               <Textarea
                 id="delivery-note"
                 rows={3}
@@ -123,7 +133,7 @@ export function DeliveryExtrasSection({ trip, challan, canWrite }: DeliveryExtra
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Carrying</p>
+            <p className="text-sm font-medium">{t('delivery.extras.carrying')}</p>
             <CarryingChargesEditor entries={carrying} disabled={locked} onChange={setCarrying} />
           </div>
 
@@ -134,7 +144,7 @@ export function DeliveryExtrasSection({ trip, challan, canWrite }: DeliveryExtra
               ) : (
                 <Save data-icon="inline-start" aria-hidden />
               )}
-              Save details
+              {t('delivery.extras.saveDetails')}
             </Button>
           )}
         </div>

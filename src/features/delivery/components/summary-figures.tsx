@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { CartSummary } from '../types'
 
@@ -23,12 +24,14 @@ interface Figure {
  * row of zeros beside them is a row of things to read that say nothing.
  */
 export function SummaryFigures({ summary, className }: { summary: CartSummary; className?: string }) {
+  const t = useT()
+
   const figures: Figure[] = [
-    { label: 'Split', value: summary.splitChallans, tone: 'text-tone-cyan' },
-    { label: 'Challans updated', value: summary.correctedChallans, tone: 'text-tone-orange' },
-    { label: 'Details edited', value: summary.editedChallans, tone: 'text-tone-amber' },
-    { label: 'Lines changed', value: summary.changedLines, tone: 'text-tone-violet' },
-    { label: 'Over the order', value: summary.overages.length, tone: 'text-tone-orange' },
+    { label: t('delivery.summary.split'), value: summary.splitChallans, tone: 'text-tone-cyan' },
+    { label: t('delivery.summary.challansUpdated'), value: summary.correctedChallans, tone: 'text-tone-orange' },
+    { label: t('delivery.summary.detailsEdited'), value: summary.editedChallans, tone: 'text-tone-amber' },
+    { label: t('delivery.summary.linesChanged'), value: summary.changedLines, tone: 'text-tone-violet' },
+    { label: t('delivery.summary.overTheOrder'), value: summary.overages.length, tone: 'text-tone-orange' },
   ].filter((figure) => figure.value > 0)
 
   if (figures.length === 0) {

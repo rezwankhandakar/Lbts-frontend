@@ -4,6 +4,8 @@ import { toast } from 'sonner'
 import { syncProfile } from '@/features/auth/auth-api'
 import { toAuthMessage } from '@/features/auth/firebase-errors'
 import { firebaseAuth } from '@/lib/firebase'
+import { t } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { useAuthStore } from '@/stores/use-auth-store'
 
 /**
@@ -50,7 +52,7 @@ export function useEmailVerification(): EmailVerificationController {
     const user = firebaseAuth.currentUser
 
     if (!user) {
-      toast.error('Your session has expired. Sign in again.')
+      toast.error(t('profile.changePassword.sessionExpiredShort'))
       return
     }
 
@@ -66,19 +68,19 @@ export function useEmailVerification(): EmailVerificationController {
          */
         await user.getIdToken(true)
         setProfile(await syncProfile())
-        toast.success('Your email is verified', {
-          description: 'Thanks for confirming — your account details are up to date.',
+        toast.success(t('profile.verification.confirmed'), {
+          description: t('profile.verification.confirmedNote'),
         })
         return
       }
 
       await sendEmailVerification(user)
       setCooldown(COOLDOWN_SECONDS)
-      toast.success('Verification email sent', {
+      toast.success(t('profile.verification.sent'), {
         description: `Open the link we sent to ${user.email}.`,
       })
     } catch (error) {
-      toast.error(toAuthMessage(error))
+      toast.error(t(toAuthMessage(error) as TranslationKey))
     } finally {
       setIsSending(false)
     }

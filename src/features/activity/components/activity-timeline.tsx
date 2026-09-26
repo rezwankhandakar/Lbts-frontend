@@ -2,6 +2,7 @@ import { History, SearchX, ServerCrash } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/shared/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { dayHeading, groupByDay } from '../lib/activity-meta'
 import type { ActivityRecord } from '../types'
@@ -64,6 +65,8 @@ export function ActivityTimeline({
   onReset,
   onOpen,
 }: ActivityTimelineProps) {
+  const t = useT()
+
   if (isLoading) {
     return <TimelineSkeleton />
   }
@@ -72,12 +75,12 @@ export function ActivityTimeline({
     return (
       <EmptyState
         icon={ServerCrash}
-        title="The journal could not be read"
+        title={t('activity.timeline.loadFailed')}
         description={errorMessage}
         className="min-h-[22rem] rounded-none border-0 shadow-none"
         action={
           <Button size="sm" onClick={onRetry}>
-            Try again
+            {t('common.actions.retry')}
           </Button>
         }
       />
@@ -95,22 +98,22 @@ export function ActivityTimeline({
     return isFiltered ? (
       <EmptyState
         icon={SearchX}
-        title="Nothing matches these filters"
-        description="No event in the journal answers this combination. Widen the date range, or clear the filters and start again."
+        title={t('activity.timeline.noMatchesTitle')}
+        description={t('activity.timeline.noMatchesBody')}
         className="min-h-[22rem] rounded-none border-0 shadow-none"
         action={
           <Button size="sm" variant="outline" onClick={onReset}>
-            Clear filters
+            {t('common.actions.clearFilters')}
           </Button>
         }
       />
     ) : (
       <EmptyState
         icon={History}
-        title="Nothing recorded yet"
-        description="The journal fills itself as people work — a gate pass filed, a rate corrected, an account approved. Nothing has been written to it yet."
+        title={t('activity.timeline.emptyTitle')}
+        description={t('activity.timeline.emptyBody')}
         className="min-h-[22rem] rounded-none border-0 shadow-none"
-        footnote="Rows are appended by the system. Nothing can be added here by hand."
+        footnote={t('activity.timeline.emptyFootnote')}
       />
     )
   }
@@ -120,9 +123,9 @@ export function ActivityTimeline({
   return (
     <div className={cn('transition-opacity', isFetching && 'opacity-60')}>
       {groups.map((group) => (
-        <section key={group.day} aria-label={dayHeading(group.rows[0]?.createdAt ?? group.day)}>
+        <section key={group.day} aria-label={dayHeading(group.rows[0]?.createdAt ?? group.day, t)}>
           <h3 className="sticky top-0 z-20 flex items-center gap-2 border-b bg-card/95 px-3 py-2 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase backdrop-blur sm:px-4">
-            {dayHeading(group.rows[0]?.createdAt ?? group.day)}
+            {dayHeading(group.rows[0]?.createdAt ?? group.day, t)}
             <span className="rounded-full bg-muted px-1.5 py-px text-[10px] font-semibold tabular-nums">
               {group.rows.length}
             </span>

@@ -3,6 +3,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import type { UseFormRegisterReturn } from 'react-hook-form'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { describedBy } from '../lib/field-messages'
 import { uppercaseInPlace } from '../lib/uppercase-field'
 
@@ -31,6 +33,11 @@ interface EntryFieldProps {
  * copying values off a printed challan needs to know *which* one the server
  * disliked. `aria-invalid` and `aria-describedby` are wired here so every
  * field gets them without each caller remembering.
+ *
+ * It is also **the one place a validation message becomes words** — the
+ * arrangement `FormField` has in the auth forms. The schema hands React Hook
+ * Form a translation key, this resolves it, and a key nothing knows resolves
+ * to itself, so a sentence the API wrote passes through untouched.
  */
 export function EntryField({
   id,
@@ -42,6 +49,8 @@ export function EntryField({
   action,
   children,
 }: EntryFieldProps) {
+  const t = useT()
+
   return (
     <div className={cn('space-y-1.5', wide && 'sm:col-span-2')}>
       <div className="flex min-h-5 items-center justify-between gap-3">
@@ -52,7 +61,7 @@ export function EntryField({
               *
             </span>
           )}
-          {required && <span className="sr-only">(required)</span>}
+          {required && <span className="sr-only">{t('common.labels.requiredSr')}</span>}
         </Label>
 
         {action}
@@ -62,7 +71,7 @@ export function EntryField({
 
       {error ? (
         <p id={`${id}-error`} role="alert" className="text-xs leading-snug text-destructive">
-          {error}
+          {t(error as TranslationKey)}
         </p>
       ) : hint ? (
         <p id={`${id}-hint`} className="text-xs leading-snug text-muted-foreground">

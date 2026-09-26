@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 
 /**
  * Shaped like the details page so the swap to real content does not jolt the
@@ -6,9 +7,11 @@ import { Skeleton } from '@/components/ui/skeleton'
  * invented text reads as data.
  */
 export function GatePassDetailsSkeleton() {
+  const t = useT()
+
   return (
     <div className="mx-auto w-full max-w-7xl" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading the gate pass</span>
+      <span className="sr-only">{t('gatePass.viewer.loadingRecord')}</span>
 
       <div className="mb-6 space-y-2">
         <Skeleton className="h-7 w-56" />

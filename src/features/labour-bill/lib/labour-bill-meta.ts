@@ -1,6 +1,7 @@
 import { FileCheck2, FilePen } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { MONTH_NAMES } from '../types'
+import { formatNumber, formatPeriod, shortMonthName } from '@/lib/i18n'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import type { LabourBillStatus } from '../types'
 
 /**
@@ -9,27 +10,28 @@ import type { LabourBillStatus } from '../types'
  * Tailwind scans source text — the rule `bill-meta.ts` follows.
  */
 
-export interface ToneMeta {
+/** What a status says. `labourBillStatusMeta` resolves it. */
+export interface ToneMeta extends TonePresentation {
   label: string
   description: string
+}
+
+/** The untranslatable half: icon and colour, and nothing it says. */
+export interface TonePresentation {
   icon: LucideIcon
   badge: string
   dot: string
   text: string
 }
 
-export const LABOUR_BILL_STATUS_META: Record<LabourBillStatus, ToneMeta> = {
+export const LABOUR_BILL_STATUS_META: Record<LabourBillStatus, TonePresentation> = {
   Draft: {
-    label: 'Draft',
-    description: 'Still being prepared: challans can be scanned in and amounts typed.',
     icon: FilePen,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     dot: 'bg-tone-amber',
     text: 'text-tone-amber',
   },
   Finalized: {
-    label: 'Finalized',
-    description: 'Signed off. What it charges is fixed until an Admin or Manager reopens it.',
     icon: FileCheck2,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
@@ -37,23 +39,44 @@ export const LABOUR_BILL_STATUS_META: Record<LabourBillStatus, ToneMeta> = {
   },
 }
 
-export function labourBillStatusMeta(value: string): ToneMeta {
-  return LABOUR_BILL_STATUS_META[value as LabourBillStatus] ?? LABOUR_BILL_STATUS_META.Draft
+export function labourBillStatusMeta(value: string, t: Translator): ToneMeta {
+  const status: LabourBillStatus =
+    value in LABOUR_BILL_STATUS_META ? (value as LabourBillStatus) : 'Draft'
+
+  return {
+    ...LABOUR_BILL_STATUS_META[status],
+    label: t(`labourBill.statuses.${status}.label` as TranslationKey),
+    description: t(`labourBill.statuses.${status}.description` as TranslationKey),
+  }
 }
 
-/** "September 2026". */
+/** "September 2026", in the reader's language — see `bill-meta.ts`. */
 export function labourPeriodLabel(month: number, year: number): string {
-  return `${MONTH_NAMES[month - 1] ?? ''} ${year}`.trim()
+  return formatPeriod(month, year)
 }
 
 /** "Sep". */
 export function shortMonth(month: number): string {
-  return (MONTH_NAMES[month - 1] ?? '').slice(0, 3)
+  return shortMonthName(month)
 }
 
-/** "3 rows · 2 challans", the line a card and a toast both want. */
-export function rowsAndChallans(lineCount: number, challanCount: number): string {
-  return `${lineCount} ${lineCount === 1 ? 'row' : 'rows'} · ${challanCount} ${
-    challanCount === 1 ? 'challan' : 'challans'
-  }`
+/**
+ * "3 rows · 2 challans", the line a card and a toast both want.
+ *
+ * Two counted nouns joined by one separator, each its own message — English
+ * agrees the noun with the number and Bangla does not, and the join itself is
+ * a third thing a locale may want to write differently.
+ */
+export function rowsAndChallans(
+  lineCount: number,
+  challanCount: number,
+  t: Translator,
+): string {
+  return t('labourBill.stats.rowsAndChallans', {
+    rows: t('labourBill.stats.rowCount', { count: lineCount, n: formatNumber(lineCount) }),
+    challans: t('labourBill.stats.challanCount', {
+      count: challanCount,
+      n: formatNumber(challanCount),
+    }),
+  })
 }

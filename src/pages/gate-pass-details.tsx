@@ -27,6 +27,7 @@ import { canChangeGatePass, canReviewGatePasses } from '@/features/gate-pass/typ
 import { formatDateTime } from '@/lib/format'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { useAuthStore } from '@/stores/use-auth-store'
+import { useT } from '@/lib/i18n'
 
 /**
  * One gate pass, in full, beside the document it was taken from.
@@ -36,6 +37,8 @@ import { useAuthStore } from '@/stores/use-auth-store'
  * not something a 200px preview supports.
  */
 export function GatePassDetailsPage() {
+  const t = useT()
+
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -85,13 +88,13 @@ export function GatePassDetailsPage() {
 
     if (!scanned) {
       setSearchParams({}, { replace: true })
-      toast.error('This gate pass has no scanned document to print.')
+      toast.error(t('gatePass.toasts.nothingToPrint'))
       return
     }
 
     if (scanError) {
       setSearchParams({}, { replace: true })
-      toast.error('The scan could not be loaded, so there is nothing to print.')
+      toast.error(t('gatePass.toasts.scanLoadFailed'))
       return
     }
 
@@ -103,7 +106,7 @@ export function GatePassDetailsPage() {
     setSearchParams({}, { replace: true })
     const timer = window.setTimeout(() => printDocument(scanUrl, scanned.mimeType), 50)
     return () => window.clearTimeout(timer)
-  }, [wantsPrint, record, scanUrl, scanError, setSearchParams])
+  }, [wantsPrint, record, scanUrl, scanError, setSearchParams, t])
 
   if (query.isPending) {
     return <GatePassDetailsSkeleton />
@@ -115,16 +118,16 @@ export function GatePassDetailsPage() {
         <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
           <TriangleAlert className="size-5" aria-hidden />
         </div>
-        <h1 className="mt-4 text-lg font-semibold tracking-tight">Gate pass not found</h1>
+        <h1 className="mt-4 text-lg font-semibold tracking-tight">{t('gatePass.notFound')}</h1>
         <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-          {query.error?.message ?? 'It may have been deleted, or you may not have access to it.'}
+          {query.error?.message ?? t('gatePass.notFoundHint')}
         </p>
         <div className="mt-5 flex gap-2">
           <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
-            Try again
+            {t('common.actions.retry')}
           </Button>
           <Button size="sm" onClick={() => navigate('/gate-pass')}>
-            Back to gate passes
+            {t('gatePass.backToList')}
           </Button>
         </div>
       </div>
@@ -150,7 +153,7 @@ export function GatePassDetailsPage() {
             onClick={() => navigate('/gate-pass')}
           >
             <ArrowLeft data-icon="inline-start" aria-hidden />
-            All gate passes
+            {t('gatePass.allGatePasses')}
           </Button>
 
           <div className="flex flex-wrap items-center gap-2.5">
@@ -161,13 +164,22 @@ export function GatePassDetailsPage() {
           </div>
 
           <p className="mt-1.5 text-sm text-muted-foreground">
-            {record.customerName} · created {formatDateTime(record.createdAt)}
-            {record.createdBy ? ` by ${record.createdBy.name}` : ''}
+            {record.createdBy
+              ? t('gatePass.detail.createdBy', {
+                  customer: record.customerName,
+                  when: formatDateTime(record.createdAt),
+                  name: record.createdBy.name,
+                })
+              : t('gatePass.detail.created', {
+                  customer: record.customerName,
+                  when: formatDateTime(record.createdAt),
+                })}
           </p>
 
           {record.statusNote && (
             <p className="mt-2 max-w-2xl rounded-lg border border-tone-rose/25 bg-tone-rose/5 px-3 py-2 text-xs leading-relaxed text-pretty">
-              <span className="font-semibold">Note from the reviewer:</span> {record.statusNote}
+              <span className="font-semibold">{t('gatePass.review.reviewerNote')}</span>{' '}
+              {record.statusNote}
             </p>
           )}
         </div>
@@ -177,7 +189,7 @@ export function GatePassDetailsPage() {
             <>
               <Button variant="outline" size="sm" onClick={() => actions.download(record)}>
                 <Download data-icon="inline-start" aria-hidden />
-                Download
+                {t('common.actions.download')}
               </Button>
               {/* Disabled until the bytes are here: there is nothing to send
                   to a printer while the scan is still being fetched. */}
@@ -186,10 +198,10 @@ export function GatePassDetailsPage() {
                 size="sm"
                 onClick={print}
                 disabled={!scan.url}
-                title={scan.url ? undefined : 'Waiting for the scan'}
+                title={scan.url ? undefined : t('gatePass.detail.printWaiting')}
               >
                 <Printer data-icon="inline-start" aria-hidden />
-                Print
+                {t('common.actions.print')}
               </Button>
             </>
           )}
@@ -197,7 +209,7 @@ export function GatePassDetailsPage() {
           {canChange && (
             <Button variant="outline" size="sm" onClick={() => actions.edit(record)}>
               <Pencil data-icon="inline-start" aria-hidden />
-              Edit
+              {t('common.actions.edit')}
             </Button>
           )}
 
@@ -205,7 +217,7 @@ export function GatePassDetailsPage() {
             <>
               <Button size="sm" onClick={() => actions.openReview(record, 'Verified')}>
                 <BadgeCheck data-icon="inline-start" aria-hidden />
-                Verify
+                {t('gatePass.menu.verify')}
               </Button>
               <Button
                 variant="outline"
@@ -213,7 +225,7 @@ export function GatePassDetailsPage() {
                 onClick={() => actions.openReview(record, 'Rejected')}
               >
                 <Undo2 data-icon="inline-start" aria-hidden />
-                Send back
+                {t('gatePass.menu.sendBack')}
               </Button>
             </>
           )}
@@ -226,7 +238,7 @@ export function GatePassDetailsPage() {
               onClick={() => actions.openDelete(record)}
             >
               <Trash2 data-icon="inline-start" aria-hidden />
-              Delete
+              {t('common.actions.delete')}
             </Button>
           )}
         </div>
@@ -242,13 +254,15 @@ export function GatePassDetailsPage() {
         </div>
 
         <section
-          aria-label="Scanned document"
+          aria-label={t('gatePass.viewer.scannedAria')}
           className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card shadow-sm lg:sticky lg:top-0"
         >
           <header className="border-b bg-muted/30 px-4 py-3">
-            <h2 className="text-[13px] font-semibold tracking-tight">Scanned gate pass</h2>
+            <h2 className="text-[13px] font-semibold tracking-tight">
+              {t('gatePass.viewer.scannedTitle')}
+            </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              The original hard copy, as it was scanned.
+              {t('gatePass.viewer.scannedHint')}
             </p>
           </header>
 
@@ -259,11 +273,11 @@ export function GatePassDetailsPage() {
             isLoading={scan.isLoading}
             error={scan.error}
             onRetry={scan.retry}
-            emptyMessage="This gate pass has no scanned document."
+            emptyMessage={t('gatePass.viewer.noDocument')}
             emptyAction={
               canChange ? (
                 <Button size="sm" onClick={() => actions.edit(record)}>
-                  Scan it now
+                  {t('gatePass.viewer.scanItNow')}
                 </Button>
               ) : undefined
             }

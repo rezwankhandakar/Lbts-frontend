@@ -2,12 +2,29 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 @import '@fontsource-variable/geist';
+/**
+ * Bengali. Geist carries no Bengali glyphs at all, so without this the Bangla
+ * locale would fall through to whatever generic sans the machine happens to
+ * have — Nirmala UI on one Windows desk, something quite different on the next,
+ * and nothing at all on a stripped Linux box. Bundled rather than linked from
+ * Google Fonts for the reason every other asset here is: the app has to render
+ * on a machine that cannot reach fonts.gstatic.com.
+ */
+@import '@fontsource-variable/noto-sans-bengali';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', sans-serif;
+  /**
+   * Geist first, Noto Sans Bengali behind it. The browser falls back **per
+   * glyph**, not per element, which is what makes one stack serve both locales:
+   * a Bangla sentence renders in Noto while the LBTS-CH-2026-000001 inside it
+   * stays in Geist, and no component, theme class or locale attribute has to
+   * know. Swapping the family on [data-locale] instead would put every Latin
+   * identifier into a Bengali face on every Bangla screen.
+   */
+  --font-sans: 'Geist Variable', 'Noto Sans Bengali Variable', sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -354,3 +371,52 @@
  * A PDF is the reason it works that way and not with @media print: a page
  * cannot print a PDF it embeds. Only the frame holding it can.
  * ------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+ * Bangla typography
+ *
+ * The *family* is handled by the font stack at the top of this file, which
+ * falls back per glyph — so nothing here swaps a typeface, and a Latin
+ * identifier inside a Bangla sentence keeps its own face without any rule
+ * being written for it.
+ *
+ * What does need saying is metric. Bengali is written under a matra — a
+ * headline stroke joining the letters — with vowel signs hung above and below
+ * it, so the script occupies noticeably more vertical space than Latin at the
+ * same font size. On the tight leading this shell uses for dense sheets, the
+ * matra of one line and the descenders of the line above start to touch.
+ *
+ * A small leading increase fixes it, and it is applied on the locale attribute
+ * rather than globally so English pages are left exactly as they were.
+ *
+ * `font-variant-ligatures` is the second half: Bengali conjuncts (ক্ষ, ঙ্গ,
+ * ত্র) are ligatures, and a component that disables them for a numeric column
+ * would break the script rather than the digits. Stating it here keeps them on
+ * wherever the locale is.
+ *
+ * Kept at the end with the brand layer, so a `shadcn` regeneration cannot
+ * silently revert it.
+ * ------------------------------------------------------------------------- */
+@layer base {
+  html[data-locale='bn'] body {
+    line-height: 1.65;
+    font-variant-ligatures: common-ligatures contextual;
+  }
+
+  /**
+   * Headings and anything already given an explicit leading keep theirs —
+   * this is a floor for flowing text, not an override of a designed rhythm.
+   */
+  html[data-locale='bn'] :is(h1, h2, h3, h4, h5, h6) {
+    line-height: 1.35;
+  }
+
+  /**
+   * Bengali digits are slightly narrower than Geist's tabular figures, so a
+   * column of money set in `tabular-nums` still aligns — but only if the
+   * feature is asked for on the Bengali face too, which does carry it.
+   */
+  html[data-locale='bn'] .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}

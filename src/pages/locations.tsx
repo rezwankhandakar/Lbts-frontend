@@ -10,6 +10,7 @@ import { useLocationListParams } from '@/features/location/hooks/use-location-li
 import { useLocationStats, useLocations } from '@/features/location/hooks/use-locations'
 import { canManageLocations } from '@/features/location/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { useT } from '@/lib/i18n'
 
 /**
  * The Location Master: the district and thana list every challan is
@@ -26,6 +27,8 @@ import { useCurrentRole } from '@/hooks/use-current-role'
  * refuses the request for anyone else regardless of what this page renders.
  */
 export function LocationsPage() {
+  const t = useT()
+
   const role = useCurrentRole()
   const canManage = canManageLocations(role)
 
@@ -49,8 +52,8 @@ export function LocationsPage() {
   return (
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
-        title="Locations"
-        description="The district and thana list challans are classified against. A challan's location type is read from this list and never typed beside it, so correcting a row here corrects every challan that points at it."
+        title={t('location.title')}
+        description={t('location.description')}
       />
 
       {canManage && (
@@ -60,7 +63,7 @@ export function LocationsPage() {
       )}
 
       <section
-        aria-label="Location master list"
+        aria-label={t('location.listAria')}
         className="overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <LocationFilters
@@ -83,7 +86,7 @@ export function LocationsPage() {
           isLoading={locationsQuery.isPending}
           isFetching={locationsQuery.isFetching}
           isError={locationsQuery.isError}
-          errorMessage={locationsQuery.error?.message ?? 'Something went wrong.'}
+          errorMessage={locationsQuery.error?.message ?? t('errors.generic')}
           isFiltered={isFiltered}
           canManage={canManage}
           onRetry={() => void locationsQuery.refetch()}
@@ -99,7 +102,7 @@ export function LocationsPage() {
             meta={meta}
             onPageChange={setPage}
             isFetching={locationsQuery.isFetching}
-            noun={['location', 'locations']}
+            nounKey="nouns.location"
           />
         )}
       </section>

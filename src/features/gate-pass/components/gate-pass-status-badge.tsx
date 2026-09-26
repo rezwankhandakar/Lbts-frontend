@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { gatePassStatusMeta } from '../lib/gate-pass-meta'
 
@@ -12,7 +13,9 @@ interface GatePassStatusBadgeProps {
  * shape as UserStatusBadge, because a status is a status.
  */
 export function GatePassStatusBadge({ status, className }: GatePassStatusBadgeProps) {
-  const meta = gatePassStatusMeta(status)
+  const t = useT()
+
+  const meta = gatePassStatusMeta(status, t)
 
   return (
     <span

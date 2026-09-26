@@ -1,5 +1,7 @@
 import { CircleDashed, ListFilter, Search, Truck, Users, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import {
@@ -11,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useVendorOptions } from '@/features/vendor/hooks/use-vendors'
-import { TRIP_STATUS_META, localToday, monthRange, taka } from '../lib/delivery-meta'
+import { tripStatusMeta, localToday, monthRange, taka } from '../lib/delivery-meta'
 import { TRIP_STATUSES } from '../types'
 import type { TripBillFilter, TripFilterPatch, TripListParams, TripStatusFilter } from '../types'
 
@@ -35,11 +37,11 @@ const TRIGGER = 'h-8 w-full sm:w-[11rem]'
  * calendar month, because that is what a vendor's bill is run over. Computed
  * on every render rather than once, so a page left open past midnight moves.
  */
-const DATE_CHIPS: { label: string; range: () => { from: string; to: string } }[] = [
-  { label: 'Any date', range: () => ({ from: '', to: '' }) },
-  { label: 'Today', range: () => ({ from: localToday(), to: localToday() }) },
-  { label: 'This month', range: () => monthRange(0) },
-  { label: 'Last month', range: () => monthRange(-1) },
+const DATE_CHIPS: { labelKey: TranslationKey; range: () => { from: string; to: string } }[] = [
+  { labelKey: 'time.anyDate', range: () => ({ from: '', to: '' }) },
+  { labelKey: 'time.today', range: () => ({ from: localToday(), to: localToday() }) },
+  { labelKey: 'time.thisMonth', range: () => monthRange(0) },
+  { labelKey: 'time.lastMonth', range: () => monthRange(-1) },
 ]
 
 /**
@@ -48,9 +50,9 @@ const DATE_CHIPS: { label: string; range: () => { from: string; to: string } }[]
  * "Last month" plus "No trip rent" is the list of trips a month-end bill is
  * still waiting on.
  */
-const BILL_CHIPS: { value: Exclude<TripBillFilter, 'all'>; label: string }[] = [
-  { value: 'no-rent', label: 'No trip rent' },
-  { value: 'no-labour', label: 'No labour bill' },
+const BILL_CHIPS: { value: Exclude<TripBillFilter, 'all'>; labelKey: TranslationKey }[] = [
+  { value: 'no-rent', labelKey: 'delivery.filters.noRent' },
+  { value: 'no-labour', labelKey: 'delivery.filters.noLabour' },
 ]
 
 /**
@@ -62,6 +64,8 @@ const BILL_CHIPS: { value: Exclude<TripBillFilter, 'all'>; label: string }[] = [
  * over, which is why it sits on the toolbar rather than behind a disclosure.
  */
 export function TripFilters({ params, onChange, onReset, isFiltered, summary, totals }: TripFiltersProps) {
+  const t = useT()
+
   const vendors = useVendorOptions()
 
   return (
@@ -77,8 +81,8 @@ export function TripFilters({ params, onChange, onReset, isFiltered, summary, to
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="Trip, plate, driver, vendor or challan"
-              aria-label="Search trips"
+              placeholder={t('delivery.filters.searchPlaceholder')}
+              aria-label={t('delivery.filters.searchAria')}
               className="pl-8.5"
             />
           </div>
@@ -88,20 +92,20 @@ export function TripFilters({ params, onChange, onReset, isFiltered, summary, to
               value={params.status}
               onValueChange={(value) => onChange({ status: value as TripStatusFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by status">
+              <SelectTrigger className={TRIGGER} aria-label={t('delivery.filters.statusAria')}>
                 <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
                 <SelectValue>
                   {(value) =>
-                    value && value !== 'all' ? TRIP_STATUS_META[value as keyof typeof TRIP_STATUS_META].label : 'Any status'
+                    value && value !== 'all' ? tripStatusMeta(String(value), t).label : t('delivery.filters.anyStatus')
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any status</SelectItem>
+                  <SelectItem value="all">{t('delivery.filters.anyStatus')}</SelectItem>
                   {TRIP_STATUSES.map((status) => (
                     <SelectItem key={status} value={status}>
-                      {TRIP_STATUS_META[status].label}
+                      {tripStatusMeta(status, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -112,18 +116,18 @@ export function TripFilters({ params, onChange, onReset, isFiltered, summary, to
               value={params.vendorId || 'all'}
               onValueChange={(value) => onChange({ vendorId: value === 'all' ? '' : String(value) })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by vendor">
+              <SelectTrigger className={TRIGGER} aria-label={t('delivery.filters.vendorAria')}>
                 <SelectValue>
                   {(value) =>
                     value && value !== 'all'
-                      ? (vendors.data?.find((vendor) => vendor.id === value)?.name ?? 'Vendor')
-                      : 'Every vendor'
+                      ? (vendors.data?.find((vendor) => vendor.id === value)?.name ?? t('common.labels.vendor'))
+                      : t('delivery.filters.everyVendor')
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Every vendor</SelectItem>
+                  <SelectItem value="all">{t('delivery.filters.everyVendor')}</SelectItem>
                   {(vendors.data ?? []).map((vendor) => (
                     <SelectItem key={vendor.id} value={vendor.id}>
                       {vendor.name}
@@ -139,7 +143,7 @@ export function TripFilters({ params, onChange, onReset, isFiltered, summary, to
                 value={params.from}
                 max={params.to || undefined}
                 onChange={(event) => onChange({ from: event.target.value })}
-                aria-label="Trips from"
+                aria-label={t('delivery.filters.fromAria')}
                 className="h-8 w-full sm:w-[9.5rem]"
               />
               <span className="text-xs text-muted-foreground">to</span>
@@ -148,7 +152,7 @@ export function TripFilters({ params, onChange, onReset, isFiltered, summary, to
                 value={params.to}
                 min={params.from || undefined}
                 onChange={(event) => onChange({ to: event.target.value })}
-                aria-label="Trips until"
+                aria-label={t('delivery.filters.untilAria')}
                 className="h-8 w-full sm:w-[9.5rem]"
               />
             </div>
@@ -156,7 +160,7 @@ export function TripFilters({ params, onChange, onReset, isFiltered, summary, to
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset}>
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
           </div>
@@ -169,7 +173,7 @@ export function TripFilters({ params, onChange, onReset, isFiltered, summary, to
 
             return (
               <button
-                key={chip.label}
+                key={chip.labelKey}
                 type="button"
                 aria-pressed={active}
                 onClick={() => onChange(range)}
@@ -180,7 +184,7 @@ export function TripFilters({ params, onChange, onReset, isFiltered, summary, to
                     : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
                 )}
               >
-                {chip.label}
+                {t(chip.labelKey)}
               </button>
             )
           })}
@@ -213,7 +217,7 @@ export function TripFilters({ params, onChange, onReset, isFiltered, summary, to
                     )}
                   >
                     <CircleDashed className="size-3" aria-hidden />
-                    {chip.label}
+                    {t(chip.labelKey)}
                     <span className="rounded-full bg-tone-rose/15 px-1.5 font-bold tabular-nums">{count}</span>
                   </button>
                 )
@@ -228,14 +232,14 @@ export function TripFilters({ params, onChange, onReset, isFiltered, summary, to
             <>
               <span className="inline-flex items-center gap-1 rounded-full border border-tone-amber/25 bg-tone-amber/10 px-2 py-0.5 text-[11px] font-medium text-tone-amber">
                 <Truck className="size-3" aria-hidden />
-                Trip rent <span className="font-bold tabular-nums">{taka(totals.rent)}</span>
+                {t('delivery.tripRentWith', { amount: taka(totals.rent) })}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-tone-violet/25 bg-tone-violet/10 px-2 py-0.5 text-[11px] font-medium text-tone-violet">
                 <Users className="size-3" aria-hidden />
-                Labour bill <span className="font-bold tabular-nums">{taka(totals.labour)}</span>
+                {t('delivery.labourBillWith', { amount: taka(totals.labour) })}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-tone-emerald/25 bg-tone-emerald/10 px-2 py-0.5 text-[11px] font-medium text-tone-emerald">
-                Total <span className="font-bold tabular-nums">{taka(totals.rent + totals.labour)}</span>
+                {t('delivery.totalWith', { amount: taka(totals.rent + totals.labour) })}
               </span>
             </>
           )}

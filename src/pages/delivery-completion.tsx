@@ -12,6 +12,7 @@ import { shortTripNumber } from '@/features/delivery/lib/delivery-meta'
 import { canWriteDeliveries } from '@/features/delivery/types'
 import { formatDay } from '@/features/vendor/lib/vendor-meta'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { useT } from '@/lib/i18n'
 
 /**
  * One challan's delivery, completed.
@@ -29,6 +30,8 @@ import { useCurrentRole } from '@/hooks/use-current-role'
  * is still waiting on it.
  */
 export function DeliveryCompletionPage() {
+  const t = useT()
+
   const { id, challanId } = useParams<{ id: string; challanId: string }>()
   const query = useTrip(id)
   const canWrite = canWriteDeliveries(useCurrentRole())
@@ -52,13 +55,16 @@ export function DeliveryCompletionPage() {
       <div className="mx-auto w-full max-w-3xl">
         <DeliveryPageHeader
           title={shortTripNumber(trip.tripNumber)}
-          description={`${trip.vendor.name} · ${formatDay(trip.tripDate)}`}
+          description={t('delivery.workspace.vendorAndDate', {
+            vendor: trip.vendor.name,
+            date: formatDay(trip.tripDate),
+          })}
           back={{ to: `/delivery/${trip.id}`, label: shortTripNumber(trip.tripNumber) }}
         />
         <EmptyState
           icon={PackageX}
-          title="That challan is not on this trip"
-          description="It may have been taken off when the trip was corrected. Open the trip to see what it carries now."
+          title={t('delivery.completion.notOnTrip')}
+          description={t('delivery.completion.notOnTripHint')}
         />
       </div>
     )
@@ -67,8 +73,13 @@ export function DeliveryCompletionPage() {
   return (
     <div className="mx-auto w-full max-w-3xl">
       <DeliveryPageHeader
-        title="Complete delivery"
-        description={`${shortTripNumber(trip.tripNumber)} · ${trip.vehicle.registrationNo} · ${trip.driver.name} · ${formatDay(trip.tripDate)}`}
+        title={t('delivery.completion.title')}
+        description={t('delivery.workspace.completionDescription', {
+          trip: shortTripNumber(trip.tripNumber),
+          plate: trip.vehicle.registrationNo,
+          driver: trip.driver.name,
+          date: formatDay(trip.tripDate),
+        })}
         back={{ to: `/delivery/${trip.id}`, label: shortTripNumber(trip.tripNumber) }}
       />
 

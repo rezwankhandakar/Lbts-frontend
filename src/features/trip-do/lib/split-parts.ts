@@ -20,23 +20,37 @@ export function evenParts(total: number, count: number): number[] {
   return Array.from({ length: parts }, (_, index) => base + (index < extra ? 1 : 0))
 }
 
+/**
+ * A refusal, as a key and the numbers that go in it.
+ *
+ * Not a sentence: this file is import-free so `node --test` can load it, and a
+ * sentence built here could only ever be English. Returning the key with its
+ * values lets the component render it in the reader's language and lets the
+ * test pin the *decision* — which refusal, about which numbers — rather than
+ * the wording, which is the thing most likely to change.
+ */
+export interface SplitProblem {
+  key: string
+  values?: Record<string, number>
+}
+
 /** Why a split cannot be saved, or null when it can. */
-export function splitProblem(parts: readonly number[], total: number): string | null {
+export function splitProblem(parts: readonly number[], total: number): SplitProblem | null {
   if (parts.length < 2) {
-    return 'A split needs at least two parts.'
+    return { key: 'tripDo.split.atLeastTwo' }
   }
   if (parts.length > MAX_SPLIT_PARTS) {
-    return `Split into at most ${MAX_SPLIT_PARTS} parts.`
+    return { key: 'tripDo.split.tooManyParts', values: { max: MAX_SPLIT_PARTS } }
   }
   if (parts.some((part) => !Number.isInteger(part) || part < 1)) {
-    return 'Every part needs at least one piece.'
+    return { key: 'tripDo.split.everyPart' }
   }
 
-  const sum = parts.reduce((total, part) => total + part, 0)
+  const sum = parts.reduce((running, part) => running + part, 0)
   if (sum !== total) {
     return sum < total
-      ? `${total - sum} still to place — the parts add up to ${sum} of ${total}.`
-      : `${sum - total} too many — the parts add up to ${sum} of ${total}.`
+      ? { key: 'tripDo.split.stillToPlace', values: { short: total - sum, sum, total } }
+      : { key: 'tripDo.split.tooMany', values: { over: sum - total, sum, total } }
   }
   return null
 }

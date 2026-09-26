@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useFormatters, useT } from '@/lib/i18n'
 import type { PageMeta } from '../types'
 
 interface UserPaginationProps {
@@ -15,6 +16,9 @@ interface UserPaginationProps {
  * exactly the query the free tier cannot afford.
  */
 export function UserPagination({ meta, onPageChange, isFetching }: UserPaginationProps) {
+  const t = useT()
+  const format = useFormatters()
+
   if (meta.total === 0) {
     return null
   }
@@ -24,14 +28,18 @@ export function UserPagination({ meta, onPageChange, isFetching }: UserPaginatio
 
   return (
     <nav
-      aria-label="User list pages"
+      aria-label={t('administration.directory.pagesAria')}
       className="flex flex-col items-center justify-between gap-3 border-t px-4 py-3 sm:flex-row"
     >
+      {/* One interpolated sentence, for the reason `ListPagination` gives: the
+          two languages put the noun and the total in different places. */}
       <p className="text-xs text-muted-foreground" aria-live="polite">
-        Showing <span className="font-medium text-foreground">{first}</span>–
-        <span className="font-medium text-foreground">{last}</span> of{' '}
-        <span className="font-medium text-foreground">{meta.total}</span>{' '}
-        {meta.total === 1 ? 'user' : 'users'}
+        {t('common.pagination.showingNoun', {
+          from: format.number(first),
+          to: format.number(last),
+          total: format.number(meta.total),
+          noun: t('nouns.user', { count: meta.total }),
+        })}
       </p>
 
       <div className="flex items-center gap-2">
@@ -42,11 +50,14 @@ export function UserPagination({ meta, onPageChange, isFetching }: UserPaginatio
           onClick={() => onPageChange(meta.page - 1)}
         >
           <ChevronLeft data-icon="inline-start" aria-hidden />
-          Previous
+          {t('common.actions.previous')}
         </Button>
 
         <span className="px-1 text-xs whitespace-nowrap text-muted-foreground">
-          Page {meta.page} of {meta.totalPages}
+          {t('common.pagination.page', {
+            page: format.number(meta.page),
+            pages: format.number(meta.totalPages),
+          })}
         </span>
 
         <Button
@@ -55,7 +66,7 @@ export function UserPagination({ meta, onPageChange, isFetching }: UserPaginatio
           disabled={meta.page >= meta.totalPages || isFetching}
           onClick={() => onPageChange(meta.page + 1)}
         >
-          Next
+          {t('common.actions.next')}
           <ChevronRight data-icon="inline-end" aria-hidden />
         </Button>
       </div>

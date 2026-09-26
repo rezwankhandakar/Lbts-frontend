@@ -1,4 +1,5 @@
 import { CircleCheck, CircleX, Info, Loader2, ScanLine, TriangleAlert } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ScanOutcome } from '../hooks/use-challan-scan'
 
@@ -16,6 +17,8 @@ interface ScannerStatusProps {
  * listening should be able to see why nothing happened.
  */
 export function ScannerStatus({ listening, pending, last }: ScannerStatusProps) {
+  const t = useT()
+
   return (
     <div className="flex flex-col gap-2 rounded-lg border bg-muted/30 px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between">
       <span className="flex items-center gap-2 text-muted-foreground">
@@ -31,7 +34,7 @@ export function ScannerStatus({ listening, pending, last }: ScannerStatusProps) 
           />
         </span>
         <ScanLine className="size-3.5" aria-hidden />
-        {listening ? 'Barcode scanner ready' : 'Scanner paused while a dialog is open'}
+        {listening ? t('delivery.finder.scannerReady') : t('delivery.finder.scannerPaused')}
       </span>
 
       <span aria-live="polite" className="min-w-0">
@@ -49,13 +52,15 @@ export function ScannerStatus({ listening, pending, last }: ScannerStatusProps) 
 }
 
 function LastScan({ outcome }: { outcome: ScanOutcome }) {
+  const t = useT()
+
   switch (outcome.kind) {
     case 'added':
       return (
         <span className="flex items-center gap-1.5 text-tone-emerald">
           <CircleCheck className="size-3.5 shrink-0" aria-hidden />
           <span className="truncate">
-            Added <span className="font-mono font-semibold">{outcome.candidate.challanNumber}</span>
+            {t('delivery.addedWith', { challan: outcome.candidate.challanNumber })}
           </span>
         </span>
       )

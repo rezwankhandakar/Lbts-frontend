@@ -1,4 +1,6 @@
 import { FileText, ScanLine } from 'lucide-react'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 export type WorkspacePane = 'form' | 'document'
@@ -10,9 +12,9 @@ interface WorkspaceTabsProps {
   hasDocument: boolean
 }
 
-const TABS: { value: WorkspacePane; label: string; icon: typeof FileText }[] = [
-  { value: 'form', label: 'Details', icon: FileText },
-  { value: 'document', label: 'Scan', icon: ScanLine },
+const TABS: { value: WorkspacePane; labelKey: TranslationKey; icon: typeof FileText }[] = [
+  { value: 'form', labelKey: 'gatePass.workspace.tabDetails', icon: FileText },
+  { value: 'document', labelKey: 'gatePass.workspace.tabScan', icon: ScanLine },
 ]
 
 /**
@@ -27,10 +29,12 @@ const TABS: { value: WorkspacePane; label: string; icon: typeof FileText }[] = [
  * pane is showing.
  */
 export function WorkspaceTabs({ value, onChange, hasDocument }: WorkspaceTabsProps) {
+  const t = useT()
+
   return (
     <div
       role="tablist"
-      aria-label="Gate pass workspace"
+      aria-label={t('gatePass.workspace.tabsAria')}
       className="grid grid-cols-2 gap-1 rounded-lg border bg-card p-1 lg:hidden"
       onKeyDown={(event) => {
         if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
@@ -60,7 +64,7 @@ export function WorkspaceTabs({ value, onChange, hasDocument }: WorkspaceTabsPro
             )}
           >
             <tab.icon className="size-4" aria-hidden />
-            {tab.label}
+            {t(tab.labelKey)}
             {tab.value === 'document' && hasDocument && (
               <span className="size-1.5 rounded-full bg-tone-emerald" aria-hidden />
             )}

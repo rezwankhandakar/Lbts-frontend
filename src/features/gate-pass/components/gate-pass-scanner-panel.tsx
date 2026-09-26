@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { formatNumber } from '@/lib/format'
 import { formatBytes } from '../lib/gate-pass-meta'
 import { useLocalFileUrl } from '../hooks/use-gate-pass-document'
 import type { JoinSheets } from '../hooks/use-join-sheets'
@@ -9,6 +10,7 @@ import { ScanBatchTray } from './scan-batch-tray'
 import { ScanControls } from './scan-controls'
 import { ScannerPairingDialog } from '@/components/shared/scanner-pairing-dialog'
 import { ScannerStatus } from './scanner-status'
+import { useT } from '@/lib/i18n'
 
 interface GatePassScannerPanelProps {
   /** The stack of scanned sheets, owned by the workspace. */
@@ -56,6 +58,8 @@ export function GatePassScannerPanel({
   onRetryStored,
   disabled,
 }: GatePassScannerPanelProps) {
+  const t = useT()
+
   const [pairing, setPairing] = useState(false)
 
   /**
@@ -125,7 +129,7 @@ export function GatePassScannerPanel({
 
   return (
     <section
-      aria-label="Scanner and document"
+      aria-label={t('gatePass.scanner.panelAria')}
       className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card shadow-sm"
     >
       <ScannerStatus
@@ -169,8 +173,8 @@ export function GatePassScannerPanel({
         onRetry={onRetryStored}
         emptyMessage={
           batch.total > 0
-            ? 'Every scanned sheet has been dealt with. Scan the next stack, or attach a file.'
-            : 'No gate pass document yet. Put the stack in the feeder and scan, or attach a file.'
+            ? t('gatePass.scanner.emptyDealt')
+            : t('gatePass.scanner.emptyNone')
         }
         onReplace={canScan ? scanner.scan : undefined}
         onRemove={active ? () => batch.remove(active.id) : undefined}
@@ -179,10 +183,22 @@ export function GatePassScannerPanel({
       {active && !batch.isBatch && (
         <footer className="flex items-center justify-between gap-3 border-t bg-muted/20 px-4 py-2 text-xs">
           <p className="min-w-0 truncate text-muted-foreground">
-            <span className="font-medium text-foreground">Ready to file</span> ·{' '}
-            {formatBytes(active.file.size)}
-            {active.pageCount > 1 ? ` · ${active.pageCount} pages` : ''}
-            {active.parts.length > 1 ? ` · ${active.parts.length} sheets joined` : ''}
+            <span className="font-medium text-foreground">
+              {t('gatePass.scanner.readyToFile')}
+            </span>{' '}
+            · {formatBytes(active.file.size)}
+            {active.pageCount > 1
+              ? ` · ${t('gatePass.scanner.pageCount', {
+                  count: active.pageCount,
+                  n: formatNumber(active.pageCount),
+                })}`
+              : ''}
+            {active.parts.length > 1
+              ? ` · ${t('gatePass.scanner.sheetsJoined', {
+                  count: active.parts.length,
+                  n: formatNumber(active.parts.length),
+                })}`
+              : ''}
           </p>
         </footer>
       )}

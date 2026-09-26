@@ -13,6 +13,7 @@ import { useAccountsOverview } from '@/features/accounts/hooks/use-accounts'
 import { signedTaka, taka, todayString } from '@/features/accounts/lib/accounts-meta'
 import { canWriteAccounts } from '@/features/accounts/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
+import { useT } from '@/lib/i18n'
 
 /**
  * The Accounts landing page: what is on hand, what to do, what is owed and
@@ -20,13 +21,15 @@ import { useCurrentRole } from '@/hooks/use-current-role'
  * a cold start per call.
  */
 export function AccountsPage() {
+  const t = useT()
+
   const canWrite = canWriteAccounts(useCurrentRole())
   const query = useAccountsOverview(todayString())
   const overview = query.data
 
   return (
     <AccountsShell
-      title="Accounts"
+      title={t('accounts.title')}
       description="Money in and out, vendor trip bills, advances, office expenses and Walton's final bills — and the profit they add up to."
     >
       {query.isError ? (
@@ -35,7 +38,7 @@ export function AccountsPage() {
           <p className="text-sm text-muted-foreground">{query.error.message}</p>
           <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
             <RefreshCcw data-icon="inline-start" aria-hidden />
-            Try again
+            {t('common.actions.retry')}
           </Button>
         </div>
       ) : (
@@ -46,7 +49,7 @@ export function AccountsPage() {
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <StatTile
-              label="Vendor bills due"
+              label={t('accounts.pages.overview.vendorDue')}
               value={overview ? taka(overview.vendorDue.total) : ''}
               hint={overview && `${overview.vendorDue.vendors} vendors, after advances`}
               icon={Truck}
@@ -55,7 +58,7 @@ export function AccountsPage() {
               isLoading={!overview}
             />
             <StatTile
-              label="Open advances"
+              label={t('accounts.pages.overview.openAdvances')}
               value={overview ? taka(overview.advances.outstanding) : ''}
               hint={overview && `${overview.advances.count} not yet settled`}
               icon={HandCoins}
@@ -64,7 +67,7 @@ export function AccountsPage() {
               isLoading={!overview}
             />
             <StatTile
-              label="Receivable from Walton"
+              label={t('accounts.pages.overview.receivable')}
               value={overview ? taka(overview.receivable.outstanding) : ''}
               hint={
                 overview &&
@@ -76,7 +79,9 @@ export function AccountsPage() {
               isLoading={!overview}
             />
             <StatTile
-              label={`Profit · ${overview?.period.label ?? 'this month'}`}
+              label={t('accounts.pages.overview.profitPeriod', {
+                period: overview?.period.label ?? t('accounts.pages.overview.thisMonth'),
+              })}
               value={overview ? signedTaka(overview.profitLoss.profit) : ''}
               hint={overview && `${taka(overview.profitLoss.income)} income · ${taka(overview.profitLoss.totalCost)} cost`}
               icon={Wallet}
@@ -87,7 +92,10 @@ export function AccountsPage() {
           </div>
 
           <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-            <Panel title="Last six months" description="Walton final bills against trip and office costs.">
+            <Panel
+              title={t('accounts.pages.overview.lastSixMonths')}
+              description={t('accounts.pages.overview.lastSixHint')}
+            >
               <div className="p-4 sm:p-5">{overview && <TrendChart months={overview.trend} />}</div>
             </Panel>
             <MonthProfitCard month={overview?.profitLoss} />
@@ -95,10 +103,10 @@ export function AccountsPage() {
 
           <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
             <Panel
-              title="Recent entries"
+              title={t('accounts.pages.overview.recentEntries')}
               action={
                 <Button variant="ghost" size="sm" render={<Link to="/accounts/cash-book" />}>
-                  Cash book
+                  {t('accounts.pages.overview.cashBook')}
                   <ArrowRight data-icon="inline-end" aria-hidden />
                 </Button>
               }

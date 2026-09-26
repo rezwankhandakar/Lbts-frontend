@@ -123,9 +123,21 @@ test('every row carries a destination and an accessible name', () => {
 
   for (const row of rows) {
     assert.ok(row.to.startsWith('/'), `${row.id} has no destination`)
-    assert.ok(row.action.length > 0, `${row.id} has no link name`)
-    assert.ok(row.title.length > 0, `${row.id} has no title`)
-    assert.ok(row.detail.length > 0, `${row.id} has no detail`)
+    assert.ok(row.actionKey.length > 0, `${row.id} has no link name`)
+
+    /*
+     * Every row's wording is keyed on its own id, so this holds the one thing
+     * that could silently go wrong once the sentences left this file: a row
+     * pointing at a branch of the tree nobody wrote. The dictionary proves the
+     * key resolves; this proves the row asks for its own.
+     */
+    assert.equal(row.titleKey, `dashboard.attention.rows.${row.id}.title`)
+    assert.equal(row.detailKey, `dashboard.attention.rows.${row.id}.detail`)
+
+    // A row states exactly one figure, and it is a raw number so the message
+    // can pluralise on it and the formatter can shape its digits.
+    const figures = [row.count, row.taka].filter((value) => value !== undefined)
+    assert.equal(figures.length, 1, `${row.id} states ${figures.length} figures`)
 
     /**
      * The destination is a plain path and the filter rides beside it in router
@@ -202,7 +214,10 @@ test('a money row states an amount, not a record count', () => {
   })
 
   assert.equal(rows.length, 1)
-  assert.match(rows[0]!.title, /৳1,25,400/)
+  // The amount travels as a number; `lib/i18n/format.ts` is what puts a ৳ in
+  // front of it and decides whose digits it is written in.
+  assert.equal(rows[0]?.taka, 125_400)
+  assert.equal(rows[0]?.count, undefined)
 })
 
 test('a negative vendor due is not a backlog', () => {

@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useSaveWallet } from '../hooks/use-accounts-mutations'
-import { WALLET_KIND_LABEL } from '../lib/accounts-meta'
+import { walletKindLabel } from '../lib/accounts-meta'
 import { WALLET_KINDS } from '../types'
 import type { WalletKind, WalletRecord } from '../types'
 import { EntryField } from './entry-field'
@@ -28,13 +29,15 @@ export function WalletDialog({ open, wallet, onOpenChange }: WalletDialogProps) 
 
 /** Adding or renaming a wallet. Its balance is not a field: it is what its entries add up to. */
 function WalletForm({ wallet, onDone }: { wallet: WalletRecord | null; onDone: () => void }) {
+  const t = useT()
+
   const [name, setName] = useState(wallet?.name ?? '')
   const [kind, setKind] = useState<WalletKind>(wallet?.kind ?? 'Cash')
   const [accountNumber, setAccountNumber] = useState(wallet?.accountNumber ?? '')
   const [note, setNote] = useState(wallet?.note ?? '')
   const [touched, setTouched] = useState(false)
   const save = useSaveWallet()
-  const nameError = touched && !name.trim() ? 'Name the wallet.' : undefined
+  const nameError = touched && !name.trim() ? 'accounts.validation.walletNameRequired' : undefined
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
@@ -49,18 +52,20 @@ function WalletForm({ wallet, onDone }: { wallet: WalletRecord | null; onDone: (
   return (
     <form onSubmit={submit} className="grid gap-5" noValidate>
       <DialogHeader>
-        <DialogTitle>{wallet ? `Edit ${wallet.name}` : 'Add a wallet'}</DialogTitle>
+        <DialogTitle>
+          {wallet ? t('accounts.wallet.editTitle', { name: wallet.name }) : t('accounts.wallet.addTitle')}
+        </DialogTitle>
         <DialogDescription>
           {wallet
-            ? 'Rename it or change its details. Its balance comes from its entries.'
+            ? t('accounts.wallet.editDescription')
             : kind === 'Cash'
-              ? 'A cash box. Every transaction runs through cash — record its opening balance afterwards with Add money.'
-              : 'A bank account or mobile banking number. It only receives Walton bill payments; nothing is spent from it or moved into or out of it.'}
+              ? t('accounts.wallet.cashDescription')
+              : t('accounts.wallet.bankDescription')}
         </DialogDescription>
       </DialogHeader>
 
       <div className="grid gap-2">
-        <Label id="wallet-kind-label">Kind</Label>
+        <Label id="wallet-kind-label">{t('accounts.wallet.kind')}</Label>
         <div role="radiogroup" aria-labelledby="wallet-kind-label" className="grid grid-cols-3 gap-1.5">
           {WALLET_KINDS.map((option) => (
             <button
@@ -74,19 +79,23 @@ function WalletForm({ wallet, onDone }: { wallet: WalletRecord | null; onDone: (
                 kind === option ? 'border-primary bg-primary/10 text-primary' : 'bg-card text-muted-foreground hover:border-primary/40',
               )}
             >
-              {WALLET_KIND_LABEL[option]}
+              {walletKindLabel(option, t)}
             </button>
           ))}
         </div>
       </div>
 
-      <EntryField id="wallet-name" label="Name" error={nameError}>
+      <EntryField id="wallet-name" label={t('accounts.wallet.name')} error={nameError}>
         <Input id="wallet-name" value={name} maxLength={80} autoComplete="off" aria-invalid={Boolean(nameError)} onChange={(event) => setName(event.target.value)} />
       </EntryField>
-      <EntryField id="wallet-account" label={kind === 'Cash' ? 'Kept by' : 'Account number'} optional>
+      <EntryField
+        id="wallet-account"
+        label={kind === 'Cash' ? t('accounts.wallet.keptBy') : t('accounts.wallet.accountNumber')}
+        optional
+      >
         <Input id="wallet-account" value={accountNumber} maxLength={60} autoComplete="off" onChange={(event) => setAccountNumber(event.target.value)} />
       </EntryField>
-      <EntryField id="wallet-note" label="Note" optional>
+      <EntryField id="wallet-note" label={t('accounts.wallet.note')} optional>
         <Input id="wallet-note" value={note} maxLength={300} autoComplete="off" onChange={(event) => setNote(event.target.value)} />
       </EntryField>
 
@@ -96,7 +105,7 @@ function WalletForm({ wallet, onDone }: { wallet: WalletRecord | null; onDone: (
         </Button>
         <Button type="submit" disabled={save.isPending}>
           {save.isPending && <Loader2 className="animate-spin" data-icon="inline-start" aria-hidden />}
-          {wallet ? 'Save changes' : 'Add wallet'}
+          {wallet ? t('common.actions.saveChanges') : t('accounts.wallet.add')}
         </Button>
       </DialogFooter>
     </form>

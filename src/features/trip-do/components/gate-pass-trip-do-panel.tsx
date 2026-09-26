@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useGatePassTripDoStatus } from '../hooks/use-trip-do'
 import { ProductStatusBadge } from './trip-do-badges'
 import { GatePassProductLineCard } from './gate-pass-product-line'
+import { useT } from '@/lib/i18n'
 
 /**
  * The gate pass side of the Trip DO sheet: for each product line on this gate
@@ -15,6 +16,8 @@ import { GatePassProductLineCard } from './gate-pass-product-line'
  * Vendor module's badges rather than copying them.
  */
 export function GatePassTripDoPanel({ gatePassId, tripDo }: { gatePassId: string; tripDo: string }) {
+  const t = useT()
+
   const query = useGatePassTripDoStatus(gatePassId)
   const status = query.data
 
@@ -28,11 +31,13 @@ export function GatePassTripDoPanel({ gatePassId, tripDo }: { gatePassId: string
           <Link2 className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-[13px] font-semibold tracking-tight">Challans on this Trip DO</h2>
+          <h2 className="text-[13px] font-semibold tracking-tight">
+            {t('tripDo.gatePassPanel.heading')}
+          </h2>
           <p className="text-xs text-muted-foreground">
             {status
               ? `${status.linkedQty} of ${status.totalQty} pcs linked to challans`
-              : 'Where the goods on this gate pass went, as the challans say.'}
+              : t('tripDo.gatePassPanel.description')}
           </p>
         </div>
         {status && <ProductStatusBadge status={status.status} />}
@@ -41,7 +46,7 @@ export function GatePassTripDoPanel({ gatePassId, tripDo }: { gatePassId: string
           size="sm"
           render={<Link to={`/trip-do?q=${encodeURIComponent(tripDo)}`} />}
         >
-          Open sheet
+          {t('tripDo.openSheet')}
           <ArrowUpRight data-icon="inline-end" aria-hidden />
         </Button>
       </header>
@@ -54,11 +59,11 @@ export function GatePassTripDoPanel({ gatePassId, tripDo }: { gatePassId: string
       ) : query.isError || !status ? (
         <div className="flex flex-col items-center px-6 py-8 text-center" role="alert">
           <p className="text-sm text-muted-foreground">
-            {query.error?.message ?? 'The linked challans could not be loaded.'}
+            {query.error?.message ?? t('tripDo.gatePassPanel.loadFailed')}
           </p>
           <Button variant="outline" size="sm" className="mt-3" onClick={() => void query.refetch()}>
             <RefreshCcw data-icon="inline-start" aria-hidden />
-            Try again
+            {t('common.actions.retry')}
           </Button>
         </div>
       ) : (

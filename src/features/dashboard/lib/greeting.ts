@@ -5,10 +5,20 @@
  * and so the one thing here worth getting wrong — which name is a person's
  * name — is pinned by a test rather than by somebody opening the page at
  * nine in the morning.
+ *
+ * It returns a **slot rather than a sentence**, which is the one thing that
+ * changed when the app learned a second language. A function that returned
+ * "Good morning" could only ever be English, and moving it into the message
+ * tree whole would have taken the time arithmetic — the part actually worth
+ * testing — along with it. So the arithmetic stays here and the words live in
+ * `dashboard.greeting`, keyed by what this returns.
  */
 
+export type GreetingSlot = 'lateNight' | 'morning' | 'afternoon' | 'evening'
+
 /**
- * "Good morning" against the **viewer's own clock**, never the server's.
+ * Which greeting the hour calls for, against the **viewer's own clock**, never
+ * the server's.
  *
  * The same reason every "today" in this codebase is taken from the browser:
  * the server runs on UTC, which is six hours behind Dhaka, so a server-side
@@ -16,11 +26,11 @@
  * boundaries are the ordinary Bangladeshi working day rather than an even
  * split of the clock — the office starts before nine and afternoon runs long.
  */
-export function greetingFor(hour: number): string {
-  if (hour < 5) return 'Still up'
-  if (hour < 12) return 'Good morning'
-  if (hour < 17) return 'Good afternoon'
-  return 'Good evening'
+export function greetingSlotFor(hour: number): GreetingSlot {
+  if (hour < 5) return 'lateNight'
+  if (hour < 12) return 'morning'
+  if (hour < 17) return 'afternoon'
+  return 'evening'
 }
 
 /**
@@ -38,17 +48,4 @@ export function firstNameOf(name: string | null | undefined): string {
   const trimmed = name.trim()
   if (trimmed.length === 0) return ''
   return trimmed.split(/\s+/)[0] ?? ''
-}
-
-/**
- * The whole line: "Good morning, Rahim" or just "Good morning".
- *
- * The comma belongs to the name and goes with it. A greeting that reads "Good
- * morning," with nothing after it is what a template gets wrong, and it is
- * visible on exactly the accounts whose profile has not finished loading.
- */
-export function greetingLine(name: string | null | undefined, hour: number): string {
-  const first = firstNameOf(name)
-  const greeting = greetingFor(hour)
-  return first ? `${greeting}, ${first}` : greeting
 }

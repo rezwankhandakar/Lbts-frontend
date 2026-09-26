@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { ColumnFilterValue, ColumnValuesResult } from '@/lib/column-filters'
+import { useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface ColumnFilterDropdownProps {
@@ -50,6 +51,9 @@ export function ColumnFilterDropdown({
   labelOf,
   onApply,
 }: ColumnFilterDropdownProps) {
+  const t = useT()
+  const format = useFormatters()
+
   /** Null is "everything ticked", which is no filter at all. */
   const [draft, setDraft] = useState<ColumnFilterValue[] | null>(null)
   const isActive = Boolean(applied && applied.length > 0)
@@ -98,16 +102,20 @@ export function ColumnFilterDropdown({
           onCheckedChange={() => setDraft(draft === null ? [] : null)}
           className="font-medium"
         >
-          Select all
+          {t('shared.columnFilter.selectAll')}
         </DropdownMenuCheckboxItem>
         <DropdownMenuSeparator />
 
         {isLoading ? (
-          <p className="px-2 py-3 text-xs text-muted-foreground">Loading values…</p>
+          <p className="px-2 py-3 text-xs text-muted-foreground">
+            {t('shared.columnFilter.loadingValues')}
+          </p>
         ) : errorMessage ? (
           <p className="px-2 py-3 text-xs text-destructive">{errorMessage}</p>
         ) : values.length === 0 ? (
-          <p className="px-2 py-3 text-xs text-muted-foreground">No values under the other filters.</p>
+          <p className="px-2 py-3 text-xs text-muted-foreground">
+            {t('shared.columnFilter.noValues')}
+          </p>
         ) : (
           values.map((entry) => (
             <DropdownMenuCheckboxItem
@@ -121,13 +129,15 @@ export function ColumnFilterDropdown({
               >
                 {labelOf(entry.value)}
               </span>
-              <span className="text-[11px] text-muted-foreground tabular-nums">{entry.count}</span>
+              <span className="text-[11px] text-muted-foreground tabular-nums">
+                {format.number(entry.count)}
+              </span>
             </DropdownMenuCheckboxItem>
           ))
         )}
         {data?.truncated && (
           <p className="px-2 py-1.5 text-[11px] text-tone-amber">
-            Only the first {values.length} values are listed. Narrow another column first.
+            {t('shared.columnFilter.truncated', { count: format.number(values.length) })}
           </p>
         )}
 
@@ -137,10 +147,10 @@ export function ColumnFilterDropdown({
           onClick={() => onApply(draft)}
           className="justify-center font-medium text-primary"
         >
-          Apply
+          {t('shared.columnFilter.apply')}
         </DropdownMenuItem>
         <DropdownMenuItem disabled={!isActive} onClick={() => onApply(null)} className="justify-center">
-          Clear filter
+          {t('shared.columnFilter.clearFilter')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

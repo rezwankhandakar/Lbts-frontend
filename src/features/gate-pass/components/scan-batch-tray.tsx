@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
 import { isPdf } from '../lib/gate-pass-document'
 import type { BatchItem, ScanBatch } from '../hooks/use-scan-batch'
 import { ScanSheetActions } from './scan-sheet-actions'
 import { ScanSheetTile } from './scan-sheet-tile'
 import { ScanTrayHeader } from './scan-tray-header'
+import { useT } from '@/lib/i18n'
 
 interface ScanBatchTrayProps {
   batch: ScanBatch
@@ -89,6 +91,8 @@ export function ScanBatchTray({
   singleDocument = false,
   disabled,
 }: ScanBatchTrayProps) {
+  const t = useT()
+
   const thumbnails = useThumbnails(batch.items)
 
   /** Null while the tray is picking a sheet to type; a list while selecting. */
@@ -140,7 +144,7 @@ export function ScanBatchTray({
   const active = batch.active
 
   return (
-    <section aria-label="Scanned sheets" className="border-b bg-muted/20">
+    <section aria-label={t('gatePass.tray.ariaLabel')} className="border-b bg-muted/20">
       <header className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 sm:px-5">
         <ScanTrayHeader
           batch={batch}
@@ -164,8 +168,7 @@ export function ScanBatchTray({
       {singleDocument && picking === null && pending.length > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-tone-amber/25 bg-tone-amber/5 px-4 py-2 sm:px-5">
           <p className="max-w-md text-xs leading-relaxed text-pretty">
-            <span className="font-semibold">This gate pass holds one document.</span> Join these{' '}
-            {pending.length} sheets into one, or remove the ones that do not belong.
+            {t('gatePass.tray.oneDocument', { n: formatNumber(pending.length) })}
           </p>
           <Button
             size="xs"
@@ -173,7 +176,7 @@ export function ScanBatchTray({
             disabled={busy}
           >
             <Layers data-icon="inline-start" aria-hidden />
-            Join all {pending.length}
+            {t('gatePass.tray.joinAll', { n: formatNumber(pending.length) })}
           </Button>
         </div>
       )}

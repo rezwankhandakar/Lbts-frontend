@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { BillingFilterSelect } from '@/features/bill/components/billing-filter-select'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -17,19 +19,26 @@ import type {
   ChallanListParams,
 } from '../types'
 
-const DISPATCH_LABELS: Record<ChallanDispatchFilter, string> = {
-  all: 'Any dispatch',
-  pending: 'Not dispatched',
-  partial: 'Partly sent',
-  sent: 'Sent',
-  delivered: 'Delivered',
-  returned: 'Returned at depot',
+/**
+ * The filter vocabularies as keys rather than words.
+ *
+ * A table of labels built at module scope is frozen in whichever language the
+ * tab was opened in; a table of keys is read through the translator on every
+ * render, so a language switch moves the select with everything else.
+ */
+const DISPATCH_KEYS: Record<ChallanDispatchFilter, TranslationKey> = {
+  all: 'challan.filters.anyDispatch',
+  pending: 'challan.filters.notDispatched',
+  partial: 'challan.filters.partlySent',
+  sent: 'challan.filters.sent',
+  delivered: 'challan.filters.delivered',
+  returned: 'challan.filters.returnedAtDepot',
 }
 
-const AMOUNT_LABELS: Record<ChallanAmountFilter, string> = {
-  all: 'Any amount',
-  unpriced: 'Blank amount',
-  partial: 'Partly charged',
+const AMOUNT_KEYS: Record<ChallanAmountFilter, TranslationKey> = {
+  all: 'challan.filters.anyAmount',
+  unpriced: 'challan.filters.blankAmount',
+  partial: 'challan.filters.partlyCharged',
 }
 
 interface ChallanAdvancedFiltersProps {
@@ -46,6 +55,8 @@ export function ChallanAdvancedFilters({
   canFilterByOwner,
   currentUserId,
 }: ChallanAdvancedFiltersProps) {
+  const t = useT()
+
   return (
     <div
       id="challan-advanced-filters"
@@ -56,21 +67,21 @@ export function ChallanAdvancedFilters({
           is discoverable beside the others, and so `partial` — the one whose
           chip is absent whenever the count is zero — has a permanent home.
           Both write the same state, so they cannot drift. */}
-      <FilterField id="filter-amount" label="Amount">
+      <FilterField id="filter-amount" label={t('challan.filters.amount')}>
         <Select
           value={params.amount}
           onValueChange={(value) => onChange({ amount: value as ChallanAmountFilter })}
         >
           <SelectTrigger id="filter-amount" className="w-full">
             <SelectValue>
-              {(value) => AMOUNT_LABELS[(value as ChallanAmountFilter) ?? 'all']}
+              {(value) => t(AMOUNT_KEYS[(value as ChallanAmountFilter) ?? 'all'])}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {(Object.keys(AMOUNT_LABELS) as ChallanAmountFilter[]).map((value) => (
+              {(Object.keys(AMOUNT_KEYS) as ChallanAmountFilter[]).map((value) => (
                 <SelectItem key={value} value={value}>
-                  {AMOUNT_LABELS[value]}
+                  {t(AMOUNT_KEYS[value])}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -81,21 +92,21 @@ export function ChallanAdvancedFilters({
       {/* The dispatch backlog has chips too; this is where `sent` and
           `delivered` live, which are read rather than worked through and so
           never earn a chip of their own. */}
-      <FilterField id="filter-dispatch" label="Dispatch">
+      <FilterField id="filter-dispatch" label={t('challan.filters.dispatch')}>
         <Select
           value={params.dispatch}
           onValueChange={(value) => onChange({ dispatch: value as ChallanDispatchFilter })}
         >
           <SelectTrigger id="filter-dispatch" className="w-full">
             <SelectValue>
-              {(value) => DISPATCH_LABELS[(value as ChallanDispatchFilter) ?? 'all']}
+              {(value) => t(DISPATCH_KEYS[(value as ChallanDispatchFilter) ?? 'all'])}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {(Object.keys(DISPATCH_LABELS) as ChallanDispatchFilter[]).map((value) => (
+              {(Object.keys(DISPATCH_KEYS) as ChallanDispatchFilter[]).map((value) => (
                 <SelectItem key={value} value={value}>
-                  {DISPATCH_LABELS[value]}
+                  {t(DISPATCH_KEYS[value])}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -103,11 +114,11 @@ export function ChallanAdvancedFilters({
         </Select>
       </FilterField>
 
-      <FilterField id="filter-bill" label="Bill">
+      <FilterField id="filter-bill" label={t('challan.filters.bill')}>
         <BillingFilterSelect id="filter-bill" value={params.bill} onChange={(bill) => onChange({ bill })} />
       </FilterField>
 
-      <FilterField id="filter-from" label="Filed from">
+      <FilterField id="filter-from" label={t('challan.filters.filedFrom')}>
         <Input
           id="filter-from"
           type="date"
@@ -116,7 +127,7 @@ export function ChallanAdvancedFilters({
         />
       </FilterField>
 
-      <FilterField id="filter-to" label="Filed to">
+      <FilterField id="filter-to" label={t('challan.filters.filedTo')}>
         <Input
           id="filter-to"
           type="date"
@@ -125,21 +136,21 @@ export function ChallanAdvancedFilters({
         />
       </FilterField>
 
-      <TextFilter id="filter-customer" label="Customer" value={params.customer} onChange={(customer) => onChange({ customer })} />
-      <TextFilter id="filter-district" label="District" value={params.district} onChange={(district) => onChange({ district })} />
-      <TextFilter id="filter-product" label="Product" value={params.product} onChange={(product) => onChange({ product })} />
-      <TextFilter id="filter-model" label="Model" value={params.model} onChange={(model) => onChange({ model })} />
-      <TextFilter id="filter-zonepo" label="Zone / PO" value={params.zonePo} onChange={(zonePo) => onChange({ zonePo })} />
+      <TextFilter id="filter-customer" label={t('challan.filters.customer')} value={params.customer} onChange={(customer) => onChange({ customer })} />
+      <TextFilter id="filter-district" label={t('challan.filters.district')} value={params.district} onChange={(district) => onChange({ district })} />
+      <TextFilter id="filter-product" label={t('challan.filters.product')} value={params.product} onChange={(product) => onChange({ product })} />
+      <TextFilter id="filter-model" label={t('challan.filters.model')} value={params.model} onChange={(model) => onChange({ model })} />
+      <TextFilter id="filter-zonepo" label={t('challan.filters.zonePo')} value={params.zonePo} onChange={(zonePo) => onChange({ zonePo })} />
 
       {canFilterByOwner && currentUserId && (
-        <FilterField id="filter-owner" label="Filed by">
+        <FilterField id="filter-owner" label={t('challan.filters.filedBy')}>
           <Button
             id="filter-owner"
             variant={params.createdBy ? 'secondary' : 'outline'}
             className="w-full justify-start"
             onClick={() => onChange({ createdBy: params.createdBy ? '' : currentUserId })}
           >
-            {params.createdBy ? 'Only mine' : 'Everyone'}
+            {params.createdBy ? t('challan.filters.onlyMine') : t('challan.filters.everyone')}
           </Button>
         </FilterField>
       )}

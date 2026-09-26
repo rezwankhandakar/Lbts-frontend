@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import { saveBlob } from '@/lib/save-blob'
 import { exportTripDoRows } from '../api/trip-do-api'
@@ -41,12 +42,12 @@ export function useTripDoExport(params: TripDoListParams): TripDoExportControlle
     }
 
     setIsExporting(true)
-    const toastId = toast.loading('Building the spreadsheet…')
+    const toastId = toast.loading(t('tripDo.export.buildingToast'))
 
     void exportTripDoRows(params)
       .then(({ blob, filename }) => {
         saveBlob(blob, filename)
-        toast.success('Spreadsheet downloaded', { id: toastId })
+        toast.success(t('tripDo.export.downloaded'), { id: toastId })
         setIsConfirming(false)
       })
       .catch((error: ApiError) => {

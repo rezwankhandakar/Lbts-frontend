@@ -1,7 +1,8 @@
 import { Lock } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { NOTIFICATION_CATEGORY_META } from '../lib/notification-meta'
+import { notificationCategoryMeta } from '../lib/notification-meta'
 import type { NotificationCategory } from '../types'
 
 interface NotificationPreferenceRowProps {
@@ -36,7 +37,9 @@ export function NotificationPreferenceRow({
   locked,
   onChange,
 }: NotificationPreferenceRowProps) {
-  const meta = NOTIFICATION_CATEGORY_META[category]
+  const t = useT()
+
+  const meta = notificationCategoryMeta(category, t)
   const Icon = meta.icon
 
   return (
@@ -64,7 +67,7 @@ export function NotificationPreferenceRow({
           {locked && (
             <span className="flex items-center gap-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] leading-none font-semibold text-muted-foreground">
               <Lock className="size-2.5" aria-hidden />
-              Always on
+              {t('notification.panel.alwaysOn')}
             </span>
           )}
         </span>

@@ -7,8 +7,9 @@ import { ZoomableImage } from '@/components/shared/zoomable-image'
 import { useZoom } from '@/hooks/use-zoom'
 import { formatBytes } from '@/lib/document-file-rules'
 import { printDocument } from '@/lib/print-document'
-import { KIND_META, formatDay, taka } from '../lib/accounts-meta'
+import { kindMeta, formatDay, taka } from '../lib/accounts-meta'
 import type { EntryRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 /** pdf.js is only downloaded once somebody actually opens a PDF voucher. */
 const ZoomablePdf = lazy(() =>
@@ -64,6 +65,8 @@ export function VoucherViewerDialog({
   onClose,
   onDownload,
 }: VoucherViewerDialogProps) {
+  const t = useT()
+
   const zoom = useZoom()
 
   if (!entry?.voucher) {
@@ -72,7 +75,7 @@ export function VoucherViewerDialog({
 
   const voucher = entry.voucher
   const isPdf = mimeType === 'application/pdf'
-  const title = `Voucher for ${entry.entryNumber}`
+  const title = t('accounts.voucher.title', { entry: entry.entryNumber })
 
   return (
     <Dialog
@@ -91,7 +94,7 @@ export function VoucherViewerDialog({
               Voucher · <span className="font-mono">{entry.entryNumber}</span>
             </DialogTitle>
             <DialogDescription className="truncate text-xs">
-              {KIND_META[entry.kind].label} · {taka(entry.amount)} · {formatDay(entry.date)}
+              {kindMeta(entry.kind, t).label} · {taka(entry.amount)} · {formatDay(entry.date)}
               {entry.expenseName ? ` · ${entry.expenseName}` : ''} · {formatBytes(voucher.size)}
               {voucher.pageCount ? ` · ${voucher.pageCount} sheets` : ''}
               {voucher.uploadedBy ? ` · attached by ${voucher.uploadedBy.name}` : ''}
@@ -109,7 +112,7 @@ export function VoucherViewerDialog({
           </Button>
           <Button variant="outline" size="sm" onClick={onDownload}>
             <Download data-icon="inline-start" aria-hidden />
-            Download
+            {t('common.actions.download')}
           </Button>
         </div>
 

@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { LabourBillRecord } from '../types'
+import { useT } from '@/lib/i18n'
 
 export type LabourBillDialog = 'edit' | 'finalize' | 'reopen' | 'delete' | 'copies' | null
 
@@ -34,6 +35,8 @@ export function LabourBillActionsMenu({
   onOpen,
   onRefresh,
 }: LabourBillActionsMenuProps) {
+  const t = useT()
+
   const isDraft = bill.status === 'Draft'
   const canPrepare = isDraft && canWrite
 
@@ -45,7 +48,7 @@ export function LabourBillActionsMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="outline" size="icon" aria-label={`More actions for ${bill.billNumber}`} />
+          <Button variant="outline" size="icon" aria-label={t('labourBill.menu.moreAria', { bill: bill.billNumber })} />
         }
       >
         <MoreHorizontal aria-hidden />
@@ -56,11 +59,11 @@ export function LabourBillActionsMenu({
           <>
             <DropdownMenuItem onClick={() => onOpen('edit')}>
               <Pencil aria-hidden />
-              Edit month, company or note
+              {t('labourBill.menu.edit')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onRefresh} disabled={isRefreshing}>
               <RefreshCcw aria-hidden />
-              Refresh from Trip DO sheet
+              {t('labourBill.menu.refresh')}
             </DropdownMenuItem>
           </>
         )}
@@ -71,12 +74,12 @@ export function LabourBillActionsMenu({
             {isDraft ? (
               <DropdownMenuItem onClick={() => onOpen('finalize')}>
                 <FileCheck2 aria-hidden />
-                Finalize labour bill
+                {t('labourBill.menu.finalize')}
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem onClick={() => onOpen('reopen')}>
                 <LockOpen aria-hidden />
-                Reopen as draft
+                {t('labourBill.menu.reopen')}
               </DropdownMenuItem>
             )}
           </>
@@ -87,7 +90,7 @@ export function LabourBillActionsMenu({
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={() => onOpen('delete')}>
               <Trash2 aria-hidden />
-              Delete labour bill
+              {t('labourBill.menu.delete')}
             </DropdownMenuItem>
           </>
         )}

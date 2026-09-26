@@ -1,3 +1,4 @@
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   LOCATION_REVIEW_META,
@@ -23,7 +24,9 @@ const BASE =
  * reader. The same shape as every other badge in the app.
  */
 export function LocationTypeBadge({ value, className }: BadgeProps) {
-  const meta = locationTypeMeta(value)
+  const t = useT()
+
+  const meta = locationTypeMeta(value, t)
 
   return (
     <span className={cn(BASE, meta.badge, className)} title={meta.description}>
@@ -41,7 +44,9 @@ export function LocationTypeBadge({ value, className }: BadgeProps) {
  * reads as "no information" rather than "not yet".
  */
 export function LocationStatusBadge({ value, className }: BadgeProps) {
-  const meta = locationStatusMeta(value)
+  const t = useT()
+
+  const meta = locationStatusMeta(value, t)
 
   return (
     <span className={cn(BASE, meta.badge, className)} title={meta.description}>
@@ -69,16 +74,18 @@ export function LocationReviewBadge({
   source: LocationSource
   className?: string
 }) {
+  const t = useT()
+
   return (
     <span
       className={cn(BASE, LOCATION_REVIEW_META.badge, className)}
-      title={`${locationSourceLabel(source)}. Nobody has confirmed it yet.`}
+      title={t('location.reviewTitle', { source: locationSourceLabel(source, t) })}
     >
       <span
         className={cn('size-1.5 shrink-0 rounded-full', LOCATION_REVIEW_META.dot)}
         aria-hidden
       />
-      {LOCATION_REVIEW_META.label}
+      {t(LOCATION_REVIEW_META.labelKey)}
     </span>
   )
 }

@@ -2,10 +2,12 @@ import { PanelLeft } from 'lucide-react'
 import { usePageMeta } from '@/hooks/use-page-meta'
 import { useSidebarStore } from '@/stores/use-sidebar-store'
 import { HEADER_ICON_BUTTON } from '@/components/layout/header-styles'
+import { LanguageToggle } from '@/components/layout/language-toggle'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserMenu } from '@/components/layout/user-menu'
 import { NotificationBell } from '@/features/notification/components/notification-bell'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface AppHeaderProps {
@@ -14,6 +16,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ mobileOpen, onOpenMobileSidebar }: AppHeaderProps) {
+  const t = useT()
   const { title, section } = usePageMeta()
   const collapsed = useSidebarStore((state) => state.collapsed)
   const toggleCollapsed = useSidebarStore((state) => state.toggleCollapsed)
@@ -31,7 +34,7 @@ export function AppHeader({ mobileOpen, onOpenMobileSidebar }: AppHeaderProps) {
         size="icon"
         className={cn(HEADER_ICON_BUTTON, 'relative md:hidden')}
         onClick={onOpenMobileSidebar}
-        aria-label="Open navigation menu"
+        aria-label={t('shell.openNavigation')}
         aria-expanded={mobileOpen}
         aria-controls="app-sidebar-drawer"
       >
@@ -43,7 +46,7 @@ export function AppHeader({ mobileOpen, onOpenMobileSidebar }: AppHeaderProps) {
         size="icon"
         className={cn(HEADER_ICON_BUTTON, 'relative hidden md:inline-flex')}
         onClick={toggleCollapsed}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-label={collapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
         aria-expanded={!collapsed}
         aria-controls="app-sidebar"
       >
@@ -62,6 +65,8 @@ export function AppHeader({ mobileOpen, onOpenMobileSidebar }: AppHeaderProps) {
       </div>
 
       <div className="relative ml-auto flex items-center gap-0.5">
+        <LanguageToggle />
+
         <ThemeToggle />
 
         {/* The bell owns its own count, its own panel and its own polling. It

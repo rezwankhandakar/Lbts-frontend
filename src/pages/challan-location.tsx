@@ -7,6 +7,8 @@ import { LocationStatusBadge } from '@/features/location/components/location-bad
 import { useSetChallanLocation } from '@/features/challan/hooks/use-challan-mutations'
 import { useChallan } from '@/features/challan/hooks/use-challans'
 import type { LocationRunState } from '@/features/challan/hooks/use-challan-location-review'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 /**
  * Settling one challan's district and thana.
@@ -29,6 +31,8 @@ import type { LocationRunState } from '@/features/challan/hooks/use-challan-loca
  * so Back returns to the list rather than walking every record again.
  */
 export function ChallanLocationPage() {
+  const t = useT()
+
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { state } = useLocation()
@@ -74,12 +78,12 @@ export function ChallanLocationPage() {
         <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
           <TriangleAlert className="size-5" aria-hidden />
         </div>
-        <h1 className="mt-4 text-lg font-semibold tracking-tight">Challan not found</h1>
+        <h1 className="mt-4 text-lg font-semibold tracking-tight">{t('challan.notFound')}</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          {query.error?.message ?? 'It may have been deleted, or you may not have access to it.'}
+          {query.error?.message ?? t('challan.notFoundHint')}
         </p>
         <Button variant="outline" size="sm" className="mt-5" onClick={goBack}>
-          Back to challans
+          {t('challan.backToList')}
         </Button>
       </div>
     )
@@ -97,26 +101,31 @@ export function ChallanLocationPage() {
           onClick={goBack}
         >
           <ArrowLeft data-icon="inline-start" aria-hidden />
-          Back to challans
+          {t('challan.backToList')}
         </Button>
 
         <div className="flex flex-wrap items-center gap-2.5">
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-            {isSettled ? 'Check the location' : 'Set the location'}
+            {isSettled ? t('challan.location.checkTitle') : t('challan.location.setTitle')}
           </h1>
           {!isSettled && <LocationStatusBadge value="Pending" />}
           {/* Where this one sits in the run, so somebody working down a
               filtered list knows whether they are three in or nearly done. */}
           {position !== -1 && queue.length > 1 && (
             <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground tabular-nums">
-              {position + 1} of {queue.length}
+              {t('challan.locationRunPosition', {
+                position: formatNumber(position + 1),
+                total: formatNumber(queue.length),
+              })}
             </span>
           )}
         </div>
 
         <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
-          {record.challanNumber} · SL {record.slNumber} · nothing on the challan or in the stored
-          document changes, so there is never anything to reprint.
+          {t('challan.locationSubtitle', {
+            challan: record.challanNumber,
+            sl: formatNumber(record.slNumber),
+          })}
         </p>
       </header>
 

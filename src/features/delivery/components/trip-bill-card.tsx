@@ -6,6 +6,7 @@ import { formatTakaBangla, takaInBanglaWords } from '@/lib/taka-words'
 import { MAX_TRIP_CHARGE } from '../types'
 import type { TripRecord } from '../types'
 import { AmountWordsInput } from '@/components/shared/amount-words-input'
+import { useT } from '@/lib/i18n'
 
 interface TripBillCardProps {
   trip: TripRecord
@@ -24,6 +25,8 @@ interface TripBillCardProps {
  * Mount keyed on the trip id: the draft amounts belong to one trip.
  */
 export function TripBillCard({ trip, canChange }: TripBillCardProps) {
+  const t = useT()
+
   const [rent, setRent] = useState<number | null>(trip.tripRent)
   const [labour, setLabour] = useState<number | null>(trip.labourBill)
   const save = useSaveTripBill()
@@ -39,7 +42,7 @@ export function TripBillCard({ trip, canChange }: TripBillCardProps) {
           <ReceiptText className="size-4" aria-hidden />
         </span>
         <div>
-          <h2 className="text-sm font-semibold tracking-tight">Trip bill</h2>
+          <h2 className="text-sm font-semibold tracking-tight">{t('delivery.bill.heading')}</h2>
           <p className="text-xs text-muted-foreground">গাড়ি ভাড়া ও লেবার বিল</p>
         </div>
       </div>
@@ -48,7 +51,7 @@ export function TripBillCard({ trip, canChange }: TripBillCardProps) {
         <div className="space-y-3">
           <AmountWordsInput
             id="trip-rent"
-            label="Trip rent (গাড়ি ভাড়া)"
+            label={t('delivery.bill.tripRent')}
             value={rent}
             max={MAX_TRIP_CHARGE}
             disabled={save.isPending}
@@ -56,7 +59,7 @@ export function TripBillCard({ trip, canChange }: TripBillCardProps) {
           />
           <AmountWordsInput
             id="labour-bill"
-            label="Labour bill (লেবার বিল)"
+            label={t('delivery.bill.labourBill')}
             value={labour}
             max={MAX_TRIP_CHARGE}
             disabled={save.isPending}
@@ -66,14 +69,14 @@ export function TripBillCard({ trip, canChange }: TripBillCardProps) {
       ) : (
         <dl className="space-y-2 text-sm">
           {[
-            { label: 'Trip rent', value: trip.tripRent },
-            { label: 'Labour bill', value: trip.labourBill },
+            { label: t('delivery.bill.tripRentShort'), value: trip.tripRent },
+            { label: t('delivery.bill.labourBillShort'), value: trip.labourBill },
           ].map((row) => (
             <div key={row.label}>
               <dt className="text-xs text-muted-foreground">{row.label}</dt>
               <dd className="font-semibold">
                 {row.value === null ? (
-                  <span className="font-normal text-muted-foreground">Not entered</span>
+                  <span className="font-normal text-muted-foreground">{t('delivery.bill.notEntered')}</span>
                 ) : (
                   <>
                     {formatTakaBangla(row.value)}{' '}
@@ -110,7 +113,7 @@ export function TripBillCard({ trip, canChange }: TripBillCardProps) {
           ) : (
             <Save data-icon="inline-start" aria-hidden />
           )}
-          Save bill
+          {t('delivery.bill.save')}
         </Button>
       )}
 

@@ -9,6 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { formatRange } from '../lib/challan-meta'
 import type { DuplicateChallanCandidate } from '../types'
 
@@ -26,9 +29,9 @@ interface DuplicateChallanDialogProps {
  * so out loud, because "same customer and model" was the old rule and it fired
  * on every branch of a customer taking one product to twenty of them.
  */
-const MATCH_REASONS: Record<DuplicateChallanCandidate['matchedOn'], string> = {
-  batch: 'Same customer, address, number and model — out of this same PDF',
-  recent: 'Same customer, address, number and model in the last three months',
+const MATCH_REASON_KEYS: Record<DuplicateChallanCandidate['matchedOn'], TranslationKey> = {
+  batch: 'challan.duplicate.batch',
+  recent: 'challan.duplicate.recent',
 }
 
 /**
@@ -51,19 +54,21 @@ export function DuplicateChallanDialog({
   onDismiss,
   onContinue,
 }: DuplicateChallanDialogProps) {
+  const t = useT()
+
   return (
     <Dialog open={duplicates.length > 0} onOpenChange={(open) => !open && onDismiss()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CopyCheck className="size-4 text-tone-amber" aria-hidden />
-            {duplicates.length === 1
-              ? 'A similar challan has already been filed'
-              : `${duplicates.length} similar challans have already been filed`}
+            {t('challan.duplicate.title', {
+              count: duplicates.length,
+              n: formatNumber(duplicates.length),
+            })}
           </DialogTitle>
           <DialogDescription>
-            Check whether this is the same delivery before filing it. Nothing has been saved yet,
-            and going back loses none of what you have typed.
+            {t('challan.duplicate.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -75,25 +80,34 @@ export function DuplicateChallanDialog({
                   <p className="text-sm font-semibold">
                     {candidate.challanNumber}
                     <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      SL {candidate.slNumber}
+                      {t('challan.pages.slWith', { sl: formatNumber(candidate.slNumber) })}
                     </span>
                   </p>
                   <p className="mt-1 truncate text-xs text-muted-foreground">
                     {candidate.customerName} · {candidate.receiverMobile}
                   </p>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {candidate.product} ({candidate.model}) × {candidate.qty}
-                    {candidate.moreItems > 0 ? ` +${candidate.moreItems} more` : ''}
+                    {t('challan.duplicate.goodsLine', {
+                      product: candidate.product,
+                      model: candidate.model,
+                      qty: formatNumber(candidate.qty),
+                    })}
+                    {candidate.moreItems > 0
+                      ? ` ${t('challan.duplicate.moreItems', { n: formatNumber(candidate.moreItems) })}`
+                      : ''}
                   </p>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {candidate.sourceFileName} ·{' '}
-                    {formatRange({
-                      startPage: candidate.sourcePageStart,
-                      endPage: candidate.sourcePageEnd,
-                    })}
+                    {formatRange(
+                      {
+                        startPage: candidate.sourcePageStart,
+                        endPage: candidate.sourcePageEnd,
+                      },
+                      t,
+                    )}
                   </p>
                   <p className="mt-1.5 text-[11px] font-medium text-tone-amber">
-                    {MATCH_REASONS[candidate.matchedOn]}
+                    {t(MATCH_REASON_KEYS[candidate.matchedOn])}
                   </p>
                 </div>
 
@@ -103,7 +117,7 @@ export function DuplicateChallanDialog({
                   className="shrink-0"
                   render={<Link to={`/challan/${candidate.id}`} target="_blank" rel="noreferrer" />}
                 >
-                  View
+                  {t('common.actions.view')}
                   <ExternalLink data-icon="inline-end" aria-hidden />
                 </Button>
               </div>
@@ -113,10 +127,10 @@ export function DuplicateChallanDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onDismiss} disabled={isSubmitting}>
-            Go back and check
+            {t('challan.duplicate.goBack')}
           </Button>
           <Button onClick={onContinue} disabled={isSubmitting}>
-            {isSubmitting ? 'Filing…' : 'Different delivery — file it'}
+            {isSubmitting ? t('challan.duplicate.filing') : t('challan.duplicate.fileAnyway')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import {
   bulkLinkTripDoRows,
@@ -69,8 +70,8 @@ export function useUnlinkTripDo(): UseMutationResult<{ qty: number }, ApiError, 
   return useMutation({
     mutationFn: unlinkTripDoRow,
     onSuccess: () => {
-      toast.success('Trip DO removed', {
-        description: 'The row is waiting for a Trip DO again, merged with any other waiting part of the line.',
+      toast.success(t('tripDo.remove.removed'), {
+        description: t('tripDo.remove.removedNote'),
       })
       void invalidate()
     },
@@ -108,12 +109,14 @@ export function useMergeTripDo(): UseMutationResult<
     mutationFn: mergeTripDoRow,
     onSuccess: (result) => {
       toast.success(
-        result.merged > 0 ? `Parts merged back into ${result.qty}` : 'Nothing to merge',
+        result.merged > 0
+          ? t('tripDo.remove.mergedBack', { qty: result.qty })
+          : t('tripDo.remove.nothingToMerge'),
         {
           description:
             result.merged > 0
               ? undefined
-              : 'The other parts of this line carry a different Trip DO, so they stay apart.',
+              : t('tripDo.remove.partsApart'),
         },
       )
       void invalidate()

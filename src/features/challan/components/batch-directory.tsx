@@ -2,6 +2,7 @@ import { Layers, RefreshCcw, SearchX, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import type { ChallanBatchRecord } from '../types'
 import { BatchTable } from './batch-table'
 
@@ -36,10 +37,12 @@ export function BatchDirectory({
   onRetry,
   onReset,
 }: BatchDirectoryProps) {
+  const t = useT()
+
   if (isLoading) {
     return (
       <div className="divide-y" aria-busy="true" aria-live="polite">
-        <span className="sr-only">Loading source PDFs</span>
+        <span className="sr-only">{t('challan.batch.loadingList')}</span>
         {Array.from({ length: 6 }, (_, index) => (
           <div key={index} className="flex items-center gap-3 px-4 py-3.5">
             <div className="min-w-0 flex-1 space-y-2">
@@ -60,7 +63,9 @@ export function BatchDirectory({
         <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
           <TriangleAlert className="size-5" aria-hidden />
         </div>
-        <h3 className="mt-4 text-base font-semibold tracking-tight">Could not load source PDFs</h3>
+        <h3 className="mt-4 text-base font-semibold tracking-tight">
+          {t('challan.batch.loadFailed')}
+        </h3>
         <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-pretty text-muted-foreground">
           {errorMessage}
         </p>
@@ -72,7 +77,7 @@ export function BatchDirectory({
           disabled={isFetching}
         >
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          {isFetching ? 'Retrying…' : 'Try again'}
+          {isFetching ? t('challan.list.retrying') : t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -101,6 +106,8 @@ interface EmptyProps {
  * failed to record.
  */
 function EmptyState({ isFiltered, canWrite, onReset }: EmptyProps) {
+  const t = useT()
+
   const Icon = isFiltered ? SearchX : Layers
 
   return (
@@ -110,24 +117,24 @@ function EmptyState({ isFiltered, canWrite, onReset }: EmptyProps) {
       </div>
 
       <h3 className="mt-4 text-base font-semibold tracking-tight">
-        {isFiltered ? 'No source PDFs found' : 'No source PDFs yet'}
+        {isFiltered ? t('challan.batch.noneFound') : t('challan.batch.noneYet')}
       </h3>
 
       <p className="mt-1.5 max-w-md text-sm leading-relaxed text-pretty text-muted-foreground">
         {isFiltered
-          ? 'No source file matches your current filters.'
-          : 'A source PDF appears here as soon as the first challan is filed out of it. Opening a file records nothing on its own — the file itself is never stored.'}
+          ? t('challan.batch.filteredHint')
+          : t('challan.batch.emptyHint')}
       </p>
 
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
         {isFiltered && (
           <Button variant="outline" size="sm" onClick={onReset}>
-            Clear filters
+            {t('common.actions.clearFilters')}
           </Button>
         )}
         {!isFiltered && canWrite && (
           <Button size="sm" render={<Link to="/challan/new" />}>
-            Open a challan PDF
+            {t('challan.openChallanPdf')}
           </Button>
         )}
       </div>

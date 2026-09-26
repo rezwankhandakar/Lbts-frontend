@@ -8,6 +8,7 @@ import {
   Undo2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import type {
   GatePassProductStatus,
   RowDeliveryStatus,
@@ -23,9 +24,14 @@ import type {
  * challan there can never describe one lorry two ways.
  */
 
-export interface ToneMeta {
+/** What a status says. The lookups below resolve it. */
+export interface ToneMeta extends TonePresentation {
   label: string
   description: string
+}
+
+/** The untranslatable half: icon and colour, and nothing it says. */
+export interface TonePresentation {
   icon: LucideIcon
   badge: string
   dot: string
@@ -33,42 +39,32 @@ export interface ToneMeta {
   bar: string
 }
 
-export const ROW_STATUS_META: Record<RowDeliveryStatus, ToneMeta> = {
+export const ROW_STATUS_META: Record<RowDeliveryStatus, TonePresentation> = {
   Pending: {
-    label: 'Not dispatched',
-    description: 'Filed, and on no trip yet.',
     icon: PackageX,
     badge: 'border-border bg-muted text-muted-foreground',
     dot: 'bg-muted-foreground',
     bar: 'bg-muted-foreground/60',
   },
   Partial: {
-    label: 'Partly sent',
-    description: 'Split across trips, with something still to go.',
     icon: PackageOpen,
     badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
     dot: 'bg-tone-cyan',
     bar: 'bg-tone-cyan',
   },
   Dispatched: {
-    label: 'Sent',
-    description: 'Out of the gate; the signed copy is not back yet.',
     icon: Truck,
     badge: 'border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo',
     dot: 'bg-tone-indigo',
     bar: 'bg-tone-indigo',
   },
   Delivered: {
-    label: 'Delivered',
-    description: 'Every trip carrying it has its signed copy in.',
     icon: PackageCheck,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
     bar: 'bg-tone-emerald',
   },
   Returned: {
-    label: 'Returned',
-    description: 'Went out and came back; waiting at the depot.',
     icon: Undo2,
     badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
     dot: 'bg-tone-rose',
@@ -76,27 +72,27 @@ export const ROW_STATUS_META: Record<RowDeliveryStatus, ToneMeta> = {
   },
 }
 
-export function rowStatusMeta(value: string): ToneMeta {
-  return ROW_STATUS_META[value as RowDeliveryStatus] ?? ROW_STATUS_META.Pending
+export function rowStatusMeta(value: string, t: Translator): ToneMeta {
+  const status: RowDeliveryStatus =
+    value in ROW_STATUS_META ? (value as RowDeliveryStatus) : 'Pending'
+
+  return {
+    ...ROW_STATUS_META[status],
+    label: t(`tripDo.rowStatuses.${status}.label` as TranslationKey),
+    description: t(`tripDo.rowStatuses.${status}.description` as TranslationKey),
+  }
 }
 
-export const GATE_PASS_PRODUCT_STATUS_META: Record<GatePassProductStatus, ToneMeta> = {
+export const GATE_PASS_PRODUCT_STATUS_META: Record<GatePassProductStatus, TonePresentation> = {
   Unlinked: {
-    label: 'No challan yet',
-    description: 'No challan row has this gate pass as its Trip DO.',
     icon: CircleDashed,
     badge: 'border-dashed border-tone-amber/40 bg-tone-amber/5 text-tone-amber',
     dot: 'bg-tone-amber',
     bar: 'bg-tone-amber',
   },
   Pending: ROW_STATUS_META.Pending,
-  Returned: {
-    ...ROW_STATUS_META.Returned,
-    description: 'A linked return is back at the depot, and nothing linked has taken it out again.',
-  },
+  Returned: ROW_STATUS_META.Returned,
   Resent: {
-    label: 'Re-sent',
-    description: 'Returned pieces have gone out again on a later trip; not all signed for yet.',
     icon: Repeat,
     badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
     dot: 'bg-tone-cyan',
@@ -107,16 +103,48 @@ export const GATE_PASS_PRODUCT_STATUS_META: Record<GatePassProductStatus, ToneMe
   Delivered: ROW_STATUS_META.Delivered,
 }
 
-export function gatePassProductStatusMeta(value: string): ToneMeta {
-  return (
-    GATE_PASS_PRODUCT_STATUS_META[value as GatePassProductStatus] ??
-    GATE_PASS_PRODUCT_STATUS_META.Unlinked
-  )
+/**
+ * Four of the seven read exactly as the row status does; three say something
+ * of their own. The overrides are named here rather than duplicated into every
+ * status, so a wording that *is* shared stays shared.
+ */
+const GATE_PASS_OVERRIDES: Partial<
+  Record<GatePassProductStatus, { label?: TranslationKey; description: TranslationKey }>
+> = {
+  Unlinked: {
+    label: 'tripDo.gatePassStatuses.Unlinked.label',
+    description: 'tripDo.gatePassStatuses.Unlinked.description',
+  },
+  Returned: { description: 'tripDo.gatePassStatuses.Returned.description' },
+  Resent: {
+    label: 'tripDo.gatePassStatuses.Resent.label',
+    description: 'tripDo.gatePassStatuses.Resent.description',
+  },
 }
 
-export interface KindMeta {
+export function gatePassProductStatusMeta(value: string, t: Translator): ToneMeta {
+  const status: GatePassProductStatus =
+    value in GATE_PASS_PRODUCT_STATUS_META ? (value as GatePassProductStatus) : 'Unlinked'
+
+  const override = GATE_PASS_OVERRIDES[status]
+  const base =
+    status === 'Unlinked'
+      ? { label: t('tripDo.gatePassStatuses.Unlinked.label'), description: '' }
+      : rowStatusMeta(status, t)
+
+  return {
+    ...GATE_PASS_PRODUCT_STATUS_META[status],
+    label: override?.label ? t(override.label) : base.label,
+    description: override ? t(override.description) : base.description,
+  }
+}
+
+export interface KindMeta extends KindPresentation {
   label: string
   description: string
+}
+
+interface KindPresentation {
   icon: LucideIcon | null
   /** The small tag beside the SL. Empty for an order row, which needs none. */
   tag: string
@@ -126,26 +154,20 @@ export interface KindMeta {
   text: string
 }
 
-export const KIND_META: Record<TripDoRowKind, KindMeta> = {
+export const KIND_META: Record<TripDoRowKind, KindPresentation> = {
   Order: {
-    label: 'Order',
-    description: 'A product line as the challan orders it.',
     icon: null,
     tag: '',
     accent: '',
     text: '',
   },
   Return: {
-    label: 'Return',
-    description: 'Pieces that went out on this trip and came back.',
     icon: Undo2,
     tag: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
     accent: 'shadow-[inset_3px_0_0_var(--tone-rose)]',
     text: 'text-tone-rose',
   },
   Resent: {
-    label: 'Re-sent',
-    description: 'Pieces that had come back and this trip took out again.',
     icon: Repeat,
     tag: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
     accent: 'shadow-[inset_3px_0_0_var(--tone-cyan)]',
@@ -153,26 +175,37 @@ export const KIND_META: Record<TripDoRowKind, KindMeta> = {
   },
 }
 
-export const KIND_FILTER_LABELS: Record<'all' | TripDoRowKind, string> = {
-  all: 'Every row',
-  Order: 'Order rows',
-  Return: 'Returns',
-  Resent: 'Re-sends',
+/** A row kind, with its words resolved. Tolerant: anything unknown reads as an order row. */
+export function kindMeta(value: string, t: Translator): KindMeta {
+  const kind: TripDoRowKind = value in KIND_META ? (value as TripDoRowKind) : 'Order'
+
+  return {
+    ...KIND_META[kind],
+    label: t(`tripDo.kinds.${kind}.label` as TranslationKey),
+    description: t(`tripDo.kinds.${kind}.description` as TranslationKey),
+  }
 }
 
-export const LINK_FILTER_LABELS = {
-  all: 'Any Trip DO',
-  linked: 'Trip DO set',
-  unlinked: 'Waiting for Trip DO',
-} as const
+export const KIND_FILTER_KEYS: Record<'all' | TripDoRowKind, TranslationKey> = {
+  all: 'tripDo.filters.kindAll',
+  Order: 'tripDo.filters.kindOrder',
+  Return: 'tripDo.filters.kindReturn',
+  Resent: 'tripDo.filters.kindResent',
+}
 
-export const STATUS_FILTER_LABELS: Record<'all' | RowDeliveryStatus, string> = {
-  all: 'Any delivery status',
-  Pending: ROW_STATUS_META.Pending.label,
-  Partial: ROW_STATUS_META.Partial.label,
-  Dispatched: ROW_STATUS_META.Dispatched.label,
-  Delivered: ROW_STATUS_META.Delivered.label,
-  Returned: ROW_STATUS_META.Returned.label,
+export const LINK_FILTER_KEYS: Record<'all' | 'linked' | 'unlinked', TranslationKey> = {
+  all: 'tripDo.filters.linkAll',
+  linked: 'tripDo.filters.linkLinked',
+  unlinked: 'tripDo.filters.linkUnlinked',
+}
+
+/**
+ * The status filter reads the row-status wording rather than repeating it, so
+ * the dropdown and the badge can never come to disagree about what "Partly
+ * sent" is called.
+ */
+export function statusFilterLabel(value: 'all' | RowDeliveryStatus, t: Translator): string {
+  return value === 'all' ? t('tripDo.filters.statusAll') : rowStatusMeta(value, t).label
 }
 
 /** A model reduced to what the API compares — the gate pass `comparisonKey`. */

@@ -9,16 +9,24 @@ import { GATE_PASS_REFERENCE_TYPES } from '../types'
  *
  * The rules are deliberately identical, message for message where it matters.
  * Change one, change both.
+ *
+ * **Every message here is a translation key**, the arrangement `auth-schemas.ts`
+ * established: a schema is built once at module scope and cannot re-run for a
+ * language change, so the key is carried through React Hook Form and resolved
+ * where it is drawn — by `EntryField` here, and by `FormField` in the auth and
+ * profile forms. An unknown key resolves to itself, which is what lets a
+ * message the API wrote pass through the same path untouched.
+ *
+ * It is also why nothing here interpolates: a key is one string, so the field
+ * name and the ceiling are spelled into their own messages rather than pushed
+ * in at validation time.
  */
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/
 
-function identifier(max: number, label: string) {
-  return z
-    .string()
-    .trim()
-    .min(1, `${label} is required`)
-    .max(max, `${label} must be ${max} characters or fewer`)
+/** A code typed off the paper: required, and capped. */
+function identifier(max: number, requiredKey: string, tooLongKey: string) {
+  return z.string().trim().min(1, requiredKey).max(max, tooLongKey)
 }
 
 /** Mirrors MAX_GATE_PASS_ITEMS in the backend's gate-pass.constants.ts. */
@@ -36,18 +44,25 @@ const gatePassItemFormSchema = z.object({
   productName: z
     .string()
     .trim()
-    .min(2, 'Product name must be at least 2 characters')
-    .max(160, 'Product name must be 160 characters or fewer'),
-  model: identifier(80, 'Model'),
+    .min(2, 'gatePass.validation.productTooShort')
+    .max(160, 'gatePass.validation.productTooLong'),
+  model: identifier(
+    80,
+    'gatePass.validation.modelRequired',
+    'gatePass.validation.modelTooLong',
+  ),
   qty: z
     .string()
     .trim()
-    .min(1, 'Quantity is required')
-    .refine((value) => /^\d+$/.test(value), 'Quantity must be a whole number')
-    .refine((value) => Number.parseInt(value, 10) >= 1, 'Quantity must be at least 1')
+    .min(1, 'gatePass.validation.qtyRequired')
+    .refine((value) => /^\d+$/.test(value), 'gatePass.validation.qtyWhole')
+    .refine(
+      (value) => Number.parseInt(value, 10) >= 1,
+      'gatePass.validation.qtyAtLeastOne',
+    )
     .refine(
       (value) => Number.parseInt(value, 10) <= 100000,
-      'Quantity looks too large. Check the challan.',
+      'gatePass.validation.qtyTooLarge',
     ),
 })
 
@@ -62,27 +77,40 @@ export const EMPTY_ITEM: GatePassItemFormValues = {
 
 export const gatePassFormSchema = z
   .object({
-    tripDo: identifier(60, 'Trip DO'),
+    tripDo: identifier(
+      60,
+      'gatePass.validation.tripDoRequired',
+      'gatePass.validation.tripDoTooLong',
+    ),
     tripDate: z
       .string()
       .trim()
-      .min(1, 'Trip date is required')
-      .regex(DATE_ONLY, 'Enter a valid date')
+      .min(1, 'gatePass.validation.tripDateRequired')
+      .regex(DATE_ONLY, 'gatePass.validation.tripDateInvalid')
       .refine((value) => {
         const year = Number.parseInt(value.slice(0, 4), 10)
         return year >= 2000 && year <= 2100
-      }, 'That date is outside the range this system records'),
-    csd: identifier(24, 'CSD'),
-    unit: identifier(24, 'Unit'),
+      }, 'gatePass.validation.tripDateOutOfRange'),
+    csd: identifier(
+      24,
+      'gatePass.validation.csdRequired',
+      'gatePass.validation.csdTooLong',
+    ),
+    unit: identifier(
+      24,
+      'gatePass.validation.unitRequired',
+      'gatePass.validation.unitTooLong',
+    ),
     customerName: z
       .string()
       .trim()
-      .min(2, 'Customer name must be at least 2 characters')
-      .max(160, 'Customer name must be 160 characters or fewer'),
-    vehicleNo: identifier(60, 'Vehicle number').min(
-      3,
-      'Vehicle number must be at least 3 characters',
-    ),
+      .min(2, 'gatePass.validation.customerTooShort')
+      .max(160, 'gatePass.validation.customerTooLong'),
+    vehicleNo: identifier(
+      60,
+      'gatePass.validation.vehicleRequired',
+      'gatePass.validation.vehicleTooLong',
+    ).min(3, 'gatePass.validation.vehicleTooShort'),
     /**
      * One row per product on the vehicle. Zod reports a failure at
      * `items.1.model`, which is the path React Hook Form reads to put the
@@ -90,21 +118,25 @@ export const gatePassFormSchema = z
      */
     items: z
       .array(gatePassItemFormSchema)
-      .min(1, 'Add at least one product')
-      .max(MAX_GATE_PASS_ITEMS, `A gate pass can carry at most ${MAX_GATE_PASS_ITEMS} products`),
+      .min(1, 'gatePass.validation.itemsAtLeastOne')
+      .max(MAX_GATE_PASS_ITEMS, 'gatePass.validation.itemsTooMany'),
 
     referenceType: z.enum(GATE_PASS_REFERENCE_TYPES),
-    zone: z.string().trim().max(60, 'Zone must be 60 characters or fewer'),
-    po: z.string().trim().max(60, 'PO must be 60 characters or fewer'),
+    zone: z.string().trim().max(60, 'gatePass.validation.zoneTooLong'),
+    po: z.string().trim().max(60, 'gatePass.validation.poTooLong'),
   })
   .superRefine((value, ctx) => {
     // Reported against the field the operator would go and fix, not against
     // the type selector that is already showing the right thing.
     if (value.referenceType === 'Zone' && value.zone.length === 0) {
-      ctx.addIssue({ code: 'custom', path: ['zone'], message: 'Enter the zone.' })
+      ctx.addIssue({
+        code: 'custom',
+        path: ['zone'],
+        message: 'gatePass.validation.zoneRequired',
+      })
     }
     if (value.referenceType === 'PO' && value.po.length === 0) {
-      ctx.addIssue({ code: 'custom', path: ['po'], message: 'Enter the PO number.' })
+      ctx.addIssue({ code: 'custom', path: ['po'], message: 'gatePass.validation.poRequired' })
     }
   })
 
@@ -131,7 +163,7 @@ export const EMPTY_GATE_PASS_FORM: GatePassFormValues = {
 
 /** The reviewer's decision, when they are sending a record back. */
 export const reviewNoteSchema = z.object({
-  note: z.string().trim().max(400, 'Note must be 400 characters or fewer'),
+  note: z.string().trim().max(400, 'gatePass.validation.noteTooLong'),
 })
 
 export type ReviewNoteValues = z.infer<typeof reviewNoteSchema>

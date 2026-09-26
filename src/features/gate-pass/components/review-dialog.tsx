@@ -11,45 +11,51 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { GatePassRecord } from '../types'
 
 export type ReviewDecision = 'Verified' | 'Rejected'
 
+/**
+ * What each decision says. Keys rather than words, and the description is a
+ * key too rather than a function over the record: the gate pass number sits in
+ * a different place in the two sentences, so it is interpolated rather than
+ * prefixed.
+ */
 interface DecisionCopy {
-  title: string
-  description: (record: GatePassRecord) => string
-  confirm: string
+  titleKey: TranslationKey
+  descriptionKey: TranslationKey
+  confirmKey: TranslationKey
   icon: typeof BadgeCheck
   iconClass: string
   /** A rejection nobody can act on is worse than no rejection at all. */
   noteRequired: boolean
-  noteLabel: string
-  notePlaceholder: string
+  noteLabelKey: TranslationKey
+  notePlaceholderKey: TranslationKey
 }
 
 const DECISIONS: Record<ReviewDecision, DecisionCopy> = {
   Verified: {
-    title: 'Verify this gate pass',
-    description: (record) =>
-      `Confirm that ${record.gatePassId} matches the scanned document in every detail.`,
-    confirm: 'Verify',
+    titleKey: 'gatePass.review.verifyTitle',
+    descriptionKey: 'gatePass.review.verifyDescription',
+    confirmKey: 'gatePass.review.verifyConfirm',
     icon: BadgeCheck,
     iconClass: 'text-tone-emerald',
     noteRequired: false,
-    noteLabel: 'Note (optional)',
-    notePlaceholder: 'Anything worth recording about this check',
+    noteLabelKey: 'gatePass.review.verifyNoteLabel',
+    notePlaceholderKey: 'gatePass.review.verifyNotePlaceholder',
   },
   Rejected: {
-    title: 'Send back for correction',
-    description: (record) =>
-      `${record.gatePassId} returns to its author, who can fix it and submit it again.`,
-    confirm: 'Send back',
+    titleKey: 'gatePass.review.rejectTitle',
+    descriptionKey: 'gatePass.review.rejectDescription',
+    confirmKey: 'gatePass.review.rejectConfirm',
     icon: Undo2,
     iconClass: 'text-tone-rose',
     noteRequired: true,
-    noteLabel: 'What needs correcting',
-    notePlaceholder: 'Vehicle number does not match the challan',
+    noteLabelKey: 'gatePass.review.rejectNoteLabel',
+    notePlaceholderKey: 'gatePass.review.rejectNotePlaceholder',
   },
 }
 
@@ -79,6 +85,8 @@ export function ReviewDialog({
   onOpenChange,
   onConfirm,
 }: ReviewDialogProps) {
+  const t = useT()
+
   const [note, setNote] = useState('')
 
   /**
@@ -108,37 +116,39 @@ export function ReviewDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Icon className={cn('size-4', copy.iconClass)} aria-hidden />
-            {copy.title}
+            {t(copy.titleKey)}
           </DialogTitle>
-          <DialogDescription>{copy.description(record)}</DialogDescription>
+          <DialogDescription>
+            {t(copy.descriptionKey, { gatePass: record.gatePassId })}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-1.5">
           <Label htmlFor="review-note" className="text-[13px] font-medium">
-            {copy.noteLabel}
+            {t(copy.noteLabelKey)}
           </Label>
           <Textarea
             id="review-note"
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            placeholder={copy.notePlaceholder}
+            placeholder={t(copy.notePlaceholderKey)}
             rows={3}
             maxLength={400}
             aria-invalid={blocked ? true : undefined}
           />
           {copy.noteRequired && (
             <p className="text-xs text-muted-foreground">
-              The author sees this, so say what to change.
+              {t('gatePass.review.noteHint')}
             </p>
           )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
           <Button onClick={() => onConfirm(note.trim())} disabled={isPending || blocked}>
-            {isPending ? 'Working…' : copy.confirm}
+            {isPending ? t('gatePass.review.working') : t(copy.confirmKey)}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,5 +1,7 @@
 import { Check, MapPin, Phone, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { shortTripNumber } from '../lib/delivery-meta'
 import type { ChallanCandidate } from '../types'
@@ -30,6 +32,8 @@ export function ChallanCandidateItem({
   onAdd,
   onHover,
 }: ChallanCandidateItemProps) {
+  const t = useT()
+
   const full = candidate.lines.length > 0 && candidate.remaining === 0
   const partial = candidate.dispatched > 0 && !full
   const where = [candidate.thana, candidate.district].filter(Boolean).join(', ')
@@ -49,11 +53,11 @@ export function ChallanCandidateItem({
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className="font-mono text-sm font-semibold">{candidate.challanNumber}</span>
           <span className="text-[11px] text-muted-foreground tabular-nums">
-            SL {candidate.slNumber}
+            {t('delivery.slWith', { sl: formatNumber(candidate.slNumber) })}
           </span>
           {full && (
             <span className="rounded-full border border-tone-rose/25 bg-tone-rose/10 px-2 py-px text-[11px] font-semibold text-tone-rose">
-              Sent in full
+              {t('delivery.finder.sentInFull')}
             </span>
           )}
           {partial && (
@@ -97,17 +101,21 @@ export function ChallanCandidateItem({
         onMouseDown={(event) => event.preventDefault()}
         onClick={onAdd}
         className="self-start"
-        aria-label={inCart ? `${candidate.challanNumber} is on this trip` : `Add ${candidate.challanNumber}`}
+        aria-label={
+          inCart
+            ? t('delivery.finder.alreadyOnTrip', { challan: candidate.challanNumber })
+            : t('delivery.finder.addChallan', { challan: candidate.challanNumber })
+        }
       >
         {inCart ? (
           <>
             <Check data-icon="inline-start" aria-hidden />
-            Added
+            {t('delivery.finder.added')}
           </>
         ) : (
           <>
             <Plus data-icon="inline-start" aria-hidden />
-            {full ? 'Add anyway' : 'Add'}
+            {full ? t('delivery.finder.addAnyway') : t('delivery.finder.add')}
           </>
         )}
       </Button>

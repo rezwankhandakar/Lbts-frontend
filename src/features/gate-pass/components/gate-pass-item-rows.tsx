@@ -10,6 +10,9 @@ import type {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { MAX_GATE_PASS_ITEMS } from '../schemas/gate-pass-schemas'
 import type { GatePassFormValues } from '../schemas/gate-pass-schemas'
@@ -60,6 +63,8 @@ export function GatePassItemRows({
   onAdd,
   onRemove,
 }: GatePassItemRowsProps) {
+  const t = useT()
+
   const items = watch('items')
   const isFull = fields.length >= MAX_GATE_PASS_ITEMS
 
@@ -84,11 +89,11 @@ export function GatePassItemRows({
             <li
               key={field.id}
               className="rounded-lg border bg-muted/20 p-3"
-              aria-label={`Product ${index + 1}`}
+              aria-label={t('gatePass.fields.productIndex', { n: formatNumber(index + 1) })}
             >
               <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-                  Product {index + 1}
+                  {t('gatePass.fields.productIndex', { n: formatNumber(index + 1) })}
                 </span>
 
                 {/* Hidden rather than disabled on the last row: there is no
@@ -100,7 +105,7 @@ export function GatePassItemRows({
                     variant="ghost"
                     size="icon-xs"
                     onClick={() => onRemove(index)}
-                    aria-label={`Remove product ${index + 1}`}
+                    aria-label={t('gatePass.fields.removeProduct', { n: formatNumber(index + 1) })}
                     className="text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 aria-hidden />
@@ -111,7 +116,8 @@ export function GatePassItemRows({
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_5.5rem]">
                 <div className="space-y-1">
                   <Label htmlFor={productId} className={LABEL}>
-                    Product name<span className="text-destructive"> *</span>
+                    {t('gatePass.fields.productName')}
+                    <span className="text-destructive"> *</span>
                   </Label>
                   <ProductSuggestInput
                     id={productId}
@@ -131,7 +137,8 @@ export function GatePassItemRows({
 
                 <div className="space-y-1">
                   <Label htmlFor={modelId} className={LABEL}>
-                    Model<span className="text-destructive"> *</span>
+                    {t('gatePass.fields.model')}
+                    <span className="text-destructive"> *</span>
                   </Label>
                   <ModelInput
                     id={modelId}
@@ -143,7 +150,8 @@ export function GatePassItemRows({
 
                 <div className="space-y-1">
                   <Label htmlFor={qtyId} className={LABEL}>
-                    Qty<span className="text-destructive"> *</span>
+                    {t('gatePass.fields.qty')}
+                    <span className="text-destructive"> *</span>
                   </Label>
                   <Input
                     id={qtyId}
@@ -164,25 +172,30 @@ export function GatePassItemRows({
 
       {listError && (
         <p role="alert" className="text-xs leading-snug text-destructive">
-          {listError}
+          {t(listError as TranslationKey)}
         </p>
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Button type="button" variant="outline" size="sm" onClick={onAdd} disabled={isFull}>
           <Plus data-icon="inline-start" aria-hidden />
-          Add another product
+          {t('gatePass.fields.addProduct')}
         </Button>
 
         <p className={cn('text-xs text-muted-foreground', total === 0 && 'invisible')}>
-          {fields.length} {fields.length === 1 ? 'row' : 'rows'} ·{' '}
-          <span className="font-medium text-foreground tabular-nums">{total}</span> total
+          {t('gatePass.fields.rowTotal', {
+            rows: t('common.pagination.rows', {
+              count: fields.length,
+              n: formatNumber(fields.length),
+            }),
+            total: formatNumber(total),
+          })}
         </p>
       </div>
 
       {isFull && (
         <p className="text-xs text-muted-foreground">
-          That is as many products as one gate pass can carry.
+          {t('gatePass.fields.maxProducts')}
         </p>
       )}
     </div>
@@ -220,14 +233,17 @@ function ModelInput({
   )
 }
 
+/** A row's own message, resolved the way `EntryField` resolves the others. */
 function RowError({ message }: { message?: string }) {
+  const t = useT()
+
   if (!message) {
     return null
   }
 
   return (
     <p role="alert" className="text-xs leading-snug text-destructive">
-      {message}
+      {t(message as TranslationKey)}
     </p>
   )
 }

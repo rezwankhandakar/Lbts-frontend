@@ -1,26 +1,31 @@
 /**
  * Firebase error codes are not user-facing. Anything unmapped falls back to a
  * generic message rather than leaking an internal code to the screen.
+ *
+ * The values are **translation keys** rather than sentences, for the reason
+ * `auth-schemas.ts` gives: this table is evaluated once and the wording has to
+ * be resolved wherever the message is finally drawn. Several codes deliberately
+ * share one key — a wrong password and an unknown account must read the same,
+ * or the form becomes a way of finding out which addresses are registered.
  */
 const MESSAGES: Record<string, string> = {
-  'auth/invalid-credential': 'Incorrect email or password.',
-  'auth/invalid-email': 'Enter a valid email address.',
-  'auth/user-disabled': 'This account has been disabled.',
-  'auth/user-not-found': 'Incorrect email or password.',
-  'auth/wrong-password': 'Incorrect email or password.',
-  'auth/email-already-in-use': 'An account with this email already exists.',
-  'auth/weak-password': 'Password is too weak. Use at least 8 characters.',
-  'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.',
+  'auth/invalid-credential': 'auth.firebase.invalidCredential',
+  'auth/invalid-email': 'auth.firebase.invalidEmail',
+  'auth/user-disabled': 'auth.firebase.userDisabled',
+  'auth/user-not-found': 'auth.firebase.invalidCredential',
+  'auth/wrong-password': 'auth.firebase.invalidCredential',
+  'auth/email-already-in-use': 'auth.firebase.emailAlreadyInUse',
+  'auth/weak-password': 'auth.firebase.weakPassword',
+  'auth/too-many-requests': 'auth.firebase.tooManyRequests',
   // Firebase refuses sensitive changes — a new password, a new email — on a
   // session that has been open too long.
-  'auth/requires-recent-login': 'For security, sign in again before changing this.',
-  'auth/network-request-failed': 'Network error. Check your connection and try again.',
-  'auth/popup-closed-by-user': 'Sign-in window closed before finishing.',
-  'auth/cancelled-popup-request': 'Sign-in was cancelled.',
-  'auth/popup-blocked': 'Your browser blocked the sign-in window. Allow pop-ups and try again.',
-  'auth/operation-not-allowed': 'This sign-in method is not enabled in Firebase.',
-  'auth/account-exists-with-different-credential':
-    'This email is already registered with a different sign-in method.',
+  'auth/requires-recent-login': 'auth.firebase.requiresRecentLogin',
+  'auth/network-request-failed': 'auth.firebase.networkRequestFailed',
+  'auth/popup-closed-by-user': 'auth.firebase.popupClosed',
+  'auth/cancelled-popup-request': 'auth.firebase.popupCancelled',
+  'auth/popup-blocked': 'auth.firebase.popupBlocked',
+  'auth/operation-not-allowed': 'auth.firebase.operationNotAllowed',
+  'auth/account-exists-with-different-credential': 'auth.firebase.differentCredential',
 }
 
 function hasCode(error: unknown): error is { code: string } {
@@ -32,6 +37,14 @@ function hasCode(error: unknown): error is { code: string } {
   )
 }
 
+/**
+ * A translation key for a Firebase failure, or the API's own sentence.
+ *
+ * Both come back as a plain string and both are handed to `t()` by the caller:
+ * a key resolves, and a sentence the server already wrote passes through
+ * unchanged because an unknown key resolves to itself. That is what lets one
+ * call site handle a locally-known failure and a server message identically.
+ */
 export function toAuthMessage(error: unknown): string {
   if (hasCode(error) && MESSAGES[error.code]) {
     return MESSAGES[error.code]
@@ -45,7 +58,7 @@ export function toAuthMessage(error: unknown): string {
     }
   }
 
-  return 'Something went wrong. Please try again.'
+  return 'auth.firebase.generic'
 }
 
 /** A popup the user closed is not worth showing an error toast for. */

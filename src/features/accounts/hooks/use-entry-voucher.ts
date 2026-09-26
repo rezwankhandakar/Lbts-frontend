@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import { saveBlob } from '@/lib/save-blob'
 import { fetchEntryVoucher } from '../api/accounts-api'
 import type { EntryRecord, EntryVoucher } from '../types'
@@ -89,7 +90,7 @@ export function useEntryVoucher() {
         const message =
           typeof error === 'object' && error !== null && 'message' in error
             ? String((error as { message: unknown }).message)
-            : 'The voucher could not be loaded.'
+            : t('accounts.toasts.voucherLoadFailed')
 
         setState({ entry, url: null, blob: null, mimeType: null, isLoading: false, error: message })
       }
@@ -109,7 +110,7 @@ export function useEntryVoucher() {
       const blob = await fetchEntryVoucher(voucher)
       saveBlob(blob, voucher.originalName || fallbackName)
     } catch {
-      toast.error('That voucher could not be downloaded.')
+      toast.error(t('accounts.toasts.voucherDownloadFailed'))
     }
   }, [])
 

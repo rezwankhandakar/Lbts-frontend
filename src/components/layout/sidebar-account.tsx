@@ -4,6 +4,8 @@ import { useSignOut } from '@/features/auth/use-sign-out'
 import { useAuthStore } from '@/stores/use-auth-store'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { LanguageToggleRow } from '@/components/layout/language-toggle'
+import { useT } from '@/lib/i18n'
 import { roleMeta } from '@/lib/roles'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +26,7 @@ const SIGN_OUT_CLASSES = cn(
 )
 
 export function SidebarAccount({ collapsed = false }: SidebarAccountProps) {
+  const t = useT()
   const status = useAuthStore((state) => state.status)
   const profile = useAuthStore((state) => state.profile)
   const firebaseUser = useAuthStore((state) => state.firebaseUser)
@@ -31,7 +34,7 @@ export function SidebarAccount({ collapsed = false }: SidebarAccountProps) {
 
   const user = toDisplayUser(profile, firebaseUser)
   const authenticated = status === 'authenticated'
-  const role = user.role ? roleMeta(user.role) : null
+  const role = user.role ? roleMeta(user.role, t) : null
 
   const avatar = (
     <div className="relative shrink-0">
@@ -57,7 +60,9 @@ export function SidebarAccount({ collapsed = false }: SidebarAccountProps) {
         <Tooltip>
           <TooltipTrigger render={<div className="cursor-default" />}>{avatar}</TooltipTrigger>
           <TooltipContent side="right">
-            {authenticated ? `${user.name} · ${role?.label ?? 'account'}` : 'Not signed in'}
+            {authenticated
+              ? `${user.name} · ${role?.label ?? t('shell.account')}`
+              : t('shell.notSignedIn')}
           </TooltipContent>
         </Tooltip>
 
@@ -67,14 +72,14 @@ export function SidebarAccount({ collapsed = false }: SidebarAccountProps) {
               <button
                 type="button"
                 onClick={signOut}
-                aria-label="Sign out"
+                aria-label={t('shell.signOut')}
                 className={cn(SIGN_OUT_CLASSES, 'size-8 justify-center')}
               />
             }
           >
             <LogOut className="size-4" aria-hidden />
           </TooltipTrigger>
-          <TooltipContent side="right">Sign out</TooltipContent>
+          <TooltipContent side="right">{t('shell.signOut')}</TooltipContent>
         </Tooltip>
       </div>
     )
@@ -87,7 +92,7 @@ export function SidebarAccount({ collapsed = false }: SidebarAccountProps) {
           {avatar}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13px] leading-tight font-semibold">
-              {authenticated ? user.name : 'Signed out'}
+              {authenticated ? user.name : t('shell.signedOut')}
             </p>
             {authenticated ? (
               <div className="mt-1 flex items-center gap-1.5">
@@ -97,7 +102,7 @@ export function SidebarAccount({ collapsed = false }: SidebarAccountProps) {
                     role?.badge ?? 'border-border bg-muted text-muted-foreground',
                   )}
                 >
-                  {role?.label ?? 'Member'}
+                  {role?.label ?? t('shell.member')}
                 </span>
                 <span className="truncate text-[11px] leading-none text-muted-foreground">
                   {user.email}
@@ -105,7 +110,7 @@ export function SidebarAccount({ collapsed = false }: SidebarAccountProps) {
               </div>
             ) : (
               <p className="mt-1 truncate text-[11px] leading-none text-muted-foreground">
-                Not authenticated
+                {t('shell.notAuthenticated')}
               </p>
             )}
           </div>
@@ -117,8 +122,18 @@ export function SidebarAccount({ collapsed = false }: SidebarAccountProps) {
           className={cn(SIGN_OUT_CLASSES, 'mt-2.5 h-8 w-full justify-center gap-2')}
         >
           <LogOut className="size-3.5" aria-hidden />
-          Sign out
+          {t('shell.signOut')}
         </button>
+      </div>
+
+      {/*
+        The language switch, for the width the header hides it at. A phone
+        reaches the sidebar through the drawer, so this is where the control
+        has to be for the half of this office that works from one — a language
+        switch a phone cannot reach is a language switch that does not exist.
+      */}
+      <div className="mt-3 sm:hidden">
+        <LanguageToggleRow />
       </div>
     </div>
   )

@@ -8,6 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 
 interface ExportGatePassesDialogProps {
   open: boolean
@@ -43,26 +45,37 @@ export function ExportGatePassesDialog({
   onOpenChange,
   onConfirm,
 }: ExportGatePassesDialogProps) {
-  const records = `${total} ${total === 1 ? 'gate pass' : 'gate passes'}`
+  const t = useT()
+
+  const records = t('gatePass.stats.recordCount', { count: total, n: formatNumber(total) })
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Export {records}?</AlertDialogTitle>
+          <AlertDialogTitle>{t('gatePass.exportDialog.title', { records })}</AlertDialogTitle>
           <AlertDialogDescription>
             {isFiltered
-              ? `The ${records} matching these filters download as an Excel file — ${totalQty} total qty between them.`
-              : `Every gate pass on record downloads as an Excel file — ${records}, ${totalQty} total qty between them.`}{' '}
-            Each product line is its own row, so a gate pass carrying more than one product appears
-            more than once.
+              ? t('gatePass.exportDialog.filteredBody', {
+                  records,
+                  qty: formatNumber(totalQty),
+                })
+              : t('gatePass.exportDialog.allBody', {
+                  records,
+                  qty: formatNumber(totalQty),
+                })}{' '}
+            {t('gatePass.exportDialog.lineNote')}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>
+            {t('common.actions.cancel')}
+          </AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} disabled={isPending}>
-            {isPending ? 'Building…' : 'Export'}
+            {isPending
+              ? t('gatePass.exportDialog.building')
+              : t('gatePass.exportDialog.confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

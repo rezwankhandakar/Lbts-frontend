@@ -9,6 +9,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import type { ActivityStats } from '../types'
+import { useFormatters, useT } from '@/lib/i18n'
 
 interface ExportActivityDialogProps {
   stats: ActivityStats | undefined
@@ -40,39 +41,46 @@ export function ExportActivityDialog({
   onCancel,
   onConfirm,
 }: ExportActivityDialogProps) {
+  const t = useT()
+  const format = useFormatters()
+
   const total = stats?.total ?? 0
 
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && onCancel()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Export the activity journal?</AlertDialogTitle>
+          <AlertDialogTitle>{t('activity.export.title')}</AlertDialogTitle>
+          {/*
+            * Whole sentences rather than fragments stitched together. The
+            * original interleaved a count, an optional "covering N people", a
+            * clause that changed with the filters and an optional critical tail
+            * — an order that is English's alone, and one no other language
+            * could have been given.
+            */}
           <AlertDialogDescription>
-            {total.toLocaleString()} {total === 1 ? 'event' : 'events'}
-            {stats && stats.actors > 0 && (
-              <>
-                {' '}
-                covering {stats.actors.toLocaleString()}{' '}
-                {stats.actors === 1 ? 'person' : 'people'}
-              </>
-            )}
-            {isFiltered ? ' match the filters in force' : ' — the whole journal, unfiltered'}. One
-            row per event, with what changed in a single column.
-            {stats && stats.critical > 0 && (
-              <>
-                {' '}
-                {stats.critical.toLocaleString()} of them{' '}
-                {stats.critical === 1 ? 'is' : 'are'} critical — deletions, access changes and money
-                corrections.
-              </>
-            )}{' '}
-            The file is a copy of the audit trail, so treat it as one.
+            {t(isFiltered ? 'activity.export.bodyFiltered' : 'activity.export.bodyAll', {
+              events: t('activity.export.events', { count: total, n: format.number(total) }),
+            })}{' '}
+            {stats && stats.actors > 0
+              ? t('activity.export.covering', {
+                  count: stats.actors,
+                  n: format.number(stats.actors),
+                })
+              : ''}{' '}
+            {stats && stats.critical > 0
+              ? t('activity.export.criticalNote', {
+                  count: stats.critical,
+                  n: format.number(stats.critical),
+                })
+              : ''}{' '}
+            {t('activity.export.warning')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isExporting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isExporting}>{t('common.actions.cancel')}</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} disabled={isExporting || total === 0}>
-            {isExporting ? 'Building…' : 'Download spreadsheet'}
+            {isExporting ? t('activity.export.building') : t('activity.export.download')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

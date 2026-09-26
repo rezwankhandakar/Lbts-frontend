@@ -9,10 +9,11 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { plural } from '@/features/delivery/lib/delivery-meta'
+
 import { cn } from '@/lib/utils'
 import { formatDay } from '../lib/vendor-meta'
 import type { VendorDashboard } from '../types'
+import { countOf, useT } from '@/lib/i18n'
 
 interface Tile {
   key: string
@@ -38,6 +39,8 @@ interface Tile {
  * row makes against a backlog chip.
  */
 export function VendorDashboardTiles({ dashboard }: { dashboard: VendorDashboard }) {
+  const t = useT()
+
   const { month, backlog } = dashboard.figures
 
   const tiles: Tile[] = [
@@ -71,7 +74,7 @@ export function VendorDashboardTiles({ dashboard }: { dashboard: VendorDashboard
       note:
         backlog.trips === 0
           ? 'Every copy is in'
-          : `across ${plural(backlog.trips, 'trip')}${
+          : `across ${countOf(backlog.trips, 'nouns.trip', t)}${
               backlog.oldest ? ` · oldest ${formatDay(backlog.oldest)}` : ''
             }`,
       tone: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
@@ -84,7 +87,7 @@ export function VendorDashboardTiles({ dashboard }: { dashboard: VendorDashboard
       note:
         month.trips === 0
           ? 'No trips this month yet'
-          : `of ${plural(month.trips, 'trip')} this month`,
+          : `of ${countOf(month.trips, 'nouns.trip', t)} this month`,
       tone: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
     },
   ]
