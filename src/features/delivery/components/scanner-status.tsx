@@ -2,6 +2,7 @@ import { CircleCheck, CircleX, Info, Loader2, ScanLine, TriangleAlert } from 'lu
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ScanOutcome } from '../hooks/use-challan-scan'
+import { SentenceWith } from '@/components/shared/sentence-with'
 
 interface ScannerStatusProps {
   listening: boolean
@@ -69,8 +70,9 @@ function LastScan({ outcome }: { outcome: ScanOutcome }) {
         <span className="flex items-center gap-1.5 text-tone-cyan">
           <Info className="size-3.5 shrink-0" aria-hidden />
           <span className="truncate">
-            <span className="font-mono font-semibold">{outcome.challanNumber}</span> is already on
-            this trip
+            <SentenceWith text={t('delivery.cart.alreadyOnTrip')} placeholder="{challan}">
+              <span className="font-mono font-semibold">{outcome.challanNumber}</span>
+            </SentenceWith>
           </span>
         </span>
       )

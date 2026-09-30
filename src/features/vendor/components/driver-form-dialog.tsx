@@ -15,10 +15,12 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { SentenceWith } from '@/components/shared/sentence-with'
 import { driverFormSchema } from '../schemas/vendor-schemas'
 import type { DriverFormValues } from '../schemas/vendor-schemas'
 import type { DriverDetail } from '../types'
 import { DateField, FieldError, FormSection } from './form-parts'
+import { useT } from '@/lib/i18n'
 
 const EMPTY: DriverFormValues = {
   name: '',
@@ -82,6 +84,8 @@ export function DriverFormDialog({
   description,
   extra,
 }: DriverFormDialogProps) {
+  const t = useT()
+
   const {
     register,
     control,
@@ -119,12 +123,14 @@ export function DriverFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{record ? 'Edit driver' : 'Add driver'}</DialogTitle>
+          <DialogTitle>
+            {record ? t('vendor.driver.editTitle') : t('vendor.driver.addTitle')}
+          </DialogTitle>
           <DialogDescription>
             {description ??
               (record
-                ? 'The driver code and the vendor they work for stay the same.'
-                : `This driver will work for ${vendorName}. A driver code is allocated automatically.`)}
+                ? t('vendor.driver.editDescription')
+                : t('vendor.driver.addDescription', { vendor: vendorName }))}
           </DialogDescription>
         </DialogHeader>
 
@@ -134,10 +140,10 @@ export function DriverFormDialog({
           className="space-y-5"
           aria-busy={isPending}
         >
-          <FormSection title="Driver information">
+          <FormSection title={t('vendor.driver.information')}>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="driver-name">Full name</Label>
+                <Label htmlFor="driver-name">{t('vendor.driver.fullName')}</Label>
                 <Input
                   id="driver-name"
                   autoComplete="name"
@@ -149,7 +155,7 @@ export function DriverFormDialog({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="driver-mobile">Mobile number</Label>
+                <Label htmlFor="driver-mobile">{t('vendor.driver.mobileNumber')}</Label>
                 <Input
                   id="driver-mobile"
                   type="tel"
@@ -178,7 +184,7 @@ export function DriverFormDialog({
           </FormSection>
 
           <FormSection
-            title="Identity"
+            title={t('vendor.driver.identity')}
             description="Kept off every list in the system and shown only on this driver's own record."
           >
             <div className="space-y-1.5">
@@ -198,7 +204,7 @@ export function DriverFormDialog({
             </div>
           </FormSection>
 
-          <FormSection title="Licence">
+          <FormSection title={t('vendor.driver.licenceSection')}>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="driver-licence">
@@ -217,7 +223,7 @@ export function DriverFormDialog({
 
               <DateField
                 id="driver-licence-expiry"
-                label="Licence expiry"
+                label={t('vendor.driver.licenceExpiry')}
                 value={licenseExpiry}
                 onChange={(value) => setValue('licenseExpiry', value, { shouldDirty: true })}
                 disabled={isPending}
@@ -226,9 +232,12 @@ export function DriverFormDialog({
             </div>
 
             <p className="rounded-lg border bg-muted/40 px-3 py-2 text-xs leading-snug text-muted-foreground">
-              A licence recorded here is also filed as a <strong>Driving License</strong> document,
-              which is what puts its expiry into this vendor&apos;s compliance counts. Attach a scan
-              of it from the documents tab.
+              <SentenceWith
+                text={t('vendor.driver.licenceNote')}
+                placeholder="{document}"
+              >
+                <strong>{t('vendor.documentTypes.Driving License')}</strong>
+              </SentenceWith>
             </p>
           </FormSection>
 
@@ -241,13 +250,13 @@ export function DriverFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && (
                 <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
               )}
-              {record ? 'Save changes' : 'Add driver'}
+              {record ? t('common.actions.saveChanges') : t('vendor.driver.add')}
             </Button>
           </DialogFooter>
         </form>

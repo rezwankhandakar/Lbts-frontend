@@ -2,6 +2,7 @@ import { ArrowRight, CalendarDays, PackageCheck, Truck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { vendorStatusMeta } from '@/features/accounts/lib/accounts-meta'
 import { taka } from '@/features/delivery/lib/delivery-meta'
+import { formatPercent } from '@/lib/format'
 import { formatDay } from '../lib/vendor-meta'
 import type { VendorDashboard } from '../types'
 import { VendorAvatar } from './vendor-identity'
@@ -41,10 +42,13 @@ export function VendorDashboardHero({ dashboard }: { dashboard: VendorDashboard 
    */
   const headline =
     bill.due > 0
-      ? { label: 'Due', value: taka(bill.due) }
+      ? { label: t('vendor.dashboard.due'), value: taka(bill.due) }
       : bill.due < 0
-        ? { label: 'Paid ahead', value: taka(-bill.due) }
-        : { label: 'Due', value: bill.totalBill > 0 ? 'Settled' : taka(0) }
+        ? { label: t('vendor.dashboard.paidAhead'), value: taka(-bill.due) }
+        : {
+            label: t('vendor.dashboard.due'),
+            value: bill.totalBill > 0 ? t('vendor.dashboard.settled') : taka(0),
+          }
 
   return (
     <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-brand-from to-brand-to p-5 text-primary-foreground shadow-xl ring-1 ring-primary-foreground/10 sm:p-7">
@@ -111,16 +115,16 @@ export function VendorDashboardHero({ dashboard }: { dashboard: VendorDashboard 
           </div>
 
           <dl className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
-            <Amount label="Billed" value={bill.totalBill} />
-            <Amount label="Advance" value={bill.advance} />
-            <Amount label="Paid" value={bill.paid} />
+            <Amount label={t('vendor.dashboard.billed')} value={bill.totalBill} />
+            <Amount label={t('vendor.dashboard.advance')} value={bill.advance} />
+            <Amount label={t('vendor.dashboard.paid')} value={bill.paid} />
           </dl>
 
           <Link
             to="/my-vendor?tab=trips"
             className="group mt-5 inline-flex items-center gap-1.5 rounded-xl bg-primary-foreground/15 px-3.5 py-2 text-xs font-medium ring-1 ring-primary-foreground/20 transition outline-none hover:bg-primary-foreground/25 focus-visible:ring-2 focus-visible:ring-primary-foreground/60"
           >
-            Every trip, month by month
+            {t('vendor.dashboard.everyTripByMonth')}
             <ArrowRight
               className="size-3.5 transition-transform group-hover:translate-x-0.5"
               aria-hidden
@@ -133,25 +137,29 @@ export function VendorDashboardHero({ dashboard }: { dashboard: VendorDashboard 
             icon={CalendarDays}
             label={bill.label}
             primary={countOf(figures.month.trips, 'nouns.trip', t)}
-            secondary={`${figures.month.qty.toLocaleString()} pcs carried`}
+            secondary={t('vendor.dashboard.piecesCarried', {
+              pieces: countOf(figures.month.qty, 'nouns.pc', t),
+            })}
             share={figures.month.deliveryRate}
             note={
               figures.month.qty === 0
-                ? 'Nothing has gone out this month yet'
-                : `${figures.month.deliveryRate}% of what went out stayed delivered`
+                ? t('vendor.dashboard.nothingOutThisMonth')
+                : t('vendor.dashboard.deliveredShare', {
+                    rate: formatPercent(figures.month.deliveryRate),
+                  })
             }
           />
           <Panel
             icon={Truck}
-            label="Today"
+            label={t('vendor.dashboard.today')}
             primary={countOf(figures.todayTrips, 'nouns.trip', t)}
-            secondary={`${figures.todayQty.toLocaleString()} pcs`}
+            secondary={countOf(figures.todayQty, 'nouns.pc', t)}
             // The date under "Today" is not decoration: it is what says whose
             // day this is, on a page whose every other figure is a month.
             note={
               figures.todayTrips === 0
-                ? `No lorry out yet on ${formatDay(figures.today)}`
-                : `Out on ${formatDay(figures.today)}`
+                ? t('vendor.dashboard.noLorryYet', { day: formatDay(figures.today) })
+                : t('vendor.dashboard.outOn', { day: formatDay(figures.today) })
             }
           />
         </div>

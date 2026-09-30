@@ -1,3 +1,5 @@
+import { countOf } from '@/lib/i18n'
+import type { Translator } from '@/lib/i18n'
 import type { LinkTarget, TripDoRowRecord } from '../types'
 import { modelKey } from './trip-do-meta'
 
@@ -33,7 +35,10 @@ export function bulkLinkProblem(rows: readonly TripDoRowRecord[]): string | null
 }
 
 /** The picker for several ticked rows of one model, linked whole. */
-export function linkTargetForRows(rows: readonly TripDoRowRecord[]): LinkTarget | null {
+export function linkTargetForRows(
+  rows: readonly TripDoRowRecord[],
+  t: Translator,
+): LinkTarget | null {
   const [first] = rows
   if (!first || bulkLinkProblem(rows)) {
     return null
@@ -50,7 +55,7 @@ export function linkTargetForRows(rows: readonly TripDoRowRecord[]): LinkTarget 
     productName: first.productName,
     model: first.model,
     qty: rows.reduce((sum, row) => sum + row.qty, 0),
-    label: `${rows.length} rows`,
+    label: countOf(rows.length, 'nouns.row', t),
     currentGatePassId: shared ? (first.link?.gatePassId ?? null) : null,
     canSplit: false,
   }

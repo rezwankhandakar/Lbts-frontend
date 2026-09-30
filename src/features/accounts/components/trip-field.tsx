@@ -111,7 +111,9 @@ export function TripField({ draft, set, errors, request }: KindFieldsProps) {
           </li>
         ))}
         {options.data?.length === 0 && <li className="px-2.5 py-3 text-xs text-muted-foreground">{t('accounts.trip.noMatch')}</li>}
-        {options.isPending && <li className="px-2.5 py-3 text-xs text-muted-foreground">Loading trips…</li>}
+        {options.isPending && <li className="px-2.5 py-3 text-xs text-muted-foreground">
+            {t('accounts.trip.loadingTrips')}
+          </li>}
       </ul>
     </div>
   )

@@ -24,21 +24,21 @@ import { DOCUMENT_TYPES, VEHICLE_OWNERSHIP_TYPES } from '../types'
 const mobile = z
   .string()
   .trim()
-  .min(1, 'Mobile number is required')
+  .min(1, 'vendor.validation.mobileRequired')
   .max(32)
   .refine(
     (value) => /^(?:\+?88)?0?1\d{9}$/.test(value.replace(/[\s-]/g, '')),
-    'Enter an 11-digit mobile number, for example 01712345678.',
+    'vendor.validation.mobileInvalid',
   )
 
 export const vendorFormSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, 'Vendor name must be at least 2 characters')
-    .max(160, 'Vendor name must be 160 characters or fewer'),
+    .min(2, 'vendor.validation.vendorNameTooShort')
+    .max(160, 'vendor.validation.vendorNameTooLong'),
   mobile,
-  address: z.string().trim().max(400, 'Address must be 400 characters or fewer'),
+  address: z.string().trim().max(400, 'vendor.validation.addressTooLong'),
 })
 export type VendorFormValues = z.infer<typeof vendorFormSchema>
 
@@ -46,11 +46,13 @@ export const vehicleFormSchema = z.object({
   registrationNo: z
     .string()
     .trim()
-    .min(4, 'Registration number must be at least 4 characters')
-    .max(60, 'Registration number must be 60 characters or fewer'),
+    .min(4, 'vendor.validation.registrationTooShort')
+    .max(60, 'vendor.validation.registrationTooLong'),
   brand: z.string().trim().max(80),
   model: z.string().trim().max(80),
-  ownershipType: z.enum(VEHICLE_OWNERSHIP_TYPES, { error: 'Choose how the vehicle is owned.' }),
+  ownershipType: z.enum(VEHICLE_OWNERSHIP_TYPES, {
+    error: 'vendor.validation.ownershipRequired',
+  }),
 })
 export type VehicleFormValues = z.infer<typeof vehicleFormSchema>
 
@@ -58,19 +60,19 @@ export type VehicleFormValues = z.infer<typeof vehicleFormSchema>
 const optionalDay = z
   .string()
   .trim()
-  .refine((value) => value === '' || /^\d{4}-\d{2}-\d{2}$/.test(value), 'Use a valid date.')
+  .refine((value) => value === '' || /^\d{4}-\d{2}-\d{2}$/.test(value), 'vendor.validation.dateInvalid')
 
 export const driverFormSchema = z
   .object({
     name: z
       .string()
       .trim()
-      .min(2, 'Driver name must be at least 2 characters')
-      .max(160, 'Driver name must be 160 characters or fewer'),
+      .min(2, 'vendor.validation.driverNameTooShort')
+      .max(160, 'vendor.validation.driverNameTooLong'),
     mobile,
-    nidNumber: z.string().trim().max(40, 'NID must be 40 characters or fewer'),
+    nidNumber: z.string().trim().max(40, 'vendor.validation.nidTooLong'),
     address: z.string().trim().max(400),
-    licenseNumber: z.string().trim().max(60, 'Licence number must be 60 characters or fewer'),
+    licenseNumber: z.string().trim().max(60, 'vendor.validation.licenceTooLong'),
     licenseExpiry: optionalDay,
   })
   /**
@@ -80,31 +82,31 @@ export const driverFormSchema = z
    * there is no document to go and renew.
    */
   .refine((value) => value.licenseExpiry === '' || value.licenseNumber.length > 0, {
-    message: 'Add the licence number this expiry date belongs to.',
+    message: 'vendor.validation.licenceNumberNeeded',
     path: ['licenseNumber'],
   })
 export type DriverFormValues = z.infer<typeof driverFormSchema>
 
 export const assignmentFormSchema = z
   .object({
-    vehicleId: z.string().min(1, 'Choose a vehicle.'),
-    driverId: z.string().min(1, 'Choose a driver.'),
+    vehicleId: z.string().min(1, 'vendor.validation.vehicleRequired'),
+    driverId: z.string().min(1, 'vendor.validation.driverRequired'),
     assignedFrom: z
       .string()
       .trim()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Choose the date the assignment starts.'),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'vendor.validation.assignedFromRequired'),
     assignedUntil: optionalDay,
     note: z.string().trim().max(400),
   })
   .refine(
     (value) => value.assignedUntil === '' || value.assignedUntil >= value.assignedFrom,
-    { message: 'The end date cannot be before the start date.', path: ['assignedUntil'] },
+    { message: 'vendor.validation.endBeforeStart', path: ['assignedUntil'] },
   )
 export type AssignmentFormValues = z.infer<typeof assignmentFormSchema>
 
 export const documentFormSchema = z
   .object({
-    documentType: z.enum(DOCUMENT_TYPES, { error: 'Choose a document type.' }),
+    documentType: z.enum(DOCUMENT_TYPES, { error: 'vendor.validation.documentTypeRequired' }),
     documentNumber: z.string().trim().max(80),
     issueDate: optionalDay,
     expiryDate: optionalDay,
@@ -113,6 +115,6 @@ export const documentFormSchema = z
   .refine(
     (value) =>
       value.issueDate === '' || value.expiryDate === '' || value.expiryDate >= value.issueDate,
-    { message: 'The expiry date cannot be before the issue date.', path: ['expiryDate'] },
+    { message: 'vendor.validation.expiryBeforeIssue', path: ['expiryDate'] },
   )
 export type DocumentFormValues = z.infer<typeof documentFormSchema>

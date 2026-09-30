@@ -77,7 +77,7 @@ export function useEmailVerification(): EmailVerificationController {
       await sendEmailVerification(user)
       setCooldown(COOLDOWN_SECONDS)
       toast.success(t('profile.verification.sent'), {
-        description: `Open the link we sent to ${user.email}.`,
+        description: t('profile.verification.sentNote', { email: user.email ?? '' }),
       })
     } catch (error) {
       toast.error(t(toAuthMessage(error) as TranslationKey))

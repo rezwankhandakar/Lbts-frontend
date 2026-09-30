@@ -18,6 +18,9 @@
  * attachment, which both want in exactly the same form.
  */
 
+import { formatFileSize } from '@/lib/format'
+import type { Translator } from '@/lib/i18n'
+
 export const DOCUMENT_FILE_MIME_TYPES = [
   'application/pdf',
   'image/jpeg',
@@ -29,8 +32,6 @@ export const DOCUMENT_FILE_ACCEPT = DOCUMENT_FILE_MIME_TYPES.join(',')
 
 export const MAX_DOCUMENT_FILE_IMAGE_BYTES = 10 * 1024 * 1024
 export const MAX_DOCUMENT_FILE_PDF_BYTES = 25 * 1024 * 1024
-
-export const ALLOWED_DOCUMENT_FILE_EXTENSIONS = 'PDF, JPG, PNG or WEBP'
 
 export function maxDocumentFileBytesFor(mimeType: string): number {
   return mimeType === 'application/pdf'
@@ -46,29 +47,25 @@ export function maxDocumentFileBytesFor(mimeType: string): number {
  * refused here are a format nobody can read and a scan at a resolution nobody
  * needed, and each has a different answer.
  */
-export function documentFileProblem(file: File): string | null {
+export function documentFileProblem(file: File, t: Translator): string | null {
   if (!(DOCUMENT_FILE_MIME_TYPES as readonly string[]).includes(file.type)) {
-    return `That file is not a ${ALLOWED_DOCUMENT_FILE_EXTENSIONS}.`
+    return t('shared.documentFile.wrongType')
   }
 
   const limit = maxDocumentFileBytesFor(file.type)
   if (file.size > limit) {
-    const megabytes = Math.round(limit / (1024 * 1024))
+    const size = formatFileSize(limit)
     return file.type === 'application/pdf'
-      ? `That PDF is larger than ${megabytes} MB.`
-      : `That image is larger than ${megabytes} MB. Scan it as a PDF, or at a lower resolution.`
+      ? t('shared.documentFile.pdfTooLarge', { size })
+      : t('shared.documentFile.imageTooLarge', { size })
   }
 
   return null
 }
 
-/** A file size as somebody reads it. */
-export function formatBytes(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`
-  }
-  if (bytes < 1024 * 1024) {
-    return `${Math.round(bytes / 1024)} KB`
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
+/**
+ * A file size as somebody reads it — the shared formatter, re-exported under the
+ * name this module's callers already use. It shapes its digits for the viewer's
+ * own locale, which a local copy did not.
+ */
+export { formatFileSize as formatBytes } from '@/lib/format'

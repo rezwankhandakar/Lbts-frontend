@@ -70,8 +70,7 @@ export function DeliveryCart({ cart, onDialogChange }: DeliveryCartProps) {
         </span>
         <p className="mt-3 text-sm font-semibold">{t('delivery.cart.empty')}</p>
         <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
-          Search above, or pick up the printed challans and scan their barcodes one after another —
-          each one lands here with what is still to go.
+          {t('delivery.cart.emptyLong')}
         </p>
         <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <ScanBarcode className="size-3.5" aria-hidden />

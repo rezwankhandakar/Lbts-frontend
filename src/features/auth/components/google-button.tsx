@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button'
 interface GoogleButtonProps {
   onClick: () => void
   disabled?: boolean
-  label?: string
+  /** Always supplied — "Sign in with" and "Sign up with" are different words. */
+  label: string
 }
 
 /** Google's mark is a brand asset, so it stays inline rather than themed. */
@@ -33,7 +34,7 @@ function GoogleMark() {
 export function GoogleButton({
   onClick,
   disabled,
-  label = 'Continue with Google',
+  label,
 }: GoogleButtonProps) {
   return (
     <Button

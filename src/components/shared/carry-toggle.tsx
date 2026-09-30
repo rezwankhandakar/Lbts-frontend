@@ -42,7 +42,7 @@ export function CarryToggle({ label, shown, checked, onToggle, sourceLabel }: Ca
         'flex min-w-0 flex-1 cursor-pointer items-center justify-end gap-1.5 text-[11px] leading-none',
         checked ? 'text-primary' : 'text-muted-foreground',
       )}
-      title={`${label} on the last one: ${shown}`}
+      title={t('shared.carryOver.onTheLast', { label, value: shown })}
     >
       <Checkbox
         checked={checked}

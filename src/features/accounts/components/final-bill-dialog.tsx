@@ -109,7 +109,12 @@ function FinalBillForm({ bill, onDone }: { bill: FinalBillRecord | null; onDone:
         label={t('accounts.finalBill.amount')}
         value={finalAmount}
         max={MAX_ACCOUNT_AMOUNT}
-        error={amountError ?? (belowReceived ? `${taka(bill.receivedAmount)} is already received against this bill.` : null)}
+        error={
+          amountError ??
+          (belowReceived
+            ? t('accounts.finalBill.alreadyReceived', { amount: taka(bill.receivedAmount) })
+            : null)
+        }
         onChange={setFinalAmount}
       />
 
@@ -133,7 +138,7 @@ function FinalBillForm({ bill, onDone }: { bill: FinalBillRecord | null; onDone:
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone} disabled={save.isPending}>
-          Cancel
+          {t('common.actions.cancel')}
         </Button>
         <Button type="submit" disabled={save.isPending || Boolean(belowReceived)}>
           {save.isPending && <Loader2 className="animate-spin" data-icon="inline-start" aria-hidden />}

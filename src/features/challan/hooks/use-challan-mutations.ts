@@ -3,6 +3,7 @@ import type { UseMutationResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { formatNumber } from '@/lib/format'
 import { countOf, t } from '@/lib/i18n'
+import { locationTypeMeta } from '@/features/location/lib/location-meta'
 import type { ApiError } from '@/lib/axios'
 import {
   deleteChallan,
@@ -86,7 +87,7 @@ export function useUpdateChallan(): UseMutationResult<ChallanRecord, ApiError, U
     mutationFn: updateChallan,
     onSuccess: (record) => {
       toast.success(t('challan.toasts.corrected'), {
-        description: `${record.challanNumber} was saved and its document regenerated. Reprint it if the old copy is in circulation.`,
+        description: t('challan.toasts.correctedNote', { challan: record.challanNumber }),
       })
       void invalidate()
     },
@@ -207,8 +208,13 @@ export function useSetChallanLocation(): UseMutationResult<
 
       toast.success(location ? t('challan.toasts.locationSet') : t('challan.toasts.locationCleared'), {
         description: location
-          ? `${record.challanNumber} is ${location.district} / ${location.thana} · ${location.locationType}.`
-          : `${record.challanNumber} has no location again. It can be set at any time.`,
+          ? t('challan.toasts.locationSetNote', {
+              challan: record.challanNumber,
+              district: location.district,
+              thana: location.thana,
+              type: locationTypeMeta(location.locationType, t).label,
+            })
+          : t('challan.toasts.locationClearedNote', { challan: record.challanNumber }),
       })
       void invalidate()
     },

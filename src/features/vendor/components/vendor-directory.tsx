@@ -3,6 +3,7 @@ import type { VendorRecord } from '../types'
 import { PanelEmpty, PanelError, PanelSkeleton } from './panel-states'
 import { VendorCards } from './vendor-cards'
 import { VendorTable } from './vendor-table'
+import { useT } from '@/lib/i18n'
 
 interface VendorDirectoryProps {
   records: VendorRecord[]
@@ -43,6 +44,8 @@ export function VendorDirectory({
   onChangeStatus,
   onDelete,
 }: VendorDirectoryProps) {
+  const t = useT()
+
   if (isLoading) {
     return <PanelSkeleton rows={6} />
   }
@@ -50,7 +53,7 @@ export function VendorDirectory({
   if (isError) {
     return (
       <PanelError
-        title="Could not load vendors"
+        title={t('vendor.directory.loadFailed')}
         message={errorMessage}
         onRetry={onRetry}
         isRetrying={isFetching}
@@ -62,11 +65,11 @@ export function VendorDirectory({
     return (
       <PanelEmpty
         icon={Building2}
-        title="No vendors yet"
-        description="A vendor is the company that supplies the vehicles and the drivers. Add the first one, then record its fleet underneath it."
+        title={t('vendor.directory.noneYet')}
+        description={t('vendor.directory.noneHint')}
         isFiltered={isFiltered}
         onReset={onReset}
-        action={canManage ? { label: 'Add vendor', onClick: onAdd } : undefined}
+        action={canManage ? { label: t('vendor.directory.add'), onClick: onAdd } : undefined}
       />
     )
   }

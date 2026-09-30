@@ -5,6 +5,7 @@ import { monthRange } from '@/features/delivery/lib/delivery-meta'
 import { canReadDeliveries } from '@/features/delivery/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useVendorTrips } from '../hooks/use-vendors'
 import type { VendorRecord, VendorTripFilterPatch, VendorTripListParams } from '../types'
@@ -36,6 +37,8 @@ function initialParams(): VendorTripListParams {
  * for last month in one press: what was billed, advanced, paid and is still due.
  */
 export function VendorTripPanel({ vendor }: { vendor: VendorRecord }) {
+  const t = useT()
+
   const [params, setParams] = useState<VendorTripListParams>(initialParams)
   const [openTripId, setOpenTripId] = useState<string | null>(null)
   const search = useDebouncedValue(params.search, 350)
@@ -63,7 +66,7 @@ export function VendorTripPanel({ vendor }: { vendor: VendorRecord }) {
   }
 
   return (
-    <Panel label="Trips">
+    <Panel label={t('vendor.trip.panel')}>
       <VendorTripFilters
         params={params}
         onChange={apply}
@@ -76,16 +79,16 @@ export function VendorTripPanel({ vendor }: { vendor: VendorRecord }) {
         <PanelSkeleton />
       ) : query.isError ? (
         <PanelError
-          title="Could not load the trips"
-          message={query.error?.message ?? 'Something went wrong.'}
+          title={t('vendor.trip.loadFailed')}
+          message={query.error?.message ?? t('vendor.somethingWrong')}
           onRetry={() => void query.refetch()}
           isRetrying={query.isFetching}
         />
       ) : records.length === 0 ? (
         <PanelEmpty
           icon={Navigation}
-          title="No trips this month"
-          description={`None of ${vendor.name}'s vehicles has gone out yet this month. Choose "Any date" to see earlier trips.`}
+          title={t('vendor.trip.noneThisMonth')}
+          description={t('vendor.trip.noneHint', { vendor: vendor.name })}
           isFiltered={isFiltered}
           onReset={reset}
         />

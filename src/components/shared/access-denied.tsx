@@ -3,17 +3,23 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/use-auth-store'
 import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { roleMeta } from '@/lib/roles'
 
 interface AccessDeniedProps {
-  /** What was being reached, phrased for a person: "Administration". */
-  area: string
   /**
-   * Who the area *is* for, phrased as a sentence. Every module decides its own
-   * roles — CLAUDE.md deliberately has no central permission matrix — so the
-   * default only fits Administration, and any other area says its own rule.
+   * What was being reached, as the key the sidebar names it by — so the module
+   * is called the same thing on the denial as on the nav item that is missing.
    */
-  reason?: string
+  areaKey: TranslationKey
+  /**
+   * Who the area *is* for, as the key of a whole sentence. Every module decides
+   * its own roles — CLAUDE.md deliberately has no central permission matrix —
+   * so the default only fits Administration, and any other area says its own
+   * rule. A key rather than a string, because a sentence handed in as words is
+   * one this component cannot translate.
+   */
+  reasonKey?: TranslationKey
 }
 
 /**
@@ -24,7 +30,7 @@ interface AccessDeniedProps {
  * This is a courtesy, not a control: the API refuses the same request
  * independently, so nothing here is load-bearing for security.
  */
-export function AccessDenied({ area, reason }: AccessDeniedProps) {
+export function AccessDenied({ areaKey, reasonKey }: AccessDeniedProps) {
   const t = useT()
   const profile = useAuthStore((state) => state.profile)
   const meta = profile ? roleMeta(profile.role, t) : null
@@ -36,10 +42,10 @@ export function AccessDenied({ area, reason }: AccessDeniedProps) {
       </div>
 
       <h1 className="mt-6 text-xl font-semibold tracking-tight text-balance sm:text-2xl">
-        {t('shared.accessDenied.title', { area })}
+        {t('shared.accessDenied.title', { area: t(areaKey) })}
       </h1>
       <p className="mt-2.5 text-sm leading-relaxed text-pretty text-muted-foreground">
-        {reason ?? t('shared.accessDenied.restricted', { area })}{' '}
+        {reasonKey ? t(reasonKey) : t('shared.accessDenied.restricted', { area: t(areaKey) })}{' '}
         {t('shared.accessDenied.askAdmin')}
       </p>
 

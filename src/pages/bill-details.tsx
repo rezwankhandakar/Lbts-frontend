@@ -82,13 +82,13 @@ export function BillDetailsPage() {
           <div>
             <h2 className="text-sm font-semibold">{t('bill.sheetHeading')}</h2>
             <p className="text-xs text-muted-foreground">
-              Exactly what the Excel file carries — one SL per Trip DO, returns and re-sends in Remarks.
+              {t('bill.sheetHint')}
             </p>
           </div>
           {lines.length > 0 && canPrepare && (
             <Button size="sm" variant="outline" onClick={() => page.setIsAdding(true)}>
               <PackagePlus data-icon="inline-start" aria-hidden />
-              Add Trip DO
+              {t('bill.addTripDo')}
             </Button>
           )}
         </div>

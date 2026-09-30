@@ -52,6 +52,8 @@ function Section({
 }
 
 function ChallanList({ challans }: { challans: VendorTripDetail['challans'] }) {
+  const t = useT()
+
   return (
     <ul className="divide-y">
       {challans.map((challan) => (
@@ -65,7 +67,9 @@ function ChallanList({ challans }: { challans: VendorTripDetail['challans'] }) {
               </p>
             </div>
             <DeliveryOutcomeBadge
-              value={challan.completionMethod ? 'Complete' : 'Pending'}
+              value={
+                challan.completionMethod ? t('vendor.trip.complete') : t('vendor.trip.pending')
+              }
               method={challan.completionMethod}
             />
           </div>
@@ -120,12 +124,16 @@ export function VendorTripDetailSheet({
       <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
         <SheetHeader>
           <SheetTitle className="font-mono">
-            {trip ? shortTripNumber(trip.tripNumber) : 'Trip'}
+            {trip ? shortTripNumber(trip.tripNumber) : t('vendor.trip.tripFallback')}
           </SheetTitle>
           <SheetDescription>
             {trip
-              ? `${formatDay(trip.tripDate)} · ${countOf(trip.challanCount, 'nouns.challan', t)} · ${trip.totalQty} pcs`
-              : 'Loading…'}
+              ? `${formatDay(trip.tripDate)} · ${countOf(
+                  trip.challanCount,
+                  'nouns.challan',
+                  t,
+                )} · ${countOf(trip.totalQty, 'nouns.pc', t)}`
+              : t('common.states.loading')}
           </SheetDescription>
         </SheetHeader>
 
@@ -138,8 +146,8 @@ export function VendorTripDetailSheet({
             </div>
           ) : query.isError || !trip ? (
             <PanelError
-              title="Could not load the trip"
-              message={query.error?.message ?? 'Something went wrong.'}
+              title={t('vendor.trip.detailLoadFailed')}
+              message={query.error?.message ?? t('vendor.somethingWrong')}
               onRetry={() => void query.refetch()}
               isRetrying={query.isFetching}
             />
@@ -158,17 +166,17 @@ export function VendorTripDetailSheet({
                     render={<Link to={`/delivery/${trip.id}`} />}
                   >
                     <ExternalLink data-icon="inline-start" aria-hidden />
-                    Open in Delivery
+                    {t('vendor.trip.openInDelivery')}
                   </Button>
                 )}
               </div>
 
-              <Section title="Trip" icon={Truck}>
+              <Section title={t('vendor.trip.tripSection')} icon={Truck}>
                 <dl className="divide-y">
-                  <InfoRow label="Vehicle">
+                  <InfoRow label={t('vendor.trip.vehicle')}>
                     <span className="font-mono">{trip.registrationNo}</span>
                   </InfoRow>
-                  <InfoRow label="Driver">
+                  <InfoRow label={t('vendor.trip.driver')}>
                     {trip.driverName}
                     {trip.driverMobile && (
                       <span className="block text-xs text-muted-foreground">
@@ -176,7 +184,7 @@ export function VendorTripDetailSheet({
                       </span>
                     )}
                   </InfoRow>
-                  <InfoRow label="Pieces">
+                  <InfoRow label={t('vendor.trip.pieces')}>
                     {trip.deliveredQty} delivered
                     {trip.returnedQty > 0 && (
                       <span className="text-tone-rose"> · {trip.returnedQty} came back</span>
@@ -185,11 +193,11 @@ export function VendorTripDetailSheet({
                 </dl>
               </Section>
 
-              <Section title="Bill and payment" icon={Banknote}>
+              <Section title={t('vendor.trip.billSection')} icon={Banknote}>
                 <VendorTripMoney trip={trip} />
               </Section>
 
-              <Section title="Challans" icon={FileText}>
+              <Section title={t('vendor.trip.challansSection')} icon={FileText}>
                 <ChallanList challans={trip.challans} />
               </Section>
             </>

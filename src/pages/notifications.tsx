@@ -18,7 +18,8 @@ import {
 import { useNotificationParams } from '@/features/notification/hooks/use-notification-params'
 import type { NotificationFilterPatch } from '@/features/notification/hooks/use-notification-params'
 import type { NotificationRecord } from '@/features/notification/types'
-import { useT } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * Everything this account has been told.
@@ -130,10 +131,16 @@ export function NotificationsPage() {
           onOpenPreferences={() => setPreferencesOpen(true)}
           summary={
             meta && !notificationsQuery.isPending
-              ? `${meta.total.toLocaleString()} ${
-                  meta.total === 1 ? 'notification' : 'notifications'
-                }${isFiltered ? ' match these filters' : ''}${
-                  unread > 0 ? ` · ${unread.toLocaleString()} unread in total` : ''
+              ? `${
+                  isFiltered
+                    ? t('notification.list.summaryFiltered', {
+                        notifications: countOf(meta.total, 'nouns.notification', t),
+                      })
+                    : countOf(meta.total, 'nouns.notification', t)
+                }${
+                  unread > 0
+                    ? ` · ${t('notification.list.unreadSuffix', { count: formatNumber(unread) })}`
+                    : ''
                 }`
               : undefined
           }

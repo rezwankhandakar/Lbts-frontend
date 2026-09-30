@@ -9,6 +9,7 @@ import type { ChallanDispatchDetail } from '../types'
 import { DispatchCorrections, DispatchReturns } from './challan-dispatch-notes'
 import { TripStatusBadge } from './delivery-badges'
 import { countOf, useT } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
 
 /**
  * What happened to a challan's goods, on the challan's own page.
@@ -44,10 +45,15 @@ function DispatchBody({ detail }: { detail: ChallanDispatchDetail }) {
   const returned = detail.returns.reduce((sum, entry) => sum + entry.qty, 0)
   const summary = [
     sent
-      ? `${detail.dispatched} of ${detail.ordered} pieces sent`
+      ? t('delivery.dispatch.piecesSent', {
+          sent: formatNumber(detail.dispatched),
+          ordered: formatNumber(detail.ordered),
+        })
       : t('delivery.dispatch.nothingDelivered'),
-    returned > 0 ? `${returned} came back` : null,
-    sent && detail.remaining > 0 ? `${detail.remaining} still to go` : null,
+    returned > 0 ? t('delivery.dispatch.cameBackCount', { returned: formatNumber(returned) }) : null,
+    sent && detail.remaining > 0
+      ? t('delivery.dispatch.stillToGo', { remaining: formatNumber(detail.remaining) })
+      : null,
   ]
     .filter(Boolean)
     .join(' · ')

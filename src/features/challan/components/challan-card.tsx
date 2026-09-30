@@ -131,7 +131,10 @@ export function ChallanCard({ record, actions, onOpen }: ChallanCardProps) {
           className="text-sm font-semibold tabular-nums"
           title={
             record.unpricedItems > 0
-              ? `${record.unpricedItems} of ${record.items.length} lines are not on the rate card for this location.`
+              ? t('challan.goods.unpricedTitle', {
+                  unpriced: formatNumber(record.unpricedItems),
+                  total: formatNumber(record.items.length),
+                })
               : undefined
           }
         >

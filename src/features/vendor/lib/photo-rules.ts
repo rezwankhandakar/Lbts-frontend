@@ -1,4 +1,5 @@
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 
 /**
  * What a vendor or driver photo may be.
@@ -17,23 +18,21 @@ export const MAX_PHOTO_BYTES = 5 * 1024 * 1024
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
-export const ALLOWED_PHOTO_EXTENSIONS = 'JPG, PNG or WEBP'
-
 /**
  * True when the file may be uploaded, and a toast explaining why not when it
  * may not — reporting it here keeps every call site down to one `if`.
  */
 export function isAllowedPhoto(file: File): boolean {
   if (!ALLOWED_TYPES.includes(file.type)) {
-    toast.error('That file type is not supported', {
-      description: `Choose a ${ALLOWED_PHOTO_EXTENSIONS} image.`,
+    toast.error(t('vendor.toasts.photoTypeUnsupported'), {
+      description: t('vendor.toasts.photoTypeHint'),
     })
     return false
   }
 
   if (file.size > MAX_PHOTO_BYTES) {
-    toast.error('That image is larger than 5 MB', {
-      description: 'Choose a smaller file, or export it at a lower resolution.',
+    toast.error(t('vendor.toasts.photoTooLarge'), {
+      description: t('vendor.toasts.photoTooLargeHint'),
     })
     return false
   }
@@ -51,19 +50,17 @@ export const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024
 
 const ALLOWED_DOCUMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
 
-export const ALLOWED_DOCUMENT_EXTENSIONS = 'PDF, JPG, PNG or WEBP'
-
 export function isAllowedDocument(file: File): boolean {
   if (!ALLOWED_DOCUMENT_TYPES.includes(file.type)) {
-    toast.error('That file type is not supported', {
-      description: `Attach a ${ALLOWED_DOCUMENT_EXTENSIONS} file.`,
+    toast.error(t('vendor.toasts.photoTypeUnsupported'), {
+      description: t('vendor.toasts.documentTypeHint'),
     })
     return false
   }
 
   if (file.size > MAX_DOCUMENT_BYTES) {
-    toast.error('That file is larger than 25 MB', {
-      description: 'Scan it at a lower resolution and attach it again.',
+    toast.error(t('vendor.toasts.documentTooLarge'), {
+      description: t('vendor.toasts.documentTooLargeHint'),
     })
     return false
   }

@@ -10,7 +10,7 @@ import { useLocationListParams } from '@/features/location/hooks/use-location-li
 import { useLocationStats, useLocations } from '@/features/location/hooks/use-locations'
 import { canManageLocations } from '@/features/location/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * The Location Master: the district and thana list every challan is
@@ -74,9 +74,12 @@ export function LocationsPage() {
           canManage={canManage}
           summary={
             meta && !locationsQuery.isPending
-              ? `${meta.total} ${meta.total === 1 ? 'location' : 'locations'}${
-                  isFiltered ? ' match these filters' : ' in the master list'
-                }`
+              ? t(
+                  isFiltered
+                    ? 'location.directory.summaryFiltered'
+                    : 'location.directory.summaryTotal',
+                  { locations: countOf(meta.total, 'nouns.location', t) },
+                )
               : undefined
           }
         />

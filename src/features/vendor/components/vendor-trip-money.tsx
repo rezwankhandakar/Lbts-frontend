@@ -1,24 +1,27 @@
 import { taka } from '@/features/delivery/lib/delivery-meta'
 import { formatDay } from '../lib/vendor-meta'
 import type { VendorTripDetail, VendorTripMoneyEntry } from '../types'
+import { useT } from '@/lib/i18n'
 
 /**
  * What is still owed, in words that do not need a sign read: an amount owed,
  * "Paid" at zero, and "Overpaid" when advances and payments ran past the bill.
  */
 export function DueAmount({ value }: { value: number }) {
+  const t = useT()
+
   if (value > 0) {
     return <span className="font-semibold text-tone-rose">{taka(value)}</span>
   }
   if (value === 0) {
-    return <span className="font-semibold text-tone-emerald">Paid</span>
+    return <span className="font-semibold text-tone-emerald">{t('vendor.trip.paid')}</span>
   }
   return (
     <span
       className="font-semibold text-tone-amber"
-      title="Advances and payments are more than the bill entered"
+      title={t('vendor.trip.overpaidTitle')}
     >
-      Overpaid {taka(-value)}
+      {t('vendor.trip.overpaid', { amount: taka(-value) })}
     </span>
   )
 }
@@ -82,29 +85,31 @@ function EntryList({
  * shown above the trip list.
  */
 export function VendorTripMoney({ trip }: { trip: VendorTripDetail }) {
-  const notEntered = <span className="text-tone-rose">Not entered</span>
+  const t = useT()
+
+  const notEntered = <span className="text-tone-rose">{t('vendor.trip.notEntered')}</span>
   return (
     <div className="space-y-4">
       <dl className="divide-y">
-        <Figure label="Trip rent">
+        <Figure label={t('vendor.trip.tripRent')}>
           {trip.tripRent === null ? notEntered : taka(trip.tripRent)}
         </Figure>
-        <Figure label="Labour bill">
+        <Figure label={t('vendor.trip.labourBill')}>
           {trip.labourBill === null ? notEntered : taka(trip.labourBill)}
         </Figure>
-        <Figure label="Total amount" strong>
+        <Figure label={t('vendor.trip.totalAmount')} strong>
           {taka(trip.bill)}
         </Figure>
-        <Figure label="Advance">{taka(trip.advance)}</Figure>
-        <Figure label="Net amount" strong>
+        <Figure label={t('vendor.trip.advance')}>{taka(trip.advance)}</Figure>
+        <Figure label={t('vendor.trip.netAmount')} strong>
           {taka(trip.bill - trip.advance)}
         </Figure>
       </dl>
 
       <EntryList
-        title="Advances against this trip"
+        title={t('vendor.trip.advancesAgainst')}
         entries={trip.advances}
-        empty="No advance was paid against this trip."
+        empty={t('vendor.trip.noAdvance')}
       />
     </div>
   )

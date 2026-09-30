@@ -2,6 +2,8 @@ import { Minus, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { linkOutcome } from '../lib/split-parts'
+import { SentenceWith } from '@/components/shared/sentence-with'
+import { formatNumber } from '@/lib/format'
 import { useT } from '@/lib/i18n'
 
 interface LinkQtyFieldProps {
@@ -67,7 +69,7 @@ export function LinkQtyField({ qty, onChange, rowQty, room, tripDo }: LinkQtyFie
             <Plus aria-hidden />
           </Button>
           <Button variant="ghost" size="sm" onClick={() => onChange(max)} disabled={qty === max}>
-            Max {max}
+            {t('tripDo.assign.maxPieces', { max: formatNumber(max) })}
           </Button>
         </div>
       </div>
@@ -85,14 +87,35 @@ export function LinkQtyField({ qty, onChange, rowQty, room, tripDo }: LinkQtyFie
         )}
       </div>
 
+      {/*
+       * Two whole sentences, each with its own drawn values, rather than one
+       * grown a fragment at a time: Bangla puts the Trip DO before the count,
+       * so a number stitched in front of "on Trip DO" could only read correctly
+       * in English.
+       */}
       <p className="mt-2 text-xs text-muted-foreground">
-        <span className="font-semibold text-tone-emerald tabular-nums">{linked}</span> on Trip DO{' '}
-        <span className="font-mono text-foreground">{tripDo}</span>
+        <SentenceWith
+          text={t('tripDo.assign.onTripDo')}
+          parts={{
+            linked: (
+              <span className="font-semibold text-tone-emerald tabular-nums">
+                {formatNumber(linked)}
+              </span>
+            ),
+            tripDo: <span className="font-mono text-foreground">{tripDo}</span>,
+          }}
+        />
         {remainder > 0 && (
           <>
             {' · '}
-            <span className="font-semibold text-tone-amber tabular-nums">{remainder}</span> stay on a
-            new row, waiting for a Trip DO
+            <SentenceWith
+              text={t('tripDo.assign.remainderStays')}
+              placeholder="{remainder}"
+            >
+              <span className="font-semibold text-tone-amber tabular-nums">
+                {formatNumber(remainder)}
+              </span>
+            </SentenceWith>
           </>
         )}
       </p>

@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { completionMeta, lineChangeMeta, tripStatusMeta } from '../lib/delivery-meta'
 import { highlightPlate } from '../lib/plate'
 import type { CompletionMethod, LineChange } from '../types'
+import { formatNumber } from '@/lib/format'
 
 const BASE =
   'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold whitespace-nowrap'
@@ -36,7 +37,11 @@ export function TripStatusBadge({
       className={cn(BASE, meta.badge, className)}
       title={
         showProgress
-          ? `${progress.done} of ${progress.total} challans done. ${meta.description}`
+          ? t('delivery.summary.challansDone', {
+              done: formatNumber(progress.done),
+              total: formatNumber(progress.total),
+              description: meta.description,
+            })
           : meta.description
       }
     >

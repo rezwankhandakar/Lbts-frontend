@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import { FileCheck2, Truck, Users } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ComplianceSummary, DriverSummary, VehicleSummary } from '../types'
 
@@ -108,49 +109,66 @@ export function VendorKpiCards({
   documents,
   isLoading,
 }: VendorKpiCardsProps) {
+  const t = useT()
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <KpiCard
-        title="Vehicles"
+        title={t('vendor.kpi.vehicles')}
         icon={Truck}
         chip="bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20"
         total={vehicles?.total ?? 0}
-        totalLabel="in the fleet"
+        totalLabel={t('vendor.kpi.inFleet')}
         isLoading={isLoading}
         breakdown={[
-          { label: 'Active', value: vehicles?.active ?? 0 },
-          { label: 'Under maintenance', value: vehicles?.maintenance ?? 0, tone: 'warning' },
-          { label: 'Expired papers', value: vehicles?.expired ?? 0, tone: 'critical' },
-          { label: 'Inactive or suspended', value: (vehicles?.inactive ?? 0) + (vehicles?.suspended ?? 0) },
+          { label: t('vendor.kpi.active'), value: vehicles?.active ?? 0 },
+          {
+            label: t('vendor.kpi.underMaintenance'),
+            value: vehicles?.maintenance ?? 0,
+            tone: 'warning',
+          },
+          {
+            label: t('vendor.kpi.expiredPapers'),
+            value: vehicles?.expired ?? 0,
+            tone: 'critical',
+          },
+          {
+            label: t('vendor.kpi.inactiveOrSuspended'),
+            value: (vehicles?.inactive ?? 0) + (vehicles?.suspended ?? 0),
+          },
         ]}
       />
 
       <KpiCard
-        title="Drivers"
+        title={t('vendor.kpi.drivers')}
         icon={Users}
         chip="bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20"
         total={drivers?.total ?? 0}
-        totalLabel="on the books"
+        totalLabel={t('vendor.kpi.onBooks')}
         isLoading={isLoading}
         breakdown={[
-          { label: 'Active', value: drivers?.active ?? 0 },
-          { label: 'On leave', value: drivers?.onLeave ?? 0, tone: 'warning' },
-          { label: 'Suspended', value: drivers?.suspended ?? 0, tone: 'critical' },
-          { label: 'Inactive', value: drivers?.inactive ?? 0 },
+          { label: t('vendor.kpi.active'), value: drivers?.active ?? 0 },
+          { label: t('vendor.kpi.onLeave'), value: drivers?.onLeave ?? 0, tone: 'warning' },
+          { label: t('vendor.kpi.suspended'), value: drivers?.suspended ?? 0, tone: 'critical' },
+          { label: t('vendor.kpi.inactive'), value: drivers?.inactive ?? 0 },
         ]}
       />
 
       <KpiCard
-        title="Compliance"
+        title={t('vendor.kpi.compliance')}
         icon={FileCheck2}
         chip="bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20"
         total={documents?.total ?? 0}
-        totalLabel="documents on file"
+        totalLabel={t('vendor.kpi.documentsOnFile')}
         isLoading={isLoading}
         breakdown={[
-          { label: 'Valid', value: documents?.valid ?? 0 },
-          { label: 'Expiring soon', value: documents?.expiringSoon ?? 0, tone: 'warning' },
-          { label: 'Expired', value: documents?.expired ?? 0, tone: 'critical' },
+          { label: t('vendor.kpi.valid'), value: documents?.valid ?? 0 },
+          {
+            label: t('vendor.kpi.expiringSoon'),
+            value: documents?.expiringSoon ?? 0,
+            tone: 'warning',
+          },
+          { label: t('vendor.kpi.expired'), value: documents?.expired ?? 0, tone: 'critical' },
         ]}
       />
     </div>

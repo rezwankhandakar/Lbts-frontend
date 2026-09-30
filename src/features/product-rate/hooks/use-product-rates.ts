@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
+import { t } from '@/lib/i18n'
 import {
   createProductRate,
   deleteProductRate,
@@ -171,10 +172,12 @@ export function useCreateProductRate(): UseMutationResult<
   return useMutation({
     mutationFn: createProductRate,
     onSuccess: (record) => {
-      toast.success(`${productRateLabel(record)} added to the rate card`, {
-        description: `ISD ${rateLabel(record.rates.ISD)} · Metro ${rateLabel(
-          record.rates['OSD-Metro'],
-        )} · Thana ${rateLabel(record.rates['OSD-Thana'])}`,
+      toast.success(t('productRate.remove.added', { label: productRateLabel(record) }), {
+        description: t('productRate.remove.addedNote', {
+          isd: rateLabel(record.rates.ISD),
+          metro: rateLabel(record.rates['OSD-Metro']),
+          thana: rateLabel(record.rates['OSD-Thana']),
+        }),
       })
       void invalidate()
     },
@@ -201,10 +204,10 @@ export function useUpdateProductRate(): UseMutationResult<
   return useMutation({
     mutationFn: updateProductRate,
     onSuccess: (record) => {
-      toast.success(`${productRateLabel(record)} updated`, {
+      toast.success(t('productRate.remove.updated', { label: productRateLabel(record) }), {
         description: record.isActive
-          ? 'Challans filed from now on use the new figures. Ones already charged keep theirs.'
-          : 'It is deactivated, so it prices nothing and is offered nowhere.',
+          ? t('productRate.remove.updatedNote')
+          : t('productRate.remove.deactivated'),
       })
       void invalidate()
     },
@@ -232,13 +235,16 @@ export function useDeleteProductRate(): UseMutationResult<
     mutationFn: ({ id }) => deleteProductRate(id),
     onSuccess: (result, variables) => {
       toast.success(
-        result.deactivated ? `${variables.label} deactivated` : `${variables.label} removed`,
+        t(
+          result.deactivated
+            ? 'productRate.remove.wasDeactivated'
+            : 'productRate.remove.wasRemoved',
+          { label: variables.label },
+        ),
         {
           description: result.deactivated
-            ? `${result.challanCount} challan${
-                result.challanCount === 1 ? ' was' : 's were'
-              } charged from it, so it was kept and taken out of use instead.`
-            : 'Nothing was ever charged from it, so it is gone.',
+            ? t('productRate.remove.wasCharged', { count: result.challanCount })
+            : t('productRate.remove.deleted'),
         },
       )
       void invalidate()

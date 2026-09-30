@@ -41,9 +41,9 @@ export function VendorDashboardRecent({ trips, onOpen }: VendorDashboardRecentPr
           <Navigation className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-[13px] font-semibold tracking-tight">Latest trips</h2>
+          <h2 className="text-[13px] font-semibold tracking-tight">{t('vendor.dashboard.latestTrips')}</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            The most recent runs for LBTS. Open one to see its challans and its money.
+            {t('vendor.dashboard.latestTripsHint')}
           </p>
         </div>
         <Button
@@ -52,14 +52,14 @@ export function VendorDashboardRecent({ trips, onOpen }: VendorDashboardRecentPr
           render={<Link to="/my-vendor?tab=trips" />}
           className="shrink-0"
         >
-          All trips
+          {t('vendor.dashboard.allTrips')}
           <ArrowRight data-icon="inline-end" aria-hidden />
         </Button>
       </header>
 
       {trips.length === 0 ? (
         <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-          No trip has been run for LBTS yet. When one is, it appears here.
+          {t('vendor.dashboard.noTripYet')}
         </p>
       ) : (
         <ul className="divide-y">

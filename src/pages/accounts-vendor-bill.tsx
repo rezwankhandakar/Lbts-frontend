@@ -88,8 +88,8 @@ export function AccountsVendorBillPage() {
                     onRetry={() => void query.refetch()}
                     canWrite={canWrite}
                     compact
-                    emptyTitle="No advance"
-                    emptyDescription="Use Advance on a trip to pay the vendor ahead of the bill."
+                    emptyTitle={t('accounts.pages.vendorBill.advancesEmptyTitle')}
+                    emptyDescription={t('accounts.pages.vendorBill.advancesEmptyHint')}
                   />
                 </Panel>
                 <Panel
@@ -106,8 +106,8 @@ export function AccountsVendorBillPage() {
                     onRetry={() => void query.refetch()}
                     canWrite={canWrite}
                     compact
-                    emptyTitle="Nothing paid yet"
-                    emptyDescription="The monthly payment settles what the advances left."
+                    emptyTitle={t('accounts.pages.vendorBill.paymentsEmptyTitle')}
+                    emptyDescription={t('accounts.pages.vendorBill.paymentsEmptyHint')}
                   />
                 </Panel>
               </div>

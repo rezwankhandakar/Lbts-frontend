@@ -39,15 +39,15 @@ export function VendorTripList({ records, onOpen }: VendorTripListProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-4">Trip</TableHead>
-              <TableHead>Vehicle · driver</TableHead>
-              <TableHead>Challans</TableHead>
-              <TableHead className="text-right">Trip rent</TableHead>
-              <TableHead className="text-right">Labour</TableHead>
-              <TableHead className="text-right">Total amount</TableHead>
-              <TableHead className="text-right">Advance</TableHead>
-              <TableHead className="text-right">Net amount</TableHead>
-              <TableHead className="pr-4">Status</TableHead>
+              <TableHead className="pl-4">{t('vendor.trip.trip')}</TableHead>
+              <TableHead>{t('vendor.trip.vehicleDriver')}</TableHead>
+              <TableHead>{t('vendor.trip.challans')}</TableHead>
+              <TableHead className="text-right">{t('vendor.trip.tripRent')}</TableHead>
+              <TableHead className="text-right">{t('vendor.trip.labour')}</TableHead>
+              <TableHead className="text-right">{t('vendor.trip.totalAmount')}</TableHead>
+              <TableHead className="text-right">{t('vendor.trip.advance')}</TableHead>
+              <TableHead className="text-right">{t('vendor.trip.netAmount')}</TableHead>
+              <TableHead className="pr-4">{t('vendor.trip.status')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

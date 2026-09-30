@@ -28,6 +28,8 @@ import { documentTypesFor } from '../types'
 import type { DocumentOwnerType, DocumentRecord, VendorDocumentType } from '../types'
 import { DocumentAttachmentField } from './document-attachment-field'
 import { DateField, FieldError, FormSection } from './form-parts'
+import { useT } from '@/lib/i18n'
+import { documentTypeLabel } from '../lib/vendor-meta'
 
 interface DocumentFormDialogProps {
   record: DocumentRecord | null
@@ -83,6 +85,8 @@ export function DocumentFormDialog({
   onOpenChange,
   onSubmit,
 }: DocumentFormDialogProps) {
+  const t = useT()
+
   const [file, setFile] = useState<File | null>(null)
 
   const {
@@ -195,11 +199,16 @@ export function DocumentFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{target ? 'Renew or replace' : 'File document'}</DialogTitle>
+          <DialogTitle>
+            {target ? t('vendor.document.renewTitle') : t('vendor.document.file')}
+          </DialogTitle>
           <DialogDescription>
             {target
-              ? `Renewing the ${target.documentType} on record for ${subject}. It replaces that document rather than adding a second one, so the compliance count stays honest.`
-              : `A compliance document for ${subject}. Its status is worked out from the expiry date, so there is nothing to set by hand.`}
+              ? t('vendor.document.renewDescription', {
+                  type: documentTypeLabel(target.documentType, t),
+                  subject,
+                })
+              : t('vendor.document.addDescription', { subject })}
           </DialogDescription>
         </DialogHeader>
 
@@ -209,10 +218,10 @@ export function DocumentFormDialog({
           className="space-y-5"
           aria-busy={isPending}
         >
-          <FormSection title="Document details">
+          <FormSection title={t('vendor.document.detailsSection')}>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="document-type">Document type</Label>
+                <Label htmlFor="document-type">{t('vendor.document.typeLabel')}</Label>
                 <Select
                   value={documentType}
                   onValueChange={(value) =>
@@ -230,10 +239,10 @@ export function DocumentFormDialog({
 
                         return (
                           <SelectItem key={type} value={type}>
-                            <span className="min-w-0 truncate">{type}</span>
+                            <span className="min-w-0 truncate">{documentTypeLabel(type, t)}</span>
                             {filed && (
                               <span className="shrink-0 rounded-full border bg-muted px-1.5 py-px text-[10.5px] leading-4 font-medium text-muted-foreground">
-                                on record
+                                {t('vendor.document.onRecordChip')}
                               </span>
                             )}
                           </SelectItem>
@@ -245,14 +254,12 @@ export function DocumentFormDialog({
                 <FieldError error={errors.documentType?.message} />
                 {record ? (
                   <p className="text-xs leading-snug text-muted-foreground">
-                    The type cannot change — a tax token is not a route permit, and each is its own
-                    row.
+                    {t('vendor.document.typeFixed')}
                   </p>
                 ) : (
                   target && (
                     <p className="text-xs leading-snug text-tone-amber">
-                      Already on record. Saving renews that document rather than filing a second
-                      one.
+                      {t('vendor.document.alreadyOnRecord')}
                     </p>
                   )
                 )}
@@ -276,7 +283,7 @@ export function DocumentFormDialog({
             <div className="grid gap-4 sm:grid-cols-2">
               <DateField
                 id="document-issue"
-                label="Issue date (optional)"
+                label={t('vendor.document.issueDate')}
                 value={issueDate}
                 onChange={(value) => setValue('issueDate', value, { shouldDirty: true })}
                 disabled={isPending}
@@ -285,19 +292,19 @@ export function DocumentFormDialog({
 
               <DateField
                 id="document-expiry"
-                label="Expiry date"
+                label={t('vendor.document.expiryDate')}
                 value={expiryDate}
                 onChange={(value) => setValue('expiryDate', value, { shouldDirty: true })}
                 disabled={isPending}
                 error={errors.expiryDate?.message}
-                hint="Leave blank for a document that does not lapse, such as an NID."
+                hint={t('vendor.document.expiryHint')}
               />
             </div>
           </FormSection>
 
           <FormSection
-            title="Attachment"
-            description="Optional — the expiry date is what raises the alert, and waiting for the scanner is how a lapsed certificate goes unnoticed. It is stored privately and only reachable through this app."
+            title={t('vendor.document.attachment')}
+            description={t('vendor.document.attachmentHint')}
           >
             <DocumentAttachmentField
               file={file}
@@ -321,13 +328,13 @@ export function DocumentFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && (
                 <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
               )}
-              {target ? 'Save changes' : 'File document'}
+              {target ? t('common.actions.saveChanges') : t('vendor.document.file')}
             </Button>
           </DialogFooter>
         </form>

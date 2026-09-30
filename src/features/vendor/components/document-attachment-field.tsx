@@ -2,13 +2,13 @@ import { useRef, useState } from 'react'
 import { FileUp, Paperclip, ScanLine, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
-  ALLOWED_DOCUMENT_EXTENSIONS,
   MAX_DOCUMENT_BYTES,
   isAllowedDocument,
 } from '../lib/photo-rules'
-import { formatFileSize } from '../lib/vendor-meta'
+import { formatFileSize } from '@/lib/format'
 import type { DocumentAttachment } from '../types'
 import { DocumentScanPanel } from '@/components/shared/document-scan-panel'
+import { useT } from '@/lib/i18n'
 
 interface DocumentAttachmentFieldProps {
   /** The file staged for this submission, if the operator has chosen one. */
@@ -40,6 +40,8 @@ export function DocumentAttachmentField({
   disabled,
   onFileChange,
 }: DocumentAttachmentFieldProps) {
+  const t = useT()
+
   const fileInput = useRef<HTMLInputElement>(null)
   const [scanning, setScanning] = useState(false)
 
@@ -72,7 +74,7 @@ export function DocumentAttachmentField({
             variant="ghost"
             size="icon"
             className="size-7"
-            aria-label="Remove the chosen file"
+            aria-label={t('vendor.document.removeChosenFile')}
             disabled={disabled}
             onClick={() => onFileChange(null)}
           >
@@ -89,7 +91,9 @@ export function DocumentAttachmentField({
               onClick={() => fileInput.current?.click()}
             >
               <FileUp data-icon="inline-start" aria-hidden />
-              {current ? 'Replace the attached file' : 'Attach a file'}
+              {current
+                ? t('vendor.document.replaceAttached')
+                : t('common.actions.attachFile')}
             </Button>
 
             {!scanning && (
@@ -100,15 +104,17 @@ export function DocumentAttachmentField({
                 onClick={() => setScanning(true)}
               >
                 <ScanLine data-icon="inline-start" aria-hidden />
-                Scan it
+                {t('vendor.document.scanIt')}
               </Button>
             )}
           </div>
 
           {current && (
             <p className="text-xs text-muted-foreground">
-              Currently holding {current.originalName} ({formatFileSize(current.size)}). A new file
-              replaces it.
+              {t('vendor.document.holding', {
+                name: current.originalName,
+                size: formatFileSize(current.size),
+              })}
             </p>
           )}
 
@@ -121,8 +127,7 @@ export function DocumentAttachmentField({
           )}
 
           <p className="text-xs leading-snug text-muted-foreground">
-            {ALLOWED_DOCUMENT_EXTENSIONS}, up to {MAX_DOCUMENT_BYTES / (1024 * 1024)} MB. A
-            multi-sheet scan is stored as one PDF, because a document is one file.
+            {t('vendor.document.formatsHint', { size: formatFileSize(MAX_DOCUMENT_BYTES) })}
           </p>
         </div>
       )}

@@ -1,3 +1,4 @@
+import { formatFileSize } from '@/lib/format'
 import type { Translator } from '@/lib/i18n'
 
 /**
@@ -28,7 +29,7 @@ export function validateImageFile(file: File, t: Translator): string | null {
   }
 
   if (file.size > MAX_IMAGE_BYTES) {
-    return t('profile.photo.tooLarge', { size: formatBytes(file.size) })
+    return t('profile.photo.tooLarge', { size: formatFileSize(file.size) })
   }
 
   if (file.size === 0) {
@@ -38,12 +39,9 @@ export function validateImageFile(file: File, t: Translator): string | null {
   return null
 }
 
-export function formatBytes(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`
-  }
-  if (bytes < 1024 * 1024) {
-    return `${Math.round(bytes / 1024)} KB`
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
+/**
+ * Re-exported rather than written again: `formatFileSize` shapes its digits for the
+ * viewer's own locale, and a second implementation beside it is how one of them
+ * comes to read "4.2 MB" while the other reads "৪.২ MB" on the same screen.
+ */
+export { formatFileSize as formatBytes } from '@/lib/format'

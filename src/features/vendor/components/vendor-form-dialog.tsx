@@ -18,6 +18,7 @@ import { vendorFormSchema } from '../schemas/vendor-schemas'
 import type { VendorFormValues } from '../schemas/vendor-schemas'
 import type { VendorRecord } from '../types'
 import { FieldError, FormSection } from './form-parts'
+import { useT } from '@/lib/i18n'
 
 const EMPTY: VendorFormValues = { name: '', mobile: '', address: '' }
 
@@ -50,6 +51,8 @@ export function VendorFormDialog({
   onOpenChange,
   onSubmit,
 }: VendorFormDialogProps) {
+  const t = useT()
+
   const {
     register,
     handleSubmit,
@@ -81,11 +84,13 @@ export function VendorFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{record ? 'Edit vendor' : 'Add vendor'}</DialogTitle>
+          <DialogTitle>
+            {record ? t('vendor.directory.editVendor') : t('vendor.directory.add')}
+          </DialogTitle>
           <DialogDescription>
             {record
-              ? 'The vendor code stays the same — it is what every vehicle, driver and assignment underneath is filed against.'
-              : 'A vendor code is allocated automatically. Vehicles and drivers are added underneath the vendor once it exists.'}
+              ? t('vendor.directory.editDescription')
+              : t('vendor.directory.addDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -95,9 +100,9 @@ export function VendorFormDialog({
           className="space-y-5"
           aria-busy={isPending}
         >
-          <FormSection title="Vendor information">
+          <FormSection title={t('vendor.directory.information')}>
             <div className="space-y-1.5">
-              <Label htmlFor="vendor-name">Vendor name</Label>
+              <Label htmlFor="vendor-name">{t('vendor.directory.nameLabel')}</Label>
               <Input
                 id="vendor-name"
                 autoComplete="organization"
@@ -109,10 +114,10 @@ export function VendorFormDialog({
             </div>
           </FormSection>
 
-          <FormSection title="Contact">
+          <FormSection title={t('vendor.driver.contact')}>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="vendor-mobile">Mobile number</Label>
+                <Label htmlFor="vendor-mobile">{t('vendor.driver.mobileNumber')}</Label>
                 <Input
                   id="vendor-mobile"
                   type="tel"
@@ -124,14 +129,13 @@ export function VendorFormDialog({
                 />
                 <FieldError error={errors.mobile?.message} />
                 <p className="text-xs leading-snug text-muted-foreground">
-                  Stored as typed. It is matched on its 11-digit form, so the same number written
-                  with a country code still finds this vendor.
+                  {t('vendor.directory.mobileHint')}
                 </p>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="vendor-address">Address</Label>
+              <Label htmlFor="vendor-address">{t('vendor.driver.address')}</Label>
               <Textarea
                 id="vendor-address"
                 rows={3}
@@ -150,13 +154,13 @@ export function VendorFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && (
                 <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
               )}
-              {record ? 'Save changes' : 'Add vendor'}
+              {record ? t('common.actions.saveChanges') : t('vendor.directory.add')}
             </Button>
           </DialogFooter>
         </form>

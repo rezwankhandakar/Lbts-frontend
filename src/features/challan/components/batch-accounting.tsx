@@ -143,7 +143,7 @@ export function BatchAccounting({
               onClick={onClearBlank}
             >
               <Undo2 data-icon="inline-start" aria-hidden />
-              Undo
+              {t('common.actions.undo')}
             </Button>
           )}
         </div>

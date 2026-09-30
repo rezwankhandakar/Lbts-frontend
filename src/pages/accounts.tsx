@@ -13,7 +13,8 @@ import { useAccountsOverview } from '@/features/accounts/hooks/use-accounts'
 import { signedTaka, taka, todayString } from '@/features/accounts/lib/accounts-meta'
 import { canWriteAccounts } from '@/features/accounts/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
-import { useT } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * The Accounts landing page: what is on hand, what to do, what is owed and
@@ -51,7 +52,12 @@ export function AccountsPage() {
             <StatTile
               label={t('accounts.pages.overview.vendorDue')}
               value={overview ? taka(overview.vendorDue.total) : ''}
-              hint={overview && `${overview.vendorDue.vendors} vendors, after advances`}
+              hint={
+                overview &&
+                t('accounts.pages.overview.vendorDueHint', {
+                  vendors: countOf(overview.vendorDue.vendors, 'nouns.vendor', t),
+                })
+              }
               icon={Truck}
               tone="indigo"
               to="/accounts/vendor-bills?status=due"
@@ -60,7 +66,12 @@ export function AccountsPage() {
             <StatTile
               label={t('accounts.pages.overview.openAdvances')}
               value={overview ? taka(overview.advances.outstanding) : ''}
-              hint={overview && `${overview.advances.count} not yet settled`}
+              hint={
+                overview &&
+                t('accounts.pages.overview.openAdvancesHint', {
+                  count: formatNumber(overview.advances.count),
+                })
+              }
               icon={HandCoins}
               tone="amber"
               to="/accounts/advances"
@@ -83,7 +94,13 @@ export function AccountsPage() {
                 period: overview?.period.label ?? t('accounts.pages.overview.thisMonth'),
               })}
               value={overview ? signedTaka(overview.profitLoss.profit) : ''}
-              hint={overview && `${taka(overview.profitLoss.income)} income · ${taka(overview.profitLoss.totalCost)} cost`}
+              hint={
+                overview &&
+                t('accounts.pages.overview.profitHint', {
+                  income: taka(overview.profitLoss.income),
+                  cost: taka(overview.profitLoss.totalCost),
+                })
+              }
               icon={Wallet}
               tone={overview && overview.profitLoss.profit < 0 ? 'rose' : 'violet'}
               to="/accounts/profit-loss"
@@ -117,7 +134,7 @@ export function AccountsPage() {
                 errorMessage={null}
                 onRetry={() => void query.refetch()}
                 canWrite={canWrite}
-                emptyDescription="Start with Add money to record the opening balance of each wallet."
+                emptyDescription={t('accounts.pages.overview.entriesEmpty')}
               />
             </Panel>
             <AttentionPanel overview={overview} />

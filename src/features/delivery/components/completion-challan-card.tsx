@@ -10,6 +10,7 @@ import { DeliveryOutcomeBadge, LineChangeBadge } from './delivery-badges'
 import { DeliveryDetailChips } from './delivery-detail-chips'
 import { QtyStepper } from './qty-stepper'
 import { useT } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
 
 interface CompletionChallanCardProps {
   challan: TripChallanRecord
@@ -87,12 +88,17 @@ export function CompletionChallanCard({
                   <QtyStepper
                     value={back}
                     onChange={(qty) => onReturnChange(index, qty)}
-                    label={`${line.productName} ${line.model} returned`}
+                    label={t('delivery.completion.returnedLabel', {
+                      product: line.productName,
+                      model: line.model,
+                    })}
                     min={0}
                     max={line.qty}
                     disabled={disabled}
                   />
-                  <span className="text-xs text-muted-foreground tabular-nums">of {line.qty}</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">
+                    {t('delivery.completion.ofTotal', { total: formatNumber(line.qty) })}
+                  </span>
                 </div>
               ) : (
                 <div className="text-right">

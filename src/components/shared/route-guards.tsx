@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { AccessDenied } from '@/components/shared/access-denied'
+import type { TranslationKey } from '@/lib/i18n'
 import { AccountInactive } from '@/components/shared/account-inactive'
 import { BrandLogo } from '@/components/shared/brand'
 import { ADMIN_ROLE } from '@/lib/roles'
@@ -108,7 +109,7 @@ export function AdminRoute() {
   }
 
   if (profile?.role !== ADMIN_ROLE) {
-    return <AccessDenied area="Administration" />
+    return <AccessDenied areaKey="nav.items.administration" />
   }
 
   return <Outlet />
@@ -122,7 +123,7 @@ export function AdminRoute() {
  * It is still only presentation — every endpoint behind it re-checks the role
  * server-side, and that is the check that counts.
  */
-export function RoleRoute({ roles, area, reason }: RoleRouteProps) {
+export function RoleRoute({ roles, areaKey, reasonKey }: RoleRouteProps) {
   const status = useAuthStore((state) => state.status)
   const profile = useAuthStore((state) => state.profile)
 
@@ -131,7 +132,7 @@ export function RoleRoute({ roles, area, reason }: RoleRouteProps) {
   }
 
   if (!profile || !roles.includes(profile.role)) {
-    return <AccessDenied area={area} reason={reason} />
+    return <AccessDenied areaKey={areaKey} reasonKey={reasonKey} />
   }
 
   return <Outlet />
@@ -139,8 +140,8 @@ export function RoleRoute({ roles, area, reason }: RoleRouteProps) {
 
 interface RoleRouteProps {
   roles: readonly UserRole[]
-  /** What was being reached, phrased for a person: "Gate Pass". */
-  area: string
-  /** Who the area is for, phrased as a sentence. */
-  reason?: string
+  /** What was being reached, as the key the sidebar names it by. */
+  areaKey: TranslationKey
+  /** Who the area is for, as the key of a whole sentence. */
+  reasonKey?: TranslationKey
 }

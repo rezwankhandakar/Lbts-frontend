@@ -10,7 +10,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { OWNERSHIP_META, VEHICLE_STATUS_META } from '../lib/vendor-meta'
+import { useT } from '@/lib/i18n'
+import { ownershipMeta, vehicleStatusMeta } from '../lib/vendor-meta'
 import { VEHICLE_OWNERSHIP_TYPES, VEHICLE_STATUSES } from '../types'
 import type {
   VehicleFilterPatch,
@@ -47,6 +48,8 @@ export function VehicleFilters({
   canManage,
   summary,
 }: VehicleFiltersProps) {
+  const t = useT()
+
   const isFiltered =
     params.search !== '' ||
     params.status !== 'all' ||
@@ -66,8 +69,8 @@ export function VehicleFilters({
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="Registration, brand or model"
-              aria-label="Search vehicles"
+              placeholder={t('vendor.vehicle.searchPlaceholder')}
+              aria-label={t('vendor.vehicle.searchAria')}
               className="pl-8.5"
             />
           </div>
@@ -77,29 +80,29 @@ export function VehicleFilters({
               value={params.status}
               onValueChange={(value) => onChange({ status: value as VehicleStatus | 'all' })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by vehicle status">
+              <SelectTrigger className={TRIGGER} aria-label={t('vendor.vehicle.statusAria')}>
                 <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
                 <SelectValue>
                   {(value) =>
                     value && value !== 'all'
-                      ? VEHICLE_STATUS_META[value as VehicleStatus].label
-                      : 'Any status'
+                      ? vehicleStatusMeta(value, t).label
+                      : t('vendor.filters.anyStatus')
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any status</SelectItem>
+                  <SelectItem value="all">{t('vendor.filters.anyStatus')}</SelectItem>
                   {VEHICLE_STATUSES.map((status) => (
                     <SelectItem key={status} value={status}>
                       <span
                         className={cn(
                           'size-1.5 shrink-0 rounded-full',
-                          VEHICLE_STATUS_META[status].dot,
+                          vehicleStatusMeta(status, t).dot,
                         )}
                         aria-hidden
                       />
-                      {VEHICLE_STATUS_META[status].label}
+                      {vehicleStatusMeta(status, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -112,21 +115,21 @@ export function VehicleFilters({
                 onChange({ ownershipType: value as VehicleOwnershipType | 'all' })
               }
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by ownership">
+              <SelectTrigger className={TRIGGER} aria-label={t('vendor.vehicle.ownershipAria')}>
                 <SelectValue>
                   {(value) =>
                     value && value !== 'all'
-                      ? OWNERSHIP_META[value as VehicleOwnershipType].label
-                      : 'Any ownership'
+                      ? ownershipMeta(value, t).label
+                      : t('vendor.filters.anyOwnership')
                   }
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any ownership</SelectItem>
+                  <SelectItem value="all">{t('vendor.filters.anyOwnership')}</SelectItem>
                   {VEHICLE_OWNERSHIP_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
-                      {OWNERSHIP_META[type].label}
+                      {ownershipMeta(type, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -136,14 +139,14 @@ export function VehicleFilters({
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
 
             {canManage && (
               <Button size="sm" onClick={onAdd}>
                 <Plus data-icon="inline-start" aria-hidden />
-                Add vehicle
+                {t('vendor.vehicle.add')}
               </Button>
             )}
           </div>

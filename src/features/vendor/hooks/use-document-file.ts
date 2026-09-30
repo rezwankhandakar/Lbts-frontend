@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { t } from '@/lib/i18n'
 import { saveBlob } from '@/lib/save-blob'
 import { fetchDocumentFile } from '../api/vendor-api'
 import type { DocumentRecord } from '../types'
@@ -81,7 +82,7 @@ export function useDocumentFile() {
         const message =
           typeof error === 'object' && error !== null && 'message' in error
             ? String((error as { message: unknown }).message)
-            : 'The file could not be loaded.'
+            : t('vendor.toasts.fileLoadFailed')
 
         setState({ url: null, mimeType: null, isLoading: false, error: message })
       }
@@ -105,7 +106,7 @@ export function useDocumentFile() {
       const blob = await fetchDocumentFile(document.id)
       saveBlob(blob, document.attachment.originalName)
     } catch {
-      toast.error('That file could not be downloaded.')
+      toast.error(t('vendor.toasts.fileDownloadFailed'))
     }
   }, [])
 

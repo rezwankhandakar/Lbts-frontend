@@ -53,12 +53,14 @@ export function ChallanEditPage() {
         <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
           <TriangleAlert className="size-5" aria-hidden />
         </div>
-        <h1 className="mt-4 text-lg font-semibold tracking-tight">Challan not found</h1>
+        <h1 className="mt-4 text-lg font-semibold tracking-tight">
+          {t('challan.details.notFound')}
+        </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          {query.error?.message ?? 'It may have been deleted, or you may not have access to it.'}
+          {query.error?.message ?? t('challan.details.notFoundHint')}
         </p>
         <Button variant="outline" size="sm" className="mt-5" onClick={() => navigate('/challan')}>
-          Back to challans
+          {t('challan.details.backToChallans')}
         </Button>
       </div>
     )
@@ -75,11 +77,13 @@ export function ChallanEditPage() {
             onClick={() => navigate(`/challan/${record.id}`)}
           >
             <ArrowLeft data-icon="inline-start" aria-hidden />
-            Back to the challan
+            {t('challan.details.backToChallan')}
           </Button>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Correct challan</h1>
+            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+              {t('challan.details.correctTitle')}
+            </h1>
             <ChallanStatusBadge status={record.status} />
           </div>
 
@@ -111,7 +115,7 @@ export function ChallanEditPage() {
 
       <div className="grid min-h-0 gap-4 lg:grid-cols-2 lg:items-start xl:gap-6">
         <section
-          aria-label="Challan details"
+          aria-label={t('challan.details.detailsAria')}
           className="overflow-hidden rounded-xl border bg-card shadow-sm"
         >
           <ChallanEntryForm
@@ -132,13 +136,15 @@ export function ChallanEditPage() {
         </section>
 
         <section
-          aria-label="Stored challan document"
+          aria-label={t('challan.details.storedDocumentAria')}
           className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card shadow-sm lg:sticky lg:top-0"
         >
           <header className="border-b bg-muted/30 px-4 py-3">
-            <h2 className="text-[13px] font-semibold tracking-tight">The stored document</h2>
+            <h2 className="text-[13px] font-semibold tracking-tight">
+              {t('challan.details.storedDocumentHeading')}
+            </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              The original challan pages. Check the values against these.
+              {t('challan.details.storedDocumentHint')}
             </p>
           </header>
 

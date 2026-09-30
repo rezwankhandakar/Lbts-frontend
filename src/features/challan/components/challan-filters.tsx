@@ -217,7 +217,7 @@ export function ChallanFilters({
                 className={cn(CONTROL, 'text-muted-foreground')}
               >
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
           </div>

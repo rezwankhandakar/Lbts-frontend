@@ -140,9 +140,9 @@ function line(entry: TripLineRecord): string {
   const mark = MARK[entry.change]
   const note =
     entry.change === 'substituted' && entry.source
-      ? ` for ${escape(entry.source.model)}`
+      ? t('delivery.manifest.forModel', { model: escape(entry.source.model) })
       : (entry.change === 'split' || entry.change === 'reduced') && entry.source
-        ? ` of ${entry.source.qty}`
+        ? t('delivery.manifest.ofQty', { qty: formatNumber(entry.source.qty) })
         : ''
 
   return `<div class="line"><span>${escape(entry.productName)} <span class="mono">${escape(

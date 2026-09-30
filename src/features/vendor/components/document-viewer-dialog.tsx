@@ -7,9 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { formatFileSize } from '../lib/vendor-meta'
+import { formatFileSize } from '@/lib/format'
+import { documentTypeLabel } from '../lib/vendor-meta'
 import type { DocumentRecord } from '../types'
 import { DocumentStatusBadge } from './status-badges'
+import { useT } from '@/lib/i18n'
 
 interface DocumentViewerDialogProps {
   document: DocumentRecord | null
@@ -50,6 +52,8 @@ export function DocumentViewerDialog({
   onOpenChange,
   onDownload,
 }: DocumentViewerDialogProps) {
+  const t = useT()
+
   if (!document) {
     return null
   }
@@ -91,14 +95,20 @@ export function DocumentViewerDialog({
           ) : url && isPdf ? (
             <iframe
               src={url}
-              title={`${document.documentType} for ${document.ownerLabel}`}
+              title={t('vendor.document.viewerTitle', {
+                type: documentTypeLabel(document.documentType, t),
+                owner: document.ownerLabel,
+              })}
               className="h-[65svh] w-full border-0"
             />
           ) : url ? (
             <div className="flex h-full max-h-[65svh] items-center justify-center overflow-auto p-3">
               <img
                 src={url}
-                alt={`${document.documentType} for ${document.ownerLabel}`}
+                alt={t('vendor.document.viewerTitle', {
+                  type: documentTypeLabel(document.documentType, t),
+                  owner: document.ownerLabel,
+                })}
                 className="max-h-full max-w-full object-contain"
               />
             </div>
@@ -108,13 +118,16 @@ export function DocumentViewerDialog({
         <div className="flex flex-col-reverse items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
             {document.attachment
-              ? `${document.attachment.originalName} · ${formatFileSize(document.attachment.size)}`
-              : 'No file attached.'}
+              ? t('vendor.document.fileMeta', {
+                  name: document.attachment.originalName,
+                  size: formatFileSize(document.attachment.size),
+                })
+              : t('vendor.document.noFileAttached')}
           </p>
 
           <Button variant="outline" size="sm" onClick={onDownload} disabled={!document.attachment}>
             <Download data-icon="inline-start" aria-hidden />
-            Download
+            {t('common.actions.download')}
           </Button>
         </div>
       </DialogContent>

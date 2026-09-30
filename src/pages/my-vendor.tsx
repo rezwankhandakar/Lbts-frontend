@@ -6,6 +6,7 @@ import { PanelSkeleton } from '@/features/vendor/components/panel-states'
 import { VendorHeaderSkeleton } from '@/features/vendor/components/vendor-header'
 import { VendorWorkspace } from '@/features/vendor/components/vendor-workspace'
 import { useMyVendor } from '@/features/vendor/hooks/use-vendors'
+import { useT } from '@/lib/i18n'
 
 /**
  * The vendor account's own record.
@@ -28,6 +29,8 @@ import { useMyVendor } from '@/features/vendor/hooks/use-vendors'
  * is not waiting for permission.
  */
 export function MyVendorPage() {
+  const t = useT()
+
   const query = useMyVendor()
 
   if (query.isPending) {
@@ -52,24 +55,30 @@ export function MyVendorPage() {
     return (
       <div className="mx-auto w-full max-w-3xl">
         <PageHeader
-          title="My Vendor"
-          description="Your vendor's fleet, drivers, assignments and compliance documents."
+          title={t('vendor.page.myTitle')}
+          description={t('vendor.page.myDescription')}
         />
         <EmptyState
           icon={Building2}
-          badge={unlinked ? 'Not linked yet' : undefined}
-          title={unlinked ? 'No vendor is linked to this account' : 'Could not load your vendor'}
+          badge={unlinked ? t('vendor.dashboard.notLinkedBadge') : undefined}
+          title={
+            unlinked
+              ? t('vendor.dashboard.notLinkedTitle')
+              : t('vendor.page.myLoadFailed')
+          }
           description={
             unlinked
-              ? 'A vendor account has to be linked to the vendor it speaks for before there is anything to show. An administrator does that from the Administration page.'
-              : (query.error?.message ?? 'Something went wrong.')
+              ? t('vendor.page.notLinkedDescription')
+              : (query.error?.message ?? t('vendor.somethingWrong'))
           }
           action={
             unlinked ? undefined : (
-              <Button onClick={() => void query.refetch()}>Try again</Button>
+              <Button onClick={() => void query.refetch()}>
+                {t('common.actions.retry')}
+              </Button>
             )
           }
-          footnote={unlinked ? 'Contact an administrator to have your account linked.' : undefined}
+          footnote={unlinked ? t('vendor.dashboard.notLinkedFootnote') : undefined}
         />
       </div>
     )
@@ -79,8 +88,7 @@ export function MyVendorPage() {
     <div className="mx-auto w-full max-w-7xl">
       <div className="mb-4 flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
         <Eye className="size-3.5 shrink-0" aria-hidden />
-        You are viewing your vendor record. Everything here is read-only — contact LBTS to have
-        anything changed.
+        {t('vendor.page.readOnlyNotice')}
       </div>
 
       <VendorWorkspace

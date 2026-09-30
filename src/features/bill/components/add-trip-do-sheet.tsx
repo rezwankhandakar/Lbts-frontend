@@ -142,7 +142,7 @@ export function AddTripDoSheet({ bill, open, onOpenChange }: AddTripDoSheetProps
               ) : (
                 <Plus data-icon="inline-start" aria-hidden />
               )}
-              Add to bill
+              {t('bill.search.addToBill')}
             </Button>
           </div>
         </SheetFooter>

@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/features/vendor/components/confirm-dialog'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useWallets } from '../hooks/use-accounts'
 import { useDeleteWallet, useSaveWallet } from '../hooks/use-accounts-mutations'
@@ -77,7 +77,7 @@ export function WalletSettings({ canWrite }: { canWrite: boolean }) {
                       <DropdownMenuContent align="end" className="min-w-40">
                         <DropdownMenuItem onClick={() => setEditing(wallet)}>
                           <Pencil aria-hidden />
-                          Edit
+                          {t('common.actions.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => save.mutate({ id: wallet.id, input: { isActive: !wallet.isActive } })}>
                           {wallet.isActive ? <Archive aria-hidden /> : <ArchiveRestore aria-hidden />}
@@ -88,7 +88,7 @@ export function WalletSettings({ canWrite }: { canWrite: boolean }) {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem variant="destructive" onClick={() => setDeleting(wallet)}>
                               <Trash2 aria-hidden />
-                              Delete
+                              {t('common.actions.delete')}
                             </DropdownMenuItem>
                           </>
                         )}
@@ -98,8 +98,15 @@ export function WalletSettings({ canWrite }: { canWrite: boolean }) {
                 </div>
                 <p className="mt-3 text-2xl font-semibold tracking-tight tabular-nums">{signedTaka(wallet.balance)}</p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
-                  In {taka(wallet.moneyIn)} · Out {taka(wallet.moneyOut)} · {wallet.entryCount} entries
-                  {wallet.lastEntryDate && ` · last ${formatDay(wallet.lastEntryDate)}`}
+                  {t('accounts.wallet.flow', {
+                    in: taka(wallet.moneyIn),
+                    out: taka(wallet.moneyOut),
+                    entries: countOf(wallet.entryCount, 'nouns.entry', t),
+                  })}
+                  {wallet.lastEntryDate &&
+                    t('accounts.wallet.lastEntrySuffix', {
+                      when: formatDay(wallet.lastEntryDate),
+                    })}
                 </p>
               </li>
             )

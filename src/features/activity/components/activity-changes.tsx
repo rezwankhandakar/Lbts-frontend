@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { changeValueText } from '../lib/activity-meta'
 import type { ActivityChange } from '../types'
@@ -49,10 +50,12 @@ function Value({ value, tone }: { value: string | null; tone: 'from' | 'to' }) {
  * on. The sheet scrolls; the value does not clip.
  */
 export function ActivityChanges({ changes }: ActivityChangesProps) {
+  const t = useT()
+
   if (changes.length === 0) {
     return (
       <p className="text-xs text-muted-foreground">
-        No field-level detail was recorded for this event — the summary above is the whole of it.
+        {t('activity.detail.noChanges')}
       </p>
     )
   }

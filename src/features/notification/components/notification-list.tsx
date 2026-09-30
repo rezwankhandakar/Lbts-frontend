@@ -114,9 +114,7 @@ export function NotificationList({
           <>
             <h2 className="mt-4 text-base font-semibold">{t('notification.list.upToDate')}</h2>
             <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-pretty text-muted-foreground">
-              Accounts waiting for approval, gate pass verdicts, certificates about
-              to lapse, goods back at the depot and money movements arrive here as
-              they happen. Nothing is waiting for you right now.
+              {t('notification.list.upToDateHint')}
             </p>
           </>
         )}

@@ -1,4 +1,5 @@
 import { IdCard, Truck } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { DriverRecord } from '../types'
 import { ComplianceChips, DocumentStatusBadge, DriverStatusBadge } from './status-badges'
@@ -20,6 +21,8 @@ export function DriverCards({
   records: DriverRecord[]
   actions: DriverActions
 }) {
+  const t = useT()
+
   return (
     <ul className="divide-y md:hidden">
       {records.map((record) => (
@@ -55,7 +58,7 @@ export function DriverCards({
                   {record.licencePhrase ? ` · ${record.licencePhrase}` : ''}
                 </span>
               ) : (
-                'No licence recorded'
+                t('vendor.noLicence')
               )}
             </p>
 
@@ -66,7 +69,7 @@ export function DriverCards({
                   {record.currentVehicle.registrationNo}
                 </span>
               ) : (
-                'Not assigned to a vehicle'
+                t('vendor.notAssignedToVehicle')
               )}
             </p>
           </div>

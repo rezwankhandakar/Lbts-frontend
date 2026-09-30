@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MAX_PHOTO_BYTES, isAllowedPhoto } from '../lib/photo-rules'
-import { formatDay, formatPeriod } from '../lib/vendor-meta'
+import { BLANK, formatFileSize } from '@/lib/format'
+import { documentTypeLabel, formatAssignmentPeriod, formatDay } from '../lib/vendor-meta'
 import type { AssignmentRecord, DocumentRecord, VehicleRecord } from '../types'
 import { InfoRow } from './form-parts'
 import { VehicleAvatar } from './vendor-identity'
@@ -14,6 +15,7 @@ import {
   OwnershipBadge,
   VehicleStatusBadge,
 } from './status-badges'
+import { useT } from '@/lib/i18n'
 
 interface VehicleDetailSheetProps {
   vehicle: VehicleRecord | null
@@ -78,6 +80,8 @@ export function VehicleDetailSheet({
   onPhotoChosen,
   onPhotoRemoved,
 }: VehicleDetailSheetProps) {
+  const t = useT()
+
   const fileInput = useRef<HTMLInputElement>(null)
 
   if (!vehicle) {
@@ -115,8 +119,14 @@ export function VehicleDetailSheet({
                   <Button
                     variant="outline"
                     size="icon"
-                    aria-label={`${vehicle.photoUrl ? 'Change' : 'Add'} vehicle photo`}
-                    title={`JPG, PNG or WEBP, up to ${MAX_PHOTO_BYTES / (1024 * 1024)} MB`}
+                    aria-label={
+                      vehicle.photoUrl
+                        ? t('vendor.vehicle.changePhoto')
+                        : t('vendor.vehicle.addPhoto')
+                    }
+                    title={t('vendor.photo.formatsHint', {
+                      size: formatFileSize(MAX_PHOTO_BYTES),
+                    })}
                     disabled={isPhotoPending}
                     onClick={() => fileInput.current?.click()}
                     className="absolute -right-1 -bottom-1 size-6 rounded-full bg-card shadow-sm"
@@ -146,7 +156,7 @@ export function VehicleDetailSheet({
                 className="ml-auto h-7 px-2 text-xs text-muted-foreground"
               >
                 <Trash2 data-icon="inline-start" className="size-3.5" aria-hidden />
-                Remove photo
+                {t('vendor.photo.removePhoto')}
               </Button>
             )}
           </div>
@@ -157,12 +167,12 @@ export function VehicleDetailSheet({
             </p>
           )}
 
-          <SubSection title="Information" icon={Truck}>
+          <SubSection title={t('vendor.vehicle.information2')} icon={Truck}>
             <dl className="divide-y">
-              <InfoRow label="Brand">{vehicle.brand || '—'}</InfoRow>
-              <InfoRow label="Model">{vehicle.model || '—'}</InfoRow>
-              <InfoRow label="Vendor">{vendorName}</InfoRow>
-              <InfoRow label="Current driver">
+              <InfoRow label={t('vendor.vehicle.brand')}>{vehicle.brand || BLANK}</InfoRow>
+              <InfoRow label={t('vendor.vehicle.model')}>{vehicle.model || BLANK}</InfoRow>
+              <InfoRow label={t('vendor.vehicle.vendor')}>{vendorName}</InfoRow>
+              <InfoRow label={t('vendor.vehicle.currentDriver')}>
                 {vehicle.currentDriver ? (
                   <>
                     {vehicle.currentDriver.name}
@@ -172,13 +182,13 @@ export function VehicleDetailSheet({
                     </span>
                   </>
                 ) : (
-                  <span className="text-muted-foreground">No driver assigned</span>
+                  <span className="text-muted-foreground">{t('vendor.noDriverAssigned')}</span>
                 )}
               </InfoRow>
             </dl>
           </SubSection>
 
-          <SubSection title="Documents" icon={FileText}>
+          <SubSection title={t('vendor.driver.documents')} icon={FileText}>
             {isLoading ? (
               <div className="space-y-2" aria-busy="true">
                 <Skeleton className="h-10 w-full" />
@@ -186,7 +196,7 @@ export function VehicleDetailSheet({
               </div>
             ) : (documents?.length ?? 0) === 0 ? (
               <p className="py-4 text-center text-xs text-muted-foreground">
-                No documents have been filed for this vehicle yet.
+                {t('vendor.vehicle.documentsEmpty')}
               </p>
             ) : (
               <ul className="divide-y">
@@ -196,9 +206,11 @@ export function VehicleDetailSheet({
                     className="flex items-start justify-between gap-3 py-2.5"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-[13px] font-medium">{document.documentType}</p>
+                      <p className="truncate text-[13px] font-medium">
+                        {documentTypeLabel(document.documentType, t)}
+                      </p>
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {document.documentNumber || 'No number recorded'} ·{' '}
+                        {document.documentNumber || t('vendor.document.noNumberRecorded')} ·{' '}
                         {document.expiryPhrase}
                       </p>
                     </div>
@@ -209,7 +221,7 @@ export function VehicleDetailSheet({
             )}
           </SubSection>
 
-          <SubSection title="Assignment history" icon={History}>
+          <SubSection title={t('vendor.driver.assignmentHistory')} icon={History}>
             {isLoading ? (
               <div className="space-y-2" aria-busy="true">
                 <Skeleton className="h-10 w-full" />
@@ -217,7 +229,7 @@ export function VehicleDetailSheet({
               </div>
             ) : (assignments?.length ?? 0) === 0 ? (
               <p className="py-4 text-center text-xs text-muted-foreground">
-                No driver has been assigned to this vehicle yet.
+                {t('vendor.vehicle.assignmentsEmpty')}
               </p>
             ) : (
               <ul className="divide-y">
@@ -228,10 +240,10 @@ export function VehicleDetailSheet({
                   >
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-medium">
-                        {assignment.driver?.name ?? 'Removed driver'}
+                        {assignment.driver?.name ?? t('vendor.removedDriver')}
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {formatPeriod(assignment.assignedFrom, assignment.assignedUntil)}
+                        {formatAssignmentPeriod(assignment.assignedFrom, assignment.assignedUntil, t)}
                       </p>
                     </div>
                     <AssignmentStatusBadge value={assignment.status} />

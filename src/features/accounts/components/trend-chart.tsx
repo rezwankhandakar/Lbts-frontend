@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useT } from '@/lib/i18n'
+import { formatCompact } from '@/lib/compact-figure'
 import { cn } from '@/lib/utils'
 import { shortPeriodLabel, signedTaka, taka } from '../lib/accounts-meta'
 import type { ProfitLossMonth } from '../types'
@@ -10,13 +11,6 @@ function niceMax(value: number): number {
   const power = 10 ** Math.floor(Math.log10(value))
   const step = [1, 2, 2.5, 5, 10].find((factor) => factor * power >= value) ?? 10
   return step * power
-}
-
-function compact(value: number): string {
-  if (value >= 10_000_000) return `${(value / 10_000_000).toFixed(value % 10_000_000 === 0 ? 0 : 1)}Cr`
-  if (value >= 100_000) return `${(value / 100_000).toFixed(value % 100_000 === 0 ? 0 : 1)}L`
-  if (value >= 1000) return `${Math.round(value / 1000)}K`
-  return String(value)
 }
 
 const SERIES = [
@@ -58,7 +52,7 @@ export function TrendChart({ months }: { months: ProfitLossMonth[] }) {
         <div className="relative h-48 text-right text-[10px] text-muted-foreground tabular-nums">
           {ticks.map((tick, index) => (
             <span key={tick} className="absolute right-0 -translate-y-1/2" style={{ top: `${index * 50}%` }}>
-              {compact(tick)}
+              {formatCompact(tick, t)}
             </span>
           ))}
         </div>

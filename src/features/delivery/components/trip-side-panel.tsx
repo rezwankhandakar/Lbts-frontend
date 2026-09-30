@@ -1,7 +1,7 @@
 import { Building2, Phone, Truck, UserRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { formatDateTime } from '@/lib/format'
+import { formatDateTime, formatNumber } from '@/lib/format'
 import { formatDay } from '@/features/vendor/lib/vendor-meta'
 import type { TripRecord } from '../types'
 import { useT } from '@/lib/i18n'
@@ -55,8 +55,8 @@ export function TripSidePanel({ trip }: { trip: TripRecord }) {
   const t = useT()
 
   const stamps: [string, string | null, string | null][] = [
-    ['Created', trip.createdAt, trip.createdBy?.name ?? null],
-    ['Completed', trip.completedAt, null],
+    [t('common.labels.createdAt'), trip.createdAt, trip.createdBy?.name ?? null],
+    [t('common.labels.completedAt'), trip.completedAt, null],
   ]
 
   return (
@@ -76,7 +76,10 @@ export function TripSidePanel({ trip }: { trip: TripRecord }) {
           {trip.vendor.name}
         </Link>
         <p className="text-xs text-muted-foreground">
-          {trip.vendor.vendorCode} · trip #{trip.vendorTripSerial}
+          {t('delivery.vehicle.tripSerial', {
+            code: trip.vendor.vendorCode,
+            serial: formatNumber(trip.vendorTripSerial),
+          })}
         </p>
         <Tel value={trip.vendor.mobile} />
       </Block>
@@ -85,8 +88,12 @@ export function TripSidePanel({ trip }: { trip: TripRecord }) {
         <p className="font-medium">{trip.driver.name}</p>
         <p className="text-xs text-muted-foreground">
           {trip.driver.driverCode}
-          {trip.driver.licenseNumber && ` · Licence ${trip.driver.licenseNumber}`}
-          {trip.driver.licenseExpiry && ` (expires ${formatDay(trip.driver.licenseExpiry)})`}
+          {trip.driver.licenseNumber &&
+            t('delivery.vehicle.licenceSuffix', { number: trip.driver.licenseNumber })}
+          {trip.driver.licenseExpiry &&
+            t('delivery.vehicle.licenceExpires', {
+              when: formatDay(trip.driver.licenseExpiry),
+            })}
         </p>
         <Tel value={trip.driver.mobile} />
         {trip.driverIsOverride && trip.assignedDriver && (

@@ -49,7 +49,7 @@ export function TripVehicleCard({ option, onChange, disabled }: TripVehicleCardP
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             <span className="font-mono">{vehicle.vehicleCode}</span>
-            {description ? ` · ${description}` : ' · No brand or model recorded'}
+            {description ? ` · ${description}` : t('delivery.vehicle.noBrandOrModel')}
           </p>
 
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -81,7 +81,7 @@ export function TripVehicleCard({ option, onChange, disabled }: TripVehicleCardP
               .map((trip) => `${shortTripNumber(trip.tripNumber)} (${trip.status})`)
               .join(', ')}
             .
-            A second trip is fine for a lorry doing two runs — just make sure it is the same one.
+            {t('delivery.vehicle.secondTripFine')}
           </span>
         </p>
       )}

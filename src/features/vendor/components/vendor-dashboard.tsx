@@ -13,6 +13,7 @@ import { VendorDashboardMonths } from './vendor-dashboard-months'
 import { VendorDashboardRecent } from './vendor-dashboard-recent'
 import { VendorDashboardFleet, VendorDashboardTiles } from './vendor-dashboard-tiles'
 import { VendorTripDetailSheet } from './vendor-trip-detail-sheet'
+import { useT } from '@/lib/i18n'
 
 /**
  * The vendor account's dashboard, and it is about **trips**.
@@ -38,6 +39,8 @@ import { VendorTripDetailSheet } from './vendor-trip-detail-sheet'
  * permission.
  */
 export function VendorDashboard() {
+  const t = useT()
+
   const query = useVendorDashboard()
   const [openTripId, setOpenTripId] = useState<string | null>(null)
   const canOpenDelivery = canReadDeliveries(useCurrentRole())
@@ -45,7 +48,7 @@ export function VendorDashboard() {
   if (query.isPending) {
     return (
       <div className="mx-auto w-full max-w-6xl" aria-busy="true">
-        <PageHeader title="Dashboard" description={DESCRIPTION} />
+        <PageHeader title={t('vendor.dashboard.title')} description={t(DESCRIPTION)} />
         <Skeleton className="h-[30rem] rounded-3xl sm:h-80 lg:h-64" />
         <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[0, 1, 2, 3].map((tile) => (
@@ -71,25 +74,29 @@ export function VendorDashboard() {
 
     return (
       <div className="mx-auto w-full max-w-3xl">
-        <PageHeader title="Dashboard" description={DESCRIPTION} />
+        <PageHeader title={t('vendor.dashboard.title')} description={t(DESCRIPTION)} />
         <EmptyState
           icon={Building2}
-          badge={unlinked ? 'Not linked yet' : undefined}
-          title={unlinked ? 'No vendor is linked to this account' : 'Could not load your dashboard'}
+          badge={unlinked ? t('vendor.dashboard.notLinkedBadge') : undefined}
+          title={
+            unlinked
+              ? t('vendor.dashboard.notLinkedTitle')
+              : t('vendor.dashboard.loadFailed')
+          }
           description={
             unlinked
-              ? 'A vendor account has to be linked to the vendor it speaks for before there is anything to show. An administrator does that from the Administration page.'
-              : (query.error?.message ?? 'Something went wrong.')
+              ? t('vendor.page.notLinkedDescription')
+              : (query.error?.message ?? t('vendor.somethingWrong'))
           }
           action={
             unlinked ? undefined : (
               <Button onClick={() => void query.refetch()}>
                 <RefreshCcw data-icon="inline-start" aria-hidden />
-                Try again
+                {t('common.actions.retry')}
               </Button>
             )
           }
-          footnote={unlinked ? 'Contact an administrator to have your account linked.' : undefined}
+          footnote={unlinked ? t('vendor.dashboard.notLinkedFootnote') : undefined}
         />
       </div>
     )
@@ -99,7 +106,7 @@ export function VendorDashboard() {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <PageHeader title="Dashboard" description={DESCRIPTION} />
+      <PageHeader title={t('vendor.dashboard.title')} description={t(DESCRIPTION)} />
 
       <div className="space-y-4">
         <VendorDashboardHero dashboard={dashboard} />
@@ -113,8 +120,10 @@ export function VendorDashboard() {
          */}
         <div className="grid gap-4 lg:grid-cols-5">
           <div className="space-y-4 lg:col-span-2">
-            <section aria-label="Needs attention" className="space-y-2">
-              <h2 className="text-[13px] font-semibold tracking-tight">Needs attention</h2>
+            <section aria-label={t('vendor.dashboard.needsAttention')} className="space-y-2">
+              <h2 className="text-[13px] font-semibold tracking-tight">
+                {t('vendor.dashboard.needsAttention')}
+              </h2>
               <VendorDashboardAttention dashboard={dashboard} />
             </section>
 
@@ -130,10 +139,11 @@ export function VendorDashboard() {
                 <TrendingUp className="size-4" />
               </span>
               <div className="min-w-0">
-                <h2 className="text-[13px] font-semibold tracking-tight">Last six months</h2>
+                <h2 className="text-[13px] font-semibold tracking-tight">
+                  {t('vendor.dashboard.lastSixMonths')}
+                </h2>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  What the trips in each month were billed. A month with no trips is a zero, not a
-                  gap.
+                  {t('vendor.dashboard.lastSixHint')}
                 </p>
               </div>
             </header>
@@ -150,8 +160,7 @@ export function VendorDashboard() {
 
         <p className="flex items-start gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
           <Eye className="mt-px size-3.5 shrink-0" aria-hidden />
-          Everything here is your own vendor record and is read-only. Trips, bills and payments are
-          entered by LBTS — contact the office to have anything corrected.
+          {t('vendor.dashboard.readOnly')}
         </p>
       </div>
 
@@ -165,5 +174,11 @@ export function VendorDashboard() {
   )
 }
 
-const DESCRIPTION =
-  'Your trips for LBTS — what went out, what came back, what it was billed and what is still due.'
+/**
+ * The page's own sentence, as a key rather than words.
+ *
+ * All three branches of this component draw the same header, so the key is
+ * named once here and resolved at each of them — a sentence fixed at module
+ * scope would keep whichever language the tab was opened in.
+ */
+const DESCRIPTION = 'vendor.dashboard.description' as const

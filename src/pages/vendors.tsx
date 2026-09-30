@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import { ListPagination } from '@/components/shared/list-pagination'
 import { PageHeader } from '@/components/shared/page-header'
+import { SentenceWith } from '@/components/shared/sentence-with'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { ConfirmDialog } from '@/features/vendor/components/confirm-dialog'
 import { StatusChangeDialog } from '@/features/vendor/components/status-change-dialog'
@@ -14,6 +15,7 @@ import { useVendorStats, useVendors } from '@/features/vendor/hooks/use-vendors'
 import { vendorStatusMeta } from '@/features/vendor/lib/vendor-meta'
 import { VENDOR_STATUSES, canManageVendors } from '@/features/vendor/types'
 import type { VendorListParams, VendorStatus } from '@/features/vendor/types'
+import { useT } from '@/lib/i18n'
 
 /**
  * Vendor Management: every vendor, and the size and health of each one's fleet.
@@ -30,6 +32,8 @@ import type { VendorListParams, VendorStatus } from '@/features/vendor/types'
  * page being a list of names you have to click through one at a time.
  */
 export function VendorsPage() {
+  const t = useT()
+
   const role = useCurrentRole()
   const canManage = canManageVendors(role)
 
@@ -66,8 +70,8 @@ export function VendorsPage() {
   return (
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
-        title="Vendor Management"
-        description="Manage vendors, vehicles, drivers and operational compliance. Each vendor owns its own fleet, and a driver is only ever assigned to a vehicle belonging to the same vendor."
+        title={t('vendor.page.title')}
+        description={t('vendor.page.description')}
       />
 
       <div className="mb-6">
@@ -80,7 +84,7 @@ export function VendorsPage() {
       </div>
 
       <section
-        aria-label="Vendor directory"
+        aria-label={t('vendor.page.directoryAria')}
         className="overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <VendorFilters
@@ -91,9 +95,16 @@ export function VendorsPage() {
           canManage={canManage}
           summary={
             meta && !vendorsQuery.isPending
-              ? `${meta.total} ${meta.total === 1 ? 'vendor' : 'vendors'}${
-                  isFiltered ? ' match these filters' : ''
-                }${alerts > 0 && !isFiltered ? ` · ${alerts} document${alerts === 1 ? '' : 's'} needing attention` : ''}`
+              ? `${t(
+                  isFiltered
+                    ? 'vendor.directory.summaryFiltered'
+                    : 'vendor.directory.summaryTotal',
+                  { count: meta.total },
+                )}${
+                  alerts > 0 && !isFiltered
+                    ? ` · ${t('vendor.directory.attention', { count: alerts })}`
+                    : ''
+                }`
               : undefined
           }
         />
@@ -103,7 +114,7 @@ export function VendorsPage() {
           isLoading={vendorsQuery.isPending}
           isFetching={vendorsQuery.isFetching}
           isError={vendorsQuery.isError}
-          errorMessage={vendorsQuery.error?.message ?? 'Something went wrong.'}
+          errorMessage={vendorsQuery.error?.message ?? t('vendor.somethingWrong')}
           isFiltered={isFiltered}
           canManage={canManage}
           onRetry={() => void vendorsQuery.refetch()}
@@ -137,14 +148,14 @@ export function VendorsPage() {
           open={actions.view === 'status'}
           isPending={actions.isPending}
           subject={actions.target.name}
-          noun="vendor"
+          noun={t('vendor.statusDialog.nounVendor')}
           current={actions.target.status}
           options={VENDOR_STATUSES}
           meta={vendorStatusMeta}
           consequence={(status) =>
             status === 'Active'
-              ? 'Vehicles and drivers under this vendor can be assigned again.'
-              : 'Existing vehicles, drivers, assignments and documents are all kept. Nothing new can be assigned under this vendor until it is active again.'
+              ? t('vendor.directory.activeConsequence')
+              : t('vendor.directory.inactiveConsequence')
           }
           onOpenChange={(open) => !open && actions.close()}
           onConfirm={actions.confirmStatus}
@@ -155,19 +166,18 @@ export function VendorsPage() {
         <ConfirmDialog
           open={actions.view === 'delete'}
           isPending={actions.isPending}
-          title={`Remove ${actions.target.name}?`}
+          title={t('vendor.remove.vendorTitle', { name: actions.target.name })}
           description={
-            <>
-              If no vehicle, driver, assignment or user account references this vendor it is
-              deleted outright. If any do, it is <strong>deactivated and kept</strong> instead —
-              a year of assignments has to be able to say who was driving, and deleting the vendor
-              would leave them pointing at nothing. Either way it stops being offered for new
-              work.
-            </>
+            <SentenceWith
+              text={t('vendor.directory.removeDescriptionListed')}
+              placeholder="{kept}"
+            >
+              <strong>{t('vendor.directory.deactivatedAndKept')}</strong>
+            </SentenceWith>
           }
-          confirmLabel="Remove"
-          pendingLabel="Removing…"
-          cancelLabel="Keep it"
+          confirmLabel={t('vendor.remove.confirm')}
+          pendingLabel={t('vendor.remove.removing')}
+          cancelLabel={t('vendor.remove.keepIt')}
           onOpenChange={(open) => !open && actions.close()}
           onConfirm={actions.confirmDelete}
         />

@@ -8,7 +8,8 @@ import { formatBytes } from '@/lib/document-file-rules'
 import type { ReceivedCopyRecord } from '../types'
 import { ZoomToolbar } from '@/components/shared/zoom-toolbar'
 import { ZoomableImage } from '@/components/shared/zoomable-image'
-import { useT } from '@/lib/i18n'
+import { countOf, useFormatters, useT } from '@/lib/i18n'
+import { SentenceWith } from '@/components/shared/sentence-with'
 
 /** pdf.js is only downloaded once somebody actually opens a PDF copy. */
 const ZoomablePdf = lazy(() =>
@@ -57,6 +58,7 @@ export function ReceivedCopyViewer({
   onDownload,
 }: ReceivedCopyViewerProps) {
   const t = useT()
+  const format = useFormatters()
 
   const zoom = useZoom()
 
@@ -80,12 +82,18 @@ export function ReceivedCopyViewer({
         <div className="flex flex-wrap items-center gap-2 pe-8">
           <div className="min-w-0 flex-1">
             <DialogTitle className="truncate text-sm">
-              Signed copy · <span className="font-mono">{challanNumber}</span>
+              <SentenceWith text={t('delivery.copy.viewerTitle')} placeholder="{challan}">
+                <span className="font-mono">{challanNumber}</span>
+              </SentenceWith>
             </DialogTitle>
             <DialogDescription className="text-xs">
               {formatBytes(copy.size)}
-              {copy.pageCount ? ` · ${copy.pageCount} pages` : ''} · filed{' '}
-              {new Date(copy.uploadedAt).toLocaleDateString()}
+              {copy.pageCount
+                ? t('delivery.copy.pagesSuffix', {
+                    pages: countOf(copy.pageCount, 'nouns.page', t),
+                  })
+                : ''}
+              {t('delivery.copy.filedOn', { when: format.date(copy.uploadedAt) })}
             </DialogDescription>
           </div>
           <ZoomToolbar controls={zoom} disabled={!url} />

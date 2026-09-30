@@ -119,7 +119,11 @@ export function BillSheetRow({ line, groupLineIds, banded, canRemove, onRemove }
         <Link
           to={`/trip-do?q=${encodeURIComponent(line.tripDo)}`}
           className="hover:text-primary hover:underline"
-          title={`${line.gatePassNumber} · ${formatTripDate(line.tripDate)} · ${line.challanNumber}`}
+          title={t('bill.search.lineTitle', {
+            gatePass: line.gatePassNumber,
+            date: formatTripDate(line.tripDate),
+            challan: line.challanNumber,
+          })}
         >
           {line.tripDo}
         </Link>

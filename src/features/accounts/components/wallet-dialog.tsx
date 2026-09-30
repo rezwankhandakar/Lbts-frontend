@@ -101,7 +101,7 @@ function WalletForm({ wallet, onDone }: { wallet: WalletRecord | null; onDone: (
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone} disabled={save.isPending}>
-          Cancel
+          {t('common.actions.cancel')}
         </Button>
         <Button type="submit" disabled={save.isPending}>
           {save.isPending && <Loader2 className="animate-spin" data-icon="inline-start" aria-hidden />}

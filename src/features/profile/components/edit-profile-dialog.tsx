@@ -70,7 +70,7 @@ export function EditProfileDialog({ profile, open, onOpenChange }: EditProfileDi
       // The mutation already reported this as a toast; this keeps the message
       // in front of the user beside the form they still have open.
       setError('root', {
-        message: 'Your changes were not saved. Check the details and try again.',
+        message: t('profile.photo.notSaved'),
       })
     }
   })

@@ -1,4 +1,5 @@
 import { UserRound } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { formatDay } from '../lib/vendor-meta'
 import type { VehicleRecord } from '../types'
@@ -26,6 +27,8 @@ export function VehicleCards({
   records: VehicleRecord[]
   actions: VehicleActions
 }) {
+  const t = useT()
+
   return (
     <ul className="divide-y md:hidden">
       {records.map((record) => (
@@ -65,7 +68,7 @@ export function VehicleCards({
                 since {formatDay(record.currentDriver.assignedFrom)}
               </span>
             ) : (
-              'No driver assigned'
+              t('vendor.noDriverAssigned')
             )}
           </p>
 

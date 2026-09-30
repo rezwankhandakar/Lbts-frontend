@@ -46,7 +46,11 @@ export function FinalBillSlotPanel({ slot, isFetching, finalAmount, editingId }:
 
       <div className="flex items-center justify-between gap-3 text-xs">
         <span className="text-muted-foreground">{t('accounts.finalBill.submitted')}</span>
-        <span className="font-semibold tabular-nums">{slot.excelBills.length > 0 ? taka(slot.submittedAmount) : 'None'}</span>
+        <span className="font-semibold tabular-nums">
+          {slot.excelBills.length > 0
+            ? taka(slot.submittedAmount)
+            : t('accounts.finalBill.submittedNone')}
+        </span>
       </div>
 
       {slot.excelBills.length > 0 && (

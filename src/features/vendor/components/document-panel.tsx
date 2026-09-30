@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   useAssignableDrivers,
@@ -24,7 +25,7 @@ import {
 } from '../hooks/use-fleet'
 import { useDocumentFile } from '../hooks/use-document-file'
 import { useDocumentListParams } from '../hooks/use-list-params'
-import { DOCUMENT_STATUS_META } from '../lib/vendor-meta'
+import { documentStatusMeta, documentTypeLabel } from '../lib/vendor-meta'
 import type { DocumentFormValues } from '../schemas/vendor-schemas'
 import { DOCUMENT_STATUSES, DOCUMENT_TYPES } from '../types'
 import type {
@@ -89,6 +90,8 @@ export function DocumentPanel({
   ownerRequest,
   onOwnerHandled,
 }: DocumentPanelProps) {
+  const t = useT()
+
   const { params, applied, isFiltered, applyFilters, setPage, clampToPages, reset } =
     useDocumentListParams()
 
@@ -213,7 +216,7 @@ export function DocumentPanel({
 
   return (
     <>
-      <Panel label="Documents">
+      <Panel label={t('vendor.document.panel')}>
         <div className="border-b">
           <div className="flex flex-col gap-3 p-3 sm:p-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -226,8 +229,8 @@ export function DocumentPanel({
                   type="search"
                   value={params.search}
                   onChange={(event) => applyFilters({ search: event.target.value })}
-                  placeholder="Document number"
-                  aria-label="Search documents"
+                  placeholder={t('vendor.document.searchPlaceholder')}
+                  aria-label={t('vendor.document.searchAria')}
                   className="pl-8.5"
                 />
               </div>
@@ -239,28 +242,28 @@ export function DocumentPanel({
                     applyFilters({ status: value as DocumentStatus | 'all' })
                   }
                 >
-                  <SelectTrigger className={TRIGGER} aria-label="Filter by document status">
+                  <SelectTrigger className={TRIGGER} aria-label={t('vendor.document.statusAria')}>
                     <SelectValue>
                       {(value) =>
                         value && value !== 'all'
-                          ? DOCUMENT_STATUS_META[value as DocumentStatus].label
-                          : 'Any status'
+                          ? documentStatusMeta(value, t).label
+                          : t('vendor.filters.anyStatus')
                       }
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="all">Any status</SelectItem>
+                      <SelectItem value="all">{t('vendor.filters.anyStatus')}</SelectItem>
                       {DOCUMENT_STATUSES.map((status) => (
                         <SelectItem key={status} value={status}>
                           <span
                             className={cn(
                               'size-1.5 shrink-0 rounded-full',
-                              DOCUMENT_STATUS_META[status].dot,
+                              documentStatusMeta(status, t).dot,
                             )}
                             aria-hidden
                           />
-                          {DOCUMENT_STATUS_META[status].label}
+                          {documentStatusMeta(status, t).label}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -273,22 +276,26 @@ export function DocumentPanel({
                     applyFilters({ ownerType: value as DocumentOwnerType | 'all' })
                   }
                 >
-                  <SelectTrigger className={TRIGGER} aria-label="Filter by what it belongs to">
+                  <SelectTrigger className={TRIGGER} aria-label={t('vendor.document.belongsToAria')}>
                     <SelectValue>
                       {(value) =>
                         value === 'Vehicle'
-                          ? 'Vehicle documents'
+                          ? t('vendor.document.vehicleDocuments')
                           : value === 'Driver'
-                            ? 'Driver documents'
-                            : 'All documents'
+                            ? t('vendor.document.driverDocuments')
+                            : t('vendor.document.allDocuments')
                       }
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="all">All documents</SelectItem>
-                      <SelectItem value="Vehicle">Vehicle documents</SelectItem>
-                      <SelectItem value="Driver">Driver documents</SelectItem>
+                      <SelectItem value="all">{t('vendor.document.allDocuments')}</SelectItem>
+                      <SelectItem value="Vehicle">
+                        {t('vendor.document.vehicleDocuments')}
+                      </SelectItem>
+                      <SelectItem value="Driver">
+                        {t('vendor.document.driverDocuments')}
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -299,17 +306,21 @@ export function DocumentPanel({
                     applyFilters({ documentType: value as VendorDocumentType | 'all' })
                   }
                 >
-                  <SelectTrigger className={TRIGGER} aria-label="Filter by document type">
+                  <SelectTrigger className={TRIGGER} aria-label={t('vendor.document.typeAria')}>
                     <SelectValue>
-                      {(value) => (value && value !== 'all' ? String(value) : 'Any type')}
+                      {(value) =>
+                        value && value !== 'all'
+                          ? documentTypeLabel(value, t)
+                          : t('vendor.document.anyType')
+                      }
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="all">Any type</SelectItem>
+                      <SelectItem value="all">{t('vendor.document.anyType')}</SelectItem>
                       {DOCUMENT_TYPES.map((type) => (
                         <SelectItem key={type} value={type}>
-                          {type}
+                          {documentTypeLabel(type, t)}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -324,7 +335,7 @@ export function DocumentPanel({
                     className="text-muted-foreground"
                   >
                     <X data-icon="inline-start" aria-hidden />
-                    Clear
+                    {t('common.actions.clear')}
                   </Button>
                 )}
 
@@ -338,7 +349,7 @@ export function DocumentPanel({
                     }}
                   >
                     <Plus data-icon="inline-start" aria-hidden />
-                    File document
+                    {t('vendor.document.file')}
                   </Button>
                 )}
               </div>
@@ -346,9 +357,10 @@ export function DocumentPanel({
 
             <p className="text-xs text-muted-foreground" aria-live="polite">
               {meta && !query.isPending
-                ? `${meta.total} ${meta.total === 1 ? 'document' : 'documents'}${
-                    isFiltered ? ' match these filters' : ' on file'
-                  } · soonest expiry first`
+                ? `${t(
+                    isFiltered ? 'vendor.document.summaryFiltered' : 'vendor.document.summaryTotal',
+                    { count: meta.total },
+                  )} · ${t('vendor.document.soonestFirst')}`
                 : undefined}
             </p>
           </div>
@@ -358,22 +370,22 @@ export function DocumentPanel({
           <PanelSkeleton />
         ) : query.isError ? (
           <PanelError
-            title="Could not load the documents"
-            message={query.error?.message ?? 'Something went wrong.'}
+            title={t('vendor.document.loadFailed')}
+            message={query.error?.message ?? t('vendor.somethingWrong')}
             onRetry={() => void query.refetch()}
             isRetrying={query.isFetching}
           />
         ) : records.length === 0 ? (
           <PanelEmpty
             icon={FileText}
-            title="No documents filed yet"
+            title={t('vendor.document.noneYet')}
             description="A document belongs to a vehicle or a driver. Its status is worked out from the expiry date, so filing one is what puts it into this vendor's compliance counts."
             isFiltered={isFiltered}
             onReset={reset}
             action={
               canManage
                 ? {
-                    label: 'File document',
+                    label: t('vendor.document.file'),
                     onClick: () => {
                       setTarget(null)
                       setOwner(null)
@@ -449,21 +461,19 @@ export function DocumentPanel({
         <ConfirmDialog
           open={overlay === 'delete'}
           isPending={isPending}
-          title={`Remove this ${target.documentType.toLowerCase()}?`}
+          title={t('vendor.document.removeTitle', {
+            type: documentTypeLabel(target.documentType, t).toLowerCase(),
+          })}
           description={
-            <>
-              The row and its attached file are deleted, and it stops counting toward{' '}
-              {vendor.name}&apos;s compliance. If the document has simply been renewed, updating
-              this one with the new dates keeps the count honest instead.
-            </>
+            t('vendor.document.removeDescription', { vendor: vendor.name })
           }
-          confirmLabel="Remove"
-          pendingLabel="Removing…"
-          cancelLabel="Keep it"
+          confirmLabel={t('vendor.remove.confirm')}
+          pendingLabel={t('vendor.remove.removing')}
+          cancelLabel={t('vendor.remove.keepIt')}
           onOpenChange={(open) => !open && setOverlay(null)}
           onConfirm={() =>
             remove.mutate(
-              { id: target.id, label: target.documentType },
+              { id: target.id, label: documentTypeLabel(target.documentType, t) },
               { onSuccess: () => setOverlay(null) },
             )
           }

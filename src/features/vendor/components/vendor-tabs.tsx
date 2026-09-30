@@ -1,23 +1,25 @@
 import { FileText, History, LayoutGrid, Navigation, Route, Truck, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { VENDOR_TABS } from '../types'
 import type { VendorTab } from '../types'
 
 interface TabDef {
   value: VendorTab
-  label: string
+  labelKey: TranslationKey
   icon: LucideIcon
 }
 
 const TABS: Record<VendorTab, TabDef> = {
-  overview: { value: 'overview', label: 'Overview', icon: LayoutGrid },
-  vehicles: { value: 'vehicles', label: 'Vehicles', icon: Truck },
-  drivers: { value: 'drivers', label: 'Drivers', icon: Users },
-  assignments: { value: 'assignments', label: 'Assignments', icon: Route },
-  documents: { value: 'documents', label: 'Documents', icon: FileText },
-  trips: { value: 'trips', label: 'Trips', icon: Navigation },
-  activity: { value: 'activity', label: 'Activity', icon: History },
+  overview: { value: 'overview', labelKey: 'vendor.tabs.overview', icon: LayoutGrid },
+  vehicles: { value: 'vehicles', labelKey: 'vendor.tabs.vehicles', icon: Truck },
+  drivers: { value: 'drivers', labelKey: 'vendor.tabs.drivers', icon: Users },
+  assignments: { value: 'assignments', labelKey: 'vendor.tabs.assignments', icon: Route },
+  documents: { value: 'documents', labelKey: 'vendor.tabs.documents', icon: FileText },
+  trips: { value: 'trips', labelKey: 'vendor.tabs.trips', icon: Navigation },
+  activity: { value: 'activity', labelKey: 'vendor.tabs.activity', icon: History },
 }
 
 interface VendorTabsProps {
@@ -48,12 +50,14 @@ interface VendorTabsProps {
  * only where something wants attention — a row of zeroes is a row nobody reads.
  */
 export function VendorTabs({ value, onChange, counts, alerting }: VendorTabsProps) {
+  const t = useT()
+
   const order = [...VENDOR_TABS]
 
   return (
     <div
       role="tablist"
-      aria-label="Vendor sections"
+      aria-label={t('vendor.tabs.sectionsAria')}
       className="-mx-4 mb-5 flex gap-1 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
       onKeyDown={(event) => {
         if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
@@ -94,7 +98,7 @@ export function VendorTabs({ value, onChange, counts, alerting }: VendorTabsProp
             )}
           >
             <Icon className="size-4 shrink-0" aria-hidden />
-            {tab.label}
+            {t(tab.labelKey)}
 
             {typeof count === 'number' && count > 0 && (
               <span
@@ -110,7 +114,7 @@ export function VendorTabs({ value, onChange, counts, alerting }: VendorTabsProp
             {alerting?.[key] && (
               <span
                 className="size-1.5 shrink-0 rounded-full bg-tone-rose"
-                aria-label="Needs attention"
+                aria-label={t('vendor.tabs.attentionAria')}
               />
             )}
           </button>

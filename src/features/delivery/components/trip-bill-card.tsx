@@ -6,7 +6,7 @@ import { formatTakaBangla, takaInBanglaWords } from '@/lib/taka-words'
 import { MAX_TRIP_CHARGE } from '../types'
 import type { TripRecord } from '../types'
 import { AmountWordsInput } from '@/components/shared/amount-words-input'
-import { useT } from '@/lib/i18n'
+import { useFormatters, useT } from '@/lib/i18n'
 
 interface TripBillCardProps {
   trip: TripRecord
@@ -26,6 +26,7 @@ interface TripBillCardProps {
  */
 export function TripBillCard({ trip, canChange }: TripBillCardProps) {
   const t = useT()
+  const format = useFormatters()
 
   const [rent, setRent] = useState<number | null>(trip.tripRent)
   const [labour, setLabour] = useState<number | null>(trip.labourBill)
@@ -119,8 +120,12 @@ export function TripBillCard({ trip, canChange }: TripBillCardProps) {
 
       {trip.billUpdatedAt && (
         <p className="text-[11px] text-muted-foreground">
-          Last saved{trip.billUpdatedBy ? ` by ${trip.billUpdatedBy.name}` : ''} ·{' '}
-          {new Date(trip.billUpdatedAt).toLocaleString()}
+          {trip.billUpdatedBy
+            ? t('delivery.trip.lastSavedBy', {
+                name: trip.billUpdatedBy.name,
+                when: format.dateTime(trip.billUpdatedAt),
+              })
+            : t('delivery.trip.lastSaved', { when: format.dateTime(trip.billUpdatedAt) })}
         </p>
       )}
     </section>

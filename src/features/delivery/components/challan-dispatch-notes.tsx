@@ -2,6 +2,8 @@ import { FileWarning, Undo2 } from 'lucide-react'
 import { shortTripNumber } from '../lib/delivery-meta'
 import type { DispatchCorrection, DispatchReturn } from '../types'
 import { useT } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
+import { SentenceWith } from '@/components/shared/sentence-with'
 
 /**
  * What came back, product by product and trip by trip.
@@ -58,22 +60,45 @@ export function DispatchCorrections({ corrections }: { corrections: DispatchCorr
             <span className="font-mono text-foreground">
               {shortTripNumber(correction.tripNumber)}
             </span>{' '}
+            {/*
+             * One sentence per case with its values drawn in place, rather than
+             * words stitched between spans: "in place of" and "of" sit in
+             * different positions in Bangla, and a fragment order fixed here
+             * could only ever read correctly in English.
+             */}
             {correction.replaced ? (
-              <>
-                sent <span className="font-medium text-foreground">{correction.model}</span> in place
-                of <span className="font-mono">{correction.replaced}</span> ({correction.to})
-              </>
+              <SentenceWith
+                text={t('delivery.changes.sentInPlace', { to: formatNumber(correction.to) })}
+                parts={{
+                  model: (
+                    <span className="font-medium text-foreground">{correction.model}</span>
+                  ),
+                  replaced: <span className="font-mono">{correction.replaced}</span>,
+                }}
+              />
             ) : correction.from === 0 ? (
-              <>
-                added <span className="font-medium text-foreground">{correction.productName}</span>{' '}
-                <span className="font-mono">{correction.model}</span> ({correction.to})
-              </>
+              <SentenceWith
+                text={t('delivery.changes.addedLine', { to: formatNumber(correction.to) })}
+                parts={{
+                  product: (
+                    <span className="font-medium text-foreground">{correction.productName}</span>
+                  ),
+                  model: <span className="font-mono">{correction.model}</span>,
+                }}
+              />
             ) : (
-              <>
-                carried <span className="font-medium text-foreground">{correction.productName}</span>{' '}
-                <span className="font-mono">{correction.model}</span> {correction.to} of{' '}
-                {correction.from}
-              </>
+              <SentenceWith
+                text={t('delivery.changes.carriedLine', {
+                  to: formatNumber(correction.to),
+                  from: formatNumber(correction.from),
+                })}
+                parts={{
+                  product: (
+                    <span className="font-medium text-foreground">{correction.productName}</span>
+                  ),
+                  model: <span className="font-mono">{correction.model}</span>,
+                }}
+              />
             )}
           </li>
         ))}

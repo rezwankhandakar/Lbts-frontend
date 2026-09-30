@@ -81,7 +81,7 @@ export function NotificationPreferenceRow({
         checked={receiving}
         disabled={locked}
         onCheckedChange={(checked) => onChange(checked === true)}
-        aria-label={`Receive ${meta.label} notifications`}
+        aria-label={t('notification.preferences.receiveAria', { kind: meta.label })}
       />
     </label>
   )

@@ -24,7 +24,7 @@ export function VendorBillHero({ detail, canWrite }: { detail: VendorBillDetail;
     { label: t('accounts.profit.tripRent'), value: taka(figures.tripRent) },
     { label: t('accounts.profit.labourBill'), value: taka(figures.labourBill), op: '+' },
     { label: t('accounts.vendorBill.tripAdvances'), value: taka(figures.advance), op: '−' },
-    { label: 'Paid', value: taka(figures.paid), op: '−' },
+    { label: t('accounts.vendorBill.paid'), value: taka(figures.paid), op: '−' },
   ]
 
   return (

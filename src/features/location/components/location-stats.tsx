@@ -1,7 +1,7 @@
 import { CircleSlash, MapPinned, Sparkles, TriangleAlert } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useFormatters, useT } from '@/lib/i18n'
+import { countOf, useFormatters, useT } from '@/lib/i18n'
 import type { Translator } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { LocationStats as Stats } from '../types'
@@ -46,7 +46,9 @@ export function LocationStatsPanel({ stats, isLoading }: LocationStatsProps) {
   const tiles: Tile[] = [
     {
       label: t('location.stats.inUse'),
-      hint: `${stats.districts} districts`,
+      hint: t('location.stats.inUseHint', {
+        districts: countOf(stats.districts, 'nouns.district', t),
+      }),
       value: String(stats.active),
       icon: MapPinned,
       chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',

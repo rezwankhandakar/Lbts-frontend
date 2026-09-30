@@ -78,7 +78,7 @@ export function RateFieldGroup({
 
       <div
         role="radiogroup"
-        aria-label={`${label} rate type`}
+        aria-label={t('productRate.form.rateTypeAria', { label })}
         className="mb-3 inline-flex rounded-lg border bg-background p-0.5"
       >
         {RATE_KINDS.map((kind) => (

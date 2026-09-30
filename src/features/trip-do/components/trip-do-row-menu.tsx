@@ -42,7 +42,10 @@ export function TripDoRowMenu({
           <Button
             variant="ghost"
             size="icon-xs"
-            aria-label={`Actions for ${row.challanNumber} ${row.model}`}
+            aria-label={t('tripDo.sheet.actionsFor', {
+              challan: row.challanNumber,
+              model: row.model,
+            })}
           />
         }
       >

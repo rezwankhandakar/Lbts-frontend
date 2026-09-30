@@ -21,11 +21,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { SentenceWith } from '@/components/shared/sentence-with'
 import { formatDay } from '../lib/vendor-meta'
 import { assignmentFormSchema } from '../schemas/vendor-schemas'
 import type { AssignmentFormValues } from '../schemas/vendor-schemas'
 import type { AssignmentRecord, DriverRecord, VehicleRecord } from '../types'
 import { DateField, FieldError, FormSection } from './form-parts'
+import { useT } from '@/lib/i18n'
 
 interface AssignDriverDialogProps {
   open: boolean
@@ -82,6 +84,8 @@ export function AssignDriverDialog({
   onOpenChange,
   onSubmit,
 }: AssignDriverDialogProps) {
+  const t = useT()
+
   const {
     control,
     register,
@@ -171,10 +175,9 @@ export function AssignDriverDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Assign driver</DialogTitle>
+          <DialogTitle>{t('vendor.assignment.dialogTitle')}</DialogTitle>
           <DialogDescription>
-            A vehicle and a driver must belong to the same vendor, and a vehicle can have only one
-            active driver at a time.
+            {t('vendor.assignment.dialogDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -184,17 +187,17 @@ export function AssignDriverDialog({
           className="space-y-5"
           aria-busy={isPending}
         >
-          <FormSection title="Assignment">
+          <FormSection title={t('vendor.assignment.section')}>
             <div className="rounded-lg border bg-muted/40 px-3 py-2.5">
               <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-                Vendor
+                {t('common.labels.vendor')}
               </p>
               <p className="mt-0.5 text-[13px] font-medium">{vendorName}</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="assign-vehicle">Vehicle</Label>
+                <Label htmlFor="assign-vehicle">{t('vendor.assignment.vehicle')}</Label>
                 <Select
                   items={vehicleOptions}
                   value={vehicleId}
@@ -204,7 +207,7 @@ export function AssignDriverDialog({
                   disabled={isPending || isLoadingOptions}
                 >
                   <SelectTrigger id="assign-vehicle" className="w-full">
-                    <SelectValue placeholder="Choose a vehicle" />
+                    <SelectValue placeholder={t('vendor.assignment.chooseVehicle')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -228,14 +231,13 @@ export function AssignDriverDialog({
                 )}
                 {vehicles.length === 0 && !isLoadingOptions && (
                   <p className="text-xs leading-snug text-muted-foreground">
-                    No active vehicles. A vehicle in maintenance, suspended or out of papers cannot
-                    be given a driver.
+                    {t('vendor.assignment.noActiveVehicles')}
                   </p>
                 )}
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="assign-driver">Driver</Label>
+                <Label htmlFor="assign-driver">{t('vendor.assignment.driver')}</Label>
                 <Select
                   items={driverOptions}
                   value={driverId}
@@ -245,7 +247,7 @@ export function AssignDriverDialog({
                   disabled={isPending || isLoadingOptions}
                 >
                   <SelectTrigger id="assign-driver" className="w-full">
-                    <SelectValue placeholder="Choose a driver" />
+                    <SelectValue placeholder={t('vendor.assignment.chooseDriver')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -263,24 +265,26 @@ export function AssignDriverDialog({
                 <FieldError error={errors.driverId?.message} />
                 {driver?.currentVehicle && driver.currentVehicle.vehicleId !== vehicleId && (
                   <p className="text-xs leading-snug text-tone-amber">
-                    Already driving {driver.currentVehicle.registrationNo}, since{' '}
-                    {formatDay(driver.currentVehicle.assignedFrom)}.
+                    {t('vendor.assignment.alreadyDriving', {
+                      plate: driver.currentVehicle.registrationNo,
+                      from: formatDay(driver.currentVehicle.assignedFrom),
+                    })}
                   </p>
                 )}
                 {drivers.length === 0 && !isLoadingOptions && (
                   <p className="text-xs leading-snug text-muted-foreground">
-                    No active drivers. A driver on leave, suspended or inactive cannot be assigned.
+                    {t('vendor.assignment.noActiveDrivers')}
                   </p>
                 )}
               </div>
             </div>
           </FormSection>
 
-          <FormSection title="Period">
+          <FormSection title={t('vendor.assignment.periodSection')}>
             <div className="grid gap-4 sm:grid-cols-2">
               <DateField
                 id="assign-from"
-                label="Assigned from"
+                label={t('vendor.assignment.assignedFrom')}
                 value={assignedFrom}
                 onChange={(value) => setValue('assignedFrom', value, { shouldDirty: true })}
                 disabled={isPending}
@@ -289,12 +293,12 @@ export function AssignDriverDialog({
 
               <DateField
                 id="assign-until"
-                label="Assigned until (optional)"
+                label={t('vendor.assignment.assignedUntil')}
                 value={assignedUntil}
                 onChange={(value) => setValue('assignedUntil', value, { shouldDirty: true })}
                 disabled={isPending}
                 error={errors.assignedUntil?.message}
-                hint="Leave blank for an open-ended assignment, which is the usual case."
+                hint={t('vendor.assignment.assignedUntilHint')}
               />
             </div>
 
@@ -310,12 +314,27 @@ export function AssignDriverDialog({
             <div className="space-y-3 rounded-lg border border-tone-amber/30 bg-tone-amber/[0.07] p-3.5">
               <p className="flex items-start gap-2 text-[13px] leading-snug">
                 <TriangleAlert className="mt-0.5 size-4 shrink-0 text-tone-amber" aria-hidden />
+                {/*
+                 * One sentence with three drawn values rather than five
+                 * fragments stitched in JSX: Bangla puts the displaced driver
+                 * before the verb, so a tail appended here could only ever read
+                 * correctly in English.
+                 */}
                 <span>
-                  <strong>{driver.name}</strong> will become the active driver for{' '}
-                  <strong>{vehicle.registrationNo}</strong>. The current assignment with{' '}
-                  <strong>{displaced}</strong> will be closed
-                  {assignedFrom ? ` on ${formatDay(previousDay(assignedFrom))}` : ''}, and kept in
-                  the history.
+                  <SentenceWith
+                    text={
+                      assignedFrom
+                        ? t('vendor.assignment.handover', {
+                            day: formatDay(previousDay(assignedFrom)),
+                          })
+                        : t('vendor.assignment.handoverUndated')
+                    }
+                    parts={{
+                      driver: <strong>{driver.name}</strong>,
+                      vehicle: <strong>{vehicle.registrationNo}</strong>,
+                      displaced: <strong>{displaced}</strong>,
+                    }}
+                  />
                 </span>
               </p>
 
@@ -338,7 +357,7 @@ export function AssignDriverDialog({
                   onChange={(event) => setAcknowledged(event.target.checked)}
                   className="mt-0.5 size-3.5 shrink-0 accent-[var(--primary)]"
                 />
-                <span>Close the current assignment and make this driver active.</span>
+                <span>{t('vendor.assignment.closeCurrent')}</span>
               </label>
             </div>
           )}
@@ -350,13 +369,15 @@ export function AssignDriverDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" disabled={isPending || (needsConfirmation && !acknowledged)}>
               {isPending && (
                 <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
               )}
-              {needsConfirmation ? 'Replace driver' : 'Assign driver'}
+              {needsConfirmation
+                ? t('vendor.assignment.replaceDriver')
+                : t('vendor.assignment.assign')}
             </Button>
           </DialogFooter>
         </form>
@@ -376,12 +397,18 @@ export function AssignDriverDialog({
  * fleet tables render.
  */
 function TakenChip({ kind, label }: { kind: 'driver' | 'vehicle'; label: string }) {
+  const t = useT()
+
   const Icon = kind === 'driver' ? UserRound : Truck
 
   return (
     <span
       className="inline-flex shrink-0 items-center gap-1 rounded-full border border-tone-amber/30 bg-tone-amber/10 px-1.5 py-px text-[10.5px] leading-4 font-medium text-tone-amber"
-      title={kind === 'driver' ? `Currently driven by ${label}` : `Currently driving ${label}`}
+      title={
+        kind === 'driver'
+          ? t('vendor.assignment.currentlyDrivenBy', { label })
+          : t('vendor.assignment.currentlyDriving', { label })
+      }
     >
       <Icon className="size-2.5" aria-hidden />
       {label}

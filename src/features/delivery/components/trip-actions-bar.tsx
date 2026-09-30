@@ -32,7 +32,7 @@ export function TripActionsBar({ trip, actions }: { trip: TripRecord; actions: T
       {canChange && editable && (
         <Button variant="outline" onClick={() => actions.edit(trip)}>
           <PencilLine data-icon="inline-start" aria-hidden />
-          Edit
+          {t('common.actions.edit')}
         </Button>
       )}
 

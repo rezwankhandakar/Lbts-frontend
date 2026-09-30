@@ -10,7 +10,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { VENDOR_STATUS_META } from '../lib/vendor-meta'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey, Translator } from '@/lib/i18n'
+import { vendorStatusMeta } from '../lib/vendor-meta'
 import { VENDOR_STATUSES } from '../types'
 import type {
   ComplianceFilter,
@@ -31,24 +33,24 @@ interface VendorFiltersProps {
 
 const TRIGGER = 'h-8 w-full sm:w-[11rem]'
 
-const COMPLIANCE_LABELS: Record<ComplianceFilter, string> = {
-  all: 'Any compliance',
-  expired: 'Has expired papers',
-  expiring: 'Has papers expiring',
-  clear: 'All papers in order',
+const COMPLIANCE_KEYS: Record<ComplianceFilter, TranslationKey> = {
+  all: 'vendor.directory.anyCompliance',
+  expired: 'vendor.directory.hasExpired',
+  expiring: 'vendor.directory.hasExpiring',
+  clear: 'vendor.directory.allInOrder',
 }
 
-const SORT_LABELS: Record<VendorSort, string> = {
-  name: 'Name (A–Z)',
-  recent: 'Recently added',
-  vehicles: 'Most vehicles',
-  drivers: 'Most drivers',
+const SORT_KEYS: Record<VendorSort, TranslationKey> = {
+  name: 'vendor.directory.sortName',
+  recent: 'vendor.directory.sortRecent',
+  vehicles: 'vendor.directory.sortVehicles',
+  drivers: 'vendor.directory.sortDrivers',
 }
 
-function statusLabel(value: unknown): string {
+function statusLabel(value: unknown, t: Translator): string {
   return typeof value === 'string' && value !== 'all'
-    ? (VENDOR_STATUS_META[value as keyof typeof VENDOR_STATUS_META]?.label ?? value)
-    : 'Any status'
+    ? vendorStatusMeta(value, t).label
+    : t('vendor.filters.anyStatus')
 }
 
 /**
@@ -71,6 +73,8 @@ export function VendorFilters({
   canManage,
   summary,
 }: VendorFiltersProps) {
+  const t = useT()
+
   const isFiltered =
     params.search !== '' || params.status !== 'all' || params.compliance !== 'all'
 
@@ -87,8 +91,8 @@ export function VendorFilters({
               type="search"
               value={params.search}
               onChange={(event) => onChange({ search: event.target.value })}
-              placeholder="Vendor name, code or mobile"
-              aria-label="Search vendors"
+              placeholder={t('vendor.directory.searchPlaceholder')}
+              aria-label={t('vendor.directory.searchAria')}
               className="pl-8.5"
             />
           </div>
@@ -98,23 +102,23 @@ export function VendorFilters({
               value={params.status}
               onValueChange={(value) => onChange({ status: value as VendorStatusFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by vendor status">
+              <SelectTrigger className={TRIGGER} aria-label={t('vendor.directory.statusAria')}>
                 <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
-                <SelectValue>{statusLabel}</SelectValue>
+                <SelectValue>{(value) => statusLabel(value, t)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Any status</SelectItem>
+                  <SelectItem value="all">{t('vendor.filters.anyStatus')}</SelectItem>
                   {VENDOR_STATUSES.map((status) => (
                     <SelectItem key={status} value={status}>
                       <span
                         className={cn(
                           'size-1.5 shrink-0 rounded-full',
-                          VENDOR_STATUS_META[status].dot,
+                          vendorStatusMeta(status, t).dot,
                         )}
                         aria-hidden
                       />
-                      {VENDOR_STATUS_META[status].label}
+                      {vendorStatusMeta(status, t).label}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -125,17 +129,17 @@ export function VendorFilters({
               value={params.compliance}
               onValueChange={(value) => onChange({ compliance: value as ComplianceFilter })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Filter by compliance">
+              <SelectTrigger className={TRIGGER} aria-label={t('vendor.directory.complianceAria')}>
                 <ShieldAlert className="size-3.5 text-muted-foreground" aria-hidden />
                 <SelectValue>
-                  {(value) => COMPLIANCE_LABELS[(value as ComplianceFilter) ?? 'all']}
+                  {(value) => COMPLIANCE_KEYS[(value as ComplianceFilter) ?? 'all']}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {(Object.keys(COMPLIANCE_LABELS) as ComplianceFilter[]).map((value) => (
+                  {(Object.keys(COMPLIANCE_KEYS) as ComplianceFilter[]).map((value) => (
                     <SelectItem key={value} value={value}>
-                      {COMPLIANCE_LABELS[value]}
+                      {t(COMPLIANCE_KEYS[value])}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -146,17 +150,17 @@ export function VendorFilters({
               value={params.sort}
               onValueChange={(value) => onChange({ sort: value as VendorSort })}
             >
-              <SelectTrigger className={TRIGGER} aria-label="Sort vendors">
+              <SelectTrigger className={TRIGGER} aria-label={t('vendor.directory.sortAria')}>
                 <ArrowUpDown className="size-3.5 text-muted-foreground" aria-hidden />
                 <SelectValue>
-                  {(value) => SORT_LABELS[(value as VendorSort) ?? 'name']}
+                  {(value) => SORT_KEYS[(value as VendorSort) ?? 'name']}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {(Object.keys(SORT_LABELS) as VendorSort[]).map((value) => (
+                  {(Object.keys(SORT_KEYS) as VendorSort[]).map((value) => (
                     <SelectItem key={value} value={value}>
-                      {SORT_LABELS[value]}
+                      {t(SORT_KEYS[value])}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -166,14 +170,14 @@ export function VendorFilters({
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
 
             {canManage && (
               <Button size="sm" onClick={onAdd}>
                 <Plus data-icon="inline-start" aria-hidden />
-                Add vendor
+                {t('vendor.directory.add')}
               </Button>
             )}
           </div>

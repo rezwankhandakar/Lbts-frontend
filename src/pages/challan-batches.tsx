@@ -9,7 +9,7 @@ import { useBatchListParams } from '@/features/challan/hooks/use-batch-list-para
 import { useChallanBatches } from '@/features/challan/hooks/use-challans'
 import { canWriteChallans } from '@/features/challan/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * Every source PDF, and how far through each one the operation got.
@@ -81,9 +81,9 @@ export function ChallanBatchesPage() {
           onReset={reset}
           summary={
             meta && !query.isPending
-              ? `${meta.total} ${meta.total === 1 ? 'source PDF' : 'source PDFs'}${
-                  isFiltered ? ' match these filters' : ' processed'
-                }`
+              ? t(isFiltered ? 'challan.batch.summaryFiltered' : 'challan.batch.summaryTotal', {
+                  pdfs: countOf(meta.total, 'nouns.sourcePdf', t),
+                })
               : undefined
           }
         />

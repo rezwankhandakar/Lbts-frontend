@@ -85,7 +85,11 @@ export function ColumnFilterDropdown({
           <Button
             variant="ghost"
             size="icon-xs"
-            aria-label={isActive ? `${label}: filtered` : `Filter ${label}`}
+            aria-label={
+            isActive
+              ? t('shared.columnFilter.filtered', { label })
+              : t('shared.columnFilter.filterBy', { label })
+          }
             className={cn(
               'shrink-0 normal-case',
               isActive && 'bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary',

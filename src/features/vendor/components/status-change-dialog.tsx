@@ -11,8 +11,9 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import type { StatusMeta } from '../lib/vendor-meta'
+import type { StatusLookup } from '../lib/vendor-meta'
 
 interface StatusChangeDialogProps<TStatus extends string> {
   open: boolean
@@ -24,7 +25,7 @@ interface StatusChangeDialogProps<TStatus extends string> {
   current: TStatus
   /** The states this subject may move to. Empty means it is already everywhere. */
   options: readonly TStatus[]
-  meta: (value: string) => StatusMeta
+  meta: StatusLookup
   /** What each state means for this subject, beyond the generic description. */
   consequence?: (status: TStatus) => string | undefined
   onOpenChange: (open: boolean) => void
@@ -56,6 +57,8 @@ export function StatusChangeDialog<TStatus extends string>({
   onOpenChange,
   onConfirm,
 }: StatusChangeDialogProps<TStatus>) {
+  const t = useT()
+
   const [selected, setSelected] = useState<TStatus | null>(null)
   const [note, setNote] = useState('')
 
@@ -73,19 +76,18 @@ export function StatusChangeDialog<TStatus extends string>({
     setNote('')
   }
 
-  const currentMeta = meta(current)
+  const currentMeta = meta(current, t)
   const targets = options.filter((option) => option !== current)
-  const staged = selected ? meta(selected) : null
+  const staged = selected ? meta(selected, t) : null
   const note_required = selected !== null && selected !== ('Active' as TStatus)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Change status</DialogTitle>
+          <DialogTitle>{t('vendor.statusDialog.title')}</DialogTitle>
           <DialogDescription>
-            A {noun}&apos;s status decides what can be done with it next. Nothing already recorded
-            is changed or removed by it.
+            {t('vendor.statusDialog.description', { noun })}
           </DialogDescription>
         </DialogHeader>
 
@@ -93,13 +95,13 @@ export function StatusChangeDialog<TStatus extends string>({
           <p className="truncate text-[13px] font-medium">{subject}</p>
           <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className={cn('size-1.5 shrink-0 rounded-full', currentMeta.dot)} aria-hidden />
-            Currently {currentMeta.label.toLowerCase()}
+            {t('vendor.statusDialog.currently', { status: currentMeta.label.toLowerCase() })}
           </p>
         </div>
 
-        <div role="group" aria-label="Select a status" className="grid gap-2 sm:grid-cols-2">
+        <div role="group" aria-label={t('vendor.statusDialog.selectAria')} className="grid gap-2 sm:grid-cols-2">
           {targets.map((option) => {
-            const optionMeta = meta(option)
+            const optionMeta = meta(option, t)
             const Icon = optionMeta.icon
             const isSelected = option === selected
 
@@ -154,7 +156,7 @@ export function StatusChangeDialog<TStatus extends string>({
             {note_required && (
               <div className="space-y-1.5">
                 <Label htmlFor="status-note" className="text-xs">
-                  Reason (optional)
+                  {t('vendor.statusDialog.reason')}
                 </Label>
                 <Textarea
                   id="status-note"
@@ -163,7 +165,7 @@ export function StatusChangeDialog<TStatus extends string>({
                   maxLength={400}
                   disabled={isPending}
                   onChange={(event) => setNote(event.target.value)}
-                  placeholder="Recorded on the record, and cleared when it becomes active again."
+                  placeholder={t('vendor.statusDialog.reasonPlaceholder')}
                 />
               </div>
             )}
@@ -172,14 +174,14 @@ export function StatusChangeDialog<TStatus extends string>({
 
         <DialogFooter>
           <Button variant="outline" disabled={isPending} onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
           <Button
             disabled={!selected || isPending}
             onClick={() => selected && onConfirm(selected, note.trim())}
           >
             {isPending && <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />}
-            Confirm change
+            {t('vendor.statusDialog.confirm')}
           </Button>
         </DialogFooter>
       </DialogContent>

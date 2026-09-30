@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { t } from '@/lib/i18n'
 import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import { config } from '@/app/config'
 import { getIdToken } from '@/lib/firebase'
@@ -80,12 +81,12 @@ api.interceptors.response.use(
 
 function fallbackMessage(error: AxiosError): string {
   if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
-    return 'The server took too long to respond. It may be waking up - please try again.'
+    return t('errors.slowServer')
   }
 
   if (error.code === 'ERR_NETWORK') {
-    return 'Could not reach the server. Check your connection and try again.'
+    return t('errors.unreachable')
   }
 
-  return error.message || 'Something went wrong.'
+  return error.message || t('errors.generic')
 }

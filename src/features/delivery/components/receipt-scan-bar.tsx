@@ -85,7 +85,7 @@ export function ReceiptScanBar({ onScan, pending, listening }: ReceiptScanBarPro
           disabled={pending || !(isChallanCode(typed.trim()) || isTripCode(typed.trim()))}
           onClick={submit}
         >
-          Open
+          {t('common.actions.open')}
         </Button>
       </div>
     </div>

@@ -46,7 +46,7 @@ export function TripRowMenu({ trip, actions }: { trip: TripRecord; actions: Trip
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem onClick={() => actions.open(trip)}>
           <Eye aria-hidden />
-          Open
+          {t('common.actions.open')}
         </DropdownMenuItem>
 
         {trip.status === 'Open' && (

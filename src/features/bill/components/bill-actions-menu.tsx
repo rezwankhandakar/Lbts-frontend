@@ -38,7 +38,7 @@ export function BillActionsMenu({ bill, canWrite, canReview, isRefreshing, onOpe
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label={`More actions for ${bill.billNumber}`} />}>
+      <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label={t('bill.menu.moreActionsFor', { bill: bill.billNumber })} />}>
         <MoreHorizontal aria-hidden />
       </DropdownMenuTrigger>
 

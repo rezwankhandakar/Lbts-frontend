@@ -49,7 +49,7 @@ export function ChallanDocumentViewer({
       return (
         <div className="flex h-full flex-col items-center justify-center gap-3" aria-busy>
           <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />
-          <p className="text-xs text-muted-foreground">Loading the challan document…</p>
+          <p className="text-xs text-muted-foreground">{t('challan.goods.loadingDocument')}</p>
         </div>
       )
     }

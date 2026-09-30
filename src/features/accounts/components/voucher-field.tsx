@@ -4,13 +4,12 @@ import { toast } from 'sonner'
 import { DocumentScanPanel } from '@/components/shared/document-scan-panel'
 import { Button } from '@/components/ui/button'
 import {
-  ALLOWED_DOCUMENT_FILE_EXTENSIONS,
   DOCUMENT_FILE_ACCEPT,
   documentFileProblem,
   formatBytes,
 } from '@/lib/document-file-rules'
 import type { EntryVoucher } from '../types'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 /** A file staged for upload, and how many sheets produced it. */
 export interface StagedVoucher {
@@ -56,7 +55,7 @@ export function VoucherField({ staged, current, disabled, onChange }: VoucherFie
   const [scanning, setScanning] = useState(false)
 
   const accept = (file: File, pageCount: number | null) => {
-    const problem = documentFileProblem(file)
+    const problem = documentFileProblem(file, t)
     if (problem) {
       toast.error(problem)
       return
@@ -91,8 +90,12 @@ export function VoucherField({ staged, current, disabled, onChange }: VoucherFie
             <p className="truncate text-[13px] font-medium">{staged.file.name}</p>
             <p className="text-xs text-muted-foreground">
               {formatBytes(staged.file.size)}
-              {staged.pageCount ? ` · ${staged.pageCount} sheets` : ''}
-              {current ? ' · replaces the one on record' : ''}
+              {staged.pageCount
+                ? t('accounts.voucher.sheetsSuffix', {
+                    sheets: countOf(staged.pageCount, 'nouns.sheet', t),
+                  })
+                : ''}
+              {current ? t('accounts.voucher.replacesOnRecord') : ''}
             </p>
           </div>
           <Button
@@ -154,8 +157,7 @@ export function VoucherField({ staged, current, disabled, onChange }: VoucherFie
           )}
 
           <p className="text-xs leading-snug text-muted-foreground">
-            {ALLOWED_DOCUMENT_FILE_EXTENSIONS}. A multi-sheet bill is stored as one PDF, and an
-            entry is saved with or without one.
+            {t('shared.documentFile.voucherHint')}
           </p>
         </>
       )}

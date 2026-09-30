@@ -15,7 +15,6 @@ import type { TranslationKey } from '@/lib/i18n'
 import type { ScanSource } from '@/lib/scanner-agent'
 import { cn } from '@/lib/utils'
 import {
-  ALLOWED_DOCUMENT_FILE_EXTENSIONS,
   DOCUMENT_FILE_ACCEPT,
   documentFileProblem,
 } from '@/lib/document-file-rules'
@@ -59,7 +58,7 @@ export function QuickCopyScan({
   const [pairing, setPairing] = useState(false)
 
   const accept = (file: File, pageCount: number | null) => {
-    const problem = documentFileProblem(file)
+    const problem = documentFileProblem(file, t)
     if (problem) {
       toast.error(problem)
       return
@@ -182,7 +181,7 @@ export function QuickCopyScan({
 
       <p className="text-xs leading-snug text-muted-foreground">
         {!canScan && !scanning && scanner.state !== 'checking' ? `${t(scannerDescriptionKey(scanner.state))} ` : ''}
-        {ALLOWED_DOCUMENT_FILE_EXTENSIONS}. Two sheets are saved as one PDF.
+        {t('shared.documentFile.copyHint')}
       </p>
 
       <ScannerPairingDialog open={pairing} onOpenChange={setPairing} onPaired={scanner.check} />

@@ -3,6 +3,8 @@ import { shortPeriodLabel } from '@/features/accounts/lib/accounts-meta'
 import { taka } from '@/features/delivery/lib/delivery-meta'
 import { cn } from '@/lib/utils'
 import type { VendorMonthPoint } from '../types'
+import { formatCompact } from '@/lib/compact-figure'
+import { formatNumber } from '@/lib/format'
 import { countOf, useT } from '@/lib/i18n'
 
 /** A clean upper bound for the axis: 1, 2, 2.5 or 5 times a power of ten. */
@@ -11,15 +13,6 @@ function niceMax(value: number): number {
   const power = 10 ** Math.floor(Math.log10(value))
   const step = [1, 2, 2.5, 5, 10].find((factor) => factor * power >= value) ?? 10
   return step * power
-}
-
-/** A taka figure short enough for an axis: 12K, 1.5L, 2Cr — the local scale. */
-function compact(value: number): string {
-  if (value >= 10_000_000)
-    return `${(value / 10_000_000).toFixed(value % 10_000_000 === 0 ? 0 : 1)}Cr`
-  if (value >= 100_000) return `${(value / 100_000).toFixed(value % 100_000 === 0 ? 0 : 1)}L`
-  if (value >= 1000) return `${Math.round(value / 1000)}K`
-  return String(value)
 }
 
 /**
@@ -55,10 +48,12 @@ export function VendorDashboardMonths({ months }: { months: VendorMonthPoint[] }
       <figcaption className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className="size-2.5 rounded-[3px] bg-viz-1" aria-hidden />
-          Billed per month — trip rent and labour
+          {t('vendor.dashboard.billedPerMonth')}
         </span>
         {nothingBilled && (
-          <span className="text-xs text-muted-foreground">Nothing billed in this window yet</span>
+          <span className="text-xs text-muted-foreground">
+            {t('vendor.dashboard.nothingBilledYet')}
+          </span>
         )}
       </figcaption>
 
@@ -70,7 +65,7 @@ export function VendorDashboardMonths({ months }: { months: VendorMonthPoint[] }
               className="absolute right-0 -translate-y-1/2"
               style={{ top: `${index * 50}%` }}
             >
-              {compact(tick)}
+              {formatCompact(tick, t)}
             </span>
           ))}
         </div>
@@ -100,7 +95,7 @@ export function VendorDashboardMonths({ months }: { months: VendorMonthPoint[] }
                 {/* The current month is labelled; the rest answer on press. */}
                 {index === current && point.bill > 0 && (
                   <span className="absolute bottom-full mb-1 text-[10px] font-medium text-muted-foreground tabular-nums">
-                    {compact(point.bill)}
+                    {formatCompact(point.bill, t)}
                   </span>
                 )}
 
@@ -126,13 +121,15 @@ export function VendorDashboardMonths({ months }: { months: VendorMonthPoint[] }
                     <p className="flex items-center justify-between gap-2">
                       <span className="flex items-center gap-1.5 text-muted-foreground">
                         <span className="size-2 rounded-[2px] bg-viz-1" />
-                        Billed
+                        {t('vendor.dashboard.billedSeries')}
                       </span>
                       <span className="tabular-nums">{taka(point.bill)}</span>
                     </p>
                     <p className="mt-1.5 flex justify-between gap-2 border-t pt-1.5 text-muted-foreground">
                       <span>{countOf(point.trips, 'nouns.trip', t)}</span>
-                      <span className="tabular-nums">{point.qty.toLocaleString()} pcs</span>
+                      <span className="tabular-nums">
+                        {countOf(point.qty, 'nouns.pc', t)}
+                      </span>
                     </p>
                   </div>
                 )}
@@ -156,21 +153,21 @@ export function VendorDashboardMonths({ months }: { months: VendorMonthPoint[] }
 
       {/* The same figures as a table, for a reader who is not reading the picture. */}
       <table className="sr-only">
-        <caption>Trips, pieces and amount billed by month</caption>
+        <caption>{t('vendor.dashboard.chartCaption')}</caption>
         <thead>
           <tr>
-            <th>Month</th>
-            <th>Trips</th>
-            <th>Pieces</th>
-            <th>Billed</th>
+            <th>{t('vendor.dashboard.month')}</th>
+            <th>{t('vendor.dashboard.trips')}</th>
+            <th>{t('vendor.dashboard.pieces')}</th>
+            <th>{t('vendor.dashboard.billed')}</th>
           </tr>
         </thead>
         <tbody>
           {months.map((point) => (
             <tr key={`${point.year}-${point.month}`}>
               <td>{shortPeriodLabel(point)}</td>
-              <td>{point.trips}</td>
-              <td>{point.qty}</td>
+              <td>{formatNumber(point.trips)}</td>
+              <td>{formatNumber(point.qty)}</td>
               <td>{taka(point.bill)}</td>
             </tr>
           ))}

@@ -69,8 +69,7 @@ export function NotificationPanelEmpty() {
       </div>
       <p className="mt-3 text-[13px] font-medium">{t('notification.panel.upToDate')}</p>
       <p className="mx-auto mt-1 max-w-[17rem] text-[11px] leading-relaxed text-muted-foreground">
-        Approvals, review verdicts, lapsing certificates and money movements land
-        here as they happen.
+        {t('notification.panel.nothingWaitingHint')}
       </p>
     </div>
   )

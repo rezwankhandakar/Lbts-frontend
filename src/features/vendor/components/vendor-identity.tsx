@@ -1,4 +1,5 @@
 import { Building2, Truck } from 'lucide-react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { PhotoLightbox } from './photo-lightbox'
 
@@ -122,6 +123,8 @@ interface VehicleAvatarProps {
  * and indigo tone are the ones the truck icon already used in this module.
  */
 export function VehicleAvatar({ photoUrl, label, caption, className }: VehicleAvatarProps) {
+  const t = useT()
+
   const picture = (
     <span
       className={cn(
@@ -139,7 +142,7 @@ export function VehicleAvatar({ photoUrl, label, caption, className }: VehicleAv
   )
 
   return photoUrl ? (
-    <PhotoLightbox label={label ?? 'This vehicle'} caption={caption} photoUrl={photoUrl}>
+    <PhotoLightbox label={label ?? t('vendor.photo.thisVehicle')} caption={caption} photoUrl={photoUrl}>
       {picture}
     </PhotoLightbox>
   ) : (

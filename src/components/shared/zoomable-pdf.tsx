@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { FileWarning, Loader2 } from 'lucide-react'
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist'
 import { isRenderCancelled, openSourcePdf, startPageRender } from '@/features/challan/lib/pdf-source'
+import { formatNumber } from '@/lib/format'
 import { useZoomSurface } from '@/hooks/use-zoom'
 import type { ZoomControls } from '@/hooks/use-zoom'
+import { useT } from '@/lib/i18n'
 
 interface ZoomablePdfProps {
   blob: Blob
@@ -23,9 +25,24 @@ interface ZoomablePdfProps {
  * it until they open a PDF.
  */
 export function ZoomablePdf({ blob, title, controls }: ZoomablePdfProps) {
+  const t = useT()
+
   const surfaceRef = useRef<HTMLDivElement>(null)
   const size = useZoomSurface(surfaceRef, controls)
-  const [loaded, setLoaded] = useState<{ blob: Blob; doc: PDFDocumentProxy | null; error: string | null } | null>(null)
+  /**
+   * `failed` rather than a message, because the words are the translator's and
+   * the effect must not depend on it: listing `t` in the deps would re-open the
+   * PDF every time the language changed, and closing over one would leave a
+   * message in the language the file happened to be opened in. What the effect
+   * keeps is the failure itself — its own message where pdf.js gave one, and
+   * otherwise nothing, resolved to a sentence where it is drawn.
+   */
+  const [loaded, setLoaded] = useState<{
+    blob: Blob
+    doc: PDFDocumentProxy | null
+    failed: boolean
+    message: string | null
+  } | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -38,14 +55,15 @@ export function ZoomablePdf({ blob, title, controls }: ZoomablePdfProps) {
           return
         }
         opened = source.doc
-        setLoaded({ blob, doc: source.doc, error: null })
+        setLoaded({ blob, doc: source.doc, failed: false, message: null })
       })
       .catch((failure: unknown) => {
         if (!cancelled) {
           setLoaded({
             blob,
             doc: null,
-            error: failure instanceof Error ? failure.message : 'The PDF could not be opened.',
+            failed: true,
+            message: failure instanceof Error ? failure.message : null,
           })
         }
       })
@@ -69,10 +87,12 @@ export function ZoomablePdf({ blob, title, controls }: ZoomablePdfProps) {
         </div>
       )}
 
-      {current?.error && (
+      {current?.failed && (
         <div className="flex h-full flex-col items-center justify-center gap-2 text-center" role="alert">
           <FileWarning className="size-6 text-destructive" aria-hidden />
-          <p className="text-sm text-muted-foreground">{current.error}</p>
+          <p className="text-sm text-muted-foreground">
+            {current.message ?? t('shared.zoom.pdfFailed')}
+          </p>
         </div>
       )}
 
@@ -107,6 +127,8 @@ interface PdfCanvasPageProps {
  * reason `PdfPageView` in Challan gives at length.
  */
 function PdfCanvasPage({ doc, pageNumber, zoom, surface }: PdfCanvasPageProps) {
+  const t = useT()
+
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -156,7 +178,7 @@ function PdfCanvasPage({ doc, pageNumber, zoom, surface }: PdfCanvasPageProps) {
       ref={canvasRef}
       className="mx-auto block h-auto rounded-sm bg-white shadow-md"
       style={{ maxWidth: 'none' }}
-      aria-label={`Page ${pageNumber}`}
+      aria-label={t('shared.zoom.pageAria', { page: formatNumber(pageNumber) })}
     />
   )
 }

@@ -1,3 +1,5 @@
+import { formatNumber } from '@/lib/format'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   assignmentStatusMeta,
@@ -36,19 +38,19 @@ function Badge({ meta, className }: { meta: StatusMeta; className?: string }) {
 }
 
 export function VendorStatusBadge({ value, className }: BadgeProps) {
-  return <Badge meta={vendorStatusMeta(value)} className={className} />
+  return <Badge meta={vendorStatusMeta(value, useT())} className={className} />
 }
 
 export function VehicleStatusBadge({ value, className }: BadgeProps) {
-  return <Badge meta={vehicleStatusMeta(value)} className={className} />
+  return <Badge meta={vehicleStatusMeta(value, useT())} className={className} />
 }
 
 export function DriverStatusBadge({ value, className }: BadgeProps) {
-  return <Badge meta={driverStatusMeta(value)} className={className} />
+  return <Badge meta={driverStatusMeta(value, useT())} className={className} />
 }
 
 export function AssignmentStatusBadge({ value, className }: BadgeProps) {
-  return <Badge meta={assignmentStatusMeta(value)} className={className} />
+  return <Badge meta={assignmentStatusMeta(value, useT())} className={className} />
 }
 
 /**
@@ -61,11 +63,11 @@ export function AssignmentStatusBadge({ value, className }: BadgeProps) {
  * alert correctly means there is nothing to do.
  */
 export function DocumentStatusBadge({ value, className }: BadgeProps) {
-  return <Badge meta={documentStatusMeta(value)} className={className} />
+  return <Badge meta={documentStatusMeta(value, useT())} className={className} />
 }
 
 export function OwnershipBadge({ value, className }: BadgeProps) {
-  return <Badge meta={ownershipMeta(value)} className={className} />
+  return <Badge meta={ownershipMeta(value, useT())} className={className} />
 }
 
 /**
@@ -93,14 +95,22 @@ export function ComplianceChips({
   tally: { total: number; expiringSoon: number; expired: number }
   className?: string
 }) {
+  const t = useT()
+  const expired = documentStatusMeta('Expired', t)
+  const expiring = documentStatusMeta('Expiring Soon', t)
+
   if (tally.total === 0) {
-    return <span className={cn('text-xs text-muted-foreground', className)}>None filed</span>
+    return (
+      <span className={cn('text-xs text-muted-foreground', className)}>
+        {t('vendor.compliance.noneFiled')}
+      </span>
+    )
   }
 
   if (tally.expired === 0 && tally.expiringSoon === 0) {
     return (
       <span className={cn('text-xs text-muted-foreground', className)}>
-        {tally.total} valid
+        {t('vendor.compliance.allValid', { n: formatNumber(tally.total) })}
       </span>
     )
   }
@@ -109,33 +119,29 @@ export function ComplianceChips({
     <span className={cn('inline-flex flex-wrap items-center gap-1.5', className)}>
       {tally.expired > 0 && (
         <span
-          className={cn(BASE, documentStatusMeta('Expired').badge)}
-          title={`${tally.expired} of this subject's ${tally.total} filed documents ${
-            tally.expired === 1 ? 'has' : 'have'
-          } passed its expiry date`}
+          className={cn(BASE, expired.badge)}
+          title={t('vendor.compliance.expiredTitle', {
+            count: tally.expired,
+            n: formatNumber(tally.expired),
+            total: formatNumber(tally.total),
+          })}
         >
-          <span
-            className={cn('size-1.5 shrink-0 rounded-full', documentStatusMeta('Expired').dot)}
-            aria-hidden
-          />
-          {tally.expired} expired
+          <span className={cn('size-1.5 shrink-0 rounded-full', expired.dot)} aria-hidden />
+          {t('vendor.compliance.expired', { n: formatNumber(tally.expired) })}
         </span>
       )}
       {tally.expiringSoon > 0 && (
         <span
-          className={cn(BASE, documentStatusMeta('Expiring Soon').badge)}
-          title={`${tally.expiringSoon} of this subject's ${tally.total} filed documents ${
-            tally.expiringSoon === 1 ? 'expires' : 'expire'
-          } within ${DOCUMENT_EXPIRY_SOON_DAYS} days`}
+          className={cn(BASE, expiring.badge)}
+          title={t('vendor.compliance.expiringTitle', {
+            count: tally.expiringSoon,
+            n: formatNumber(tally.expiringSoon),
+            total: formatNumber(tally.total),
+            days: formatNumber(DOCUMENT_EXPIRY_SOON_DAYS),
+          })}
         >
-          <span
-            className={cn(
-              'size-1.5 shrink-0 rounded-full',
-              documentStatusMeta('Expiring Soon').dot,
-            )}
-            aria-hidden
-          />
-          {tally.expiringSoon} expiring
+          <span className={cn('size-1.5 shrink-0 rounded-full', expiring.dot)} aria-hidden />
+          {t('vendor.compliance.expiring', { n: formatNumber(tally.expiringSoon) })}
         </span>
       )}
     </span>

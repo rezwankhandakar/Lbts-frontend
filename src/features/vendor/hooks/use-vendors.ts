@@ -2,6 +2,8 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
+import { t } from '@/lib/i18n'
+import { vendorStatusMeta } from '../lib/vendor-meta'
 import {
   changeVendorStatus,
   createVendor,
@@ -236,11 +238,13 @@ export function useCreateVendor(): UseMutationResult<VendorRecord, ApiError, Ven
   return useMutation({
     mutationFn: createVendor,
     onSuccess: (vendor) => {
-      toast.success(`${vendor.name} added as ${vendor.vendorCode}`, {
+      toast.success(t('vendor.toasts.vendorAdded', { name: vendor.name, code: vendor.vendorCode }), {
         description:
           vendor.status === 'Active'
-            ? 'It can take assignments straight away.'
-            : `It is ${vendor.status.toLowerCase()}, so nothing can be assigned under it yet.`,
+            ? t('vendor.toasts.vendorActiveNote')
+            : t('vendor.toasts.vendorInactiveNote', {
+                status: vendorStatusMeta(vendor.status, t).label.toLowerCase(),
+              }),
       })
       void invalidate()
     },
@@ -258,7 +262,7 @@ export function useUpdateVendor(): UseMutationResult<
   return useMutation({
     mutationFn: updateVendor,
     onSuccess: (vendor) => {
-      toast.success(`${vendor.name} updated`)
+      toast.success(t('vendor.toasts.vendorUpdated', { name: vendor.name }))
       void invalidate()
     },
     onError: reportVendorError,
@@ -282,12 +286,18 @@ export function useChangeVendorStatus(): UseMutationResult<
   return useMutation({
     mutationFn: changeVendorStatus,
     onSuccess: (vendor) => {
-      toast.success(`${vendor.name} is now ${vendor.status}`, {
-        description:
-          vendor.status === 'Active'
-            ? 'It can take new assignments again.'
-            : 'Existing records are kept. Nothing new can be assigned under it.',
-      })
+      toast.success(
+        t('vendor.toasts.vendorStatus', {
+          name: vendor.name,
+          status: vendorStatusMeta(vendor.status, t).label,
+        }),
+        {
+          description:
+            vendor.status === 'Active'
+              ? t('vendor.toasts.vendorStatusActiveNote')
+              : t('vendor.toasts.vendorStatusInactiveNote'),
+        },
+      )
       void invalidate()
     },
     onError: reportVendorError,
@@ -317,11 +327,13 @@ export function useDeleteVendor(): UseMutationResult<
         result.vehicles + result.drivers + result.assignments + result.linkedUsers
 
       toast.success(
-        result.deactivated ? `${variables.label} deactivated` : `${variables.label} deleted`,
+        t(result.deactivated ? 'vendor.toasts.vendorDeactivated' : 'vendor.toasts.vendorDeleted', {
+          label: variables.label,
+        }),
         {
           description: result.deactivated
-            ? `${referenced} record${referenced === 1 ? '' : 's'} still reference it, so it was kept and taken out of use instead.`
-            : 'Nothing referenced it, so it is gone.',
+            ? t('vendor.toasts.vendorStillReferenced', { count: referenced })
+            : t('vendor.toasts.vendorGone'),
         },
       )
       void invalidate()
@@ -339,7 +351,7 @@ export function useVendorPhoto(): {
   const upload = useMutation({
     mutationFn: ({ id, file }: { id: string; file: File }) => uploadVendorPhoto(id, file),
     onSuccess: () => {
-      toast.success('Photo updated')
+      toast.success(t('vendor.toasts.photoUpdated'))
       void invalidate()
     },
     onError: reportVendorError,
@@ -348,7 +360,7 @@ export function useVendorPhoto(): {
   const remove = useMutation({
     mutationFn: removeVendorPhoto,
     onSuccess: () => {
-      toast.success('Photo removed')
+      toast.success(t('vendor.toasts.photoRemoved'))
       void invalidate()
     },
     onError: reportVendorError,

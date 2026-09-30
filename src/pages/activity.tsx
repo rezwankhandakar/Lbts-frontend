@@ -16,7 +16,7 @@ import {
 import { canExportActivity } from '@/features/activity/types'
 import type { ActivityRecord } from '@/features/activity/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * The activity journal: who did what, across every module.
@@ -87,7 +87,7 @@ export function ActivityPage() {
       />
 
       <section
-        aria-label="Activity journal"
+        aria-label={t('activity.toolbar.journalAria')}
         className="overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <ActivityToolbar
@@ -102,9 +102,10 @@ export function ActivityPage() {
           onExport={exportController.request}
           summary={
             meta && !activityQuery.isPending
-              ? `${meta.total.toLocaleString()} ${meta.total === 1 ? 'event' : 'events'}${
-                  isFiltered ? ' match these filters' : ' in the journal'
-                }`
+              ? t(
+                  isFiltered ? 'activity.toolbar.summaryFiltered' : 'activity.toolbar.summaryTotal',
+                  { events: countOf(meta.total, 'nouns.event', t) },
+                )
               : undefined
           }
         />

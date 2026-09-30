@@ -1,5 +1,5 @@
 import { MAX_PDF_BYTES } from './gate-pass-document'
-import { t } from '@/lib/i18n'
+import { countOf, t } from '@/lib/i18n'
 import { formatBytes } from './gate-pass-meta'
 import type { ScannedDocument } from '@/lib/scanner-agent'
 
@@ -164,9 +164,11 @@ export async function joinDocuments(files: File[], stem: string): Promise<Scanne
   // crossing a slow line to a cold instance before being refused.
   if (merged.byteLength > MAX_PDF_BYTES) {
     throw new MergeDocumentsError(
-      `Those ${files.length} sheets come to ${formatBytes(merged.byteLength)}, over the ${formatBytes(
-        MAX_PDF_BYTES,
-      )} limit. Join fewer sheets, or scan the stack at a lower resolution.`,
+      t('gatePass.documentRules.mergedTooLarge', {
+        sheets: countOf(files.length, 'nouns.sheet', t),
+        size: formatBytes(merged.byteLength),
+        limit: formatBytes(MAX_PDF_BYTES),
+      }),
     )
   }
 

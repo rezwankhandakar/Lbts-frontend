@@ -32,7 +32,7 @@ export function DeleteTripDialog({
       description={t('delivery.trip.deleteDescription')}
       confirmLabel={t('delivery.trip.deleteTrip')}
       pendingLabel={t('delivery.trip.deleting')}
-      cancelLabel="Keep it"
+      cancelLabel={t('delivery.trip.keepIt')}
       onOpenChange={(open) => !open && actions.cancelDelete()}
       onConfirm={() => actions.confirmDelete(onDeleted)}
     />

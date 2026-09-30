@@ -1,5 +1,6 @@
 import { ActivityFeed } from '@/features/activity/components/activity-feed'
 import { useVendorActivity } from '@/features/activity/hooks/use-activity'
+import { useT } from '@/lib/i18n'
 
 interface VendorActivityPanelProps {
   vendorId: string
@@ -32,15 +33,16 @@ interface VendorActivityPanelProps {
  * the Trips tab rather than being covered by it.
  */
 export function VendorActivityPanel({ vendorId, vendorName }: VendorActivityPanelProps) {
+  const t = useT()
+
   const query = useVendorActivity(vendorId)
 
   return (
     <section className="rounded-xl border bg-card p-3 shadow-sm sm:p-4">
       <header className="mb-3 border-b pb-3">
-        <h2 className="text-sm font-semibold tracking-tight">Recent activity</h2>
+        <h2 className="text-sm font-semibold tracking-tight">{t('vendor.overview.recentActivity')}</h2>
         <p className="mt-1 text-xs text-muted-foreground text-pretty">
-          Changes to {vendorName}, its fleet, its drivers and the trips it has run — newest first.
-          Written as people work, and never edited.
+          {t('vendor.overview.activityDescription', { vendor: vendorName })}
         </p>
       </header>
 
@@ -49,8 +51,8 @@ export function VendorActivityPanel({ vendorId, vendorName }: VendorActivityPane
         isLoading={query.isPending}
         isError={query.isError}
         errorMessage={query.error?.message}
-        emptyTitle="Nothing recorded yet"
-        emptyDescription={`Adding a vehicle, assigning a driver, filing a document or running a trip for ${vendorName} will appear here.`}
+        emptyTitle={t('vendor.overview.nothingRecordedYet')}
+        emptyDescription={t('vendor.overview.activityEmpty', { vendor: vendorName })}
       />
     </section>
   )

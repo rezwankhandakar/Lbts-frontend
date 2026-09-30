@@ -6,7 +6,9 @@ import { localToday, monthRange, taka } from '@/features/delivery/lib/delivery-m
 import { cn } from '@/lib/utils'
 import type { VendorTripFilterPatch, VendorTripListParams, VendorTripPageMeta } from '../types'
 import { MonthlyBill } from './vendor-trip-monthly-bill'
+import { formatNumber } from '@/lib/format'
 import { countOf, useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 interface VendorTripFiltersProps {
   params: VendorTripListParams
@@ -17,22 +19,22 @@ interface VendorTripFiltersProps {
   meta?: VendorTripPageMeta
 }
 
-const DATE_CHIPS: { label: string; range: () => { from: string; to: string } }[] = [
-  { label: 'Any date', range: () => ({ from: '', to: '' }) },
-  { label: 'Today', range: () => ({ from: localToday(), to: localToday() }) },
-  { label: 'This month', range: () => monthRange(0) },
-  { label: 'Last month', range: () => monthRange(-1) },
+const DATE_CHIPS: { key: TranslationKey; range: () => { from: string; to: string } }[] = [
+  { key: 'time.anyDate', range: () => ({ from: '', to: '' }) },
+  { key: 'time.today', range: () => ({ from: localToday(), to: localToday() }) },
+  { key: 'time.thisMonth', range: () => monthRange(0) },
+  { key: 'time.lastMonth', range: () => monthRange(-1) },
 ]
 
-const STATUS_CHIPS: { value: VendorTripListParams['status']; label: string }[] = [
-  { value: 'all', label: 'Any status' },
-  { value: 'Open', label: 'Awaiting copy' },
-  { value: 'Completed', label: 'Completed' },
+const STATUS_CHIPS: { value: VendorTripListParams['status']; key: TranslationKey }[] = [
+  { value: 'all', key: 'vendor.filters.anyStatus' },
+  { value: 'Open', key: 'vendor.trip.awaitingCopy' },
+  { value: 'Completed', key: 'vendor.trip.completed' },
 ]
 
-const BILL_CHIPS: { value: Exclude<VendorTripListParams['bill'], 'all'>; label: string }[] = [
-  { value: 'no-rent', label: 'No trip rent' },
-  { value: 'no-labour', label: 'No labour bill' },
+const BILL_CHIPS: { value: Exclude<VendorTripListParams['bill'], 'all'>; key: TranslationKey }[] = [
+  { value: 'no-rent', key: 'vendor.trip.noRent' },
+  { value: 'no-labour', key: 'vendor.trip.noLabour' },
 ]
 
 function Chip({
@@ -92,8 +94,8 @@ export function VendorTripFilters({
             type="search"
             value={params.search}
             onChange={(event) => onChange({ search: event.target.value })}
-            placeholder="Trip number, plate or driver"
-            aria-label="Search trips"
+            placeholder={t('vendor.trip.searchPlaceholder')}
+            aria-label={t('vendor.trip.searchAria')}
             className="pl-8.5"
           />
         </div>
@@ -106,23 +108,23 @@ export function VendorTripFilters({
               value={params.from}
               max={params.to || undefined}
               onChange={(event) => onChange({ from: event.target.value })}
-              aria-label="Trips from"
+              aria-label={t('vendor.trip.fromAria')}
               className="h-8 min-w-0 flex-1 sm:w-38 sm:flex-none"
             />
-            <span className="shrink-0 text-xs text-muted-foreground">to</span>
+            <span className="shrink-0 text-xs text-muted-foreground">{t('common.labels.to')}</span>
             <Input
               type="date"
               value={params.to}
               min={params.from || undefined}
               onChange={(event) => onChange({ to: event.target.value })}
-              aria-label="Trips until"
+              aria-label={t('vendor.trip.untilAria')}
               className="h-8 min-w-0 flex-1 sm:w-38 sm:flex-none"
             />
           </div>
           {isFiltered && (
             <Button variant="ghost" size="sm" onClick={onReset}>
               <X data-icon="inline-start" aria-hidden />
-              Clear
+              {t('common.actions.clear')}
             </Button>
           )}
         </div>
@@ -135,11 +137,11 @@ export function VendorTripFilters({
             const range = chip.range()
             return (
               <Chip
-                key={chip.label}
+                key={chip.key}
                 active={params.from === range.from && params.to === range.to}
                 onClick={() => onChange(range)}
               >
-                {chip.label}
+                {t(chip.key)}
               </Chip>
             )
           })}
@@ -152,7 +154,7 @@ export function VendorTripFilters({
               active={params.status === chip.value}
               onClick={() => onChange({ status: chip.value })}
             >
-              {chip.label}
+              {t(chip.key)}
             </Chip>
           ))}
 
@@ -178,9 +180,9 @@ export function VendorTripFilters({
                   )}
                 >
                   <CircleDashed className="size-3" aria-hidden />
-                  {chip.label}
+                  {t(chip.key)}
                   <span className="rounded-full bg-tone-rose/15 px-1.5 font-bold tabular-nums">
-                    {count}
+                    {formatNumber(count)}
                   </span>
                 </button>
               )
@@ -191,8 +193,9 @@ export function VendorTripFilters({
       {meta && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            {countOf(meta.total, 'nouns.trip', t)} · {countOf(meta.totalQty, 'nouns.piece', t)} · Trip rent{' '}
-            {taka(meta.totalRent)} · Labour bill {taka(meta.totalLabour)}
+            {countOf(meta.total, 'nouns.trip', t)} · {countOf(meta.totalQty, 'nouns.piece', t)} ·{' '}
+            {t('vendor.trip.rentTotal', { amount: taka(meta.totalRent) })} ·{' '}
+            {t('vendor.trip.labourTotal', { amount: taka(meta.totalLabour) })}
           </p>
           <MonthlyBill bill={meta.monthlyBill} />
         </div>

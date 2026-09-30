@@ -11,6 +11,7 @@ import { useUserActions } from '@/features/administration/use-user-actions'
 import type { RoleFilter, StatusFilter } from '@/features/administration/types'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useAuthStore } from '@/stores/use-auth-store'
+import { countOf, useT } from '@/lib/i18n'
 
 const PAGE_SIZE = 10
 
@@ -23,6 +24,8 @@ const PAGE_SIZE = 10
  * counts as security; the other two are courtesy.
  */
 export function AdministrationPage() {
+  const t = useT()
+
   const currentUserId = useAuthStore((state) => state.profile?.id ?? null)
 
   /**
@@ -107,7 +110,7 @@ export function AdministrationPage() {
       />
 
       <section
-        aria-label="User management"
+        aria-label={t('administration.directory.managementAria')}
         className="overflow-hidden rounded-xl border bg-card shadow-sm"
       >
         <UserFilters
@@ -120,9 +123,12 @@ export function AdministrationPage() {
           onReset={resetFilters}
           summary={
             meta && !usersQuery.isPending
-              ? `${meta.total} ${meta.total === 1 ? 'account' : 'accounts'}${
-                  isFiltered ? ' match these filters' : ' on record'
-                }`
+              ? t(
+                  isFiltered
+                    ? 'administration.directory.summaryFiltered'
+                    : 'administration.directory.summaryTotal',
+                  { accounts: countOf(meta.total, 'nouns.account', t) },
+                )
               : undefined
           }
         />
@@ -133,7 +139,7 @@ export function AdministrationPage() {
           isLoading={usersQuery.isPending}
           isFetching={usersQuery.isFetching}
           isError={usersQuery.isError}
-          errorMessage={usersQuery.error?.message ?? 'Something went wrong.'}
+          errorMessage={usersQuery.error?.message ?? t('errors.generic')}
           isFiltered={isFiltered}
           onRetry={() => void usersQuery.refetch()}
           onReset={resetFilters}

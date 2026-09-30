@@ -9,7 +9,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatPeriod } from '../lib/vendor-meta'
+import { formatFileSize } from '@/lib/format'
+import { documentTypeLabel, formatAssignmentPeriod } from '../lib/vendor-meta'
 import { MAX_PHOTO_BYTES, isAllowedPhoto } from '../lib/photo-rules'
 import type { AssignmentRecord, DocumentRecord, DriverDetail } from '../types'
 import { InfoRow } from './form-parts'
@@ -19,6 +20,7 @@ import {
   DriverStatusBadge,
 } from './status-badges'
 import { DriverAvatar } from './vendor-identity'
+import { useT } from '@/lib/i18n'
 
 interface DriverDetailSheetProps {
   driver: DriverDetail | null
@@ -78,6 +80,8 @@ export function DriverDetailSheet({
   onOpenChange,
   onPhotoChosen,
 }: DriverDetailSheetProps) {
+  const t = useT()
+
   const fileInput = useRef<HTMLInputElement>(null)
 
   if (!driver) {
@@ -114,8 +118,10 @@ export function DriverDetailSheet({
                   <Button
                     variant="outline"
                     size="icon"
-                    aria-label="Change driver photo"
-                    title={`JPG, PNG or WEBP, up to ${MAX_PHOTO_BYTES / (1024 * 1024)} MB`}
+                    aria-label={t('vendor.driver.changePhoto')}
+                    title={t('vendor.photo.formatsHint', {
+                      size: formatFileSize(MAX_PHOTO_BYTES),
+                    })}
                     disabled={isPhotoPending}
                     onClick={() => fileInput.current?.click()}
                     className="absolute -right-1 -bottom-1 size-6 rounded-full bg-card shadow-sm"
@@ -144,9 +150,9 @@ export function DriverDetailSheet({
             </p>
           )}
 
-          <SubSection title="Contact" icon={UserRound}>
+          <SubSection title={t('vendor.driver.contact')} icon={UserRound}>
             <dl className="divide-y">
-              <InfoRow label="Mobile">
+              <InfoRow label={t('vendor.driver.mobile')}>
                 <a
                   href={`tel:${driver.mobile.replace(/\s/g, '')}`}
                   className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
@@ -154,38 +160,38 @@ export function DriverDetailSheet({
                   {driver.mobile}
                 </a>
               </InfoRow>
-              <InfoRow label="Address">
-                {driver.address || <span className="text-muted-foreground">Not recorded</span>}
+              <InfoRow label={t('vendor.driver.address')}>
+                {driver.address || <span className="text-muted-foreground">{t('vendor.notRecorded')}</span>}
               </InfoRow>
-              <InfoRow label="NID number">
-                {driver.nidNumber || <span className="text-muted-foreground">Not recorded</span>}
+              <InfoRow label={t('vendor.driver.nid')}>
+                {driver.nidNumber || <span className="text-muted-foreground">{t('vendor.notRecorded')}</span>}
               </InfoRow>
             </dl>
           </SubSection>
 
-          <SubSection title="Licence" icon={IdCard}>
+          <SubSection title={t('vendor.driver.licenceSection')} icon={IdCard}>
             <dl className="divide-y">
-              <InfoRow label="Licence number">
+              <InfoRow label={t('vendor.driver.licenceNumber')}>
                 {driver.licenseNumber || (
-                  <span className="text-muted-foreground">Not recorded</span>
+                  <span className="text-muted-foreground">{t('vendor.notRecorded')}</span>
                 )}
               </InfoRow>
-              <InfoRow label="Expiry">
+              <InfoRow label={t('vendor.driver.expiry')}>
                 {driver.licencePhrase ?? (
-                  <span className="text-muted-foreground">No expiry recorded</span>
+                  <span className="text-muted-foreground">{t('vendor.noExpiryRecorded')}</span>
                 )}
               </InfoRow>
-              <InfoRow label="Current vehicle">
+              <InfoRow label={t('vendor.driver.currentVehicle')}>
                 {driver.currentVehicle ? (
                   driver.currentVehicle.registrationNo
                 ) : (
-                  <span className="text-muted-foreground">Not assigned</span>
+                  <span className="text-muted-foreground">{t('vendor.notAssigned')}</span>
                 )}
               </InfoRow>
             </dl>
           </SubSection>
 
-          <SubSection title="Documents" icon={FileText}>
+          <SubSection title={t('vendor.driver.documents')} icon={FileText}>
             {isLoading ? (
               <div className="space-y-2" aria-busy="true">
                 <Skeleton className="h-10 w-full" />
@@ -193,16 +199,19 @@ export function DriverDetailSheet({
               </div>
             ) : (documents?.length ?? 0) === 0 ? (
               <p className="py-4 text-center text-xs text-muted-foreground">
-                No documents have been filed for this driver yet.
+                {t('vendor.driver.documentsEmpty')}
               </p>
             ) : (
               <ul className="divide-y">
                 {documents?.map((document) => (
                   <li key={document.id} className="flex items-start justify-between gap-3 py-2.5">
                     <div className="min-w-0">
-                      <p className="truncate text-[13px] font-medium">{document.documentType}</p>
+                      <p className="truncate text-[13px] font-medium">
+                        {documentTypeLabel(document.documentType, t)}
+                      </p>
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {document.documentNumber || 'No number recorded'} · {document.expiryPhrase}
+                        {document.documentNumber || t('vendor.document.noNumberRecorded')} ·{' '}
+                        {document.expiryPhrase}
                       </p>
                     </div>
                     <DocumentStatusBadge value={document.status} />
@@ -212,14 +221,14 @@ export function DriverDetailSheet({
             )}
           </SubSection>
 
-          <SubSection title="Assignment history" icon={History}>
+          <SubSection title={t('vendor.driver.assignmentHistory')} icon={History}>
             {isLoading ? (
               <div className="space-y-2" aria-busy="true">
                 <Skeleton className="h-10 w-full" />
               </div>
             ) : (assignments?.length ?? 0) === 0 ? (
               <p className="py-4 text-center text-xs text-muted-foreground">
-                This driver has not been assigned to a vehicle yet.
+                {t('vendor.driver.assignmentsEmpty')}
               </p>
             ) : (
               <ul className="divide-y">
@@ -230,10 +239,10 @@ export function DriverDetailSheet({
                   >
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-medium">
-                        {assignment.vehicle?.registrationNo ?? 'Removed vehicle'}
+                        {assignment.vehicle?.registrationNo ?? t('vendor.removedVehicle')}
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {formatPeriod(assignment.assignedFrom, assignment.assignedUntil)}
+                        {formatAssignmentPeriod(assignment.assignedFrom, assignment.assignedUntil, t)}
                       </p>
                     </div>
                     <AssignmentStatusBadge value={assignment.status} />

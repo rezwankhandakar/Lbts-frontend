@@ -99,8 +99,8 @@ export function AdvanceCard({ advance, canWrite }: { advance: EntryRecord; canWr
               onRetry={() => void detail.refetch()}
               canWrite={canWrite}
               compact
-              emptyTitle="Nothing settled yet"
-              emptyDescription="Cash returned against this advance appears here."
+              emptyTitle={t('accounts.advance.settledEmptyTitle')}
+              emptyDescription={t('accounts.advance.settledEmptyHint')}
             />
           )}
         </div>

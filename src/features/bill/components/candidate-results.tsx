@@ -65,7 +65,10 @@ export function CandidateResults({
         <p className="mt-1.5 max-w-sm text-sm text-pretty text-muted-foreground">
           {searched
             ? t('bill.search.onlyWithTripDo')
-            : `Every ${bill.unit} Trip DO dated ${bill.periodLabel} is already on a bill. Search by Trip DO to add one from another month.`}
+            : t('bill.search.nothingLeftHint', {
+                unit: bill.unit,
+                period: bill.periodLabel,
+              })}
         </p>
       </div>
     )

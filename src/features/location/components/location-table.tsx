@@ -95,7 +95,10 @@ export function LocationTable({
                           variant="ghost"
                           size="icon"
                           className="size-7"
-                          aria-label={`Actions for ${record.district} / ${record.thana}`}
+                          aria-label={t('location.table.actionsFor', {
+                            district: record.district,
+                            thana: record.thana,
+                          })}
                         />
                       }
                     >
@@ -105,7 +108,7 @@ export function LocationTable({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onEdit(record)}>
                         <PencilLine aria-hidden />
-                        Edit
+                        {t('common.actions.edit')}
                       </DropdownMenuItem>
 
                       <DropdownMenuItem onClick={() => onToggleActive(record)}>

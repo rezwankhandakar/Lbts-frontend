@@ -8,12 +8,15 @@ import {
   useSplitTripDo,
   useUnlinkTripDo,
 } from './use-trip-do-mutations'
+import { useT } from '@/lib/i18n'
 
 /**
  * Which dialog the sheet has open and on what, and the writes behind them.
  * Kept out of the page so the page reads as composition.
  */
 export function useTripDoActions(onBulkLinked: () => void) {
+  const t = useT()
+
   const [linkTarget, setLinkTarget] = useState<LinkTarget | null>(null)
   const [splitRow, setSplitRow] = useState<TripDoRowRecord | null>(null)
   const [unlinkRow, setUnlinkRow] = useState<TripDoRowRecord | null>(null)
@@ -26,8 +29,8 @@ export function useTripDoActions(onBulkLinked: () => void) {
 
   const openLink = useCallback((row: TripDoRowRecord) => setLinkTarget(linkTargetForRow(row)), [])
   const openBulk = useCallback(
-    (rows: readonly TripDoRowRecord[]) => setLinkTarget(linkTargetForRows(rows)),
-    [],
+    (rows: readonly TripDoRowRecord[]) => setLinkTarget(linkTargetForRows(rows, t)),
+    [t],
   )
 
   const confirmLink = (option: GatePassOption, qty: number) => {

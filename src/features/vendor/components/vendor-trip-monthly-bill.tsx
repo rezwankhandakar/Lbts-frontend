@@ -25,7 +25,7 @@ export function MonthlyBill({ bill }: { bill: VendorMonthlyBill }) {
   const t = useT()
 
   return (
-    <section aria-label="Monthly bill" className="space-y-1.5">
+    <section aria-label={t('vendor.trip.monthlyBillAria')} className="space-y-1.5">
       <p className="text-xs font-medium">
         Monthly bill · {bill.label}
         <span className="font-normal text-muted-foreground">
@@ -40,9 +40,9 @@ export function MonthlyBill({ bill }: { bill: VendorMonthlyBill }) {
         )}
       </p>
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Tile label="Total amount" value={taka(bill.totalBill)} />
-        <Tile label="Advance" value={taka(bill.advance)} />
-        <Tile label="Paid" value={taka(bill.paid)} />
+        <Tile label={t('vendor.trip.totalAmount')} value={taka(bill.totalBill)} />
+        <Tile label={t('vendor.trip.advance')} value={taka(bill.advance)} />
+        <Tile label={t('vendor.trip.paid')} value={taka(bill.paid)} />
         <Tile label="Due" value={<DueAmount value={bill.due} />} />
       </dl>
     </section>

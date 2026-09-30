@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { shortTripNumber } from '@/features/delivery/lib/cart'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { gatePassProductStatusMeta } from '../lib/trip-do-meta'
 import type { GatePassProductLine } from '../types'
@@ -32,7 +32,11 @@ export function GatePassProductLineCard({ line }: { line: GatePassProductLine })
             {line.deliveredQty} delivered · {line.qty - line.deliveredQty} not
           </span>
           {line.remainingQty > 0 && (
-            <span className="block text-[11px] text-tone-amber">{line.remainingQty} not on a challan</span>
+            <span className="block text-[11px] text-tone-amber">
+              {t('tripDo.assign.notOnChallan', {
+                qty: countOf(line.remainingQty, 'nouns.pc', t),
+              })}
+            </span>
           )}
         </p>
       </div>

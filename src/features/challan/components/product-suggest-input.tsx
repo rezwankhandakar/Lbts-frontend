@@ -176,7 +176,7 @@ export function ProductSuggestInput({
       onPick={onPick}
       invalid={invalid}
       priorityOptions={priorityOptions}
-      priorityLabel="From the rate card"
+      priorityLabel={t('challan.goods.fromRateCard')}
     />
   )
 }

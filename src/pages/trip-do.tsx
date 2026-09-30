@@ -19,7 +19,7 @@ import { useTripDoListParams } from '@/features/trip-do/hooks/use-trip-do-list-p
 import { canWriteTripDo } from '@/features/trip-do/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { formatTaka } from '@/lib/format'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 /**
@@ -80,9 +80,16 @@ export function TripDoPage() {
           isExporting={exporter.isExporting}
           summary={
             meta && !rowsQuery.isPending
-              ? `${meta.total.toLocaleString()} ${meta.total === 1 ? 'row' : 'rows'} · ${meta.totalQty.toLocaleString()} pcs · ${formatTaka(meta.totalAmount)}${
-                  list.isFiltered ? ' match these filters' : ' on the sheet'
-                }`
+              ? t(
+                  list.isFiltered
+                    ? 'tripDo.directory.summaryFiltered'
+                    : 'tripDo.directory.summaryTotal',
+                  {
+                    rows: countOf(meta.total, 'nouns.row', t),
+                    pieces: countOf(meta.totalQty, 'nouns.pc', t),
+                    amount: formatTaka(meta.totalAmount),
+                  },
+                )
               : undefined
           }
         />

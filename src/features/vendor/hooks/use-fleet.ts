@@ -2,6 +2,8 @@ import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
+import { t } from '@/lib/i18n'
+import { documentTypeLabel, driverStatusMeta, vehicleStatusMeta } from '../lib/vendor-meta'
 import {
   changeDriverStatus,
   changeVehicleStatus,
@@ -158,7 +160,12 @@ export function useCreateVehicle(
   return useMutation({
     mutationFn: (input: VehicleInput) => createVehicle(vendorId, input),
     onSuccess: (vehicle) => {
-      toast.success(`${vehicle.registrationNo} added as ${vehicle.vehicleCode}`)
+      toast.success(
+        t('vendor.toasts.vehicleAdded', {
+          plate: vehicle.registrationNo,
+          code: vehicle.vehicleCode,
+        }),
+      )
       void invalidate()
     },
     onError: reportVendorError,
@@ -175,7 +182,7 @@ export function useUpdateVehicle(): UseMutationResult<
   return useMutation({
     mutationFn: updateVehicle,
     onSuccess: (vehicle) => {
-      toast.success(`${vehicle.registrationNo} updated`)
+      toast.success(t('vendor.toasts.vehicleUpdated', { plate: vehicle.registrationNo }))
       void invalidate()
     },
     onError: reportVendorError,
@@ -200,12 +207,18 @@ export function useChangeVehicleStatus(): UseMutationResult<
   return useMutation({
     mutationFn: changeVehicleStatus,
     onSuccess: (vehicle) => {
-      toast.success(`${vehicle.registrationNo} is now ${vehicle.status}`, {
-        description:
-          vehicle.status === 'Active'
-            ? 'It can be given a driver again.'
-            : 'Its assignment history is unchanged. It cannot take a new driver until it is active.',
-      })
+      toast.success(
+        t('vendor.toasts.vehicleStatus', {
+          plate: vehicle.registrationNo,
+          status: vehicleStatusMeta(vehicle.status, t).label,
+        }),
+        {
+          description:
+            vehicle.status === 'Active'
+              ? t('vendor.toasts.vehicleActiveNote')
+              : t('vendor.toasts.vehicleInactiveNote'),
+        },
+      )
       void invalidate()
     },
     onError: reportVendorError,
@@ -228,7 +241,7 @@ export function useVehiclePhoto(): {
   const upload = useMutation({
     mutationFn: ({ id, file }: { id: string; file: File }) => uploadVehiclePhoto(id, file),
     onSuccess: (vehicle) => {
-      toast.success(`Photo updated for ${vehicle.registrationNo}`)
+      toast.success(t('vendor.toasts.vehiclePhotoUpdated', { plate: vehicle.registrationNo }))
       void invalidate()
     },
     onError: reportVendorError,
@@ -237,7 +250,7 @@ export function useVehiclePhoto(): {
   const remove = useMutation({
     mutationFn: removeVehiclePhoto,
     onSuccess: (vehicle) => {
-      toast.success(`Photo removed from ${vehicle.registrationNo}`)
+      toast.success(t('vendor.toasts.vehiclePhotoRemoved', { plate: vehicle.registrationNo }))
       void invalidate()
     },
     onError: reportVendorError,
@@ -256,8 +269,8 @@ export function useDeleteVehicle(): UseMutationResult<
   return useMutation({
     mutationFn: ({ id }) => deleteVehicle(id),
     onSuccess: (_result, variables) => {
-      toast.success(`${variables.label} removed`, {
-        description: 'Its assignment history and documents went with it.',
+      toast.success(t('vendor.toasts.vehicleRemoved', { label: variables.label }), {
+        description: t('vendor.toasts.vehicleRemovedNote'),
       })
       void invalidate()
     },
@@ -337,11 +350,12 @@ export function useCreateDriver(
   return useMutation({
     mutationFn: (input: DriverInput) => createDriver(vendorId, input),
     onSuccess: (driver) => {
-      toast.success(`${driver.name} added as ${driver.driverCode}`, {
-        description: driver.licenseNumber
-          ? 'The licence was filed as a document, so its expiry now shows in compliance.'
-          : undefined,
-      })
+      toast.success(
+        t('vendor.toasts.driverAdded', { name: driver.name, code: driver.driverCode }),
+        {
+          description: driver.licenseNumber ? t('vendor.toasts.driverLicenceNote') : undefined,
+        },
+      )
       void invalidate()
     },
     onError: reportVendorError,
@@ -358,7 +372,7 @@ export function useUpdateDriver(): UseMutationResult<
   return useMutation({
     mutationFn: updateDriver,
     onSuccess: (driver) => {
-      toast.success(`${driver.name} updated`)
+      toast.success(t('vendor.toasts.driverUpdated', { name: driver.name }))
       void invalidate()
     },
     onError: reportVendorError,
@@ -375,12 +389,18 @@ export function useChangeDriverStatus(): UseMutationResult<
   return useMutation({
     mutationFn: changeDriverStatus,
     onSuccess: (driver) => {
-      toast.success(`${driver.name} is now ${driver.status}`, {
-        description:
-          driver.status === 'Active'
-            ? 'They can be assigned again.'
-            : 'Their assignment history is unchanged. They cannot take a new assignment until they are active.',
-      })
+      toast.success(
+        t('vendor.toasts.driverStatus', {
+          name: driver.name,
+          status: driverStatusMeta(driver.status, t).label,
+        }),
+        {
+          description:
+            driver.status === 'Active'
+              ? t('vendor.toasts.driverActiveNote')
+              : t('vendor.toasts.driverInactiveNote'),
+        },
+      )
       void invalidate()
     },
     onError: reportVendorError,
@@ -397,8 +417,8 @@ export function useDeleteDriver(): UseMutationResult<
   return useMutation({
     mutationFn: ({ id }) => deleteDriver(id),
     onSuccess: (_result, variables) => {
-      toast.success(`${variables.label} removed`, {
-        description: 'Their assignment history and documents went with them.',
+      toast.success(t('vendor.toasts.driverRemoved', { label: variables.label }), {
+        description: t('vendor.toasts.driverRemovedNote'),
       })
       void invalidate()
     },
@@ -415,7 +435,7 @@ export function useDriverPhoto(): {
   const upload = useMutation({
     mutationFn: ({ id, file }: { id: string; file: File }) => uploadDriverPhoto(id, file),
     onSuccess: () => {
-      toast.success('Photo updated')
+      toast.success(t('vendor.toasts.photoUpdated'))
       void invalidate()
     },
     onError: reportVendorError,
@@ -424,7 +444,7 @@ export function useDriverPhoto(): {
   const remove = useMutation({
     mutationFn: removeDriverPhoto,
     onSuccess: () => {
-      toast.success('Photo removed')
+      toast.success(t('vendor.toasts.photoRemoved'))
       void invalidate()
     },
     onError: reportVendorError,
@@ -467,9 +487,10 @@ export function useCreateAssignment(
     mutationFn: (input: AssignmentInput) => createAssignment(vendorId, input),
     onSuccess: (assignment) => {
       toast.success(
-        `${assignment.driver?.name ?? 'Driver'} assigned to ${
-          assignment.vehicle?.registrationNo ?? 'the vehicle'
-        }`,
+        t('vendor.toasts.assignmentCreated', {
+          driver: assignment.driver?.name ?? t('vendor.toasts.aDriver'),
+          vehicle: assignment.vehicle?.registrationNo ?? t('vendor.toasts.theVehicleLower'),
+        }),
       )
       void invalidate()
     },
@@ -486,8 +507,10 @@ export function useEndAssignment(): UseMutationResult<
   return useMutation({
     mutationFn: endAssignment,
     onSuccess: (assignment) => {
-      toast.success('Assignment ended', {
-        description: `${assignment.vehicle?.registrationNo ?? 'The vehicle'} has no driver now.`,
+      toast.success(t('vendor.toasts.assignmentEnded'), {
+        description: t('vendor.toasts.assignmentEndedNote', {
+          plate: assignment.vehicle?.registrationNo ?? t('vendor.toasts.theVehicle'),
+        }),
       })
       void invalidate()
     },
@@ -508,8 +531,8 @@ export function useDeleteAssignment(): UseMutationResult<{ id: string }, ApiErro
   return useMutation({
     mutationFn: deleteAssignment,
     onSuccess: () => {
-      toast.success('Assignment record removed', {
-        description: 'It is gone from the history rather than marked as ended.',
+      toast.success(t('vendor.toasts.assignmentRemoved'), {
+        description: t('vendor.toasts.assignmentRemovedNote'),
       })
       void invalidate()
     },
@@ -544,7 +567,12 @@ export function useCreateDocument(): UseMutationResult<
   return useMutation({
     mutationFn: ({ ownerType, ownerId, input }) => createDocument(ownerType, ownerId, input),
     onSuccess: (document) => {
-      toast.success(`${document.documentType} filed for ${document.ownerLabel}`, {
+      toast.success(
+        t('vendor.toasts.documentFiled', {
+          type: documentTypeLabel(document.documentType, t),
+          owner: document.ownerLabel,
+        }),
+        {
         description: document.expiryDate ? document.expiryPhrase : undefined,
       })
       void invalidate()
@@ -563,7 +591,11 @@ export function useUpdateDocument(): UseMutationResult<
   return useMutation({
     mutationFn: updateDocument,
     onSuccess: (document) => {
-      toast.success(`${document.documentType} updated`, {
+      toast.success(
+        t('vendor.toasts.documentUpdated', {
+          type: documentTypeLabel(document.documentType, t),
+        }),
+        {
         description: document.expiryDate ? document.expiryPhrase : undefined,
       })
       void invalidate()
@@ -582,7 +614,7 @@ export function useDeleteDocument(): UseMutationResult<
   return useMutation({
     mutationFn: ({ id }) => deleteDocument(id),
     onSuccess: (_result, variables) => {
-      toast.success(`${variables.label} removed`)
+      toast.success(t('vendor.toasts.documentRemoved', { label: variables.label }))
       void invalidate()
     },
     onError: reportVendorError,

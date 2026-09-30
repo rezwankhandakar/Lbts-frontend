@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Plus, Route, X } from 'lucide-react'
 import { ListPagination } from '@/components/shared/list-pagination'
+import { SentenceWith } from '@/components/shared/sentence-with'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -22,7 +23,7 @@ import {
 } from '../hooks/use-fleet'
 import { useAssignmentListParams } from '../hooks/use-list-params'
 import { reportVendorError } from '../hooks/use-vendors'
-import { formatDay } from '../lib/vendor-meta'
+import { assignmentStatusMeta, formatDay } from '../lib/vendor-meta'
 import type { AssignmentFormValues } from '../schemas/vendor-schemas'
 import { ASSIGNMENT_STATUSES } from '../types'
 import type { AssignmentRecord, AssignmentStatus, VendorRecord } from '../types'
@@ -30,6 +31,7 @@ import { AssignDriverDialog } from './assign-driver-dialog'
 import { AssignmentCards, AssignmentTable } from './assignment-table'
 import { ConfirmDialog } from './confirm-dialog'
 import { Panel, PanelEmpty, PanelError, PanelSkeleton } from './panel-states'
+import { useT } from '@/lib/i18n'
 
 interface AssignmentPanelProps {
   vendor: VendorRecord
@@ -56,6 +58,8 @@ export function AssignmentPanel({
   pendingAssign,
   onAssignHandled,
 }: AssignmentPanelProps) {
+  const t = useT()
+
   const { params, applied, isFiltered, applyFilters, setPage, clampToPages, reset } =
     useAssignmentListParams()
 
@@ -129,7 +133,7 @@ export function AssignmentPanel({
 
   return (
     <>
-      <Panel label="Assignments">
+      <Panel label={t('vendor.assignment.panel')}>
         <div className="border-b">
           <div className="flex flex-col gap-3 p-3 sm:p-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
@@ -139,17 +143,21 @@ export function AssignmentPanel({
                   applyFilters({ status: value as AssignmentStatus | 'all' })
                 }
               >
-                <SelectTrigger className={TRIGGER} aria-label="Filter by assignment status">
+                <SelectTrigger className={TRIGGER} aria-label={t('vendor.assignment.statusAria')}>
                   <SelectValue>
-                    {(value) => (value && value !== 'all' ? String(value) : 'Active and ended')}
+                    {(value) =>
+                      value && value !== 'all'
+                        ? assignmentStatusMeta(value, t).label
+                        : t('vendor.assignment.activeAndEnded')
+                    }
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="all">Active and ended</SelectItem>
+                    <SelectItem value="all">{t('vendor.assignment.activeAndEnded')}</SelectItem>
                     {ASSIGNMENT_STATUSES.map((status) => (
                       <SelectItem key={status} value={status}>
-                        {status}
+                        {assignmentStatusMeta(status, t).label}
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -161,15 +169,15 @@ export function AssignmentPanel({
                   type="date"
                   value={params.from}
                   onChange={(event) => applyFilters({ from: event.target.value })}
-                  aria-label="In force from"
+                  aria-label={t('vendor.assignment.fromAria')}
                   className="h-8 w-full sm:w-[9.5rem]"
                 />
-                <span className="text-xs text-muted-foreground">to</span>
+                <span className="text-xs text-muted-foreground">{t('common.labels.to')}</span>
                 <Input
                   type="date"
                   value={params.to}
                   onChange={(event) => applyFilters({ to: event.target.value })}
-                  aria-label="In force until"
+                  aria-label={t('vendor.assignment.untilAria')}
                   className="h-8 w-full sm:w-[9.5rem]"
                 />
               </div>
@@ -182,24 +190,25 @@ export function AssignmentPanel({
                   className="text-muted-foreground"
                 >
                   <X data-icon="inline-start" aria-hidden />
-                  Clear
+                  {t('common.actions.clear')}
                 </Button>
               )}
 
               {canManage && (
                 <Button size="sm" onClick={() => setAssignOpen(true)} className="sm:ml-auto">
                   <Plus data-icon="inline-start" aria-hidden />
-                  Assign driver
+                  {t('vendor.assignment.assign')}
                 </Button>
               )}
             </div>
 
             <p className="text-xs text-muted-foreground" aria-live="polite">
               {meta && !query.isPending
-                ? `${meta.total} ${meta.total === 1 ? 'assignment' : 'assignments'}${
-                    isFiltered ? ' in force during this range' : ' on record'
-                  }`
-                : 'A date range shows every assignment in force during it, not only those that started in it.'}
+                ? t(
+                    isFiltered ? 'vendor.assignment.summaryRange' : 'vendor.assignment.summaryTotal',
+                    { count: meta.total },
+                  )
+                : t('vendor.assignment.rangeNote')}
             </p>
           </div>
         </div>
@@ -208,20 +217,22 @@ export function AssignmentPanel({
           <PanelSkeleton />
         ) : query.isError ? (
           <PanelError
-            title="Could not load the assignments"
-            message={query.error?.message ?? 'Something went wrong.'}
+            title={t('vendor.assignment.loadFailed')}
+            message={query.error?.message ?? t('vendor.somethingWrong')}
             onRetry={() => void query.refetch()}
             isRetrying={query.isFetching}
           />
         ) : records.length === 0 ? (
           <PanelEmpty
             icon={Route}
-            title="No assignments yet"
-            description="Assigning a driver to a vehicle records a period rather than setting a field, so this list is the full history of who drove what and when."
+            title={t('vendor.assignment.noneYet')}
+            description={t('vendor.assignment.noneHint')}
             isFiltered={isFiltered}
             onReset={reset}
             action={
-              canManage ? { label: 'Assign driver', onClick: () => setAssignOpen(true) } : undefined
+              canManage
+                ? { label: t('vendor.assignment.assign'), onClick: () => setAssignOpen(true) }
+                : undefined
             }
           />
         ) : (
@@ -276,17 +287,15 @@ export function AssignmentPanel({
           open={overlay === 'end'}
           isPending={isPending}
           tone="neutral"
-          title="End this assignment?"
+          title={t('vendor.assignment.endTitle')}
           description={
-            <>
-              {target.driver?.name ?? 'The driver'} stops being the active driver of{' '}
-              {target.vehicle?.registrationNo ?? 'this vehicle'} as of today, and the row stays in
-              the history with today as its end date. The vehicle will have no driver until another
-              one is assigned.
-            </>
+            t('vendor.assignment.endDescription', {
+              driver: target.driver?.name ?? t('vendor.assignment.theDriver'),
+              vehicle: target.vehicle?.registrationNo ?? t('vendor.assignment.thisVehicle'),
+            })
           }
-          confirmLabel="End assignment"
-          pendingLabel="Ending…"
+          confirmLabel={t('vendor.assignment.endConfirm')}
+          pendingLabel={t('vendor.assignment.ending')}
           onOpenChange={(open) => !open && setOverlay(null)}
           onConfirm={() => end.mutate({ id: target.id }, { onSuccess: () => setOverlay(null) })}
         />
@@ -296,23 +305,29 @@ export function AssignmentPanel({
         <ConfirmDialog
           open={overlay === 'delete'}
           isPending={isPending}
-          title="Delete this assignment record?"
+          title={t('vendor.assignment.deleteTitle')}
           description={
             <>
-              This is for a row that <strong>should never have existed</strong> — a changeover typed
-              against the wrong vehicle, for instance. It is not how an assignment finishes: a
-              period that genuinely ran is history the operation may need, and{' '}
-              <em>End assignment</em> is what closes one.
+              <SentenceWith
+                text={t('vendor.assignment.deleteDescription')}
+                parts={{
+                  never: <strong>{t('vendor.assignment.neverExisted')}</strong>,
+                  ends: <em>{t('vendor.assignment.endConfirm')}</em>,
+                }}
+              />
               {target.assignedFrom
-                ? ` This row covers ${formatDay(target.assignedFrom)} to ${
-                    target.assignedUntil ? formatDay(target.assignedUntil) : 'now'
-                  }.`
+                ? ` ${t('vendor.assignment.deletePeriod', {
+                    from: formatDay(target.assignedFrom),
+                    until: target.assignedUntil
+                      ? formatDay(target.assignedUntil)
+                      : t('vendor.assignment.now'),
+                  })}`
                 : ''}
             </>
           }
-          confirmLabel="Delete record"
-          pendingLabel="Deleting…"
-          cancelLabel="Keep it"
+          confirmLabel={t('vendor.assignment.deleteConfirm')}
+          pendingLabel={t('common.states.deleting')}
+          cancelLabel={t('vendor.remove.keepIt')}
           onOpenChange={(open) => !open && setOverlay(null)}
           onConfirm={() => remove.mutate(target.id, { onSuccess: () => setOverlay(null) })}
         />

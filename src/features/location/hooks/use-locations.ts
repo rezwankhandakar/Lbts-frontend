@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { t } from '@/lib/i18n'
+import { locationTypeMeta } from '../lib/location-meta'
 import type { ApiError } from '@/lib/axios'
 import {
   createLocation,
@@ -177,9 +178,14 @@ export function useCreateLocation(): UseMutationResult<
   return useMutation({
     mutationFn: createLocation,
     onSuccess: (location) => {
-      toast.success(`${location.district} / ${location.thana} added`, {
-        description: `Challans matching it will be classified as ${location.locationType}.`,
-      })
+      toast.success(
+        t('location.remove.added', { district: location.district, thana: location.thana }),
+        {
+          description: t('location.remove.addedNote', {
+            type: locationTypeMeta(location.locationType, t).label,
+          }),
+        },
+      )
       void invalidate()
     },
     onError: reportLocationError,
@@ -204,7 +210,12 @@ export function useUpdateLocation(): UseMutationResult<
   return useMutation({
     mutationFn: updateLocation,
     onSuccess: (location) => {
-      toast.success(`${location.district} / ${location.thana} updated`, {
+      toast.success(
+        t('location.remove.updated', {
+          district: location.district,
+          thana: location.thana,
+        }),
+        {
         description: location.isActive
           ? t('location.remove.corrected')
           : t('location.remove.deactivated'),
@@ -234,12 +245,12 @@ export function useDeleteLocation(): UseMutationResult<
     mutationFn: ({ id }) => deleteLocation(id),
     onSuccess: (result, variables) => {
       toast.success(
-        result.deactivated ? `${variables.label} deactivated` : `${variables.label} deleted`,
+        t(result.deactivated ? 'location.remove.wasDeactivated' : 'location.remove.wasDeleted', {
+          label: variables.label,
+        }),
         {
           description: result.deactivated
-            ? `${result.challanCount} challan${
-                result.challanCount === 1 ? '' : 's'
-              } still reference it, so it was kept and taken out of use instead.`
+            ? t('location.remove.stillReferenced', { count: result.challanCount })
             : t('location.remove.deleted'),
         },
       )

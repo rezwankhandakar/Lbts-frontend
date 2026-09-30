@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 
 /**
  * The three states every list in this module can be in besides "rows".
@@ -19,9 +20,11 @@ import { Skeleton } from '@/components/ui/skeleton'
  * invented registration numbers read as data.
  */
 export function PanelSkeleton({ rows = 6 }: { rows?: number }) {
+  const t = useT()
+
   return (
     <div className="divide-y" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading</span>
+      <span className="sr-only">{t('vendor.directory.loading')}</span>
       {Array.from({ length: rows }, (_, index) => (
         <div key={index} className="flex items-center gap-3 px-4 py-3.5">
           <Skeleton className="size-9 shrink-0 rounded-lg" />
@@ -62,6 +65,8 @@ export function PanelEmpty({
   onReset,
   action,
 }: PanelEmptyProps) {
+  const t = useT()
+
   const Glyph = isFiltered ? SearchX : Icon
 
   return (
@@ -71,17 +76,17 @@ export function PanelEmpty({
       </div>
 
       <h3 className="mt-4 text-base font-semibold tracking-tight">
-        {isFiltered ? 'Nothing matches these filters' : title}
+        {isFiltered ? t('vendor.panel.nothingMatches') : title}
       </h3>
 
       <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-pretty text-muted-foreground">
-        {isFiltered ? 'Try widening or clearing them to see the rest.' : description}
+        {isFiltered ? t('vendor.panel.widenFilters') : description}
       </p>
 
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
         {isFiltered && onReset && (
           <Button variant="outline" size="sm" onClick={onReset}>
-            Clear filters
+            {t('common.actions.clearFilters')}
           </Button>
         )}
         {!isFiltered && action && (
@@ -103,6 +108,8 @@ interface PanelErrorProps {
 }
 
 export function PanelError({ title, message, onRetry, isRetrying }: PanelErrorProps) {
+  const t = useT()
+
   return (
     <div className="flex flex-col items-center px-6 py-14 text-center" role="alert">
       <div className="flex size-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
@@ -114,7 +121,7 @@ export function PanelError({ title, message, onRetry, isRetrying }: PanelErrorPr
       </p>
       <Button variant="outline" size="sm" className="mt-5" onClick={onRetry} disabled={isRetrying}>
         <RefreshCcw data-icon="inline-start" aria-hidden />
-        {isRetrying ? 'Retrying…' : 'Try again'}
+        {isRetrying ? t('vendor.panel.retrying') : t('common.actions.retry')}
       </Button>
     </div>
   )

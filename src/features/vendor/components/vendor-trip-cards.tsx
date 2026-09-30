@@ -74,16 +74,16 @@ export function VendorTripCards({
             </p>
 
             <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 rounded-lg border bg-muted/30 p-2.5 text-xs sm:grid-cols-5">
-              <Figure label="Trip rent">
+              <Figure label={t('vendor.trip.tripRent')}>
                 <TripCharge value={trip.tripRent} />
               </Figure>
-              <Figure label="Labour">
+              <Figure label={t('vendor.trip.labour')}>
                 <TripCharge value={trip.labourBill} />
               </Figure>
-              <Figure label="Total amount">{taka(trip.bill)}</Figure>
-              <Figure label="Advance">{taka(trip.advance)}</Figure>
+              <Figure label={t('vendor.trip.totalAmount')}>{taka(trip.bill)}</Figure>
+              <Figure label={t('vendor.trip.advance')}>{taka(trip.advance)}</Figure>
               <Figure
-                label="Net amount"
+                label={t('vendor.trip.netAmount')}
                 className="col-span-2 flex items-baseline justify-between gap-3 border-t pt-2 sm:col-span-1 sm:block sm:border-0 sm:pt-0"
               >
                 <span className="text-sm">{taka(netOf(trip))}</span>

@@ -17,8 +17,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { formatDay } from '../lib/vendor-meta'
+import { documentTypeLabel, formatDay } from '../lib/vendor-meta'
 import type { DocumentRecord } from '../types'
 import { DocumentStatusBadge } from './status-badges'
 
@@ -37,6 +38,8 @@ function DocumentMenu({
   document: DocumentRecord
   actions: DocumentActions
 }) {
+  const t = useT()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -45,7 +48,10 @@ function DocumentMenu({
             variant="ghost"
             size="icon"
             className="size-7"
-            aria-label={`Actions for the ${document.documentType} of ${document.ownerLabel}`}
+            aria-label={t('vendor.document.actionsFor', {
+              type: documentTypeLabel(document.documentType, t),
+              owner: document.ownerLabel,
+            })}
           />
         }
       >
@@ -58,14 +64,14 @@ function DocumentMenu({
           onClick={() => actions.onView(document)}
         >
           <Eye aria-hidden />
-          View file
+          {t('vendor.document.viewFile')}
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={!document.attachment}
           onClick={() => actions.onDownload(document)}
         >
           <Download aria-hidden />
-          Download
+          {t('common.actions.download')}
         </DropdownMenuItem>
 
         {actions.canManage && (
@@ -73,12 +79,14 @@ function DocumentMenu({
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => actions.onEdit(document)}>
               <PencilLine aria-hidden />
-              {document.attachment ? 'Renew or replace' : 'Update'}
+              {document.attachment
+                ? t('vendor.document.renewTitle')
+                : t('common.actions.update')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={() => actions.onDelete(document)}>
               <Trash2 aria-hidden />
-              Remove
+              {t('common.actions.remove')}
             </DropdownMenuItem>
           </>
         )}
@@ -115,19 +123,21 @@ export function DocumentTable({
   records: DocumentRecord[]
   actions: DocumentActions
 }) {
+  const t = useT()
+
   return (
     <div className="hidden overflow-x-auto md:block">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Document</TableHead>
+            <TableHead>{t('vendor.document.document')}</TableHead>
             <TableHead>For</TableHead>
-            <TableHead className="hidden lg:table-cell">Number</TableHead>
-            <TableHead>Expiry</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="hidden xl:table-cell">File</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('vendor.document.number')}</TableHead>
+            <TableHead>{t('vendor.document.expiry')}</TableHead>
+            <TableHead>{t('vendor.directory.status')}</TableHead>
+            <TableHead className="hidden xl:table-cell">{t('vendor.document.fileColumn')}</TableHead>
             <TableHead className="w-10">
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t('vendor.directory.actions')}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -162,7 +172,7 @@ export function DocumentTable({
                     </span>
                   </>
                 ) : (
-                  <span className="text-muted-foreground">No expiry</span>
+                  <span className="text-muted-foreground">{t('vendor.document.noExpiry')}</span>
                 )}
               </TableCell>
 
@@ -178,10 +188,10 @@ export function DocumentTable({
                     className="inline-flex items-center gap-1.5 rounded-sm text-xs text-muted-foreground outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <Paperclip className="size-3.5" aria-hidden />
-                    Attached
+                    {t('vendor.document.attached')}
                   </button>
                 ) : (
-                  <span className="text-xs text-muted-foreground/70">None</span>
+                  <span className="text-xs text-muted-foreground/70">{t('vendor.document.none')}</span>
                 )}
               </TableCell>
 
@@ -204,6 +214,8 @@ export function DocumentCards({
   records: DocumentRecord[]
   actions: DocumentActions
 }) {
+  const t = useT()
+
   return (
     <ul className="divide-y md:hidden">
       {records.map((record) => (
@@ -239,7 +251,7 @@ export function DocumentCards({
                 className="inline-flex items-center gap-1.5 rounded-sm text-xs text-muted-foreground outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Paperclip className="size-3.5" aria-hidden />
-                View file
+                {t('vendor.document.viewFile')}
               </button>
             )}
           </div>

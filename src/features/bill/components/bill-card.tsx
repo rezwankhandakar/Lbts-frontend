@@ -16,9 +16,9 @@ export function BillCard({ bill }: { bill: BillRecord }) {
 
   const status = billStatusMeta(bill.status, t)
   const counts: [string, number][] = [
-    ['Trip DO', bill.tripDoCount],
-    ['Rows', bill.lineCount],
-    ['Pcs', bill.totalQty],
+    [t('bill.stats.tripDo'), bill.tripDoCount],
+    [t('bill.stats.rows'), bill.lineCount],
+    [t('bill.stats.pcs'), bill.totalQty],
   ]
 
   return (
@@ -44,7 +44,7 @@ export function BillCard({ bill }: { bill: BillRecord }) {
             <BillStatusBadge status={bill.status} />
           </span>
           <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[13px] font-medium">
-            Unit
+            {t('bill.columns.unit')}
             <span className="rounded-md border bg-background px-1.5 py-px font-mono text-xs">{bill.unit}</span>
             <span className="text-muted-foreground">· {bill.periodLabel}</span>
           </span>

@@ -12,7 +12,7 @@ import { useBills } from '@/features/bill/hooks/use-bills'
 import { canWriteBill } from '@/features/bill/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { formatTaka } from '@/lib/format'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * Every bill: a unit's month of Trip DOs, as the Excel sheet the office sends.
@@ -45,7 +45,7 @@ export function BillsPage() {
         {canWrite && (
           <Button onClick={() => setCreating(true)} className="mb-6">
             <Plus data-icon="inline-start" aria-hidden />
-            New bill
+            {t('bill.newBill')}
           </Button>
         )}
       </div>
@@ -60,9 +60,10 @@ export function BillsPage() {
           isFiltered={list.isFiltered}
           summary={
             meta && !query.isPending
-              ? `${meta.total.toLocaleString()} ${meta.total === 1 ? 'bill' : 'bills'} · ${formatTaka(meta.totalAmount)}${
-                  list.isFiltered ? ' match these filters' : ' in total'
-                }`
+              ? t(list.isFiltered ? 'bill.list.summaryFiltered' : 'bill.list.summaryTotal', {
+                  bills: countOf(meta.total, 'nouns.bill', t),
+                  amount: formatTaka(meta.totalAmount),
+                })
               : undefined
           }
         />

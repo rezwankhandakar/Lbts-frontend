@@ -157,7 +157,7 @@ export function ActivityToolbar({
               className="shrink-0"
             >
               <SlidersHorizontal data-icon="inline-start" aria-hidden />
-              More filters
+              {t('common.actions.moreFilters')}
               {hiddenActive > 0 && (
                 <span className="ml-1 rounded-full bg-primary/15 px-1.5 py-px text-[10px] font-semibold tabular-nums">
                   {hiddenActive}

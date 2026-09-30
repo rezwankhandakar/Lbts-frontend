@@ -2,13 +2,15 @@ import { Building2, FileWarning, RefreshCcw, TriangleAlert, Truck, Users } from 
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { VendorStats } from '../types'
 
 interface StatDef {
   key: keyof VendorStats
-  label: string
-  hint: string
+  labelKey: TranslationKey
+  hintKey: TranslationKey
   icon: LucideIcon
   chip: string
   /** Drawn only while the figure is non-zero — a queue that wants attention. */
@@ -26,29 +28,29 @@ interface StatDef {
 const STATS: StatDef[] = [
   {
     key: 'active',
-    label: 'Active vendors',
-    hint: 'Able to take new assignments',
+    labelKey: 'vendor.stats.activeVendors',
+    hintKey: 'vendor.stats.activeVendorsHint',
     icon: Building2,
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
   },
   {
     key: 'vehicles',
-    label: 'Vehicles',
-    hint: 'Across every vendor',
+    labelKey: 'vendor.stats.vehicles',
+    hintKey: 'vendor.stats.acrossEvery',
     icon: Truck,
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
   },
   {
     key: 'drivers',
-    label: 'Drivers',
-    hint: 'Across every vendor',
+    labelKey: 'vendor.stats.drivers',
+    hintKey: 'vendor.stats.acrossEvery',
     icon: Users,
     chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
   },
   {
     key: 'expiredDocuments',
-    label: 'Expired documents',
-    hint: 'Papers that have run out',
+    labelKey: 'vendor.stats.expiredDocuments',
+    hintKey: 'vendor.stats.expiredHint',
     icon: FileWarning,
     chip: 'bg-tone-rose/10 text-tone-rose ring-tone-rose/20',
     emphasis: 'ring-1 ring-tone-rose/30',
@@ -70,16 +72,18 @@ interface VendorStatsProps {
  * one that admits it has none, so a failed request says so and offers a retry.
  */
 export function VendorStatsPanel({ stats, isLoading, isError, onRetry }: VendorStatsProps) {
+  const t = useT()
+
   if (isError) {
     return (
       <div className="flex flex-col items-start gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="flex items-center gap-2.5 text-sm text-muted-foreground">
           <TriangleAlert className="size-4 shrink-0 text-destructive" aria-hidden />
-          The vendor overview could not be loaded.
+          {t('vendor.stats.loadFailed')}
         </p>
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RefreshCcw data-icon="inline-start" aria-hidden />
-          Retry
+          {t('common.actions.retry')}
         </Button>
       </div>
     )
@@ -101,7 +105,7 @@ export function VendorStatsPanel({ stats, isLoading, isError, onRetry }: VendorS
           >
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-medium tracking-wide text-muted-foreground">
-                {stat.label}
+                {t(stat.labelKey)}
               </p>
               <span
                 className={cn(
@@ -121,7 +125,7 @@ export function VendorStatsPanel({ stats, isLoading, isError, onRetry }: VendorS
               </p>
             )}
 
-            <p className="mt-2 text-[11px] text-muted-foreground/80">{stat.hint}</p>
+            <p className="mt-2 text-[11px] text-muted-foreground/80">{t(stat.hintKey)}</p>
           </div>
         )
       })}

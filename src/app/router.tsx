@@ -140,54 +140,37 @@ const ForgotPasswordPage = lazy(() =>
 )
 
 /**
- * Wording for the Gate Pass boundaries. Kept beside the routes that use them
- * so the sentence and the role list cannot drift apart.
+ * Which sentence each boundary states, as a key rather than as words.
  *
- * Read and write are the same four roles now, so the second sentence exists
- * only for the day they part company again.
+ * A constant holding a sentence is evaluated when this chunk loads, so it would
+ * keep whichever language the tab opened in; a key is resolved by the component
+ * that draws it. The comments each one used to carry are kept with it, because
+ * what they explain is the *role list*, which still lives here.
  */
-const GATE_PASS_ACCESS_REASON =
-  'Gate Pass records the transport operation, and is open to Admin, Manager, CEO and Operation Executive accounts.'
-const GATE_PASS_WRITE_REASON =
-  'Filing a gate pass is done by Admin, Manager, CEO and Operation Executive accounts.'
 
 /**
  * Wording for the Challan boundaries. Kept beside the routes that use them
  * so the sentence and the role list cannot drift apart.
  */
-const CHALLAN_ACCESS_REASON =
-  'Challan records deliveries from the corporate office, and is open to Admin, Manager, CEO and Operation Executive accounts.'
-const CHALLAN_WRITE_REASON =
-  'Filing a challan is done by Admin, Manager, CEO and Operation Executive accounts.'
 
 /**
  * Wording for the Delivery boundaries. A trip carries every challan on it,
  * customer addresses included, which is why Vendor is out even though a trip
  * is assigned to a vendor.
  */
-const DELIVERY_ACCESS_REASON =
-  'Deliveries record which challans went out on which vehicle, and are open to Admin, Manager, CEO and Operation Executive accounts.'
-const DELIVERY_WRITE_REASON =
-  'Building and correcting a trip is done by Admin, Manager, CEO and Operation Executive accounts.'
 
 /**
  * One boundary: the same page serves readers and writers, with the linking
  * controls absent for everyone but an Admin.
  */
-const TRIP_DO_ACCESS_REASON =
-  'The Trip DO sheet matches challan product lines to gate passes, and is open to Admin, Manager, CEO and Operation Executive accounts. Only an Admin changes it.'
 
 /** Accounts is the office's money: read by Admin, Manager and CEO, kept by Manager alone per endpoint. */
-const ACCOUNTS_ACCESS_REASON =
-  'Accounts holds the office\'s balances, payments and profit, and is open to Admin, Manager and CEO accounts.'
 
 /**
  * One boundary, like the Trip DO sheet a bill is built from: the same pages
  * serve readers and writers, with the preparing controls absent for everyone
  * but an Admin.
  */
-const BILL_ACCESS_REASON =
-  'Bills charge a unit for its Trip DOs, and are open to Admin, Manager, CEO and Operation Executive accounts. Only an Admin prepares one.'
 
 /**
  * The Walton Labour Bill has the Trip DO sheet's audience too, and for the
@@ -195,8 +178,6 @@ const BILL_ACCESS_REASON =
  * number. Unlike the Excel Bill beside it, every one of those roles writes:
  * it charges typed figures and claims no sheet row from anybody.
  */
-const LABOUR_BILL_ACCESS_REASON =
-  'Walton Labour Bills charge the handling on each delivery, and are open to Admin, Manager, CEO and Operation Executive accounts.'
 
 /**
  * The Location master list is Admin-only, page and controls alike. The
@@ -204,16 +185,12 @@ const LABOUR_BILL_ACCESS_REASON =
  * endpoints with a wider audience, so closing this page costs nobody a
  * location on a challan.
  */
-const LOCATION_ACCESS_REASON =
-  'The location master list is reference data the whole operation is classified against, and only an Admin account may open it.'
 
 /**
  * The rate card is Admin-only for a sharper reason than the location master:
  * a rate is money. Its model and product lookups are separate endpoints with
  * the Challan audience, so a challan still prices itself for whoever files it.
  */
-const PRODUCT_RATE_ACCESS_REASON =
-  'The product rate card sets what every delivery is charged, and only an Admin account may open it.'
 
 /**
  * Vendors has one boundary here, and it is the widest in the app: every role
@@ -223,8 +200,6 @@ const PRODUCT_RATE_ACCESS_REASON =
  * account is read-only, enforced per endpoint rather than per route, because
  * the same page serves both audiences with the write controls simply absent.
  */
-const VENDOR_ACCESS_REASON =
-  'Vendors, their vehicles, their drivers and their compliance documents. Staff accounts see every vendor; a vendor account sees its own.'
 
 /**
  * The journal spans every module, so it carries what Accounts carries — and
@@ -232,8 +207,6 @@ const VENDOR_ACCESS_REASON =
  * express here, because nothing writes: rows are appended by services and by
  * nothing a request can reach.
  */
-const ACTIVITY_ACCESS_REASON =
-  'Activity Logs record who did what across every module, and are open to Admin, Manager and CEO accounts.'
 
 export function AppRouter() {
   return (
@@ -252,11 +225,11 @@ export function AppRouter() {
               Vendor both reads and writes it. The roles come from the module
               rather than a central matrix, and the API re-checks every one of
               them. */}
-          <Route element={<RoleRoute roles={GATE_PASS_READ_ROLES} area="Gate Pass" reason={GATE_PASS_ACCESS_REASON} />}>
+          <Route element={<RoleRoute roles={GATE_PASS_READ_ROLES} areaKey="nav.items.gatePass" reasonKey="shared.accessDenied.reasons.gatePassRead" />}>
             <Route path="/gate-pass" element={<GatePassPage />} />
             <Route path="/gate-pass/:id" element={<GatePassDetailsPage />} />
 
-            <Route element={<RoleRoute roles={GATE_PASS_WRITE_ROLES} area="Gate Pass" reason={GATE_PASS_WRITE_REASON} />}>
+            <Route element={<RoleRoute roles={GATE_PASS_WRITE_ROLES} areaKey="nav.items.gatePass" reasonKey="shared.accessDenied.reasons.gatePassWrite" />}>
               <Route path="/gate-pass/new" element={<GatePassNewPage />} />
               <Route path="/gate-pass/:id/edit" element={<GatePassEditPage />} />
             </Route>
@@ -271,8 +244,8 @@ export function AppRouter() {
             element={
               <RoleRoute
                 roles={CHALLAN_READ_ROLES}
-                area="Challan"
-                reason={CHALLAN_ACCESS_REASON}
+                areaKey="nav.items.challan"
+                reasonKey="shared.accessDenied.reasons.challanRead"
               />
             }
           >
@@ -289,8 +262,8 @@ export function AppRouter() {
               element={
                 <RoleRoute
                   roles={CHALLAN_WRITE_ROLES}
-                  area="Challan"
-                  reason={CHALLAN_WRITE_REASON}
+                  areaKey="nav.items.challan"
+                  reasonKey="shared.accessDenied.reasons.challanWrite"
                 />
               }
             >
@@ -311,8 +284,8 @@ export function AppRouter() {
             element={
               <RoleRoute
                 roles={DELIVERY_READ_ROLES}
-                area="Delivery"
-                reason={DELIVERY_ACCESS_REASON}
+                areaKey="nav.items.delivery"
+                reasonKey="shared.accessDenied.reasons.deliveryRead"
               />
             }
           >
@@ -332,8 +305,8 @@ export function AppRouter() {
               element={
                 <RoleRoute
                   roles={DELIVERY_WRITE_ROLES}
-                  area="Delivery"
-                  reason={DELIVERY_WRITE_REASON}
+                  areaKey="nav.items.delivery"
+                  reasonKey="shared.accessDenied.reasons.deliveryWrite"
                 />
               }
             >
@@ -350,8 +323,8 @@ export function AppRouter() {
             element={
               <RoleRoute
                 roles={TRIP_DO_READ_ROLES}
-                area="Trip DO"
-                reason={TRIP_DO_ACCESS_REASON}
+                areaKey="nav.items.tripDo"
+                reasonKey="shared.accessDenied.reasons.tripDo"
               />
             }
           >
@@ -365,8 +338,8 @@ export function AppRouter() {
             element={
               <RoleRoute
                 roles={BILL_READ_ROLES}
-                area="Excel Bill"
-                reason={BILL_ACCESS_REASON}
+                areaKey="nav.items.excelBill"
+                reasonKey="shared.accessDenied.reasons.bill"
               />
             }
           >
@@ -381,8 +354,8 @@ export function AppRouter() {
             element={
               <RoleRoute
                 roles={LABOUR_BILL_READ_ROLES}
-                area="Walton Labour Bill"
-                reason={LABOUR_BILL_ACCESS_REASON}
+                areaKey="nav.items.labourBill"
+                reasonKey="shared.accessDenied.reasons.labourBill"
               />
             }
           >
@@ -397,8 +370,8 @@ export function AppRouter() {
             element={
               <RoleRoute
                 roles={ACCOUNTS_READ_ROLES}
-                area="Accounts"
-                reason={ACCOUNTS_ACCESS_REASON}
+                areaKey="nav.items.accounts"
+                reasonKey="shared.accessDenied.reasons.accounts"
               />
             }
           >
@@ -428,8 +401,8 @@ export function AppRouter() {
             element={
               <RoleRoute
                 roles={LOCATION_READ_ROLES}
-                area="Locations"
-                reason={LOCATION_ACCESS_REASON}
+                areaKey="nav.items.locations"
+                reasonKey="shared.accessDenied.reasons.location"
               />
             }
           >
@@ -446,8 +419,8 @@ export function AppRouter() {
             element={
               <RoleRoute
                 roles={PRODUCT_RATE_READ_ROLES}
-                area="Product Rates"
-                reason={PRODUCT_RATE_ACCESS_REASON}
+                areaKey="nav.items.productRates"
+                reasonKey="shared.accessDenied.reasons.productRate"
               />
             }
           >
@@ -463,8 +436,8 @@ export function AppRouter() {
             element={
               <RoleRoute
                 roles={VENDOR_READ_ROLES}
-                area="Vendors"
-                reason={VENDOR_ACCESS_REASON}
+                areaKey="nav.items.vendors"
+                reasonKey="shared.accessDenied.reasons.vendor"
               />
             }
           >
@@ -506,8 +479,8 @@ export function AppRouter() {
             element={
               <RoleRoute
                 roles={ACTIVITY_READ_ROLES}
-                area="Activity Logs"
-                reason={ACTIVITY_ACCESS_REASON}
+                areaKey="nav.items.activityLogs"
+                reasonKey="shared.accessDenied.reasons.activity"
               />
             }
           >

@@ -1,7 +1,7 @@
 import { ArrowDownLeft, ArrowRight, ArrowUpRight, Wallet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatPercent } from '@/lib/format'
+import { formatNumber, formatPercent } from '@/lib/format'
 import { signedTaka, taka } from '../lib/accounts-meta'
 import type { AccountsOverview, CashFigures } from '../types'
 import { useT } from '@/lib/i18n'
@@ -72,7 +72,10 @@ export function BalanceHero({ overview }: { overview: AccountsOverview | undefin
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:w-[30rem]">
-          <FlowCard label={`${cash.year} · year`} figures={cash.thisYear} />
+          <FlowCard
+            label={t('accounts.hero.yearLabel', { year: formatNumber(cash.year) })}
+            figures={cash.thisYear}
+          />
           <FlowCard label={overview.period.label} figures={cash.thisMonth} />
         </div>
       </div>

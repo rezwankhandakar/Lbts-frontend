@@ -50,14 +50,9 @@ export function DeleteLocationDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Remove {record.district} / {record.thana}?
+            {t('location.remove.title', { district: record.district, thana: record.thana })}
           </AlertDialogTitle>
-          <AlertDialogDescription>
-            If no challan references this location it is deleted outright. If some do, it is
-            deactivated instead and kept: those records read their district, thana and location
-            type through it, and deleting it would leave them unable to say where they went. Either
-            way it stops being offered in selectors and stops being matched to new challans.
-          </AlertDialogDescription>
+          <AlertDialogDescription>{t('location.remove.description')}</AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>

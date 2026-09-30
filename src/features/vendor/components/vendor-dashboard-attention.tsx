@@ -48,10 +48,17 @@ export function VendorDashboardAttention({ dashboard }: { dashboard: VendorDashb
       id: 'copies',
       severity: 'warning',
       icon: FileClock,
-      title: `${countOf(figures.backlog.awaitingCopies, 'nouns.signedCopy', t)} still to come back`,
-      detail: `On ${countOf(figures.backlog.trips, 'nouns.trip', t)}${
-        figures.backlog.oldest ? `, the oldest run on ${formatDay(figures.backlog.oldest)}` : ''
-      }. A trip closes when every receiver's signed challan is scanned in.`,
+      title: t('vendor.dashboard.copiesTitle', {
+        copies: countOf(figures.backlog.awaitingCopies, 'nouns.signedCopy', t),
+      }),
+      detail: figures.backlog.oldest
+        ? t('vendor.dashboard.copiesDetailOldest', {
+            trips: countOf(figures.backlog.trips, 'nouns.trip', t),
+            day: formatDay(figures.backlog.oldest),
+          })
+        : t('vendor.dashboard.copiesDetail', {
+            trips: countOf(figures.backlog.trips, 'nouns.trip', t),
+          }),
       count: figures.backlog.awaitingCopies,
       to: '/my-vendor?tab=trips',
     })
@@ -62,10 +69,13 @@ export function VendorDashboardAttention({ dashboard }: { dashboard: VendorDashb
       id: 'bills',
       severity: 'warning',
       icon: ReceiptText,
-      title: `${countOf(bill.blankBills, 'nouns.trip', t)} without a full bill`,
-      detail: `Rent or labour has not been entered against ${
-        bill.blankBills === 1 ? 'it' : 'them'
-      } yet, so ${bill.label}'s total is lower than what is actually owed.`,
+      title: t('vendor.dashboard.billsTitle', {
+        trips: countOf(bill.blankBills, 'nouns.trip', t),
+      }),
+      detail: t('vendor.dashboard.billsDetail', {
+        count: bill.blankBills,
+        period: bill.label,
+      }),
       count: bill.blankBills,
       to: '/my-vendor?tab=trips',
     })
@@ -76,9 +86,11 @@ export function VendorDashboardAttention({ dashboard }: { dashboard: VendorDashb
       id: 'expired',
       severity: 'critical',
       icon: TriangleAlert,
-      title: `${countOf(fleet.expiredDocuments, 'nouns.document', t)} expired`,
+      title: t('vendor.dashboard.expiredTitle', {
+        documents: countOf(fleet.expiredDocuments, 'nouns.document', t),
+      }),
       detail:
-        'A lorry whose papers have lapsed cannot be sent out. Send the renewed certificate to LBTS to have it filed.',
+        t('vendor.dashboard.expiredDetail'),
       count: fleet.expiredDocuments,
       to: '/my-vendor?tab=documents',
     })
@@ -89,8 +101,10 @@ export function VendorDashboardAttention({ dashboard }: { dashboard: VendorDashb
       id: 'expiring',
       severity: 'warning',
       icon: FileClock,
-      title: `${countOf(fleet.expiringDocuments, 'nouns.document', t)} expiring soon`,
-      detail: 'Renew before the date passes and the vehicle or driver stops being assignable.',
+      title: t('vendor.dashboard.expiringTitle', {
+        documents: countOf(fleet.expiringDocuments, 'nouns.document', t),
+      }),
+      detail: t('vendor.dashboard.renewBeforeLapse'),
       count: fleet.expiringDocuments,
       to: '/my-vendor?tab=documents',
     })
@@ -106,10 +120,9 @@ export function VendorDashboardAttention({ dashboard }: { dashboard: VendorDashb
           <ShieldCheck className="size-4" />
         </span>
         <div className="min-w-0">
-          <p className="text-[13px] font-medium">Nothing outstanding</p>
+          <p className="text-[13px] font-medium">{t('vendor.dashboard.nothingOutstanding')}</p>
           <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-            Every signed copy is in, every trip carries its bill, and every document on file is in
-            date.
+            {t('vendor.dashboard.nothingOutstandingHint')}
           </p>
         </div>
       </div>

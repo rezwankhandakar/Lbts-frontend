@@ -75,7 +75,7 @@ export function CashSummaryTable({ rows, totals }: { rows: CashSummaryRow[]; tot
           <thead>
             <tr className="border-b text-xs text-muted-foreground">
               <th rowSpan={2} className="sticky left-0 bg-card px-4 py-2 text-left font-medium">
-                Period
+                {t('accounts.cash.period')}
               </th>
               <th colSpan={inColumns.length + 1} className="border-x px-2 pt-2 text-center font-medium text-tone-emerald">
                 {t('accounts.cash.cashIn')}

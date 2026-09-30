@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { VendorAvatar } from '@/features/vendor/components/vendor-identity'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useEntryDialog } from '../hooks/use-entry-dialog'
 import { periodParam, signedTaka, taka } from '../lib/accounts-meta'
 import type { Period, VendorBillRow } from '../types'
 import { VendorBillBadge } from './account-atoms'
 import { VendorStatementButton } from './vendor-statement-button'
+import { formatNumber } from '@/lib/format'
 
 interface VendorBillTableProps {
   rows: VendorBillRow[]
@@ -141,7 +142,11 @@ export function VendorBillTable({ rows, period, isLoading, canWrite }: VendorBil
                   {row.vendor.name}
                 </Link>
                 <p className="text-xs text-muted-foreground">
-                  {row.tripCount} trips{row.blankBills > 0 && ` · ${row.blankBills} blank bills`}
+                  {countOf(row.tripCount, 'nouns.trip', t)}
+                  {row.blankBills > 0 &&
+                    t('accounts.vendorBill.blankBillsSuffix', {
+                      count: formatNumber(row.blankBills),
+                    })}
                 </p>
               </div>
               <VendorBillBadge status={row.status} />
@@ -153,11 +158,11 @@ export function VendorBillTable({ rows, period, isLoading, canWrite }: VendorBil
                 <dd className="font-medium tabular-nums">{taka(row.totalBill)}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Advance + paid</dt>
+                <dt className="text-muted-foreground">{t('accounts.vendorBill.advancePlusPaid')}</dt>
                 <dd className="font-medium tabular-nums">{taka(row.advance + row.paid)}</dd>
               </div>
               <div className="text-right">
-                <dt className="text-muted-foreground">Due</dt>
+                <dt className="text-muted-foreground">{t('accounts.vendorBill.due')}</dt>
                 <dd>
                   <DueCell row={row} />
                 </dd>

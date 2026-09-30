@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { t } from '@/lib/i18n'
+import { BLANK } from '@/lib/format'
+import { countOf, t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import {
   bulkLinkTripDoRows,
@@ -27,9 +28,17 @@ function useInvalidateTripDo() {
 
 /** "CSD CSD-04 · Unit WFR", and what a split left behind. */
 function linkDescription(result: TripDoLinkResult): string {
-  const parts = [`CSD ${result.csd || '—'}`, `Unit ${result.unit || '—'}`, result.gatePassNumber]
+  const parts = [
+    t('tripDo.remove.linkDetail', {
+      csd: result.csd || BLANK,
+      unit: result.unit || BLANK,
+      gatePass: result.gatePassNumber,
+    }),
+  ]
   if (result.remainderQty > 0) {
-    parts.push(`${result.remainderQty} left on a row of their own`)
+    parts.push(
+      t('tripDo.remove.linkRemainder', { remainder: countOf(result.remainderQty, 'nouns.pc', t) }),
+    )
   }
   return parts.join(' · ')
 }
@@ -40,9 +49,13 @@ export function useLinkTripDo(): UseMutationResult<TripDoLinkResult, ApiError, L
   return useMutation({
     mutationFn: linkTripDoRow,
     onSuccess: (result) => {
-      toast.success(`Trip DO ${result.tripDo} set on ${result.qty}`, {
-        description: linkDescription(result),
-      })
+      toast.success(
+        t('tripDo.remove.linkedOne', {
+          tripDo: result.tripDo,
+          pieces: countOf(result.qty, 'nouns.pc', t),
+        }),
+        { description: linkDescription(result) },
+      )
       void invalidate()
     },
     onError: reportTripDoError,
@@ -55,9 +68,18 @@ export function useBulkLinkTripDo(): UseMutationResult<TripDoLinkResult, ApiErro
   return useMutation({
     mutationFn: bulkLinkTripDoRows,
     onSuccess: (result) => {
-      toast.success(`Trip DO ${result.tripDo} set on ${result.rows} rows`, {
-        description: `${result.qty} pieces · ${linkDescription(result)}`,
-      })
+      toast.success(
+        t('tripDo.remove.linkedMany', {
+          tripDo: result.tripDo,
+          rows: countOf(result.rows, 'nouns.row', t),
+        }),
+        {
+          description: t('tripDo.remove.linkedManyNote', {
+            pieces: countOf(result.qty, 'nouns.piece', t),
+            detail: linkDescription(result),
+          }),
+        },
+      )
       void invalidate()
     },
     onError: reportTripDoError,
@@ -89,7 +111,7 @@ export function useSplitTripDo(): UseMutationResult<
   return useMutation({
     mutationFn: splitTripDoRow,
     onSuccess: (result, variables) => {
-      toast.success(`Row split into ${result.parts} parts`, {
+      toast.success(t('tripDo.remove.splitDone', { parts: countOf(result.parts, 'nouns.part', t) }), {
         description: variables.parts.join(' + '),
       })
       void invalidate()

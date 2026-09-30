@@ -58,7 +58,7 @@ export function DeliverySummaryPanel({ workspace, onConfirm }: DeliverySummaryPa
           <p className="text-xs text-muted-foreground">
             {t('delivery.driverWith', { name: driver.name })}
             {vehicle?.currentDriver && vehicle.currentDriver.id !== driver.id && (
-              <span className="text-tone-indigo"> · for this trip only</span>
+              <span className="text-tone-indigo">{t('delivery.summary.forThisTripOnly')}</span>
             )}
           </p>
         )}

@@ -54,9 +54,9 @@ export function TripCreatedPanel({ trip, isNew, onStartAnother }: TripCreatedPan
 
         <dl className="mt-6 grid w-full gap-px overflow-hidden rounded-xl border bg-border text-sm sm:grid-cols-3">
           {[
-            ['Vehicle', trip.vehicle.registrationNo],
-            ['Driver', trip.driver.name],
-            ['Date', formatDay(trip.tripDate)],
+            [t('common.labels.vehicle'), trip.vehicle.registrationNo],
+            [t('common.labels.driver'), trip.driver.name],
+            [t('common.labels.date'), formatDay(trip.tripDate)],
           ].map(([label, value]) => (
             <div key={label} className="bg-card px-3 py-2.5">
               <dt className="text-[11px] text-muted-foreground">{label}</dt>
@@ -92,8 +92,7 @@ export function TripCreatedPanel({ trip, isNew, onStartAnother }: TripCreatedPan
         </div>
 
         <p className="mt-4 text-xs text-muted-foreground">
-          The manifest carries this trip&rsquo;s barcode — scanning it on the deliveries page
-          opens the trip again.
+          {t('delivery.created.barcodeNote')}
         </p>
       </div>
     </section>

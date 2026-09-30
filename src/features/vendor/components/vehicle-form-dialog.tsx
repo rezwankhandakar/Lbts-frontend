@@ -21,12 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { OWNERSHIP_META } from '../lib/vendor-meta'
+import { ownershipMeta } from '../lib/vendor-meta'
 import { vehicleFormSchema } from '../schemas/vendor-schemas'
 import type { VehicleFormValues } from '../schemas/vendor-schemas'
 import { VEHICLE_OWNERSHIP_TYPES } from '../types'
 import type { VehicleOwnershipType, VehicleRecord } from '../types'
 import { FieldError, FormSection } from './form-parts'
+import { useT } from '@/lib/i18n'
 
 const EMPTY: VehicleFormValues = {
   registrationNo: '',
@@ -69,6 +70,8 @@ export function VehicleFormDialog({
   onOpenChange,
   onSubmit,
 }: VehicleFormDialogProps) {
+  const t = useT()
+
   const {
     register,
     control,
@@ -109,11 +112,13 @@ export function VehicleFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{record ? 'Edit vehicle' : 'Add vehicle'}</DialogTitle>
+          <DialogTitle>
+            {record ? t('vendor.vehicle.editTitle') : t('vendor.vehicle.addTitle')}
+          </DialogTitle>
           <DialogDescription>
             {record
-              ? 'The vehicle code and the vendor it belongs to stay the same. Moving a vehicle between vendors would strand its assignment history, so it is not an edit.'
-              : `This vehicle will belong to ${vendorName}. A vehicle code is allocated automatically.`}
+              ? t('vendor.vehicle.editDescription')
+              : t('vendor.vehicle.addDescription', { vendor: vendorName })}
           </DialogDescription>
         </DialogHeader>
 
@@ -123,9 +128,9 @@ export function VehicleFormDialog({
           className="space-y-5"
           aria-busy={isPending}
         >
-          <FormSection title="Vehicle information">
+          <FormSection title={t('vendor.vehicle.information')}>
             <div className="space-y-1.5">
-              <Label htmlFor="vehicle-registration">Registration number</Label>
+              <Label htmlFor="vehicle-registration">{t('vendor.vehicle.registrationLabel')}</Label>
               <Input
                 id="vehicle-registration"
                 autoComplete="off"
@@ -136,8 +141,7 @@ export function VehicleFormDialog({
               />
               <FieldError error={errors.registrationNo?.message} />
               <p className="text-xs leading-snug text-muted-foreground">
-                Stored exactly as typed, spacing and all. It is matched on a normalised form, so
-                the same plate can only be on one vehicle in the system.
+                {t('vendor.vehicle.registrationHint')}
               </p>
             </div>
 
@@ -170,9 +174,9 @@ export function VehicleFormDialog({
             </div>
           </FormSection>
 
-          <FormSection title="Ownership">
+          <FormSection title={t('vendor.vehicle.ownershipSection')}>
             <div className="space-y-1.5">
-              <Label htmlFor="vehicle-ownership">Owned or rented</Label>
+              <Label htmlFor="vehicle-ownership">{t('vendor.vehicle.ownedOrRented')}</Label>
               <Select
                 value={ownershipType}
                 onValueChange={(value) =>
@@ -187,20 +191,20 @@ export function VehicleFormDialog({
                   <SelectGroup>
                     {VEHICLE_OWNERSHIP_TYPES.map((type) => (
                       <SelectItem key={type} value={type}>
-                        {OWNERSHIP_META[type].label}
+                        {ownershipMeta(type, t).label}
                       </SelectItem>
                     ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
               <p className="text-xs leading-snug text-muted-foreground">
-                {OWNERSHIP_META[ownershipType]?.description}
+                {ownershipMeta(ownershipType, t).description}
               </p>
             </div>
 
             <div className="rounded-lg border bg-muted/40 px-3 py-2.5">
               <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-                Vendor
+                {t('common.labels.vendor')}
               </p>
               <p className="mt-0.5 text-[13px] font-medium">{vendorName}</p>
             </div>
@@ -213,13 +217,13 @@ export function VehicleFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={isPending}
             >
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" disabled={isPending}>
               {isPending && (
                 <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
               )}
-              {record ? 'Save changes' : 'Add vehicle'}
+              {record ? t('common.actions.saveChanges') : t('vendor.vehicle.add')}
             </Button>
           </DialogFooter>
         </form>

@@ -9,7 +9,7 @@ import { formatBytes } from '@/lib/document-file-rules'
 import { printDocument } from '@/lib/print-document'
 import { kindMeta, formatDay, taka } from '../lib/accounts-meta'
 import type { EntryRecord } from '../types'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 /** pdf.js is only downloaded once somebody actually opens a PDF voucher. */
 const ZoomablePdf = lazy(() =>
@@ -96,8 +96,14 @@ export function VoucherViewerDialog({
             <DialogDescription className="truncate text-xs">
               {kindMeta(entry.kind, t).label} · {taka(entry.amount)} · {formatDay(entry.date)}
               {entry.expenseName ? ` · ${entry.expenseName}` : ''} · {formatBytes(voucher.size)}
-              {voucher.pageCount ? ` · ${voucher.pageCount} sheets` : ''}
-              {voucher.uploadedBy ? ` · attached by ${voucher.uploadedBy.name}` : ''}
+              {voucher.pageCount
+                ? t('accounts.voucher.sheetsSuffix', {
+                    sheets: countOf(voucher.pageCount, 'nouns.sheet', t),
+                  })
+                : ''}
+              {voucher.uploadedBy
+                ? t('accounts.voucher.attachedBy', { name: voucher.uploadedBy.name })
+                : ''}
             </DialogDescription>
           </div>
           <ZoomToolbar controls={zoom} disabled={!url} />
@@ -108,7 +114,7 @@ export function VoucherViewerDialog({
             onClick={() => url && mimeType && printDocument(url, mimeType)}
           >
             <Printer data-icon="inline-start" aria-hidden />
-            Print
+            {t('common.actions.print')}
           </Button>
           <Button variant="outline" size="sm" onClick={onDownload}>
             <Download data-icon="inline-start" aria-hidden />

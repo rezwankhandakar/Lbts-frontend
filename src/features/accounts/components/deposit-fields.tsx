@@ -98,12 +98,19 @@ function LabourPaymentField({ draft, set, request }: KindFieldsProps) {
         label={t('accounts.deposit.againstLabourBill')}
         value={
           option
-            ? `${option.csd} · ${option.periodLabel}`
+            ? t('accounts.deposit.labourCsdValue', {
+                csd: option.csd,
+                period: option.periodLabel,
+              })
             : (current?.label ?? (draft.labourCsd || t('accounts.deposit.labourCsd')))
         }
         detail={
           option
-            ? `${option.billNumber} · billed ${taka(option.billedAmount)} · ${taka(option.receivedAmount)} received`
+            ? t('accounts.deposit.labourCsdDetail', {
+                bill: option.billNumber,
+                billed: taka(option.billedAmount),
+                received: taka(option.receivedAmount),
+              })
             : undefined
         }
       />

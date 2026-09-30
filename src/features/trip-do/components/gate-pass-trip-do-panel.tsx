@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useGatePassTripDoStatus } from '../hooks/use-trip-do'
 import { ProductStatusBadge } from './trip-do-badges'
 import { GatePassProductLineCard } from './gate-pass-product-line'
+import { formatNumber } from '@/lib/format'
 import { useT } from '@/lib/i18n'
 
 /**
@@ -36,7 +37,10 @@ export function GatePassTripDoPanel({ gatePassId, tripDo }: { gatePassId: string
           </h2>
           <p className="text-xs text-muted-foreground">
             {status
-              ? `${status.linkedQty} of ${status.totalQty} pcs linked to challans`
+              ? t('tripDo.assign.lineLinked', {
+                  linked: formatNumber(status.linkedQty),
+                  total: formatNumber(status.totalQty),
+                })
               : t('tripDo.gatePassPanel.description')}
           </p>
         </div>

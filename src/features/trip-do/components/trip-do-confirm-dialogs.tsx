@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { formatTaka } from '@/lib/format'
 import type { TripDoPageMeta, TripDoRowRecord } from '../types'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 interface UnlinkDialogProps {
   row: TripDoRowRecord | null
@@ -75,14 +75,18 @@ export function ExportTripDoDialog({ meta, open, isExporting, onCancel, onConfir
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Export {meta ? meta.total.toLocaleString() : ''} {meta?.total === 1 ? 'row' : 'rows'}?
+            {t('tripDo.export.confirmTitle', {
+              rows: countOf(meta?.total ?? 0, 'nouns.row', t),
+            })}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {meta
-              ? `${meta.totalQty.toLocaleString()} pieces worth ${formatTaka(meta.totalAmount)}, `
+              ? t('tripDo.export.confirmWorth', {
+                  pieces: countOf(meta.totalQty, 'nouns.piece', t),
+                  amount: formatTaka(meta.totalAmount),
+                })
               : ''}
-            one row per challan product line with its returns and re-sends, in the sheet's own column
-            order — exactly the rows the current filters show, every page of them.
+            {t('tripDo.export.confirmBody')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -100,7 +100,7 @@ export function ProductRateTable({
                           variant="ghost"
                           size="icon"
                           className="size-7"
-                          aria-label={`Actions for ${productRateLabel(record)}`}
+                          aria-label={t('productRate.table.actionsFor', { label: productRateLabel(record) })}
                         />
                       }
                     >
@@ -110,7 +110,7 @@ export function ProductRateTable({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onEdit(record)}>
                         <PencilLine aria-hidden />
-                        Edit
+                        {t('common.actions.edit')}
                       </DropdownMenuItem>
 
                       <DropdownMenuItem onClick={() => onToggleActive(record)}>

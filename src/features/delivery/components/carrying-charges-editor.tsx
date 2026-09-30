@@ -65,7 +65,7 @@ export function CarryingChargesEditor({
               <div className="flex flex-wrap items-end gap-2">
                 <div className="w-32 space-y-1">
                   <Label htmlFor={`carry-kind-${index}`} className="text-xs text-muted-foreground">
-                    What
+                    {t('delivery.carryingKinds.what')}
                   </Label>
                   <Select
                     items={kindOptions(t)}
@@ -106,7 +106,7 @@ export function CarryingChargesEditor({
 
                 <div className="w-28 space-y-1">
                   <Label htmlFor={`carry-amount-${index}`} className="text-xs text-muted-foreground">
-                    Taka
+                    {t('delivery.carryingKinds.taka')}
                   </Label>
                   <Input
                     id={`carry-amount-${index}`}

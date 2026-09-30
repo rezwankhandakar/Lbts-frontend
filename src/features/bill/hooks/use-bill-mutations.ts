@@ -123,7 +123,7 @@ export function useRemoveBillLines(): UseMutationResult<
           n: formatNumber(result.removed),
           bill: result.billNumber,
         }), {
-        description: 'They are free to bill again.',
+        description: t('bill.actions.freeToBillAgain'),
       })
       void invalidate()
     },
@@ -169,7 +169,9 @@ export function useReopenBill(): UseMutationResult<BillRecord, ApiError, string>
   return useMutation({
     mutationFn: reopenBill,
     onSuccess: (bill) => {
-      toast.success(t('bill.actions.reopened', { bill: bill.billNumber }), { description: 'It is a draft again.' })
+      toast.success(t('bill.actions.reopened', { bill: bill.billNumber }), {
+        description: t('bill.actions.draftAgain'),
+      })
       void invalidate()
     },
     onError: reportBillError,

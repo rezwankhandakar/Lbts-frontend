@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Truck } from 'lucide-react'
 import { ListPagination } from '@/components/shared/list-pagination'
+import { SentenceWith } from '@/components/shared/sentence-with'
 import {
   useChangeVehicleStatus,
   useCreateVehicle,
@@ -24,6 +25,7 @@ import { VehicleDetailSheet } from './vehicle-detail-sheet'
 import { VehicleFilters } from './vehicle-filters'
 import { VehicleFormDialog } from './vehicle-form-dialog'
 import { VehicleTable } from './vehicle-table'
+import { useT } from '@/lib/i18n'
 
 type Overlay = 'form' | 'status' | 'delete' | 'detail'
 
@@ -57,6 +59,8 @@ export function VehiclePanel({
   onAssign,
   onDocuments,
 }: VehiclePanelProps) {
+  const t = useT()
+
   const { params, applied, isFiltered, applyFilters, setPage, clampToPages, reset } =
     useVehicleListParams()
 
@@ -132,7 +136,7 @@ export function VehiclePanel({
 
   return (
     <>
-      <Panel label="Vehicles">
+      <Panel label={t('vendor.vehicle.panel')}>
         <VehicleFilters
           params={params}
           onChange={applyFilters}
@@ -144,9 +148,10 @@ export function VehiclePanel({
           canManage={canManage}
           summary={
             meta && !query.isPending
-              ? `${meta.total} ${meta.total === 1 ? 'vehicle' : 'vehicles'}${
-                  isFiltered ? ' match these filters' : ' in this fleet'
-                }`
+              ? t(
+                  isFiltered ? 'vendor.vehicle.summaryFiltered' : 'vendor.vehicle.summaryTotal',
+                  { count: meta.total },
+                )
               : undefined
           }
         />
@@ -155,22 +160,22 @@ export function VehiclePanel({
           <PanelSkeleton />
         ) : query.isError ? (
           <PanelError
-            title="Could not load the fleet"
-            message={query.error?.message ?? 'Something went wrong.'}
+            title={t('vendor.vehicle.loadFailed')}
+            message={query.error?.message ?? t('vendor.somethingWrong')}
             onRetry={() => void query.refetch()}
             isRetrying={query.isFetching}
           />
         ) : records.length === 0 ? (
           <PanelEmpty
             icon={Truck}
-            title="No vehicles added yet"
-            description={`Every vehicle belongs to exactly one vendor. Add ${vendor.name}'s first vehicle, then assign a driver to it.`}
+            title={t('vendor.vehicle.noneYet')}
+            description={t('vendor.vehicle.noneHint', { vendor: vendor.name })}
             isFiltered={isFiltered}
             onReset={reset}
             action={
               canManage
                 ? {
-                    label: 'Add vehicle',
+                    label: t('vendor.vehicle.add'),
                     onClick: () => {
                       setTarget(null)
                       setOverlay('form')
@@ -224,14 +229,14 @@ export function VehiclePanel({
           open={overlay === 'status'}
           isPending={isPending}
           subject={target.registrationNo}
-          noun="vehicle"
+          noun={t('vendor.statusDialog.nounVehicle')}
           current={target.status}
           options={VEHICLE_STATUSES}
           meta={vehicleStatusMeta}
           consequence={(next) =>
             next === 'Active'
-              ? 'It can be given a driver again.'
-              : 'Any assignment it currently has is left exactly as it is — a vehicle off the road on Tuesday still had a driver on Monday. It simply cannot take a new driver until it is active.'
+              ? t('vendor.vehicle.activeConsequence')
+              : t('vendor.vehicle.inactiveConsequence')
           }
           onOpenChange={(open) => !open && close()}
           onConfirm={(next, note) =>
@@ -247,18 +252,18 @@ export function VehiclePanel({
         <ConfirmDialog
           open={overlay === 'delete'}
           isPending={isPending}
-          title={`Remove ${target.registrationNo}?`}
+          title={t('vendor.vehicle.removeTitle', { plate: target.registrationNo })}
           description={
-            <>
-              The vehicle, its documents and its <strong>whole assignment history</strong> are
-              deleted. An assignment whose vehicle is gone is a sentence with its subject removed,
-              so those rows cannot be kept. If the vehicle has simply left the fleet, marking it
-              inactive keeps the history instead.
-            </>
+            <SentenceWith
+              text={t('vendor.vehicle.removeDescription')}
+              placeholder="{history}"
+            >
+              <strong>{t('vendor.vehicle.wholeHistory')}</strong>
+            </SentenceWith>
           }
-          confirmLabel="Remove"
-          pendingLabel="Removing…"
-          cancelLabel="Keep it"
+          confirmLabel={t('vendor.remove.confirm')}
+          pendingLabel={t('vendor.remove.removing')}
+          cancelLabel={t('vendor.remove.keepIt')}
           onOpenChange={(open) => !open && close()}
           onConfirm={() =>
             remove.mutate(

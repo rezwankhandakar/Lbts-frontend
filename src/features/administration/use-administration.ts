@@ -2,6 +2,8 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ApiError } from '@/lib/axios'
+import { t } from '@/lib/i18n'
+import { roleMeta } from '@/lib/roles'
 import {
   changeUserRole,
   changeUserStatus,
@@ -94,11 +96,20 @@ export function useChangeUserRole(): UseMutationResult<
        * that the link they chose is the one that landed — and the link is the
        * whole of what that account will be able to see.
        */
-      toast.success(`${variables.name} is now ${user.role}`, {
-        description: user.vendor
-          ? `Linked to ${user.vendor.name} (${user.vendor.vendorCode}). They will see that vendor's fleet, read-only.`
-          : undefined,
-      })
+      toast.success(
+        t('administration.role.changed', {
+          name: variables.name,
+          role: roleMeta(user.role, t).label,
+        }),
+        {
+          description: user.vendor
+            ? t('administration.role.changedLinked', {
+                vendor: user.vendor.name,
+                code: user.vendor.vendorCode,
+              })
+            : undefined,
+        },
+      )
       void invalidate()
     },
     onError: reportError,

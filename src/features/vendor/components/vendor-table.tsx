@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { VendorRecord } from '../types'
 import { ComplianceChips, VendorStatusBadge } from './status-badges'
@@ -40,19 +41,21 @@ export function VendorTable({
   onChangeStatus,
   onDelete,
 }: VendorTableProps) {
+  const t = useT()
+
   return (
     <div className="hidden overflow-x-auto md:block">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Vendor</TableHead>
-            <TableHead className="hidden lg:table-cell">Contact</TableHead>
-            <TableHead className="w-20 text-right">Vehicles</TableHead>
-            <TableHead className="w-20 text-right">Drivers</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="hidden xl:table-cell">Compliance</TableHead>
+            <TableHead>{t('vendor.directory.vendor')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('vendor.directory.contact')}</TableHead>
+            <TableHead className="w-20 text-right">{t('vendor.kpi.vehicles')}</TableHead>
+            <TableHead className="w-20 text-right">{t('vendor.kpi.drivers')}</TableHead>
+            <TableHead>{t('vendor.directory.status')}</TableHead>
+            <TableHead className="hidden xl:table-cell">{t('vendor.directory.compliance')}</TableHead>
             <TableHead className="w-10">
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t('vendor.directory.actions')}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -142,7 +145,7 @@ export function VendorTable({
                           variant="ghost"
                           size="icon"
                           className="size-7"
-                          aria-label={`Actions for ${record.name}`}
+                          aria-label={t('vendor.directory.actionsFor', { name: record.name })}
                         />
                       }
                     >
@@ -152,19 +155,19 @@ export function VendorTable({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem render={<Link to={`/vendors/${record.id}`} />}>
                         <Eye aria-hidden />
-                        Open
+                        {t('common.actions.open')}
                       </DropdownMenuItem>
 
                       {canManage && (
                         <>
                           <DropdownMenuItem onClick={() => onEdit(record)}>
                             <PencilLine aria-hidden />
-                            Edit details
+                            {t('vendor.directory.editDetails')}
                           </DropdownMenuItem>
 
                           <DropdownMenuItem onClick={() => onChangeStatus(record)}>
                             <ShieldCheck aria-hidden />
-                            Change status
+                            {t('vendor.directory.changeStatus')}
                           </DropdownMenuItem>
 
                           <DropdownMenuSeparator />
@@ -174,7 +177,7 @@ export function VendorTable({
                             onClick={() => onDelete(record)}
                           >
                             <Trash2 aria-hidden />
-                            Remove
+                            {t('common.actions.remove')}
                           </DropdownMenuItem>
                         </>
                       )}

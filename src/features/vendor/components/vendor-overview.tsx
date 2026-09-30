@@ -2,12 +2,15 @@ import { ArrowRight, CalendarClock, FileClock } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatDay, formatPeriod } from '../lib/vendor-meta'
+import { formatNumber } from '@/lib/format'
+import { formatAssignmentPeriod, formatDay } from '../lib/vendor-meta'
+import { DOCUMENT_EXPIRY_SOON_DAYS } from '../types'
 import type { VendorSummary, VendorTab } from '../types'
 import { AssignmentStatusBadge, DocumentStatusBadge } from './status-badges'
 import { PanelError } from './panel-states'
 import { VendorAlerts } from './vendor-alerts'
 import { VendorKpiCards } from './vendor-kpi-cards'
+import { useT } from '@/lib/i18n'
 
 interface VendorOverviewProps {
   summary: VendorSummary | undefined
@@ -78,11 +81,13 @@ export function VendorOverview({
   onRetry,
   onOpenTab,
 }: VendorOverviewProps) {
+  const t = useT()
+
   if (isError) {
     return (
       <div className="rounded-xl border bg-card shadow-sm">
         <PanelError
-          title="Could not load the overview"
+          title={t('vendor.overview.loadFailed')}
           message={errorMessage}
           onRetry={onRetry}
           isRetrying={isFetching}
@@ -109,9 +114,12 @@ export function VendorOverview({
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Section
-          title="Expiring documents"
+          title={t('vendor.overview.expiringDocuments')}
           icon={FileClock}
-          action={{ label: 'All documents', onClick: () => onOpenTab('documents') }}
+          action={{
+            label: t('vendor.overview.allDocuments'),
+            onClick: () => onOpenTab('documents'),
+          }}
         >
           {isLoading ? (
             <div className="space-y-3 p-4" aria-busy="true">
@@ -119,7 +127,11 @@ export function VendorOverview({
               <Skeleton className="h-4 w-3/4" />
             </div>
           ) : (summary?.expiringDocuments.length ?? 0) === 0 ? (
-            <Nothing>Nothing is due for renewal in the next 30 days.</Nothing>
+            <Nothing>
+              {t('vendor.overview.nothingDue', {
+                days: formatNumber(DOCUMENT_EXPIRY_SOON_DAYS),
+              })}
+            </Nothing>
           ) : (
             <ul className="divide-y">
               {summary?.expiringDocuments.map((document) => (
@@ -138,9 +150,12 @@ export function VendorOverview({
         </Section>
 
         <Section
-          title="Recent assignments"
+          title={t('vendor.overview.recentAssignments')}
           icon={CalendarClock}
-          action={{ label: 'All assignments', onClick: () => onOpenTab('assignments') }}
+          action={{
+            label: t('vendor.overview.allAssignments'),
+            onClick: () => onOpenTab('assignments'),
+          }}
         >
           {isLoading ? (
             <div className="space-y-3 p-4" aria-busy="true">
@@ -148,7 +163,7 @@ export function VendorOverview({
               <Skeleton className="h-4 w-3/4" />
             </div>
           ) : (summary?.recentAssignments.length ?? 0) === 0 ? (
-            <Nothing>No driver has been assigned to a vehicle yet.</Nothing>
+            <Nothing>{t('vendor.overview.noneAssignedYet')}</Nothing>
           ) : (
             <ul className="divide-y">
               {summary?.recentAssignments.map((assignment) => (
@@ -158,11 +173,11 @@ export function VendorOverview({
                 >
                   <div className="min-w-0">
                     <p className="truncate text-[13px] font-medium">
-                      {assignment.driver?.name ?? 'Removed driver'}
+                      {assignment.driver?.name ?? t('vendor.removedDriver')}
                     </p>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {assignment.vehicle?.registrationNo ?? 'Removed vehicle'} ·{' '}
-                      {formatPeriod(assignment.assignedFrom, assignment.assignedUntil)}
+                      {assignment.vehicle?.registrationNo ?? t('vendor.removedVehicle')} ·{' '}
+                      {formatAssignmentPeriod(assignment.assignedFrom, assignment.assignedUntil, t)}
                     </p>
                   </div>
                   <AssignmentStatusBadge value={assignment.status} />

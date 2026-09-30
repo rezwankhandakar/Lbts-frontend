@@ -3,6 +3,7 @@ import { Bell } from 'lucide-react'
 import { HEADER_ICON_BUTTON } from '@/components/layout/header-styles'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { formatNumber } from '@/lib/format'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { useNotificationSummary } from '../hooks/use-notifications'
@@ -63,7 +64,7 @@ export function NotificationBell() {
               aria-label={
                 unread === 0
                   ? t('notification.bellNothing')
-                  : `Notifications, ${unread} unread`
+                  : t('notification.bellUnread', { n: formatNumber(unread), count: unread })
               }
             />
           }

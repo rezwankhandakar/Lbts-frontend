@@ -101,7 +101,7 @@ export function BatchFilters({ params, onChange, onReset, summary }: BatchFilter
             {isFiltered && (
               <Button variant="ghost" size="sm" onClick={onReset} className="text-muted-foreground">
                 <X data-icon="inline-start" aria-hidden />
-                Clear
+                {t('common.actions.clear')}
               </Button>
             )}
           </div>

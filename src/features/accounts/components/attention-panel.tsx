@@ -2,7 +2,7 @@ import { ChevronRight, CircleCheckBig, FileClock, FileWarning, HandCoins, Truck 
 import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { taka } from '../lib/accounts-meta'
 import type { AccountsOverview } from '../types'
@@ -32,8 +32,10 @@ export function AttentionPanel({ overview }: { overview: AccountsOverview | unde
     items.push({
       icon: Truck,
       chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
-      title: `${taka(overview.vendorDue.total)} owed to vendors`,
-      detail: `${overview.vendorDue.vendors} ${overview.vendorDue.vendors === 1 ? 'vendor' : 'vendors'} across every month`,
+      title: t('accounts.attention.owedToVendors', { amount: taka(overview.vendorDue.total) }),
+      detail: t('accounts.attention.owedToVendorsDetail', {
+        vendors: countOf(overview.vendorDue.vendors, 'nouns.vendor', t),
+      }),
       to: '/accounts/vendor-bills?status=due',
     })
   }
@@ -41,7 +43,7 @@ export function AttentionPanel({ overview }: { overview: AccountsOverview | unde
     items.push({
       icon: FileWarning,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
-      title: `${overview.vendorDue.blankBills} ${overview.vendorDue.blankBills === 1 ? 'trip has' : 'trips have'} no bill entered`,
+      title: t('accounts.attention.tripsNoBill', { count: overview.vendorDue.blankBills }),
       detail: t('accounts.attention.blankBillDetail'),
       to: '/accounts/vendor-bills',
     })
@@ -50,7 +52,7 @@ export function AttentionPanel({ overview }: { overview: AccountsOverview | unde
     items.push({
       icon: FileClock,
       chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
-      title: `${overview.pendingFinalBills} Excel ${overview.pendingFinalBills === 1 ? 'bill is' : 'bills are'} awaiting a final bill`,
+      title: t('accounts.attention.awaitingFinal', { count: overview.pendingFinalBills }),
       detail: t('accounts.attention.pendingFinalDetail'),
       to: '/accounts/final-bills',
     })
@@ -59,8 +61,10 @@ export function AttentionPanel({ overview }: { overview: AccountsOverview | unde
     items.push({
       icon: FileClock,
       chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
-      title: `${taka(overview.receivable.outstanding)} to receive from Walton`,
-      detail: `${overview.receivable.count} final ${overview.receivable.count === 1 ? 'bill' : 'bills'} not fully paid`,
+      title: t('accounts.attention.toReceive', {
+        amount: taka(overview.receivable.outstanding),
+      }),
+      detail: t('accounts.attention.toReceiveDetail', { count: overview.receivable.count }),
       to: '/accounts/final-bills',
     })
   }
@@ -68,8 +72,10 @@ export function AttentionPanel({ overview }: { overview: AccountsOverview | unde
     items.push({
       icon: HandCoins,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
-      title: `${taka(overview.advances.outstanding)} in open advances`,
-      detail: `${overview.advances.count} ${overview.advances.count === 1 ? 'advance' : 'advances'} not yet settled`,
+      title: t('accounts.attention.openAdvancesTitle', {
+        amount: taka(overview.advances.outstanding),
+      }),
+      detail: t('accounts.attention.openAdvancesDetail', { count: overview.advances.count }),
       to: '/accounts/advances',
     })
   }

@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { signedTaka, taka } from '../lib/accounts-meta'
 import type { ProfitLossMonth } from '../types'
 import { Panel } from './account-atoms'
+import { formatPercent } from '@/lib/format'
 
 /**
  * One month's profit, as the lines that make it. When no final bill is in yet
@@ -45,7 +46,11 @@ export function MonthProfitCard({ month }: { month: ProfitLossMonth | undefined 
         {month.finalBillCount === 0 && (
           <p className="rounded-lg bg-tone-amber/10 px-3 py-2 text-xs text-tone-amber">
             {t('accounts.profit.noFinalBillYet')}
-            {month.pendingSubmitted > 0 && ` — Excel bills ask for ${taka(month.pendingSubmitted)}`}.
+            {month.pendingSubmitted > 0 &&
+              t('accounts.profit.excelBillsAsk', {
+                amount: taka(month.pendingSubmitted),
+              })}
+            .
           </p>
         )}
 
@@ -66,8 +71,12 @@ export function MonthProfitCard({ month }: { month: ProfitLossMonth | undefined 
         >
           <span className={cn('flex items-center gap-2 text-sm font-medium', isProfit ? 'text-tone-emerald' : 'text-tone-rose')}>
             <Trend className="size-4" aria-hidden />
-            {isProfit ? 'Profit' : 'Loss'}
-            {month.margin !== null && <span className="text-xs font-normal">({month.margin}% margin)</span>}
+            {isProfit ? t('accounts.profit.profitWord') : t('accounts.profit.lossWord')}
+            {month.margin !== null && (
+              <span className="text-xs font-normal">
+                {t('accounts.profit.marginSuffix', { margin: formatPercent(month.margin) })}
+              </span>
+            )}
           </span>
           <span className="text-xl font-semibold tracking-tight tabular-nums">{signedTaka(month.profit)}</span>
         </div>

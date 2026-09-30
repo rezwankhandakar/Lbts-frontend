@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { DocumentOwnerType } from '../types'
+import { useT } from '@/lib/i18n'
 
 export interface DocumentSubject {
   type: DocumentOwnerType
@@ -82,16 +83,17 @@ export function DocumentSubjectDialog({
   onOpenChange,
   onChoose,
 }: DocumentSubjectDialogProps) {
+  const t = useT()
+
   const isEmpty = !isLoading && vehicles.length === 0 && drivers.length === 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>What is this document for?</DialogTitle>
+          <DialogTitle>{t('vendor.document.subjectTitle')}</DialogTitle>
           <DialogDescription>
-            A compliance document belongs to a vehicle or to a driver. Choosing here narrows the
-            type list to the ones that make sense for it.
+            {t('vendor.document.subjectDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -103,13 +105,22 @@ export function DocumentSubjectDialog({
           </div>
         ) : isEmpty ? (
           <p className="py-6 text-center text-sm text-muted-foreground">
-            This vendor has no active vehicles or drivers yet. Add one first — a document has to
-            belong to something.
+            {t('vendor.document.noSubjectsYet')}
           </p>
         ) : (
           <div className="space-y-5">
-            <Group title="Vehicles" icon={Truck} subjects={vehicles} onChoose={onChoose} />
-            <Group title="Drivers" icon={UserRound} subjects={drivers} onChoose={onChoose} />
+            <Group
+              title={t('vendor.document.vehicles')}
+              icon={Truck}
+              subjects={vehicles}
+              onChoose={onChoose}
+            />
+            <Group
+              title={t('vendor.document.drivers')}
+              icon={UserRound}
+              subjects={drivers}
+              onChoose={onChoose}
+            />
           </div>
         )}
       </DialogContent>

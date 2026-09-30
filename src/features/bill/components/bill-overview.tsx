@@ -52,14 +52,14 @@ export function BillOverview({ meta, isLoading, params, onChange }: BillOverview
     {
       label: t('bill.stats.bills'),
       value: meta.total.toLocaleString(),
-      hint: 'matching the filters',
+      hint: t('bill.stats.matchingFilters'),
       icon: Receipt,
       chip: 'bg-tone-violet/10 text-tone-violet ring-tone-violet/20',
     },
     {
       label: t('bill.stats.drafts'),
       value: meta.draftBills.toLocaleString(),
-      hint: 'still being prepared',
+      hint: t('bill.stats.stillPreparing'),
       icon: FilePen,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
       filter: { pressed: params.status === 'Draft', apply: { status: 'Draft' }, clear: { status: 'all' } },
@@ -67,7 +67,7 @@ export function BillOverview({ meta, isLoading, params, onChange }: BillOverview
     {
       label: t('bill.stats.finalized'),
       value: meta.finalizedBills.toLocaleString(),
-      hint: 'signed off and sent',
+      hint: t('bill.stats.signedOffSent'),
       icon: FileCheck2,
       chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
       filter: {

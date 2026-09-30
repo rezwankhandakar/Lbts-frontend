@@ -1,7 +1,7 @@
 import { MapPin, Phone, Plus, RotateCcw, StickyNote, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatNumber } from '@/lib/format'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   challanChanges,
@@ -17,6 +17,7 @@ import { CartChallanMenu } from './cart-challan-menu'
 import { ChallanChangeNotice } from './challan-change-notice'
 import { CartLineRow } from './cart-line-row'
 import type { TripCart } from '../hooks/use-trip-cart'
+import { SentenceWith } from '@/components/shared/sentence-with'
 
 export type CartCardDialog =
   | { kind: 'party'; challanId: string }
@@ -161,8 +162,11 @@ export function CartChallanCard({ challan, position, cart, onOpenDialog }: CartC
           </Button>
         ))}
         <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-          <span className="font-semibold text-foreground">{challanQty(challan)}</span> pcs on this
-          trip
+          <SentenceWith text={t('delivery.cart.onThisTrip')} placeholder="{pieces}">
+            <span className="font-semibold text-foreground">
+              {countOf(challanQty(challan), 'nouns.pc', t)}
+            </span>
+          </SentenceWith>
         </span>
       </footer>
     </article>

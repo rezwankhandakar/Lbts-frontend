@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface PhotoLightboxProps {
@@ -46,6 +47,8 @@ export function PhotoLightbox({
   children,
   className,
 }: PhotoLightboxProps) {
+  const t = useT()
+
   const [open, setOpen] = useState(false)
 
   return (
@@ -53,7 +56,7 @@ export function PhotoLightbox({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={`View the photo of ${label} at full size`}
+        aria-label={t('vendor.photo.viewFullSize', { label })}
         className={cn(
           'group relative shrink-0 cursor-zoom-in rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring',
           className,

@@ -49,12 +49,12 @@ export function FinalBillCard({ bill, canWrite, onEdit, onDelete }: FinalBillCar
             <DropdownMenuContent align="end" className="min-w-40">
               <DropdownMenuItem onClick={onEdit}>
                 <Pencil aria-hidden />
-                Edit
+                {t('common.actions.edit')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={onDelete}>
                 <Trash2 aria-hidden />
-                Delete
+                {t('common.actions.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

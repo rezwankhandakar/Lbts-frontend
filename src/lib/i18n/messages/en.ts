@@ -84,6 +84,7 @@ export const en = {
       skip: 'Skip',
       finish: 'Finish',
       showMore: 'Show more',
+      more: 'More',
       showLess: 'Show less',
       expand: 'Expand',
       collapse: 'Collapse',
@@ -121,6 +122,7 @@ export const en = {
       createdAt: 'Created',
       updatedBy: 'Updated by',
       updatedAt: 'Updated',
+      completedAt: 'Completed',
       customer: 'Customer',
       address: 'Address',
       district: 'District',
@@ -195,6 +197,17 @@ export const en = {
        * the kind of thing a concatenation in a component gets wrong.
        */
       counted: '{n} {noun}',
+    },
+
+    /**
+     * A figure short enough for a chart axis, at the local scale. Shared,
+     * because the Accounts trend chart and the vendor dashboard both draw one and
+     * a second copy is how one of them comes to read "1.5L" beside Bangla digits.
+     */
+    compact: {
+      thousand: '{value}K',
+      lakh: '{value}L',
+      crore: '{value}Cr',
     },
 
     validation: {
@@ -350,6 +363,10 @@ export const en = {
     timeout: 'The request took too long',
     notFoundTitle: 'Page not found',
     notFoundBody: 'That address does not match anything in the application.',
+
+    notFoundPageTitle: 'This page does not exist',
+    notFoundPageBody:
+      'The page you are looking for may have been moved, or the address might be mistyped.',
     forbiddenTitle: 'You do not have access to this page',
     forbiddenBody: 'Your role does not include this module. If you think that is wrong, ask an administrator.',
     unauthorized: 'Please sign in again',
@@ -362,6 +379,15 @@ export const en = {
     boundaryTitle: 'This page stopped working',
     boundaryBody: 'The rest of the application is fine — go back, or reload to try again.',
     detailsHeading: 'Error detail (development only)',
+
+    /** What axios says about a failure the API never got to answer. */
+    slowServer: 'The server took too long to respond. It may be waking up — please try again.',
+    unreachable: 'Could not reach the server. Check your connection and try again.',
+    /** The four the loopback scanner helper can produce. */
+    scannerUnreachable: 'The scanner helper is not running on this computer.',
+    scannerUnauthorized: 'This computer is not paired with the scanner helper.',
+    scannerFailed: 'The scanner helper could not complete that request.',
+    scannerBusy: 'The scanner is already busy with another job.',
   },
 
   /**
@@ -428,9 +454,13 @@ export const en = {
       privacyPolicy: 'Privacy Policy',
       submit: 'Create account',
       submitting: 'Creating account…',
-      roleNoticeBefore: 'New accounts are created with the',
       roleNoticeRole: 'User',
-      roleNoticeAfter: 'role. An administrator can change this later.',
+      /**
+       * One sentence with the role drawn inside it, rather than a head, a span
+       * and a tail: Bangla puts "role" before the name it qualifies, so three
+       * fragments in that order could only ever read correctly in English.
+       */
+      roleNotice: 'New accounts are created with the {role} role. An administrator can change this later.',
       created: 'Account created. Welcome to LBTS!',
       ready: 'Account ready. Welcome to LBTS!',
     },
@@ -553,11 +583,14 @@ export const en = {
     assignment: { one: 'assignment', other: 'assignments' },
     document: { one: 'document', other: 'documents' },
     location: { one: 'location', other: 'locations' },
+    district: { one: 'district', other: 'districts' },
     rate: { one: 'rate', other: 'rates' },
     row: { one: 'row', other: 'rows' },
     unit: { one: 'unit', other: 'units' },
     cashWallet: { one: 'cash wallet', other: 'cash wallets' },
     page: { one: 'page', other: 'pages' },
+    sheet: { one: 'sheet', other: 'sheets' },
+    part: { one: 'part', other: 'parts' },
     piece: { one: 'piece', other: 'pieces' },
     pc: { one: 'pc', other: 'pcs' },
     line: { one: 'line', other: 'lines' },
@@ -572,7 +605,9 @@ export const en = {
     entry: { one: 'entry', other: 'entries' },
     expense: { one: 'expense', other: 'expenses' },
     advance: { one: 'advance', other: 'advances' },
+    payment: { one: 'payment', other: 'payments' },
     user: { one: 'user', other: 'users' },
+    account: { one: 'account', other: 'accounts' },
   },
 
   /** Surfaces in `components/shared/` — used by every module, owned by none. */
@@ -583,6 +618,42 @@ export const en = {
       askAdmin: 'Ask an Admin if you believe you should have access.',
       signedInAs: 'Signed in as',
       backToDashboard: 'Back to dashboard',
+
+      /**
+       * One sentence per route boundary, naming the module and the accounts it
+       * is open to. They are keys here rather than constants beside the routes,
+       * because a module name and a role list are both words.
+       */
+      reasons: {
+        gatePassRead:
+          'Gate Pass records the transport operation, and is open to Admin, Manager, CEO and Operation Executive accounts.',
+        gatePassWrite:
+          'Filing a gate pass is done by Admin, Manager, CEO and Operation Executive accounts.',
+        challanRead:
+          'Challan records deliveries from the corporate office, and is open to Admin, Manager, CEO and Operation Executive accounts.',
+        challanWrite:
+          'Filing a challan is done by Admin, Manager, CEO and Operation Executive accounts.',
+        deliveryRead:
+          'Deliveries record which challans went out on which vehicle, and are open to Admin, Manager, CEO and Operation Executive accounts.',
+        deliveryWrite:
+          'Building and correcting a trip is done by Admin, Manager, CEO and Operation Executive accounts.',
+        tripDo:
+          'The Trip DO sheet matches challan product lines to gate passes, and is open to Admin, Manager, CEO and Operation Executive accounts. Only an Admin changes it.',
+        accounts:
+          'Accounts holds the office’s balances, payments and profit, and is open to Admin, Manager and CEO accounts.',
+        bill:
+          'Bills charge a unit for its Trip DOs, and are open to Admin, Manager, CEO and Operation Executive accounts. Only an Admin prepares one.',
+        labourBill:
+          'Walton Labour Bills charge the handling on each delivery, and are open to Admin, Manager, CEO and Operation Executive accounts.',
+        location:
+          'The location master list is reference data the whole operation is classified against, and only an Admin account may open it.',
+        productRate:
+          'The product rate card sets what every delivery is charged, and only an Admin account may open it.',
+        vendor:
+          'Vendors, their vehicles, their drivers and their compliance documents. Staff accounts see every vendor; a vendor account sees its own.',
+        activity:
+          'Activity Logs record who did what across every module, and are open to Admin, Manager and CEO accounts.',
+      },
     },
     comingSoon: {
       badge: 'Coming soon',
@@ -605,6 +676,9 @@ export const en = {
       out: 'Zoom out',
       in: 'Zoom in',
       fit: 'Fit the whole page on screen',
+
+      pdfFailed: 'The PDF could not be opened.',
+      pageAria: 'Page {page}',
     },
 
     columnFilter: {
@@ -614,6 +688,9 @@ export const en = {
       truncated: 'Only the first {count} values are listed. Narrow another column first.',
       apply: 'Apply',
       clearFilter: 'Clear filter',
+
+      filtered: '{label}: filtered',
+      filterBy: 'Filter {label}',
     },
 
     documentScan: {
@@ -628,6 +705,25 @@ export const en = {
       scanNow: 'Scan now',
       stop: 'Stop',
       hide: 'Hide',
+
+    },
+
+    /** What a one-file attachment may be, wherever one is offered. */
+    documentFile: {
+      wrongType: 'That file is not a PDF, JPG, PNG or WEBP.',
+      pdfTooLarge: 'That PDF is larger than {size}.',
+      imageTooLarge:
+        'That image is larger than {size}. Scan it as a PDF, or at a lower resolution.',
+      /** The formats line each one-file field prints under its buttons. */
+      voucherHint:
+        'PDF, JPG, PNG or WEBP. A multi-sheet bill is stored as one PDF, and an entry is saved with or without one.',
+      copyHint: 'PDF, JPG, PNG or WEBP. Two sheets are saved as one PDF.',
+
+    },
+
+    carryOver: {
+      /** The title behind a "Same as last" tick: what the last record held. */
+      onTheLast: '{label} on the last one: {value}',
     },
   },
 
@@ -1092,6 +1188,9 @@ export const en = {
       preview: 'Preview.',
       previewNote: 'Not saved yet — {size}',
       savePhoto: 'Save photo',
+
+      /** Shown beside the form after a save the API refused. */
+      notSaved: 'Your changes were not saved. Check the details and try again.',
       saving: 'Saving…',
       remove: 'Remove',
       removeTitle: 'Remove profile photo?',
@@ -1130,6 +1229,8 @@ export const en = {
       sent: 'Verification email sent',
       confirmed: 'Your email is verified',
       confirmedNote: 'Thanks for confirming — your account details are up to date.',
+
+      sentNote: 'Open the link we sent to {email}.',
     },
 
     providers: {
@@ -1194,6 +1295,8 @@ export const en = {
 
     directory: {
       loading: 'Loading product rates',
+      summaryFiltered: '{rates} match these filters',
+      summaryTotal: '{rates} on the card',
       noneFound: 'No products found',
       empty: 'The rate card is empty',
       filteredHint: 'No product, model or capacity matches your current filters.',
@@ -1208,6 +1311,8 @@ export const en = {
       model: 'Model',
       capacity: 'Capacity',
       actions: 'Actions',
+
+      actionsFor: 'Actions for {label}',
     },
 
     form: {
@@ -1222,6 +1327,14 @@ export const en = {
       osdThanaHint: 'Outside it, in an upazila thana.',
       inUse: 'In use',
       inUseHint: 'It is deactivated, so it prices nothing and is offered nowhere.',
+
+      modelHint:
+        'Leave blank if the product has no model. A blank row prices every challan line naming this product, whatever model it carries.',
+      capacityHint:
+        'What the card says beside the rate — “21 to 40 kg”, “Gross 151-285 Litre”. Copied onto every challan line this row prices, so somebody reading the record can see which rate was applied.',
+      inactiveHint:
+        'An inactive row prices nothing and is offered nowhere. Challans already charged from it keep their figures.',
+      rateTypeAria: '{label} rate type',
       submitAdd: 'Add to rate card',
       flat: 'Flat',
       tiered: 'Tiered',
@@ -1239,6 +1352,18 @@ export const en = {
       confirm: 'Remove',
       deleted: 'Nothing was ever charged from it, so it is gone.',
       deactivated: 'It is deactivated, so it prices nothing and is offered nowhere.',
+
+      added: '{label} added to the rate card',
+      addedNote: 'ISD {isd} · Metro {metro} · Thana {thana}',
+      updated: '{label} updated',
+      updatedNote:
+        'Challans filed from now on use the new figures. Ones already charged keep theirs.',
+      wasDeactivated: '{label} deactivated',
+      wasRemoved: '{label} removed',
+      wasCharged: {
+        one: '{count} challan was charged from it, so it was kept and taken out of use instead.',
+        other: '{count} challans were charged from it, so it was kept and taken out of use instead.',
+      },
     },
 
     rate: {
@@ -1327,6 +1452,8 @@ export const en = {
 
     stats: {
       inUse: 'Locations in use',
+
+      inUseHint: '{districts}',
       deactivated: 'Deactivated',
       deactivatedHint: 'Kept for the challans that reference them',
       byType: 'By location type',
@@ -1349,6 +1476,8 @@ export const en = {
 
     directory: {
       loading: 'Loading locations',
+      summaryFiltered: '{locations} match these filters',
+      summaryTotal: '{locations} in the master list',
       noneFound: 'No locations found',
       empty: 'The location master list is empty',
       filteredHint: 'No district or thana matches your current filters.',
@@ -1365,6 +1494,8 @@ export const en = {
       source: 'Source',
       updated: 'Updated',
       actions: 'Actions',
+
+      actionsFor: 'Actions for {district} / {thana}',
       suppliedList: 'Supplied list',
       addedByHand: 'Added by hand',
     },
@@ -1377,6 +1508,9 @@ export const en = {
       editDescription:
         'Challans that already point at this row read their district, thana and location type through it, so correcting it here corrects all of them.',
       inUse: 'In use',
+
+      inUseHint:
+        'An inactive location is offered nowhere and matched to nothing. Challans that already reference it keep the district, thana and type it gives them.',
     },
 
     select: {
@@ -1394,9 +1528,24 @@ export const en = {
       keep: 'Keep it',
       removing: 'Removing…',
       confirm: 'Remove',
+
+      added: '{district} / {thana} added',
+      addedNote: 'Challans matching it will be classified as {type}.',
+      updated: '{district} / {thana} updated',
       corrected: 'Challans that reference it now read the corrected values.',
       deactivated: 'It is deactivated, so it can no longer be chosen or matched.',
       deleted: 'Nothing referenced it, so it is gone.',
+
+      title: 'Remove {district} / {thana}?',
+      description:
+        'If no challan references this location it is deleted outright. If some do, it is deactivated instead and kept: those records read their district, thana and location type through it, and deleting it would leave them unable to say where they went. Either way it stops being offered in selectors and stops being matched to new challans.',
+      /** The two outcomes the removal toast has to tell apart. */
+      wasDeactivated: '{label} deactivated',
+      wasDeleted: '{label} deleted',
+      stillReferenced: {
+        one: '{count} challan still references it, so it was kept and taken out of use instead.',
+        other: '{count} challans still reference it, so it was kept and taken out of use instead.',
+      },
     },
 
     validation: {
@@ -1499,6 +1648,9 @@ export const en = {
       alwaysOn: 'Always on',
       outsideFilters: 'There may still be notifications outside them.',
       loadFailed: 'Could not load notifications',
+
+      nothingWaitingHint:
+        'Approvals, review verdicts, lapsing certificates and money movements land here as they happen.',
       upToDate: 'You are up to date',
     },
 
@@ -1513,8 +1665,13 @@ export const en = {
 
     list: {
       loadFailed: 'Could not load your notifications',
+      summaryFiltered: '{notifications} match these filters',
+      unreadSuffix: '{count} unread in total',
       noMatches: 'Nothing matches these filters',
       upToDate: 'You are up to date',
+
+      upToDateHint:
+        'Accounts waiting for approval, gate pass verdicts, certificates about to lapse, goods back at the depot and money movements arrive here as they happen. Nothing is waiting for you right now.',
     },
 
     overview: {
@@ -1550,6 +1707,10 @@ export const en = {
       loadFailed: 'Could not load your settings',
       saving: 'Saving…',
       save: 'Save settings',
+
+      description:
+        'Choose what reaches the bell. This changes what arrives from now on — anything already in your list stays where it is.',
+      receiveAria: 'Receive {kind} notifications',
     },
 
     toasts: {
@@ -1581,6 +1742,10 @@ export const en = {
     billsAria: 'Bills',
     sheetAria: 'Bill sheet',
     sheetHeading: 'Bill sheet',
+    sheetHint:
+      'Exactly what the Excel file carries — one SL per Trip DO, returns and re-sends in Remarks.',
+    addTripDo: 'Add Trip DO',
+    newBill: 'New bill',
     billAmount: 'Bill amount',
     noCsd: 'No CSD',
     noUnit: 'No unit',
@@ -1589,7 +1754,6 @@ export const en = {
     notBilled: 'Not billed',
     onThisBill: 'On this bill',
     allBills: 'All bills',
-    addTripDo: 'Add Trip DO',
     blankUnit: '(blank)',
 
     statuses: {
@@ -1663,6 +1827,11 @@ export const en = {
       pieces: 'Pieces',
       rows: 'Rows',
       tripDo: 'Trip DO',
+
+      matchingFilters: 'matching the filters',
+      stillPreparing: 'still being prepared',
+      signedOffSent: 'signed off and sent',
+      pcs: 'Pcs',
     },
 
     toolbar: {
@@ -1716,6 +1885,8 @@ export const en = {
 
     list: {
       loading: 'Loading bills',
+      summaryFiltered: '{bills} · {amount} match these filters',
+      summaryTotal: '{bills} · {amount} in total',
       loadFailed: 'Could not load bills',
       retrying: 'Retrying…',
       noMatches: 'No bills match',
@@ -1778,6 +1949,13 @@ export const en = {
       onBill: 'On {bill}',
       otherUnitAria: "Another unit's Trip DO",
       goneAria: 'No longer on the Trip DO sheet',
+
+      addToBill: 'Add to bill',
+      tickEveryRow: 'Tick every row of Trip DO {tripDo}',
+      billIsForUnit: 'This bill is for unit {unit}',
+      nothingLeftHint:
+        'Every {unit} Trip DO dated {period} is already on a bill. Search by Trip DO to add one from another month.',
+      lineTitle: '{gatePass} · {date} · {challan}',
       changedAria: 'Changed on the Trip DO sheet since it was added',
       addTripDo: 'Add Trip DO',
       addRows: 'Add {count} rows',
@@ -1809,6 +1987,8 @@ export const en = {
       finalize: 'Finalize bill',
       reopen: 'Reopen as draft',
       delete: 'Delete bill',
+
+      moreActionsFor: 'More actions for {bill}',
     },
 
     actions: {
@@ -1825,6 +2005,9 @@ export const en = {
       skippedNote: '· {n} already on the bill',
       takenOff: { one: '{n} row taken off {bill}', other: '{n} rows taken off {bill}' },
       refreshed: '{bill} refreshed from the Trip DO sheet',
+
+      freeToBillAgain: 'They are free to bill again.',
+      draftAgain: 'It is a draft again.',
       refreshedNote: '{updated} updated · {removed} taken off',
       finalized: '{bill} finalized',
       deleting: 'Deleting…',
@@ -2337,6 +2520,8 @@ export const en = {
 
     list: {
       loading: 'Loading challans',
+      summaryFiltered: '{challans} match these filters',
+      summaryTotal: '{challans} on record',
       loadFailed: 'Could not load challans',
       retrying: 'Retrying…',
       noneFound: 'No challans found',
@@ -2372,6 +2557,9 @@ export const en = {
       qty: 'Qty',
       rate: 'Rate',
       amount: 'Amount',
+      unpricedTitle: '{unpriced} of {total} lines are not on the rate card for this location.',
+      fromRateCard: 'From the rate card',
+      loadingDocument: 'Loading the challan document…',
       noLocationYet:
         'Nothing is charged yet: the rate depends on where this went, and the location has not been set. Setting it prices every line automatically.',
       notOnCard:
@@ -2421,6 +2609,16 @@ export const en = {
       resolvedByAt: '{source} by {name} · {when}',
       editSubtitle: '{challan} · SL {sl} · check every field against the pages beside it.',
       saveAndRegenerate: 'Save and regenerate',
+
+      notFound: 'Challan not found',
+      notFoundHint: 'It may have been deleted, or you may not have access to it.',
+      backToChallans: 'Back to challans',
+      backToChallan: 'Back to the challan',
+      correctTitle: 'Correct challan',
+      detailsAria: 'Challan details',
+      storedDocumentAria: 'Stored challan document',
+      storedDocumentHeading: 'The stored document',
+      storedDocumentHint: 'The original challan pages. Check the values against these.',
       storedNote:
         'The stored PDF is the original challan pages exactly as they arrived, followed by the generated LBTS back page. The source file itself was never uploaded.',
       openSourceBatch: 'Open the source batch',
@@ -2437,16 +2635,11 @@ export const en = {
       documentAria: 'Challan document',
       generatedDocument: 'Generated challan document',
       generatedDocumentHint: 'The original challan pages, then the LBTS back page with the barcode.',
-      storedDocumentHeading: 'The stored document',
-      storedDocumentHint: 'The original challan pages. Check the values against these.',
-      storedDocumentAria: 'Stored challan document',
       waitingForDocument: 'Waiting for the document',
       correct: 'Correct',
-      correctTitle: 'Correct challan',
       regenerates: 'Saving regenerates the document.',
       regeneratesNote:
         'The back page is redrawn from what you save, and the stored PDF is replaced — the SL number, challan number and barcode stay the same. Any copy printed before now shows the old details, so reprint it if it is already in circulation. The page range ({range} of {file}) cannot be changed here — the source PDF was never stored.',
-      detailsAria: 'Challan details',
       filedLine: 'SL {sl} · {customer} · filed {when}',
       filedLineBy: 'SL {sl} · {customer} · filed {when} by {name}',
       batchButton: 'Batch',
@@ -2559,6 +2752,8 @@ export const en = {
 
     batch: {
       actionsAria: 'Batch actions',
+      summaryFiltered: '{pdfs} match these filters',
+      summaryTotal: '{pdfs} processed',
       summaryAria: 'Batch summary',
       notFound: 'Batch not found',
       notFoundHint:
@@ -2811,6 +3006,10 @@ export const en = {
       batchDownloaded: 'Batch downloaded',
       assemblingBatchPrint: 'Assembling the batch PDF to print…',
       corrected: 'Challan corrected',
+      correctedNote:
+        '{challan} was saved and its document regenerated. Reprint it if the old copy is in circulation.',
+      locationSetNote: '{challan} is {district} / {thana} · {type}.',
+      locationClearedNote: '{challan} has no location again. It can be set at any time.',
       batchComplete: 'Batch complete',
       blankCleared: 'Blank pages cleared',
       stillToAccount: {
@@ -2983,6 +3182,10 @@ export const en = {
     /** A correction, as one sentence. */
     changes: {
       removed: '{product} removed (was {from})',
+      /** What a trip did to a line, as one sentence per case. */
+      sentInPlace: 'sent {model} in place of {replaced} ({to})',
+      addedLine: 'added {product} {model} ({to})',
+      carriedLine: 'carried {product} {model} {to} of {from}',
       added: '{product} added ({to})',
       cutTo: '{product} cut to {to} (was {from})',
       raisedTo: '{product} raised to {to} (was {from})',
@@ -2993,6 +3196,9 @@ export const en = {
         label: 'Vehicle',
         hint: 'A rickshaw van, a CNG — whatever took it the last stretch.',
       },
+      /** The two column labels on a carrying-charge row. */
+      what: 'What',
+      taka: 'Taka',
       Labour: {
         label: 'Labour',
         hint: 'People hired to carry it in or up.',
@@ -3056,6 +3262,15 @@ export const en = {
 
     vehicle: {
       registrationNumber: 'Registration number',
+      noBrandOrModel: ' · No brand or model recorded',
+      secondTripFine:
+        'A second trip is fine for a lorry doing two runs — just make sure it is the same one.',
+      openTripsCount: '{trips} open',
+      licenceExpiredNote:
+        'The licence has expired. The trip can still be confirmed — check it before dispatch.',
+      licenceSuffix: ' · Licence {number}',
+      licenceExpires: ' (expires {when})',
+      tripSerial: '{code} · trip #{serial}',
       searchHint: 'Type the last digits on the plate — {digits} finds {plate}. Only vehicles that can take a trip are listed.',
       fillsIn: 'The vehicle’s vendor and its assigned driver fill in as soon as you choose it.',
       searchFailed: 'The vehicle search failed.',
@@ -3101,6 +3316,8 @@ export const en = {
       selected: 'Selected',
       photo: 'Photo',
       photoAria: 'Driver photo',
+
+      photoFormats: 'Optional. JPG, PNG or WEBP, up to {size}.',
       choosePhoto: 'Choose a photo',
       chooseAnotherPhoto: 'Choose another',
       addedFor: 'This driver will work for {vendor} and drive this trip. A driver code is allocated automatically.',
@@ -3141,6 +3358,10 @@ export const en = {
     cart: {
       empty: 'No challans on this trip yet',
       emptyHint: 'No need to click anywhere first',
+      onThisTrip: '{pieces} on this trip',
+      emptyLong:
+        'Search above, or pick up the printed challans and scan their barcodes one after another — each one lands here with what is still to go.',
+      alreadyOnTrip: '{challan} is already on this trip',
       challanAria: 'Challan {challan}',
       actionsAria: 'Actions for {challan}',
       detailsEdited: 'Details edited',
@@ -3177,6 +3398,10 @@ export const en = {
 
     line: {
       addTitle: 'Add a product',
+      addDescriptionPlain:
+        'A product on the lorry that {challan} does not list. It is recorded as added.',
+      alreadyOnOtherTrips: ' · {qty} already on other trips',
+      onThisTripCount: '{qty} on this trip',
       changeTitle: 'Change this line',
       addDescription: 'A line added to this trip.',
       replaceDescription:
@@ -3202,6 +3427,11 @@ export const en = {
       description:
         'Choose how much of each line this trip carries. The rest stays on the challan for a later trip, which is what makes this different from trimming a quantity on the card — that corrects the challan down to what went.',
       everythingLeft: 'Everything left',
+      half: 'Half',
+      none: 'None',
+      onOtherTrips: ' · {qty} on other trips',
+      laterCount: '{qty} later',
+      nothingHeld: 'nothing held',
       title: 'Split {challan}',
       mustCarrySomething:
         'This trip has to carry something from the challan. To send all of it later, remove the challan from this trip instead.',
@@ -3210,6 +3440,8 @@ export const en = {
 
     summary: {
       panelAria: 'Delivery summary',
+      forThisTripOnly: ' · for this trip only',
+      challansDone: '{done} of {total} challans done. {description}',
       heading: 'Delivery summary',
       noVehicle: 'No vehicle chosen yet',
       tripDate: 'Trip date',
@@ -3250,12 +3482,17 @@ export const en = {
 
     overage: {
       title: 'More than the challan orders',
+      bodyRaises:
+        'Check these lines against the load. Sending them anyway is allowed — the trip records what actually went — but it also {raises} to match, so a quantity typed by mistake would rewrite the office’s record.',
+      raisesTheChallan: 'raises the challan',
       goBack: 'Go back and adjust',
       sendAnyway: 'Send anyway',
     },
 
     created: {
       assignedTo: 'Trip assigned to {vendor}',
+      barcodeNote:
+        'The manifest carries this trip’s barcode — scanning it on the deliveries page opens the trip again.',
       saved: 'Trip saved',
       startAnother: 'Start another delivery',
       printManifest: 'Print manifest',
@@ -3264,6 +3501,10 @@ export const en = {
 
     dispatch: {
       panelAria: 'Dispatch',
+      piecesSent: '{sent} of {ordered} pieces sent',
+      cameBackCount: '{returned} came back',
+      stillToGo: '{remaining} still to go',
+      cameBackOffLorry: '{qty} came back off the lorry',
       heading: 'Dispatch',
       nothingDelivered: 'Nothing on this challan has been delivered yet',
       cameBack: 'Came back',
@@ -3285,10 +3526,12 @@ export const en = {
 
     completion: {
       heading: 'What happened to the goods?',
+      returnedLabel: '{product} {model} returned',
+      ofTotal: 'of {total}',
+      someCameBack: '{back} of {total} came back · {delivered} delivered.',
       radioAria: 'What happened to the goods',
       allDelivered: 'All delivered',
       allDeliveredHint: 'Nothing came back',
-      someCameBack: 'Some came back',
       someCameBackHint: 'Choose what returned',
       fullReturn: 'Full challan returned',
       fullReturnHint: 'One click · no copy needed',
@@ -3328,6 +3571,10 @@ export const en = {
 
     copy: {
       heading: 'Signed copy',
+      pagesSuffix: ' · {pages}',
+      filedBy: ' · filed by {name}',
+      viewerTitle: 'Signed copy · {challan}',
+      filedOn: ' · filed {when}',
       fallbackName: 'Signed copy',
       replace: 'Replace',
       removeAria: 'Remove the signed copy',
@@ -3392,8 +3639,11 @@ export const en = {
 
     trip: {
       printManifest: 'Print manifest',
+      lastSaved: 'Last saved {when}',
+      lastSavedBy: 'Last saved by {name} {when}',
       deleteTrip: 'Delete trip',
       deleting: 'Deleting…',
+      keepIt: 'Keep it',
       deleteTitle: 'Delete {trip}?',
       deleteTitleGeneric: 'Delete trip?',
       deleteDescription:
@@ -3458,6 +3708,8 @@ export const en = {
     /** The printed manifest — composed here, so it follows the reader. */
     manifest: {
       onTheLorry: 'On the lorry',
+      forModel: ' for {model}',
+      ofQty: ' of {qty}',
       where: 'Thana: {thana} · District: {district}',
       date: 'Date:',
       status: 'Status:',
@@ -3774,6 +4026,8 @@ export const en = {
       rescan: 'Rescan',
       removeDocument: 'Remove document',
       loadingRecord: 'Loading the gate pass',
+
+      loadFailedSentence: 'The document could not be loaded.',
     },
 
     duplicate: {
@@ -3917,6 +4171,8 @@ export const en = {
       unopenable: '{file} could not be opened. It may be damaged.',
       needTwoSheets: 'Choose at least two sheets to join.',
       imageConvertFailed: 'This browser could not convert that image. Scan it as a PDF.',
+      mergedTooLarge:
+        'Those {sheets} come to {size}, over the {limit} limit. Join fewer sheets, or scan the stack at a lower resolution.',
     },
 
     validation: {
@@ -4045,10 +4301,17 @@ export const en = {
       linked: 'Trip DO set',
       waiting: 'Waiting for Trip DO',
       returns: 'Returns & re-sends',
+
+      rowsHint: '{pieces} · {amount}',
+      linkedHint: '{linked} of {total} pcs · {rows}',
+      waitingHint: '{pieces} not matched to a gate pass',
+      returnsHint: '{returned} came back · {resent} went out again',
     },
 
     directory: {
       loading: 'Loading the Trip DO sheet',
+      summaryFiltered: '{rows} · {pieces} · {amount} match these filters',
+      summaryTotal: '{rows} · {pieces} · {amount} on the sheet',
       loadFailed: 'Could not load the sheet',
       retrying: 'Retrying…',
       noRows: 'No rows match',
@@ -4081,6 +4344,21 @@ export const en = {
       tickRows: 'Tick the rows that came out on one gate pass.',
       differentModels:
         'The ticked rows carry different models. A Trip DO is set on one gate pass line at a time.',
+
+      thisProduct: 'this product',
+      matchingSearch:
+        'Filed gate passes matching “{query}”, even where the model or customer is written differently.',
+      recentWith:
+        'Recent filed gate passes with {model}, or a close model or customer, still to link.',
+      noOfferHint:
+        'Nothing recent carries {model} or anything close to it with pieces still unlinked. Type the Trip DO, gate pass number or vehicle to find it anyway.',
+      maxPieces: 'Max {max}',
+      /** The two clauses under the quantity stepper, each a whole sentence. */
+      onTripDo: '{linked} on Trip DO {tripDo}',
+      remainderStays: '{remainder} stay on a new row, waiting for a Trip DO',
+      rowsLabel: '{rows}',
+      notOnChallan: '{qty} not on a challan',
+      lineLinked: '{linked} of {total} pcs linked to challans',
     },
 
     split: {
@@ -4095,6 +4373,10 @@ export const en = {
       tooManyParts: 'Split into at most {max} parts.',
       stillToPlace: '{short} still to place — the parts add up to {sum} of {total}.',
       tooMany: '{over} too many — the parts add up to {sum} of {total}.',
+
+      part: 'Part {n}',
+      piecesInPart: 'Pieces in part {n}',
+      removePart: 'Remove part {n}',
     },
 
     gatePassPanel: {
@@ -4107,6 +4389,15 @@ export const en = {
     sheet: {
       tickAll: 'Tick every row on this page',
       sl: 'SL',
+
+      tickRow: 'Tick {challan} {model}',
+      openChallanTitle: 'Open {challan}',
+      actionsFor: 'Actions for {challan} {model}',
+      /** The Trip DO cell's hover title, then how to change it. */
+      linkTitle: 'Trip DO {tripDo} · {gatePass} · CSD {csd} · Unit {unit}',
+      linkTitleModel: ' · gate pass model {model}',
+      linkTitleBy: ' · set by {name}',
+      pressToChange: 'Press to change',
     },
 
     rowMenu: {
@@ -4131,6 +4422,15 @@ export const en = {
       removed: 'Trip DO removed',
       removedNote:
         'The row is waiting for a Trip DO again, merged with any other waiting part of the line.',
+
+      /** What a link, a bulk link and a split report when they land. */
+      linkedOne: 'Trip DO {tripDo} set on {pieces}',
+      linkedMany: 'Trip DO {tripDo} set on {rows}',
+      linkedManyNote: '{pieces} · {detail}',
+      linkDetail: 'CSD {csd} · Unit {unit} · {gatePass}',
+      linkRemainder: '{remainder} left on a row of their own',
+      splitDone: 'Row split into {parts}',
+      rateTiered: '{rest} / {first} (first {count})',
       mergedBack: 'Parts merged back into {qty}',
       nothingToMerge: 'Nothing to merge',
       partsApart: 'The other parts of this line carry a different Trip DO, so they stay apart.',
@@ -4143,6 +4443,11 @@ export const en = {
       exportExcel: 'Export Excel',
       buildingToast: 'Building the spreadsheet…',
       downloaded: 'Spreadsheet downloaded',
+
+      confirmTitle: 'Export {rows}?',
+      confirmWorth: '{pieces} worth {amount}, ',
+      confirmBody:
+        'one row per challan product line with its returns and re-sends, in the sheet’s own column order — exactly the rows the current filters show, every page of them.',
     },
   },
 
@@ -4251,6 +4556,9 @@ export const en = {
       doneBy: 'Done by',
       when: 'When',
       changed: 'What changed',
+
+      noChanges:
+        'No field-level detail was recorded for this event — the summary above is the whole of it.',
       reference: 'Reference',
       action: 'Action',
       eventId: 'Event id',
@@ -4259,6 +4567,9 @@ export const en = {
 
     toolbar: {
       searchPlaceholder: 'What happened, which record, or who',
+      summaryFiltered: '{events} match these filters',
+      summaryTotal: '{events} in the journal',
+      journalAria: 'Activity journal',
       searchAria: 'Search the journal',
       moduleAria: 'Filter by module',
       everyModule: 'Every module',
@@ -4341,6 +4652,9 @@ export const en = {
 
     directory: {
       loading: 'Loading users',
+      summaryFiltered: '{accounts} match these filters',
+      summaryTotal: '{accounts} on record',
+      managementAria: 'User management',
       noneFound: 'No users found',
       noneYet: 'No accounts yet',
       filteredHint: 'Try changing your search or filters.',
@@ -4389,6 +4703,10 @@ export const en = {
       chooseVendor: 'Choose a vendor',
       vendorScopeNote:
         "This account will see that vendor's fleet, drivers, assignments and documents — read-only, and nothing belonging to any other vendor.",
+
+      changed: '{name} is now {role}',
+      changedLinked:
+        'Linked to {vendor} ({code}). They will see that vendor’s fleet, read-only.',
       noVendors: 'No vendors exist yet. Add one on the Vendors page before linking an account to it.',
       summary: "You're changing this user's role from {from} to {to}.",
       adminWarning:
@@ -4683,6 +5001,10 @@ export const en = {
 
       expenses: {
         title: 'Expenses',
+
+        emptyTitle: 'No expenses here',
+        emptyHint:
+          'Office rent, bills, salary, conveyance — any cost the office pays is an expense.',
         description:
           'Every office expense, month by month, grouped by the name it was recorded under. Type the name when you add an expense — names used before are suggested.',
         officeExpenses: 'Office expenses',
@@ -4725,6 +5047,10 @@ export const en = {
 
       labourBill: {
         title: 'Walton Labour Bill',
+
+        monthHint: '{bill} · {status}',
+        receiptsEmptyTitle: 'No payment recorded yet',
+        receiptsEmptyHint: 'Record one from the CSD it settles, and it appears here.',
         monthDescription:
           'Each CSD of this month is settled on its own, so each has its own card. What it is owed comes off the labour bill sheet; what has arrived is the payments recorded here.',
         allMonths: 'All months',
@@ -4734,7 +5060,9 @@ export const en = {
         openSheetHint: 'See the rows behind these figures',
         csdsAria: 'CSDs',
         nothingYet: 'Nothing on this month’s labour bill yet',
-        scanOnto: 'Scan the challans onto',
+        /** The bill number is the `{link}` — see `components/shared/sentence-with.tsx`. */
+        scanOnto:
+          'Scan the challans onto {link}, and each CSD appears here with what it is owed.',
         paymentsReceived: 'Payments received',
         paymentsHint: 'Every Walton payment recorded against a CSD of this month.',
         labourBilled: 'Labour billed',
@@ -4758,6 +5086,11 @@ export const en = {
       vendorBill: {
         title: '{vendor} · Trip bill',
         titleGeneric: 'Vendor trip bill',
+
+        advancesEmptyTitle: 'No advance',
+        advancesEmptyHint: 'Use Advance on a trip to pay the vendor ahead of the bill.',
+        paymentsEmptyTitle: 'Nothing paid yet',
+        paymentsEmptyHint: 'The monthly payment settles what the advances left.',
         description:
           'Every trip in the month with its rent and labour bill, the advances paid against them, and the monthly payments.',
         allVendors: 'All vendors',
@@ -4793,6 +5126,11 @@ export const en = {
 
       overview: {
         vendorDue: 'Vendor bills due',
+
+        vendorDueHint: '{vendors}, after advances',
+        openAdvancesHint: '{count} not yet settled',
+        profitHint: '{income} income · {cost} cost',
+        entriesEmpty: 'Start with Add money to record the opening balance of each wallet.',
         openAdvances: 'Open advances',
         receivable: 'Receivable from Walton',
         profitPeriod: 'Profit · {period}',
@@ -4805,6 +5143,7 @@ export const en = {
     },
     hero: {
       cashBalance: 'Cash balance',
+      yearLabel: '{year} · year',
       noCashWallet: 'No cash wallet yet',
       byMonthAndYear: 'Cash in & out by month and year',
       paidFromHand: 'Paid out of what was already on hand',
@@ -4814,6 +5153,26 @@ export const en = {
 
     attention: {
       heading: 'Needs attention',
+      owedToVendors: '{amount} owed to vendors',
+      owedToVendorsDetail: '{vendors} across every month',
+      tripsNoBill: {
+        one: '{count} trip has no bill entered',
+        other: '{count} trips have no bill entered',
+      },
+      awaitingFinal: {
+        one: '{count} Excel bill is awaiting a final bill',
+        other: '{count} Excel bills are awaiting a final bill',
+      },
+      toReceive: '{amount} to receive from Walton',
+      toReceiveDetail: {
+        one: '{count} final bill not fully paid',
+        other: '{count} final bills not fully paid',
+      },
+      openAdvancesTitle: '{amount} in open advances',
+      openAdvancesDetail: {
+        one: '{count} advance not yet settled',
+        other: '{count} advances not yet settled',
+      },
       description: 'What is still owed, blank or unsettled.',
       allCaughtUp: 'All caught up',
       nothingWaiting: 'Nothing is owed, blank or waiting.',
@@ -4824,6 +5183,7 @@ export const en = {
 
     cash: {
       deposits: 'Deposit',
+      period: 'Period',
       transfersIn: 'Transfer in',
       vendorPayments: 'Vendor payment',
       tripAdvances: 'Trip advance',
@@ -4843,6 +5203,8 @@ export const en = {
 
     advance: {
       noPurpose: 'No purpose noted',
+      settledEmptyTitle: 'Nothing settled yet',
+      settledEmptyHint: 'Cash returned against this advance appears here.',
       settled: 'Settled',
       cashReturned: 'Cash returned',
       history: 'History',
@@ -4856,6 +5218,8 @@ export const en = {
 
     deposit: {
       fillIt: 'Fill it',
+      labourCsdValue: '{csd} · {period}',
+      labourCsdDetail: '{bill} · billed {billed} · {received} received',
       againstFinalBill: 'Walton payment against final bill',
       finalBill: 'Final bill',
       unitAndPeriod: '{unit} · {period}',
@@ -4866,6 +5230,9 @@ export const en = {
 
     voucher: {
       removeTitle: 'Remove the voucher from {entry}?',
+      sheetsSuffix: ' · {sheets}',
+      replacesOnRecord: ' · replaces the one on record',
+      attachedBy: ' · attached by {name}',
       removeDescription:
         'The entry itself is untouched — the figures, the wallet and the day stay exactly as they are. Only the file behind it is deleted, and it cannot be recovered.',
       remove: 'Remove voucher',
@@ -4899,6 +5266,8 @@ export const en = {
 
     finalBill: {
       actionsFor: 'Actions for {unit} {period}',
+      alreadyReceived: '{amount} is already received against this bill.',
+      submittedNone: 'None',
       excelBill: 'Excel bill',
       finalBill: 'Final bill',
       auditDifference: 'Audit difference',
@@ -4925,13 +5294,21 @@ export const en = {
     labour: {
       received: 'Received',
       billed: 'Billed',
+      /** The Trip DO sheet is the `{link}` — see `components/shared/sentence-with.tsx`. */
       pendingRows:
-        'These rows are waiting for a Trip DO, so they belong to no CSD and nobody has been billed for them yet.',
+        'These rows are waiting for a Trip DO, so they belong to no CSD and nobody has been billed for them yet. Set it on the {link}, and they move into their own CSD by themselves.',
       tripDoSheet: 'Trip DO sheet',
     },
 
     profit: {
       finalBillIncome: 'Walton final bill',
+      excelBillsAsk: ' — Excel bills ask for {amount}',
+      profitWord: 'Profit',
+      lossWord: 'Loss',
+      marginSuffix: '({margin} margin)',
+      noIncomeInPeriod: 'No final bill in this period.',
+      noExpenseInPeriod: 'No office expense in this period.',
+      noTripInPeriod: 'No trip in this period.',
       labourIncome: 'Walton labour bill',
       tripRent: 'Trip rent',
       labourBill: 'Labour bill',
@@ -4977,6 +5354,7 @@ export const en = {
 
     trip: {
       label: 'Trip',
+      loadingTrips: 'Loading trips…',
       selected: 'Selected trip',
       searchHint: 'Search by trip number, vendor, driver or plate digits.',
       listAria: 'Trips',
@@ -4990,6 +5368,70 @@ export const en = {
 
     vendorBill: {
       tripAdvances: 'Trip advances',
+
+      /** The printed statement, handed over with the payment. */
+      statement: {
+        title: 'Vendor Trip Bill Statement',
+        documentTitle: '{vendor} — Trip bill statement — {period}',
+        brand: 'LBTS · Line Business Transport Service',
+        month: 'Month:',
+        status: 'Status:',
+        vendor: 'Vendor',
+        vendorCode: 'Vendor code',
+        mobile: 'Mobile',
+        tripRent: 'Trip rent',
+        plusLabour: '+ Labour bill',
+        lessAdvances: '− Trip advances',
+        lessPaid: '− Paid',
+        equalsDue: '= Due',
+        equalsOverpaid: '= Overpaid',
+        inWords: 'In words:',
+        overpaidSuffix: ' (overpaid)',
+        note: 'Note:',
+        blankBillsWarning: {
+          one: '{count} trip has no rent or labour bill entered yet. It counts as nothing above, so the due may rise once it is entered.',
+          other: '{count} trips have no rent or labour bill entered yet. They count as nothing above, so the due may rise once they are entered.',
+        },
+        tripsHeading: 'Trips · {period}',
+        paymentsHeading: 'Payments for {period}',
+        noTrip: 'No trip ran for this vendor in the month.',
+        nothingPaid: 'Nothing paid for this month yet.',
+        notEntered: 'Not entered',
+        /** The trip table's column heads. */
+        colNumber: '#',
+        colDate: 'Date',
+        colTrip: 'Trip',
+        colVehicle: 'Vehicle',
+        colDriver: 'Driver',
+        colPlaces: 'District / Thana',
+        colChallans: 'Ch.',
+        colChallansTitle: 'Challans',
+        colQty: 'Qty',
+        colTripRent: 'Trip rent',
+        colLabour: 'Labour',
+        colBill: 'Bill',
+        colAdvance: 'Advance',
+        colNet: 'Net',
+        /** The payments table's own. */
+        colEntry: 'Entry',
+        colPaidFrom: 'Paid from',
+        colReceivedBy: 'Received by',
+        colAmount: 'Amount',
+        reference: 'Ref: {value}',
+        entriesTotal: '{entries}',
+        tripsTotal: '{trips}',
+        accountToDate: 'Account to date (all months):',
+        accountBilled: '{amount} billed',
+        accountSettled: '{amount} advanced and paid',
+        accountDue: '{amount} due',
+        accountOverpaid: '{amount} overpaid',
+        preparedBy: 'Prepared by',
+        approvedBy: 'Approved by',
+        receivedByVendor: 'Received by (vendor)',
+        printedAt: 'Printed {when}',
+      },
+      advancePlusPaid: 'Advance + paid',
+      blankBillsSuffix: ' · {count} blank bills',
       vendorProfile: 'Vendor profile',
       pay: 'Pay {amount}',
       overpaid: 'Overpaid',
@@ -5017,6 +5459,8 @@ export const en = {
 
     wallet: {
       title: 'Wallets',
+      flow: 'In {in} · Out {out} · {entries}',
+      lastEntrySuffix: ' · last {when}',
       description:
         'Every transaction runs through cash. Bank and mobile wallets only receive Walton bill payments.',
       add: 'Add wallet',
@@ -5088,6 +5532,777 @@ export const en = {
       unitRequired: 'Enter the unit.',
       finalAmountRequired: 'Enter the final bill amount.',
       walletNameRequired: 'Name the wallet.',
+    },
+  },
+
+  /**
+   * The supply side: vendors, their fleet, their drivers, the assignments
+   * between the two, and the compliance papers behind all of it.
+   *
+   * Six status vocabularies come first, because every screen in the module is a
+   * view of one of them. Each carries a word and a sentence — the word goes on
+   * the badge, the sentence is its title — and `vendor-meta.ts` keeps the icon
+   * and the tone classes beside them.
+   */
+  vendor: {
+    unknown: 'Unknown',
+    unrecognised: 'Not one of the recognised values.',
+    current: 'current',
+    /** "01 Sep 2026 — current", how an assignment period reads in a row. */
+    period: '{from} — {until}',
+    title: 'Vendors',
+    allVendors: 'All vendors',
+    addedOn: 'Added {when}',
+    somethingWrong: 'Something went wrong.',
+    removedVehicle: 'Removed vehicle',
+    removedDriver: 'Removed driver',
+    notRecorded: 'Not recorded',
+    noExpiryRecorded: 'No expiry recorded',
+    noDriverAssigned: 'No driver assigned',
+    notAssigned: 'Not assigned',
+    unassigned: 'Unassigned',
+    noLicence: 'No licence recorded',
+    notAssignedToVehicle: 'Not assigned to a vehicle',
+
+    /** The three states a list panel can be in besides rows. */
+    panel: {
+      nothingMatches: 'Nothing matches these filters',
+      widenFilters: 'Try widening or clearing them to see the rest.',
+      retrying: 'Retrying…',
+    },
+
+    /** The two routes: the directory and a vendor account's own record. */
+    page: {
+      title: 'Vendor Management',
+      description:
+        'Manage vendors, vehicles, drivers and operational compliance. Each vendor owns its own fleet, and a driver is only ever assigned to a vehicle belonging to the same vendor.',
+      directoryAria: 'Vendor directory',
+      myTitle: 'My Vendor',
+      myDescription: 'Your vendor’s fleet, drivers, assignments and compliance documents.',
+      myLoadFailed: 'Could not load your vendor',
+      notLinkedDescription:
+        'A vendor account has to be linked to the vendor it speaks for before there is anything to show. An administrator does that from the Administration page.',
+      readOnlyNotice:
+        'You are viewing your vendor record. Everything here is read-only — contact LBTS to have anything changed.',
+
+      notFound: 'Vendor not found',
+      notFoundHint: 'It may have been removed, or it may not be a vendor this account can open.',
+      backToVendors: 'Back to vendors',
+      loadFailed: 'Could not load this vendor',
+    },
+
+    /** The five vehicle papers and the two a driver carries. */
+    documentTypes: {
+      'Registration Certificate': 'Registration Certificate',
+      'Fitness Certificate': 'Fitness Certificate',
+      'Tax Token': 'Tax Token',
+      'Route Permit': 'Route Permit',
+      Insurance: 'Insurance',
+      'Driving License': 'Driving License',
+      NID: 'NID',
+    },
+
+    tabs: {
+      overview: 'Overview',
+      vehicles: 'Vehicles',
+      drivers: 'Drivers',
+      assignments: 'Assignments',
+      documents: 'Documents',
+      trips: 'Trips',
+      activity: 'Activity',
+      sectionsAria: 'Vendor sections',
+      attentionAria: 'Needs attention',
+    },
+
+    stats: {
+      activeVendors: 'Active vendors',
+      activeVendorsHint: 'Able to take new assignments',
+      vehicles: 'Vehicles',
+      acrossEvery: 'Across every vendor',
+      drivers: 'Drivers',
+      expiredDocuments: 'Expired documents',
+      expiredHint: 'Papers that have run out',
+      loadFailed: 'The vendor overview could not be loaded.',
+    },
+
+    directory: {
+      loadFailed: 'Could not load vendors',
+      noneYet: 'No vendors yet',
+      noneHint:
+        'A vendor is the company that supplies the vehicles and the drivers. Add the first one, then record its fleet underneath it.',
+      add: 'Add vendor',
+      editVendor: 'Edit vendor',
+      editDescription:
+        'The vendor code stays the same — it is what every vehicle, driver and assignment underneath is filed against.',
+      addDescription:
+        'A vendor code is allocated automatically. Vehicles and drivers are added underneath the vendor once it exists.',
+      information: 'Vendor information',
+      nameLabel: 'Vendor name',
+      mobileHint:
+        'Stored as typed. It is matched on its 11-digit form, so the same number written with a country code still finds this vendor.',
+      searchPlaceholder: 'Vendor name, code or mobile',
+      searchAria: 'Search vendors',
+      statusAria: 'Filter by vendor status',
+      complianceAria: 'Filter by compliance',
+      sortAria: 'Sort vendors',
+      anyCompliance: 'Any compliance',
+      hasExpired: 'Has expired papers',
+      hasExpiring: 'Has papers expiring',
+      allInOrder: 'All papers in order',
+      sortName: 'Name (A–Z)',
+      sortRecent: 'Recently added',
+      sortVehicles: 'Most vehicles',
+      sortDrivers: 'Most drivers',
+      vendor: 'Vendor',
+      contact: 'Contact',
+      status: 'Status',
+      compliance: 'Compliance',
+      actions: 'Actions',
+      actionsFor: 'Actions for {name}',
+      editDetails: 'Edit details',
+      changeStatus: 'Change status',
+      loading: 'Loading',
+
+      summaryFiltered: { one: '{count} vendor matches these filters', other: '{count} vendors match these filters' },
+      summaryTotal: { one: '{count} vendor', other: '{count} vendors' },
+      attention: {
+        one: '{count} document needing attention',
+        other: '{count} documents needing attention',
+      },
+      activeConsequence: 'Vehicles and drivers under this vendor can be assigned again.',
+      inactiveConsequence:
+        'Existing vehicles, drivers, assignments and documents are all kept. Nothing new can be assigned under this vendor until it is active again.',
+      /** Two removals, the same rule: the page adds what it stops being offered for. */
+      removeDescription:
+        'If no vehicle, driver, assignment or user account references this vendor it is deleted outright. If any do, it is {kept} instead — a year of assignments has to be able to say who was driving, and deleting the vendor would leave them pointing at nothing.',
+      removeDescriptionListed:
+        'If no vehicle, driver, assignment or user account references this vendor it is deleted outright. If any do, it is {kept} instead — a year of assignments has to be able to say who was driving, and deleting the vendor would leave them pointing at nothing. Either way it stops being offered for new work.',
+      deactivatedAndKept: 'deactivated and kept',
+    },
+
+    header: {
+      changePhoto: 'Change vendor photo',
+      moreActions: 'More vendor actions',
+      removePhoto: 'Remove photo',
+      remove: 'Remove vendor',
+
+      /** Provenance, as two whole sentences joined by a separator. */
+      addedOnBy: 'Added {when} by {name}',
+      statusChanged: 'Status last changed {when}',
+      statusChangedBy: 'Status last changed {when} by {name}',
+    },
+
+    kpi: {
+      vehicles: 'Vehicles',
+      drivers: 'Drivers',
+      compliance: 'Compliance',
+
+      inFleet: 'in the fleet',
+      onBooks: 'on the books',
+      documentsOnFile: 'documents on file',
+      active: 'Active',
+      underMaintenance: 'Under maintenance',
+      expiredPapers: 'Expired papers',
+      inactiveOrSuspended: 'Inactive or suspended',
+      onLeave: 'On leave',
+      suspended: 'Suspended',
+      inactive: 'Inactive',
+      valid: 'Valid',
+      expiringSoon: 'Expiring soon',
+      expired: 'Expired',
+
+
+    },
+
+    overview: {
+      loadFailed: 'Could not load the overview',
+      expiringDocuments: 'Expiring documents',
+      allDocuments: 'All documents',
+      nothingDue: 'Nothing is due for renewal in the next {days} days.',
+      recentAssignments: 'Recent assignments',
+      allAssignments: 'All assignments',
+      noneAssignedYet: 'No driver has been assigned to a vehicle yet.',
+      nothingNeedsAttention: 'Nothing needs attention',
+      nothingWrong: 'Every document on file is in date, and no vehicle or driver is out of service.',
+      recentActivity: 'Recent activity',
+      recentActivityHint: 'Written as people work, and never edited.',
+      activityEmpty:
+        'Adding a vehicle, assigning a driver, filing a document or running a trip for {vendor} will appear here.',
+
+      nothingRecordedYet: 'Nothing recorded yet',
+      activityDescription:
+        'Changes to {vendor}, its fleet, its drivers and the trips it has run — newest first. Written as people work, and never edited.',
+      moreAlerts: {
+        one: '{count} more alert is not shown. The documents tab, filtered, is where the rest are worked through.',
+        other: '{count} more alerts are not shown. The documents tab, filtered, is where the rest are worked through.',
+      },
+    },
+
+    vehicle: {
+      panel: 'Vehicles',
+      searchPlaceholder: 'Registration, brand or model',
+      searchAria: 'Search vehicles',
+      statusAria: 'Filter by vehicle status',
+      ownershipAria: 'Filter by ownership',
+      add: 'Add vehicle',
+      loadFailed: 'Could not load the fleet',
+      noneYet: 'No vehicles added yet',
+      noneHint:
+        'Every vehicle belongs to exactly one vendor. Add {vendor}’s first vehicle, then assign a driver to it.',
+      registration: 'Registration',
+      brandModel: 'Brand / model',
+      ownership: 'Ownership',
+      currentDriver: 'Current driver',
+      viewDetails: 'View details',
+      actionsFor: 'Actions for {plate}',
+      removeTitle: 'Remove {plate}?',
+      editTitle: 'Edit vehicle',
+      addTitle: 'Add vehicle',
+      editDescription:
+        'The vehicle code and the vendor it belongs to stay the same. Moving a vehicle between vendors would strand its assignment history, so it is not an edit.',
+      addDescription: 'This vehicle will belong to {vendor}. A vehicle code is allocated automatically.',
+      information: 'Vehicle information',
+      registrationLabel: 'Registration number',
+      registrationHint:
+        'Stored exactly as typed, spacing and all. It is matched on a normalised form, so the same plate can only be on one vehicle in the system.',
+      ownershipSection: 'Ownership',
+      ownedOrRented: 'Owned or rented',
+      information2: 'Information',
+
+      summaryFiltered: { one: '{count} vehicle matches these filters', other: '{count} vehicles match these filters' },
+      summaryTotal: { one: '{count} vehicle in this fleet', other: '{count} vehicles in this fleet' },
+      changeDriver: 'Change driver',
+      removeDescription:
+        'The vehicle, its documents and its {history} are deleted. An assignment whose vehicle is gone is a sentence with its subject removed, so those rows cannot be kept. If the vehicle has simply left the fleet, marking it inactive keeps the history instead.',
+      wholeHistory: 'whole assignment history',
+      changePhoto: 'Change vehicle photo',
+      addPhoto: 'Add vehicle photo',
+      brand: 'Brand',
+      model: 'Model',
+      vendor: 'Vendor',
+      documentsEmpty: 'No documents have been filed for this vehicle yet.',
+      assignmentsEmpty: 'No driver has been assigned to this vehicle yet.',
+      activeConsequence: 'It can be given a driver again.',
+      inactiveConsequence:
+        'Any assignment it currently has is left exactly as it is — a vehicle off the road on Tuesday still had a driver on Monday. It simply cannot take a new driver until it is active.',
+    },
+
+    driver: {
+      panel: 'Drivers',
+      searchPlaceholder: 'Name, mobile or licence number',
+      searchAria: 'Search drivers',
+      statusAria: 'Filter by driver status',
+      licenceAria: 'Filter by licence expiry',
+      anyLicence: 'Any licence',
+      licenceExpired: 'Licence expired',
+      licenceExpiring: 'Licence expiring',
+      add: 'Add driver',
+      loadFailed: 'Could not load the drivers',
+      noneYet: 'No drivers added yet',
+      noneHint:
+        'Every driver belongs to exactly one vendor, and can only be assigned to {vendor}’s own vehicles.',
+      driver: 'Driver',
+      mobile: 'Mobile',
+      licence: 'Licence',
+      assignedVehicle: 'Assigned vehicle',
+      viewDetails: 'View details',
+      actionsFor: 'Actions for {name}',
+      removeTitle: 'Remove {name}?',
+      editTitle: 'Edit driver',
+      addTitle: 'Add driver',
+      editDescription: 'The driver code and the vendor they work for stay the same.',
+      addDescription: 'This driver will work for {vendor}. A driver code is allocated automatically.',
+      information: 'Driver information',
+      fullName: 'Full name',
+
+      summaryFiltered: { one: '{count} driver matches these filters', other: '{count} drivers match these filters' },
+      summaryTotal: { one: '{count} driver on the books', other: '{count} drivers on the books' },
+      changeVehicle: 'Change vehicle',
+      assignVehicle: 'Assign vehicle',
+      removeDescription:
+        'The driver, their documents and their {history} are deleted. If they have simply left this vendor, marking them inactive keeps the record of which vehicles they drove and when.',
+      wholeHistory: 'whole assignment history',
+      licenceNote:
+        'A licence recorded here is also filed as a {document} document, which is what puts its expiry into this vendor’s compliance counts. Attach a scan of it from the documents tab.',
+      mobileNumber: 'Mobile number',
+      identity: 'Identity',
+      licenceSection: 'Licence',
+      licenceExpiry: 'Licence expiry',
+      changePhoto: 'Change driver photo',
+      contact: 'Contact',
+      address: 'Address',
+      nid: 'NID number',
+      licenceNumber: 'Licence number',
+      expiry: 'Expiry',
+      currentVehicle: 'Current vehicle',
+      documents: 'Documents',
+      documentsEmpty: 'No documents have been filed for this driver yet.',
+      assignmentHistory: 'Assignment history',
+      assignmentsEmpty: 'This driver has not been assigned to a vehicle yet.',
+      activeConsequence: 'They can be given a vehicle again.',
+      inactiveConsequence:
+        'Any assignment they currently hold is left exactly as it is — a driver on leave from Tuesday was still driving on Monday. They simply cannot take a new assignment until they are active.',
+    },
+
+    assignment: {
+      panel: 'Assignments',
+      statusAria: 'Filter by assignment status',
+      activeAndEnded: 'Active and ended',
+      fromAria: 'In force from',
+      untilAria: 'In force until',
+      assign: 'Assign driver',
+      rangeNote:
+        'A date range shows every assignment in force during it, not only those that started in it.',
+      loadFailed: 'Could not load the assignments',
+      noneYet: 'No assignments yet',
+      noneHint:
+        'Assigning a driver to a vehicle records a period rather than setting a field, so this list is the full history of who drove what and when.',
+      endTitle: 'End this assignment?',
+      endConfirm: 'End assignment',
+      ending: 'Ending…',
+      deleteTitle: 'Delete this assignment record?',
+      deleteConfirm: 'Delete record',
+      actionsFor: 'Actions for the assignment starting {from}',
+      vehicle: 'Vehicle',
+      driver: 'Driver',
+      from: 'From',
+      until: 'Until',
+      status: 'Status',
+      recorded: 'Recorded',
+      current: 'Current',
+      dialogTitle: 'Assign driver',
+      dialogDescription:
+        'A vehicle and a driver must belong to the same vendor, and a vehicle can have only one active driver at a time.',
+      section: 'Assignment',
+      chooseVehicle: 'Choose a vehicle',
+      chooseDriver: 'Choose a driver',
+      noActiveVehicles:
+        'No active vehicles. A vehicle in maintenance, suspended or out of papers cannot be given a driver.',
+      noActiveDrivers:
+        'No active drivers. A driver on leave, suspended or inactive cannot be assigned.',
+      alreadyDriving: 'Already driving {plate}, since {from}',
+      periodSection: 'Period',
+      assignedFrom: 'Assigned from',
+      assignedUntil: 'Assigned until (optional)',
+      assignedUntilHint: 'Leave blank for an open-ended assignment, which is the usual case.',
+      closeCurrent: 'Close the current assignment and make this driver active.',
+      currentlyDrivenBy: 'Currently driven by {label}',
+      currentlyDriving: 'Currently driving {label}',
+
+      summaryRange: {
+        one: '{count} assignment in force during this range',
+        other: '{count} assignments in force during this range',
+      },
+      summaryTotal: { one: '{count} assignment on record', other: '{count} assignments on record' },
+      theDriver: 'The driver',
+      thisVehicle: 'this vehicle',
+      now: 'now',
+      endDescription:
+        '{driver} stops being the active driver of {vehicle} as of today, and the row stays in the history with today as its end date. The vehicle will have no driver until another one is assigned.',
+      deleteDescription:
+        'This is for a row that {never} — a changeover typed against the wrong vehicle, for instance. It is not how an assignment finishes: a period that genuinely ran is history the operation may need, and {ends} is what closes one.',
+      neverExisted: 'should never have existed',
+      deletePeriod: 'This row covers {from} to {until}.',
+      handover:
+        '{driver} will become the active driver for {vehicle}. The current assignment with {displaced} will be closed on {day}, and kept in the history.',
+      handoverUndated:
+        '{driver} will become the active driver for {vehicle}. The current assignment with {displaced} will be closed, and kept in the history.',
+      replaceDriver: 'Replace driver',
+    },
+
+    document: {
+      panel: 'Documents',
+      searchPlaceholder: 'Document number',
+      searchAria: 'Search documents',
+      statusAria: 'Filter by document status',
+      belongsToAria: 'Filter by what it belongs to',
+      typeAria: 'Filter by document type',
+      anyType: 'Any type',
+      allDocuments: 'All documents',
+      vehicleDocuments: 'Vehicle documents',
+      driverDocuments: 'Driver documents',
+      file: 'File document',
+      loadFailed: 'Could not load the documents',
+      noneYet: 'No documents filed yet',
+      removeTitle: 'Remove this {type}?',
+      renewTitle: 'Renew or replace',
+      renewDescription:
+        'Renewing the {type} on record for {subject}. It replaces that document rather than adding a second one, so the compliance count stays honest.',
+      detailsSection: 'Document details',
+      typeLabel: 'Document type',
+      alreadyOnRecord: 'Already on record. Saving renews that document rather than filing a second one.',
+      issueDate: 'Issue date (optional)',
+      expiryDate: 'Expiry date',
+      expiryHint: 'Leave blank for a document that does not lapse, such as an NID.',
+      attachment: 'Attachment',
+      attachmentHint:
+        'Optional — the expiry date is what raises the alert, and waiting for the scanner is how a lapsed certificate goes unnoticed. It is stored privately and only reachable through this app.',
+      subjectTitle: 'What is this document for?',
+      subjectDescription:
+        'A compliance document belongs to a vehicle or to a driver. Choosing here narrows the type list to the ones that make sense for it.',
+      vehicles: 'Vehicles',
+      drivers: 'Drivers',
+      actionsFor: 'Actions for the {type} of {owner}',
+      viewFile: 'View file',
+      document: 'Document',
+      number: 'Number',
+      expiry: 'Expiry',
+      fileColumn: 'File',
+      noExpiry: 'No expiry',
+      attached: 'Attached',
+      none: 'None',
+      noFileAttached: 'No file attached.',
+      removeChosenFile: 'Remove the chosen file',
+      scanIt: 'Scan it',
+      holding: 'Currently holding {name} ({size}). A new file replaces it.',
+
+      summaryFiltered: {
+        one: '{count} document matches these filters',
+        other: '{count} documents match these filters',
+      },
+      summaryTotal: { one: '{count} document on file', other: '{count} documents on file' },
+      soonestFirst: 'soonest expiry first',
+      addDescription:
+        'A compliance document for {subject}. Its status is worked out from the expiry date, so there is nothing to set by hand.',
+      removeDescription:
+        'The row and its attached file are deleted, and it stops counting toward {vendor}’s compliance. If the document has simply been renewed, updating this one with the new dates keeps the count honest instead.',
+      noSubjectsYet:
+        'This vendor has no active vehicles or drivers yet. Add one first — a document has to belong to something.',
+      onRecordChip: 'on record',
+      typeFixed:
+        'The type cannot change — a tax token is not a route permit, and each is its own row.',
+      replaceAttached: 'Replace the attached file',
+      formatsHint:
+        'PDF, JPG, PNG or WEBP, up to {size}. A multi-sheet scan is stored as one PDF, because a document is one file.',
+      viewerTitle: '{type} for {owner}',
+      fileMeta: '{name} · {size}',
+      noNumberRecorded: 'No number recorded',
+    },
+
+    trip: {
+      panel: 'Trips',
+      loadFailed: 'Could not load the trips',
+      noneThisMonth: 'No trips this month',
+      noneHint:
+        'None of {vendor}’s vehicles has gone out yet this month. Choose “Any date” to see earlier trips.',
+      searchPlaceholder: 'Trip number, plate or driver',
+      searchAria: 'Search trips',
+      fromAria: 'Trips from',
+      untilAria: 'Trips until',
+      trip: 'Trip',
+      challans: 'Challans',
+      tripRent: 'Trip rent',
+      labour: 'Labour',
+      labourBill: 'Labour bill',
+      totalAmount: 'Total amount',
+      advance: 'Advance',
+      netAmount: 'Net amount',
+      status: 'Status',
+      notEntered: 'Not entered',
+      overpaid: 'Overpaid {amount}',
+      overpaidTitle: 'Advances and payments are more than the bill entered',
+      advancesAgainst: 'Advances against this trip',
+      monthlyBillAria: 'Monthly bill',
+      paid: 'Paid',
+      detailLoadFailed: 'Could not load the trip',
+      openInDelivery: 'Open in Delivery',
+      tripSection: 'Trip',
+      vehicle: 'Vehicle',
+      driver: 'Driver',
+      pieces: 'Pieces',
+      billSection: 'Bill and payment',
+      challansSection: 'Challans',
+      complete: 'Complete',
+      pending: 'Pending',
+
+      vehicleDriver: 'Vehicle · driver',
+      noAdvance: 'No advance was paid against this trip.',
+      awaitingCopy: 'Awaiting copy',
+      completed: 'Completed',
+      noRent: 'No trip rent',
+      noLabour: 'No labour bill',
+      rentTotal: 'Trip rent {amount}',
+      labourTotal: 'Labour bill {amount}',
+      tripFallback: 'Trip',
+    },
+
+    dashboard: {
+      title: 'Dashboard',
+      description:
+        'Your trips for LBTS — what went out, what came back, what it was billed and what is still due.',
+      notLinkedBadge: 'Not linked yet',
+      notLinkedTitle: 'No vendor is linked to this account',
+      loadFailed: 'Could not load your dashboard',
+      notLinkedFootnote: 'Contact an administrator to have your account linked.',
+      needsAttention: 'Needs attention',
+      lastSixMonths: 'Last six months',
+      lastSixHint:
+        'What the trips in each month were billed. A month with no trips is a zero, not a gap.',
+      readOnly:
+        'Everything here is your own vendor record and is read-only. Trips, bills and payments are entered by LBTS — contact the office to have anything corrected.',
+      paidAhead: 'Paid ahead',
+      billed: 'Billed',
+      advance: 'Advance',
+      paid: 'Paid',
+      everyTripByMonth: 'Every trip, month by month',
+      nothingOutThisMonth: 'Nothing has gone out this month yet',
+      today: 'Today',
+      noLorryYet: 'No lorry out yet on {day}',
+      outOn: 'Out on {day}',
+      nothingBilledYet: 'Nothing billed in this window yet',
+      chartCaption: 'Trips, pieces and amount billed by month',
+      month: 'Month',
+      trips: 'Trips',
+      pieces: 'Pieces',
+      latestTrips: 'Latest trips',
+      latestTripsHint: 'The most recent runs for LBTS. Open one to see its challans and its money.',
+      allTrips: 'All trips',
+      noTripYet: 'No trip has been run for LBTS yet. When one is, it appears here.',
+      nothingOutstanding: 'Nothing outstanding',
+      nothingOutstandingHint:
+        'Every signed copy is in, every trip carries its bill, and every document on file is in date.',
+      renewBeforeLapse:
+        'Renew before the date passes and the vehicle or driver stops being assignable.',
+      deliveredThisMonth: 'Delivered this month',
+      nothingCarried: 'Nothing carried yet',
+      backAtDepot: 'Back at depot',
+      nothingCameBack: 'Nothing came back this month',
+      awaitingCopy: 'Awaiting signed copy',
+      everyCopyIn: 'Every copy is in',
+      tripsCompleted: 'Trips completed',
+      noTripsThisMonth: 'No trips this month yet',
+      documentsLapsing: 'Documents lapsing',
+      documents: 'Documents',
+      inDate: 'In date',
+      fleetAria: 'Fleet on record',
+      /** The tile notes, each a whole sentence: the count leads in Bangla. */
+      deliveredNote: 'of {carried} carried · {rate}',
+      returnedNote: 'pieces returned off a trip this month',
+      awaitingNote: 'across {trips}',
+      awaitingNoteOldest: 'across {trips} · oldest {day}',
+      completedNote: 'of {trips} this month',
+
+      copiesTitle: '{copies} still to come back',
+      copiesDetail:
+        'On {trips}. A trip closes when every receiver’s signed challan is scanned in.',
+      copiesDetailOldest:
+        'On {trips}, the oldest run on {day}. A trip closes when every receiver’s signed challan is scanned in.',
+      billsTitle: '{trips} without a full bill',
+      billsDetail: {
+        one: 'Rent or labour has not been entered against it yet, so {period}’s total is lower than what is actually owed.',
+        other: 'Rent or labour has not been entered against them yet, so {period}’s total is lower than what is actually owed.',
+      },
+      expiredTitle: '{documents} expired',
+      expiredDetail:
+        'A lorry whose papers have lapsed cannot be sent out. Send the renewed certificate to LBTS to have it filed.',
+      expiringTitle: '{documents} expiring soon',
+
+      due: 'Due',
+      settled: 'Settled',
+      piecesCarried: '{pieces} carried',
+      deliveredShare: '{rate} of what went out stayed delivered',
+      billedPerMonth: 'Billed per month — trip rent and labour',
+      billedSeries: 'Billed',
+      /** An axis figure at the local scale: 12K, 1.5L, 2Cr. */
+      compactThousand: '{value}K',
+      compactLakh: '{value}L',
+      compactCrore: '{value}Cr',
+    },
+
+    statusDialog: {
+      title: 'Change status',
+      description:
+        'A {noun}’s status decides what can be done with it next. Nothing already recorded is changed or removed by it.',
+      currently: 'Currently {status}',
+      selectAria: 'Select a status',
+      reason: 'Reason (optional)',
+      reasonPlaceholder: 'Recorded on the record, and cleared when it becomes active again.',
+      confirm: 'Confirm change',
+      nounVendor: 'vendor',
+      nounVehicle: 'vehicle',
+      nounDriver: 'driver',
+    },
+
+    remove: {
+      vendorTitle: 'Remove {name}?',
+      confirm: 'Remove',
+      removing: 'Removing…',
+
+      /** What "cancel" says on a removal: what happens if you do not. */
+      keepIt: 'Keep it',
+      keepThem: 'Keep them',
+    },
+
+    photo: {
+      viewFullSize: 'View the photo of {label} at full size',
+      thisVehicle: 'This vehicle',
+      removePhoto: 'Remove photo',
+
+      formatsHint: 'JPG, PNG or WEBP, up to {size}',
+    },
+
+    validation: {
+      mobileRequired: 'Mobile number is required',
+      mobileInvalid: 'Enter an 11-digit mobile number, for example 01712345678.',
+      vendorNameTooShort: 'Vendor name must be at least 2 characters',
+      vendorNameTooLong: 'Vendor name must be 160 characters or fewer',
+      addressTooLong: 'Address must be 400 characters or fewer',
+      registrationTooShort: 'Registration number must be at least 4 characters',
+      registrationTooLong: 'Registration number must be 60 characters or fewer',
+      ownershipRequired: 'Choose how the vehicle is owned.',
+      dateInvalid: 'Use a valid date.',
+      driverNameTooShort: 'Driver name must be at least 2 characters',
+      driverNameTooLong: 'Driver name must be 160 characters or fewer',
+      licenceTooLong: 'Licence number must be 60 characters or fewer',
+      licenceNumberNeeded: 'Add the licence number this expiry date belongs to.',
+      vehicleRequired: 'Choose a vehicle.',
+      driverRequired: 'Choose a driver.',
+      assignedFromRequired: 'Choose the date the assignment starts.',
+      documentTypeRequired: 'Choose a document type.',
+
+      nidTooLong: 'NID must be 40 characters or fewer',
+      endBeforeStart: 'The end date cannot be before the start date.',
+      expiryBeforeIssue: 'The expiry date cannot be before the issue date.',
+    },
+
+    toasts: {
+      vehicleAdded: '{plate} added as {code}',
+      vehicleUpdated: '{plate} updated',
+      vehicleStatus: '{plate} is now {status}',
+      vehicleActiveNote: 'It can be given a driver again.',
+      vehicleInactiveNote:
+        'Its assignment history is unchanged. It cannot take a new driver until it is active.',
+      vehiclePhotoUpdated: 'Photo updated for {plate}',
+      vehiclePhotoRemoved: 'Photo removed from {plate}',
+      vehicleRemoved: '{label} removed',
+      vehicleRemovedNote: 'Its assignment history and documents went with it.',
+      driverAdded: '{name} added as {code}',
+      driverLicenceNote: 'The licence was filed as a document, so its expiry now shows in compliance.',
+      driverUpdated: '{name} updated',
+      driverStatus: '{name} is now {status}',
+      driverActiveNote: 'They can be assigned again.',
+      driverInactiveNote:
+        'Their assignment history is unchanged. They cannot take a new assignment until they are active.',
+      driverRemoved: '{label} removed',
+      driverRemovedNote: 'Their assignment history and documents went with them.',
+      photoUpdated: 'Photo updated',
+      photoRemoved: 'Photo removed',
+      assignmentEnded: 'Assignment ended',
+      assignmentEndedNote: '{plate} has no driver now.',
+      theVehicle: 'The vehicle',
+      assignmentRemoved: 'Assignment record removed',
+      assignmentRemovedNote: 'It is gone from the history rather than marked as ended.',
+      documentFiled: '{type} filed for {owner}',
+      documentUpdated: '{type} updated',
+      documentRemoved: '{label} removed',
+      vendorAdded: '{name} added as {code}',
+      vendorActiveNote: 'It can take assignments straight away.',
+      vendorInactiveNote: 'It is {status}, so nothing can be assigned under it yet.',
+      vendorUpdated: '{name} updated',
+      vendorStatus: '{name} is now {status}',
+      vendorStatusActiveNote: 'It can take new assignments again.',
+      vendorStatusInactiveNote: 'Existing records are kept. Nothing new can be assigned under it.',
+      vendorGone: 'Nothing referenced it, so it is gone.',
+      fileLoadFailed: 'The file could not be loaded.',
+      fileDownloadFailed: 'That file could not be downloaded.',
+      photoTypeUnsupported: 'That file type is not supported',
+      photoTypeHint: 'Choose a JPG, PNG or WEBP image.',
+      photoTooLarge: 'That image is larger than 5 MB',
+      photoTooLargeHint: 'Choose a smaller file, or export it at a lower resolution.',
+      documentTypeHint: 'Attach a PDF, JPG, PNG or WEBP file.',
+      documentTooLarge: 'That file is larger than 25 MB',
+      documentTooLargeHint: 'Scan it at a lower resolution and attach it again.',
+
+      assignmentCreated: '{driver} assigned to {vehicle}',
+      aDriver: 'Driver',
+      theVehicleLower: 'the vehicle',
+      vendorDeactivated: '{label} deactivated',
+      vendorDeleted: '{label} deleted',
+      vendorStillReferenced: {
+        one: '{count} record still references it, so it was kept and taken out of use instead.',
+        other: '{count} records still reference it, so it was kept and taken out of use instead.',
+      },
+    },
+    filters: {
+      anyStatus: 'Any status',
+      anyOwnership: 'Any ownership',
+    },
+    compliance: {
+      noneFiled: 'None filed',
+      allValid: '{n} valid',
+      expired: '{n} expired',
+      expiring: '{n} expiring',
+      /** The title behind the chip, which is the only room this column has. */
+      expiredTitle: {
+        one: '{n} of this subject’s {total} filed documents has passed its expiry date',
+        other: '{n} of this subject’s {total} filed documents have passed its expiry date',
+      },
+      expiringTitle: {
+        one: '{n} of this subject’s {total} filed documents expires within {days} days',
+        other: '{n} of this subject’s {total} filed documents expire within {days} days',
+      },
+    },
+
+    vendorStatuses: {
+      Pending: { label: 'Pending', description: 'Recorded, but not yet cleared to work.' },
+      Active: { label: 'Active', description: 'Working, and able to take new assignments.' },
+      Inactive: {
+        label: 'Inactive',
+        description: 'Out of use. Existing records are kept; nothing new is assigned.',
+      },
+      Suspended: {
+        label: 'Suspended',
+        description: 'Stopped by us. No new assignments until it is reinstated.',
+      },
+    },
+
+    vehicleStatuses: {
+      Active: { label: 'Active', description: 'On the road, and able to take a driver.' },
+      Inactive: { label: 'Inactive', description: 'Off the fleet for now.' },
+      'Under Maintenance': {
+        label: 'Maintenance',
+        description: 'In the workshop. Not available for a new assignment.',
+      },
+      Suspended: { label: 'Suspended', description: 'Stopped by us until further notice.' },
+      Expired: {
+        label: 'Expired',
+        description: 'Papers have run out. It cannot be given a driver.',
+      },
+    },
+
+    driverStatuses: {
+      Active: { label: 'Active', description: 'Available, and able to be assigned.' },
+      Inactive: { label: 'Inactive', description: 'No longer working for this vendor.' },
+      Suspended: { label: 'Suspended', description: 'Stopped by us. Cannot be assigned.' },
+      'On Leave': {
+        label: 'On leave',
+        description: 'Away, and back later. Cannot take a new assignment meanwhile.',
+      },
+    },
+
+    assignmentStatuses: {
+      Active: { label: 'Active', description: 'In force now.' },
+      Ended: {
+        label: 'Ended',
+        description: 'History. Kept so the record can say who was driving.',
+      },
+    },
+
+    documentStatuses: {
+      Valid: { label: 'Valid', description: 'In date, with time to spare.' },
+      'Expiring Soon': {
+        label: 'Expiring soon',
+        description: 'Inside the renewal window. Renew before it lapses.',
+      },
+      Expired: {
+        label: 'Expired',
+        description: 'Run out. The vehicle or driver should not be working on it.',
+      },
+    },
+
+    ownership: {
+      'Vendor Owned': { label: 'Owned', description: 'The vendor’s own vehicle.' },
+      Rented: { label: 'Rented', description: 'Hired in by the vendor.' },
     },
   },
 } satisfies MessageTree

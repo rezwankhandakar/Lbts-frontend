@@ -20,6 +20,7 @@ import { FormField } from './form-field'
 import { GoogleButton } from './google-button'
 import { PasswordInput } from './password-input'
 import { PasswordStrength } from './password-strength'
+import { SentenceWith } from '@/components/shared/sentence-with'
 
 export function SignUpForm() {
   const t = useT()
@@ -178,11 +179,9 @@ export function SignUpForm() {
 
         <div className="flex items-start gap-2 rounded-lg bg-muted/60 px-3 py-2 text-xs leading-snug text-muted-foreground">
           <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-          <span>
-            {t('auth.signUp.roleNoticeBefore')}{' '}
-            <span className="font-medium text-foreground">{t('auth.signUp.roleNoticeRole')}</span>{' '}
-            {t('auth.signUp.roleNoticeAfter')}
-          </span>
+          <SentenceWith text={t('auth.signUp.roleNotice')} placeholder="{role}">
+            <span className="font-medium text-foreground">{t('auth.signUp.roleNoticeRole')}</span>
+          </SentenceWith>
         </div>
       </form>
     </div>

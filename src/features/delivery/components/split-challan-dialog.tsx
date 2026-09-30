@@ -65,10 +65,10 @@ export function SplitChallanDialog({ challan, onOpenChange, onSplit }: SplitChal
             {t('delivery.split.everythingLeft')}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => fill((n) => Math.ceil(n / 2))}>
-            Half
+            {t('delivery.split.half')}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => fill(() => 0)}>
-            None
+            {t('delivery.split.none')}
           </Button>
         </div>
 
@@ -84,7 +84,10 @@ export function SplitChallanDialog({ challan, onOpenChange, onSplit }: SplitChal
                   <p className="font-mono text-xs text-muted-foreground">{source.model}</p>
                   <p className="mt-1 text-[11px] text-muted-foreground tabular-nums">
                     {t('delivery.line.ordered', { n: formatNumber(source.ordered) })}
-                    {source.dispatched > 0 && ` · ${source.dispatched} on other trips`}
+                    {source.dispatched > 0 &&
+                      t('delivery.split.onOtherTrips', {
+                        qty: formatNumber(source.dispatched),
+                      })}
                   </p>
                 </div>
 
@@ -96,7 +99,9 @@ export function SplitChallanDialog({ challan, onOpenChange, onSplit }: SplitChal
                     onChange={(qty) => setTake((current) => ({ ...current, [source.index]: qty }))}
                   />
                   <span className="w-20 text-right text-xs text-muted-foreground tabular-nums">
-                    {later > 0 ? `${later} later` : 'nothing held'}
+                    {later > 0
+                      ? t('delivery.split.laterCount', { qty: formatNumber(later) })
+                      : t('delivery.split.nothingHeld')}
                   </span>
                 </div>
               </li>

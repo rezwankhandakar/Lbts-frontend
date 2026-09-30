@@ -1,5 +1,6 @@
 import { ChevronRight, ShieldCheck, TriangleAlert } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { ComplianceAlert, VendorTab } from '../types'
 
@@ -29,6 +30,8 @@ interface VendorAlertsProps {
  * exactly what it looks like.
  */
 export function VendorAlerts({ alerts, moreAlerts, isLoading, onOpen }: VendorAlertsProps) {
+  const t = useT()
+
   if (isLoading) {
     return (
       <div className="space-y-2" aria-busy="true">
@@ -45,9 +48,9 @@ export function VendorAlerts({ alerts, moreAlerts, isLoading, onOpen }: VendorAl
           <ShieldCheck className="size-4" aria-hidden />
         </span>
         <div className="min-w-0">
-          <p className="text-[13px] font-medium">Nothing needs attention</p>
+          <p className="text-[13px] font-medium">{t('vendor.overview.nothingNeedsAttention')}</p>
           <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-            Every document on file is in date, and no vehicle or driver is out of service.
+            {t('vendor.overview.nothingWrong')}
           </p>
         </div>
       </div>
@@ -97,8 +100,7 @@ export function VendorAlerts({ alerts, moreAlerts, isLoading, onOpen }: VendorAl
 
       {moreAlerts > 0 && (
         <p className="px-1 text-xs text-muted-foreground">
-          {moreAlerts} more {moreAlerts === 1 ? 'alert is' : 'alerts are'} not shown. The documents
-          tab, filtered, is where the rest are worked through.
+          {t('vendor.overview.moreAlerts', { count: moreAlerts })}
         </p>
       )}
     </div>

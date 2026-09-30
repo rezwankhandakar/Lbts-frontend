@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { useT } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 /**
@@ -12,14 +14,25 @@ import { cn } from '@/lib/utils'
  * column, which is easier to do consistently when the grouping is a component.
  */
 
+/**
+ * One field's validation message.
+ *
+ * It is **the one place a vendor validation message becomes words**: the
+ * schemas hand React Hook Form a translation key, because Zod v4 here rejects a
+ * function message and there is no translator where a schema is written. A key
+ * nothing knows resolves to itself, so a sentence the API wrote passes through
+ * untouched.
+ */
 export function FieldError({ error }: { error?: string }) {
+  const t = useT()
+
   if (!error) {
     return null
   }
 
   return (
     <p role="alert" className="text-xs text-destructive">
-      {error}
+      {t(error as TranslationKey)}
     </p>
   )
 }

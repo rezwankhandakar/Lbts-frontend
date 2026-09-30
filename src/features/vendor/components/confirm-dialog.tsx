@@ -9,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { useT } from '@/lib/i18n'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -22,6 +23,7 @@ interface ConfirmDialogProps {
   description: ReactNode
   confirmLabel: string
   pendingLabel: string
+  /** Defaults to "Cancel"; a removal says what happens if you do not. */
   cancelLabel?: string
   /** Destructive by default, since that is what most of these guard. */
   tone?: 'destructive' | 'neutral'
@@ -45,11 +47,13 @@ export function ConfirmDialog({
   description,
   confirmLabel,
   pendingLabel,
-  cancelLabel = 'Cancel',
+  cancelLabel,
   tone = 'destructive',
   onOpenChange,
   onConfirm,
 }: ConfirmDialogProps) {
+  const t = useT()
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -59,7 +63,9 @@ export function ConfirmDialog({
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>
+            {cancelLabel ?? t('common.actions.cancel')}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isPending}

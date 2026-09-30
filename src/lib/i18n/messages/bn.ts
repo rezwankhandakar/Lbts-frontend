@@ -88,6 +88,7 @@ export const bn: Translation<typeof en> = {
       skip: 'এড়িয়ে যান',
       finish: 'শেষ করুন',
       showMore: 'আরও দেখুন',
+      more: 'আরও',
       showLess: 'কম দেখুন',
       expand: 'প্রসারিত করুন',
       collapse: 'সংকুচিত করুন',
@@ -125,6 +126,7 @@ export const bn: Translation<typeof en> = {
       createdAt: 'তৈরির সময়',
       updatedBy: 'হালনাগাদ করেছেন',
       updatedAt: 'হালনাগাদের সময়',
+      completedAt: 'সম্পন্ন',
       customer: 'গ্রাহক',
       address: 'ঠিকানা',
       district: 'জেলা',
@@ -185,6 +187,17 @@ export const bn: Translation<typeof en> = {
       results: { zero: 'কোনো ফলাফল নেই', one: '{count}টি ফলাফল', other: '{count}টি ফলাফল' },
       selected: '{count}টি নির্বাচিত',
       counted: '{n}টি {noun}',
+    },
+
+    /**
+     * A figure short enough for a chart axis, at the local scale. Shared,
+     * because the Accounts trend chart and the vendor dashboard both draw one and
+     * a second copy is how one of them comes to read "1.5L" beside Bangla digits.
+     */
+    compact: {
+      thousand: '{value} হাজার',
+      lakh: '{value} লক্ষ',
+      crore: '{value} কোটি',
     },
 
     validation: {
@@ -332,6 +345,10 @@ export const bn: Translation<typeof en> = {
     timeout: 'অনুরোধটি অনেক বেশি সময় নিয়েছে',
     notFoundTitle: 'পৃষ্ঠা খুঁজে পাওয়া যায়নি',
     notFoundBody: 'এই ঠিকানার সঙ্গে অ্যাপ্লিকেশনের কিছুই মেলেনি।',
+
+    notFoundPageTitle: 'এই পৃষ্ঠাটি নেই',
+    notFoundPageBody:
+      'আপনি যে পৃষ্ঠাটি খুঁজছেন সেটি সরানো হয়ে থাকতে পারে, বা ঠিকানাটি ভুল লেখা হয়ে থাকতে পারে।',
     forbiddenTitle: 'এই পৃষ্ঠায় আপনার প্রবেশাধিকার নেই',
     forbiddenBody:
       'আপনার ভূমিকায় এই মডিউলটি নেই। ভুল মনে হলে প্রশাসকের সঙ্গে যোগাযোগ করুন।',
@@ -346,6 +363,15 @@ export const bn: Translation<typeof en> = {
     boundaryBody:
       'অ্যাপ্লিকেশনের বাকি অংশ ঠিক আছে — ফিরে যান, অথবা আবার চেষ্টা করতে পৃষ্ঠাটি রিলোড করুন।',
     detailsHeading: 'ত্রুটির বিবরণ (শুধু ডেভেলপমেন্টে)',
+
+    /** What axios says about a failure the API never got to answer. */
+    slowServer: 'সার্ভার সাড়া দিতে অনেক সময় নিচ্ছে। হয়তো এটি জেগে উঠছে — আবার চেষ্টা করুন।',
+    unreachable: 'সার্ভারে পৌঁছানো যায়নি। আপনার সংযোগ দেখে আবার চেষ্টা করুন।',
+    /** The four the loopback scanner helper can produce. */
+    scannerUnreachable: 'স্ক্যানার হেলপার এই কম্পিউটারে চলছে না।',
+    scannerUnauthorized: 'এই কম্পিউটার স্ক্যানার হেলপারের সাথে জোড়া নেই।',
+    scannerFailed: 'স্ক্যানার হেলপার সেই অনুরোধটি সম্পন্ন করতে পারেনি।',
+    scannerBusy: 'স্ক্যানার আগের একটি কাজ নিয়েই ব্যস্ত।',
   },
 
   accountInactive: {
@@ -398,9 +424,13 @@ export const bn: Translation<typeof en> = {
       privacyPolicy: 'গোপনীয়তা নীতি',
       submit: 'অ্যাকাউন্ট তৈরি করুন',
       submitting: 'অ্যাকাউন্ট তৈরি হচ্ছে…',
-      roleNoticeBefore: 'নতুন অ্যাকাউন্ট তৈরি হয়',
       roleNoticeRole: 'User',
-      roleNoticeAfter: 'ভূমিকা নিয়ে। একজন প্রশাসক পরে এটি বদলাতে পারেন।',
+      /**
+       * One sentence with the role drawn inside it, rather than a head, a span
+       * and a tail: Bangla puts "role" before the name it qualifies, so three
+       * fragments in that order could only ever read correctly in English.
+       */
+      roleNotice: 'নতুন অ্যাকাউন্ট {role} ভূমিকা নিয়ে তৈরি হয়। পরে একজন অ্যাডমিন এটি বদলে দিতে পারেন।',
       created: 'অ্যাকাউন্ট তৈরি হয়েছে। LBTS-এ স্বাগতম!',
       ready: 'অ্যাকাউন্ট প্রস্তুত। LBTS-এ স্বাগতম!',
     },
@@ -500,11 +530,14 @@ export const bn: Translation<typeof en> = {
     assignment: { one: 'অ্যাসাইনমেন্ট', other: 'অ্যাসাইনমেন্ট' },
     document: { one: 'ডকুমেন্ট', other: 'ডকুমেন্ট' },
     location: { one: 'লোকেশন', other: 'লোকেশন' },
+    district: { one: 'জেলা', other: 'জেলা' },
     rate: { one: 'রেট', other: 'রেট' },
     row: { one: 'সারি', other: 'সারি' },
     unit: { one: 'ইউনিট', other: 'ইউনিট' },
     cashWallet: { one: 'ক্যাশ ওয়ালেট', other: 'ক্যাশ ওয়ালেট' },
     page: { one: 'পৃষ্ঠা', other: 'পৃষ্ঠা' },
+    sheet: { one: 'শিট', other: 'শিট' },
+    part: { one: 'ভাগ', other: 'ভাগ' },
     piece: { one: 'পিস', other: 'পিস' },
     pc: { one: 'পিস', other: 'পিস' },
     line: { one: 'লাইন', other: 'লাইন' },
@@ -519,7 +552,9 @@ export const bn: Translation<typeof en> = {
     entry: { one: 'এন্ট্রি', other: 'এন্ট্রি' },
     expense: { one: 'খরচ', other: 'খরচ' },
     advance: { one: 'অগ্রিম', other: 'অগ্রিম' },
+    payment: { one: 'পেমেন্ট', other: 'পেমেন্ট' },
     user: { one: 'ব্যবহারকারী', other: 'ব্যবহারকারী' },
+    account: { one: 'অ্যাকাউন্ট', other: 'অ্যাকাউন্ট' },
   },
 
   shared: {
@@ -529,6 +564,42 @@ export const bn: Translation<typeof en> = {
       askAdmin: 'প্রবেশাধিকার পাওয়ার কথা মনে করলে একজন অ্যাডমিনকে জানান।',
       signedInAs: 'সাইন ইন করা আছে',
       backToDashboard: 'ড্যাশবোর্ডে ফিরে যান',
+
+      /**
+       * One sentence per route boundary, naming the module and the accounts it
+       * is open to. They are keys here rather than constants beside the routes,
+       * because a module name and a role list are both words.
+       */
+      reasons: {
+        gatePassRead:
+          'গেট পাস পরিবহনের কাজের রেকর্ড রাখে, আর এটি অ্যাডমিন, ম্যানেজার, সিইও ও অপারেশন এক্সিকিউটিভ অ্যাকাউন্টের জন্য খোলা।',
+        gatePassWrite:
+          'গেট পাস তৈরি করেন অ্যাডমিন, ম্যানেজার, সিইও ও অপারেশন এক্সিকিউটিভ অ্যাকাউন্টধারীরা।',
+        challanRead:
+          'চালান কর্পোরেট অফিসের ডেলিভারির রেকর্ড রাখে, আর এটি অ্যাডমিন, ম্যানেজার, সিইও ও অপারেশন এক্সিকিউটিভ অ্যাকাউন্টের জন্য খোলা।',
+        challanWrite:
+          'চালান তৈরি করেন অ্যাডমিন, ম্যানেজার, সিইও ও অপারেশন এক্সিকিউটিভ অ্যাকাউন্টধারীরা।',
+        deliveryRead:
+          'ডেলিভারি রেকর্ড রাখে কোন চালান কোন গাড়িতে গেছে, আর এটি অ্যাডমিন, ম্যানেজার, সিইও ও অপারেশন এক্সিকিউটিভ অ্যাকাউন্টের জন্য খোলা।',
+        deliveryWrite:
+          'ট্রিপ তৈরি ও সংশোধন করেন অ্যাডমিন, ম্যানেজার, সিইও ও অপারেশন এক্সিকিউটিভ অ্যাকাউন্টধারীরা।',
+        tripDo:
+          'ট্রিপ ডিও শিট চালানের পণ্যের সারিকে গেট পাসের সাথে মেলায়, আর এটি অ্যাডমিন, ম্যানেজার, সিইও ও অপারেশন এক্সিকিউটিভ অ্যাকাউন্টের জন্য খোলা। কেবল একজন অ্যাডমিন এটি বদলাতে পারেন।',
+        accounts:
+          'অ্যাকাউন্টসে অফিসের ব্যালেন্স, পেমেন্ট ও লাভ-ক্ষতি থাকে, আর এটি অ্যাডমিন, ম্যানেজার ও সিইও অ্যাকাউন্টের জন্য খোলা।',
+        bill:
+          'বিল একটি ইউনিটকে তার ট্রিপ ডিও-র জন্য চার্জ করে, আর এটি অ্যাডমিন, ম্যানেজার, সিইও ও অপারেশন এক্সিকিউটিভ অ্যাকাউন্টের জন্য খোলা। কেবল একজন অ্যাডমিন বিল তৈরি করেন।',
+        labourBill:
+          'ওয়ালটন লেবার বিল প্রতিটি ডেলিভারির হ্যান্ডলিং চার্জ করে, আর এটি অ্যাডমিন, ম্যানেজার, সিইও ও অপারেশন এক্সিকিউটিভ অ্যাকাউন্টের জন্য খোলা।',
+        location:
+          'লোকেশনের মূল তালিকা এমন তথ্য যার বিপরীতে পুরো কাজ শ্রেণিবদ্ধ হয়, আর কেবল একজন অ্যাডমিন অ্যাকাউন্ট এটি খুলতে পারেন।',
+        productRate:
+          'প্রোডাক্ট রেট কার্ড ঠিক করে প্রতিটি ডেলিভারিতে কত চার্জ হবে, আর কেবল একজন অ্যাডমিন অ্যাকাউন্ট এটি খুলতে পারেন।',
+        vendor:
+          'ভেন্ডর, তাদের গাড়ি, তাদের চালক এবং তাদের কাগজপত্র। স্টাফ অ্যাকাউন্ট সব ভেন্ডর দেখে; একটি ভেন্ডর অ্যাকাউন্ট কেবল নিজেরটি দেখে।',
+        activity:
+          'অ্যাক্টিভিটি লগ প্রতিটি মডিউলে কে কী করেছে তার রেকর্ড রাখে, আর এটি অ্যাডমিন, ম্যানেজার ও সিইও অ্যাকাউন্টের জন্য খোলা।',
+      },
     },
     comingSoon: {
       badge: 'শীঘ্রই আসছে',
@@ -551,6 +622,9 @@ export const bn: Translation<typeof en> = {
       out: 'জুম কমান',
       in: 'জুম বাড়ান',
       fit: 'পুরো পৃষ্ঠাটি পর্দায় আঁটান',
+
+      pdfFailed: 'পিডিএফটি খোলা যায়নি।',
+      pageAria: 'পৃষ্ঠা {page}',
     },
 
     columnFilter: {
@@ -560,6 +634,9 @@ export const bn: Translation<typeof en> = {
       truncated: 'প্রথম {count}টি মান দেখানো হয়েছে। আগে অন্য একটি কলাম সংকুচিত করুন।',
       apply: 'প্রয়োগ করুন',
       clearFilter: 'ফিল্টার সাফ করুন',
+
+      filtered: '{label}: ফিল্টার করা',
+      filterBy: '{label} ফিল্টার করুন',
     },
 
     documentScan: {
@@ -574,6 +651,25 @@ export const bn: Translation<typeof en> = {
       scanNow: 'এখনই স্ক্যান করুন',
       stop: 'থামান',
       hide: 'লুকান',
+
+    },
+
+    /** What a one-file attachment may be, wherever one is offered. */
+    documentFile: {
+      wrongType: 'ফাইলটি পিডিএফ, জেপিজি, পিএনজি বা ওয়েবপি নয়।',
+      pdfTooLarge: 'পিডিএফটি {size}-এর চেয়ে বড়।',
+      imageTooLarge:
+        'ছবিটি {size}-এর চেয়ে বড়। এটি পিডিএফ হিসেবে, বা কম রেজোলিউশনে স্ক্যান করুন।',
+      /** The formats line each one-file field prints under its buttons. */
+      voucherHint:
+        'পিডিএফ, জেপিজি, পিএনজি বা ওয়েবপি। কয়েক পাতার একটি বিল একটি পিডিএফ হিসেবেই রাখা হয়, আর এন্ট্রি এটি ছাড়াও সংরক্ষণ করা যায়।',
+      copyHint: 'পিডিএফ, জেপিজি, পিএনজি বা ওয়েবপি। দুটি শিট একটি পিডিএফ হিসেবে রাখা হয়।',
+
+    },
+
+    carryOver: {
+      /** The title behind a "Same as last" tick: what the last record held. */
+      onTheLast: 'আগেরটিতে {label}: {value}',
     },
   },
 
@@ -1003,6 +1099,9 @@ export const bn: Translation<typeof en> = {
       preview: 'প্রিভিউ।',
       previewNote: 'এখনও সংরক্ষণ করা হয়নি — {size}',
       savePhoto: 'ছবি সংরক্ষণ করুন',
+
+      /** Shown beside the form after a save the API refused. */
+      notSaved: 'আপনার পরিবর্তনগুলো সংরক্ষিত হয়নি। তথ্য দেখে আবার চেষ্টা করুন।',
       saving: 'সংরক্ষণ হচ্ছে…',
       remove: 'সরান',
       removeTitle: 'প্রোফাইল ছবি সরাবেন?',
@@ -1041,6 +1140,8 @@ export const bn: Translation<typeof en> = {
       sent: 'যাচাইয়ের ইমেইল পাঠানো হয়েছে',
       confirmed: 'আপনার ইমেইল যাচাই হয়েছে',
       confirmedNote: 'নিশ্চিত করার জন্য ধন্যবাদ — আপনার অ্যাকাউন্টের তথ্য হালনাগাদ আছে।',
+
+      sentNote: '{email}-এ পাঠানো লিংকটি খুলুন।',
     },
 
     providers: {
@@ -1103,6 +1204,8 @@ export const bn: Translation<typeof en> = {
 
     directory: {
       loading: 'পণ্যের রেট লোড হচ্ছে',
+      summaryFiltered: '{rates} এই ফিল্টারে মিলেছে',
+      summaryTotal: 'কার্ডে {rates}',
       noneFound: 'কোনো পণ্য পাওয়া যায়নি',
       empty: 'রেট কার্ডটি খালি',
       filteredHint: 'আপনার বর্তমান ফিল্টারের সঙ্গে কোনো পণ্য, মডেল বা ধারণক্ষমতা মেলেনি।',
@@ -1117,6 +1220,8 @@ export const bn: Translation<typeof en> = {
       model: 'মডেল',
       capacity: 'ধারণক্ষমতা',
       actions: 'কার্যক্রম',
+
+      actionsFor: '{label}-এর জন্য কাজ',
     },
 
     form: {
@@ -1131,6 +1236,14 @@ export const bn: Translation<typeof en> = {
       osdThanaHint: 'এর বাইরে, কোনো উপজেলা থানায়।',
       inUse: 'ব্যবহারে আছে',
       inUseHint: 'এটি নিষ্ক্রিয়, তাই এটি কোনো দাম বসায় না এবং কোথাও দেখানো হয় না।',
+
+      modelHint:
+        'পণ্যের কোনো মডেল না থাকলে ফাঁকা রাখুন। ফাঁকা একটি সারি এই পণ্যের নাম আছে এমন প্রতিটি চালান সারির দাম ধরে, মডেল যা-ই হোক।',
+      capacityHint:
+        'রেটের পাশে কার্ডে যা লেখা থাকে — “২১ থেকে ৪০ কেজি”, “গ্রস ১৫১-২৮৫ লিটার”। এই সারি যে চালান সারির দাম ধরে তার প্রতিটিতে এটি তুলে দেওয়া হয়, যাতে রেকর্ড পড়লে বোঝা যায় কোন রেট বসেছে।',
+      inactiveHint:
+        'নিষ্ক্রিয় একটি সারি কিছুর দাম ধরে না এবং কোথাও দেখানো হয় না। এটি থেকে আগেই চার্জ হওয়া চালানগুলো নিজেদের হিসাব রেখে দেয়।',
+      rateTypeAria: '{label} রেটের ধরন',
       submitAdd: 'রেট কার্ডে যোগ করুন',
       flat: 'একক',
       tiered: 'ধাপভিত্তিক',
@@ -1148,6 +1261,18 @@ export const bn: Translation<typeof en> = {
       confirm: 'সরান',
       deleted: 'এটি থেকে কখনও কিছু চার্জ হয়নি, তাই এটি মুছে ফেলা হয়েছে।',
       deactivated: 'এটি নিষ্ক্রিয়, তাই এটি কোনো দাম বসায় না এবং কোথাও দেখানো হয় না।',
+
+      added: '{label} রেট কার্ডে যোগ করা হয়েছে',
+      addedNote: 'আইএসডি {isd} · মেট্রো {metro} · থানা {thana}',
+      updated: '{label} হালনাগাদ করা হয়েছে',
+      updatedNote:
+        'এখন থেকে তৈরি হওয়া চালানে নতুন হিসাব বসবে। আগেই চার্জ হওয়াগুলো নিজেদের হিসাব রেখে দেবে।',
+      wasDeactivated: '{label} নিষ্ক্রিয় করা হয়েছে',
+      wasRemoved: '{label} সরিয়ে দেওয়া হয়েছে',
+      wasCharged: {
+        one: '{count}টি চালান এটি থেকে চার্জ হয়েছে, তাই মুছে না ফেলে ব্যবহারের বাইরে রাখা হয়েছে।',
+        other: '{count}টি চালান এটি থেকে চার্জ হয়েছে, তাই মুছে না ফেলে ব্যবহারের বাইরে রাখা হয়েছে।',
+      },
     },
 
     rate: {
@@ -1223,6 +1348,8 @@ export const bn: Translation<typeof en> = {
 
     stats: {
       inUse: 'ব্যবহৃত লোকেশন',
+
+      inUseHint: '{districts}',
       deactivated: 'নিষ্ক্রিয় করা',
       deactivatedHint: 'যে চালানগুলো এগুলোকে নির্দেশ করে, তাদের জন্য রেখে দেওয়া হয়েছে',
       byType: 'লোকেশন টাইপ অনুযায়ী',
@@ -1245,6 +1372,8 @@ export const bn: Translation<typeof en> = {
 
     directory: {
       loading: 'লোকেশন লোড হচ্ছে',
+      summaryFiltered: '{locations} এই ফিল্টারে মিলেছে',
+      summaryTotal: 'মূল তালিকায় {locations}',
       noneFound: 'কোনো লোকেশন পাওয়া যায়নি',
       empty: 'লোকেশনের মাস্টার তালিকাটি খালি',
       filteredHint: 'আপনার বর্তমান ফিল্টারের সঙ্গে কোনো জেলা বা থানা মেলেনি।',
@@ -1261,6 +1390,8 @@ export const bn: Translation<typeof en> = {
       source: 'উৎস',
       updated: 'হালনাগাদ',
       actions: 'কার্যক্রম',
+
+      actionsFor: '{district} / {thana}-এর জন্য কাজ',
       suppliedList: 'সরবরাহ করা তালিকা',
       addedByHand: 'হাতে যোগ করা',
     },
@@ -1273,6 +1404,9 @@ export const bn: Translation<typeof en> = {
       editDescription:
         'যে চালানগুলো আগে থেকেই এই সারিটিকে নির্দেশ করে, তারা নিজেদের জেলা, থানা ও লোকেশন টাইপ এর মধ্য দিয়েই পড়ে — তাই এখানে ঠিক করলে সেগুলো সবই ঠিক হয়ে যায়।',
       inUse: 'ব্যবহারে আছে',
+
+      inUseHint:
+        'নিষ্ক্রিয় একটি লোকেশন কোথাও দেখানো হয় না এবং কিছুর সাথে মেলানো হয় না। যে চালানগুলো আগে থেকেই এটিকে ধরে আছে, তারা এর দেওয়া জেলা, থানা ও ধরন রেখে দেয়।',
     },
 
     select: {
@@ -1290,9 +1424,24 @@ export const bn: Translation<typeof en> = {
       keep: 'থাক',
       removing: 'সরানো হচ্ছে…',
       confirm: 'সরান',
+
+      added: '{district} / {thana} যোগ করা হয়েছে',
+      addedNote: 'এর সাথে মেলে যাওয়া চালানগুলো {type} হিসেবে শ্রেণিবদ্ধ হবে।',
+      updated: '{district} / {thana} হালনাগাদ করা হয়েছে',
       corrected: 'যে চালানগুলো এটিকে নির্দেশ করে, তারা এখন সংশোধিত তথ্যই পড়বে।',
       deactivated: 'এটি নিষ্ক্রিয়, তাই এটি আর বেছে নেওয়া বা মেলানো যাবে না।',
       deleted: 'কিছুই এটিকে নির্দেশ করেনি, তাই এটি মুছে ফেলা হয়েছে।',
+
+      title: '{district} / {thana} সরিয়ে দেবেন?',
+      description:
+        'কোনো চালান এই লোকেশনটিকে না ধরলে এটি একেবারে মুছে যায়। কোনোটি ধরলে বদলে এটি নিষ্ক্রিয় করে রেখে দেওয়া হয়: সেই রেকর্ডগুলো নিজেদের জেলা, থানা ও লোকেশনের ধরন এটির মধ্য দিয়েই পড়ে, আর মুছে দিলে তারা আর বলতে পারবে না কোথায় গিয়েছিল। যেভাবেই হোক, এটি আর কোনো তালিকায় দেখানো হবে না এবং নতুন চালানের সাথে মেলানো হবে না।',
+      /** The two outcomes the removal toast has to tell apart. */
+      wasDeactivated: '{label} নিষ্ক্রিয় করা হয়েছে',
+      wasDeleted: '{label} মুছে ফেলা হয়েছে',
+      stillReferenced: {
+        one: '{count}টি চালান এখনও এটিকে ধরে আছে, তাই মুছে না ফেলে ব্যবহারের বাইরে রাখা হয়েছে।',
+        other: '{count}টি চালান এখনও এটিকে ধরে আছে, তাই মুছে না ফেলে ব্যবহারের বাইরে রাখা হয়েছে।',
+      },
     },
 
     validation: {
@@ -1381,6 +1530,9 @@ export const bn: Translation<typeof en> = {
       alwaysOn: 'সবসময় চালু',
       outsideFilters: 'এগুলোর বাইরেও নোটিফিকেশন থাকতে পারে।',
       loadFailed: 'বিজ্ঞপ্তি লোড করা যায়নি',
+
+      nothingWaitingHint:
+        'অনুমোদন, পর্যালোচনার সিদ্ধান্ত, মেয়াদ শেষের পথে থাকা কাগজ আর টাকার লেনদেন — সবই ঘটার সাথে সাথে এখানে আসে।',
       upToDate: 'আপনি হালনাগাদ আছেন',
     },
 
@@ -1394,8 +1546,13 @@ export const bn: Translation<typeof en> = {
 
     list: {
       loadFailed: 'আপনার বিজ্ঞপ্তি লোড করা যায়নি',
+      summaryFiltered: '{notifications} এই ফিল্টারে মিলেছে',
+      unreadSuffix: 'মোট {count}টি অপঠিত',
       noMatches: 'এই ফিল্টারগুলোর সঙ্গে কিছুই মিলছে না',
       upToDate: 'আপনি হালনাগাদ আছেন',
+
+      upToDateHint:
+        'অনুমোদনের অপেক্ষায় থাকা অ্যাকাউন্ট, গেট পাসের সিদ্ধান্ত, মেয়াদ শেষের পথে থাকা কাগজ, ডিপোতে ফিরে আসা মাল আর টাকার লেনদেন — সবই ঘটার সাথে সাথে এখানে আসে। এই মুহূর্তে আপনার জন্য কিছু অপেক্ষা করছে না।',
     },
 
     overview: {
@@ -1431,6 +1588,10 @@ export const bn: Translation<typeof en> = {
       loadFailed: 'আপনার সেটিংস লোড করা যায়নি',
       saving: 'সংরক্ষণ হচ্ছে…',
       save: 'সেটিংস সংরক্ষণ করুন',
+
+      description:
+        'ঘণ্টায় কী পৌঁছাবে তা বেছে নিন। এটি এখন থেকে যা আসবে তা বদলায় — আপনার তালিকায় আগে থেকে যা আছে তা যেমন আছে তেমনই থাকে।',
+      receiveAria: '{kind} বিজ্ঞপ্তি পান',
     },
 
     toasts: {
@@ -1458,6 +1619,10 @@ export const bn: Translation<typeof en> = {
     billsAria: 'বিল',
     sheetAria: 'বিল শিট',
     sheetHeading: 'বিল শিট',
+    sheetHint:
+      'এক্সেল ফাইলে ঠিক যা থাকে — প্রতিটি ট্রিপ ডিও-র জন্য একটি এসএল, আর রিমার্কসে ফেরত ও পুনঃপ্রেরণ।',
+    addTripDo: 'ট্রিপ ডিও যোগ করুন',
+    newBill: 'নতুন বিল',
     billAmount: 'বিলের অঙ্ক',
     noCsd: 'কোনো CSD নেই',
     noUnit: 'কোনো ইউনিট নেই',
@@ -1466,7 +1631,6 @@ export const bn: Translation<typeof en> = {
     notBilled: 'বিল করা হয়নি',
     onThisBill: 'এই বিলে আছে',
     allBills: 'সব বিল',
-    addTripDo: 'ট্রিপ DO যোগ করুন',
     blankUnit: '(ফাঁকা)',
 
     statuses: {
@@ -1546,6 +1710,11 @@ export const bn: Translation<typeof en> = {
       pieces: 'পিস',
       rows: 'সারি',
       tripDo: 'ট্রিপ DO',
+
+      matchingFilters: 'ফিল্টারের সাথে মিলেছে',
+      stillPreparing: 'এখনও তৈরি হচ্ছে',
+      signedOffSent: 'সই হয়ে পাঠানো হয়েছে',
+      pcs: 'পিস',
     },
 
     toolbar: {
@@ -1595,6 +1764,8 @@ export const bn: Translation<typeof en> = {
 
     list: {
       loading: 'বিল লোড হচ্ছে',
+      summaryFiltered: '{bills} · {amount} এই ফিল্টারে মিলেছে',
+      summaryTotal: 'মোট {bills} · {amount}',
       loadFailed: 'বিল লোড করা যায়নি',
       retrying: 'আবার চেষ্টা করা হচ্ছে…',
       noMatches: 'কোনো বিল মেলেনি',
@@ -1657,6 +1828,13 @@ export const bn: Translation<typeof en> = {
       onBill: '{bill}-এ আছে',
       otherUnitAria: 'অন্য ইউনিটের ট্রিপ DO',
       goneAria: 'ট্রিপ DO শিটে আর নেই',
+
+      addToBill: 'বিলে যোগ করুন',
+      tickEveryRow: 'ট্রিপ ডিও {tripDo}-এর সব সারি টিক দিন',
+      billIsForUnit: 'এই বিলটি {unit} ইউনিটের জন্য',
+      nothingLeftHint:
+        '{period} তারিখের প্রতিটি {unit} ট্রিপ ডিও আগেই কোনো বিলে আছে। অন্য মাস থেকে যোগ করতে ট্রিপ ডিও দিয়ে খুঁজুন।',
+      lineTitle: '{gatePass} · {date} · {challan}',
       changedAria: 'যোগ করার পর ট্রিপ DO শিটে বদলে গেছে',
       addTripDo: 'ট্রিপ DO যোগ করুন',
       addRows: '{count}টি সারি যোগ করুন',
@@ -1687,6 +1865,8 @@ export const bn: Translation<typeof en> = {
       finalize: 'বিল চূড়ান্ত করুন',
       reopen: 'খসড়া হিসেবে আবার খুলুন',
       delete: 'বিল মুছে ফেলুন',
+
+      moreActionsFor: '{bill}-এর আরও কাজ',
     },
 
     actions: {
@@ -1706,6 +1886,9 @@ export const bn: Translation<typeof en> = {
         other: '{bill} থেকে {n}টি সারি সরানো হয়েছে',
       },
       refreshed: '{bill} ট্রিপ DO শিট থেকে রিফ্রেশ হয়েছে',
+
+      freeToBillAgain: 'এগুলো আবার বিল করা যাবে।',
+      draftAgain: 'এটি আবার একটি খসড়া।',
       refreshedNote: '{updated}টি হালনাগাদ · {removed}টি সরানো হয়েছে',
       finalized: '{bill} চূড়ান্ত হয়েছে',
       deleting: 'মুছে ফেলা হচ্ছে…',
@@ -2184,6 +2367,8 @@ export const bn: Translation<typeof en> = {
 
     list: {
       loading: 'চালান লোড হচ্ছে',
+      summaryFiltered: '{challans} এই ফিল্টারে মিলেছে',
+      summaryTotal: 'রেকর্ডে {challans}',
       loadFailed: 'চালান লোড করা যায়নি',
       retrying: 'আবার চেষ্টা করা হচ্ছে…',
       noneFound: 'কোনো চালান পাওয়া যায়নি',
@@ -2218,6 +2403,9 @@ export const bn: Translation<typeof en> = {
       qty: 'সংখ্যা',
       rate: 'রেট',
       amount: 'টাকা',
+      unpricedTitle: '{total}টি সারির মধ্যে {unpriced}টি এই লোকেশনের রেট কার্ডে নেই।',
+      fromRateCard: 'রেট কার্ড থেকে',
+      loadingDocument: 'চালানের ডকুমেন্ট লোড হচ্ছে…',
       noLocationYet:
         'এখনও কিছু চার্জ হয়নি: রেট নির্ভর করে এটি কোথায় গেছে তার উপর, আর লোকেশন এখনও বসানো হয়নি। সেটি বসালেই প্রতিটি লাইনের দাম নিজে থেকে বসে যাবে।',
       notOnCard:
@@ -2266,6 +2454,16 @@ export const bn: Translation<typeof en> = {
       resolvedByAt: '{source}, {name}-এর হাতে · {when}',
       editSubtitle: '{challan} · SL {sl} · পাশের পৃষ্ঠাগুলোর সঙ্গে প্রতিটি ঘর মিলিয়ে নিন।',
       saveAndRegenerate: 'সেভ করে আবার তৈরি করুন',
+
+      notFound: 'চালান পাওয়া যায়নি',
+      notFoundHint: 'এটি মুছে ফেলা হয়ে থাকতে পারে, বা আপনার এতে প্রবেশাধিকার না-ও থাকতে পারে।',
+      backToChallans: 'চালান তালিকায় ফিরুন',
+      backToChallan: 'চালানে ফিরুন',
+      correctTitle: 'চালান সংশোধন',
+      detailsAria: 'চালানের বিবরণ',
+      storedDocumentAria: 'সংরক্ষিত চালান নথি',
+      storedDocumentHeading: 'সংরক্ষিত নথি',
+      storedDocumentHint: 'চালানের মূল পাতাগুলো। এগুলোর সাথে মিলিয়ে মানগুলো দেখে নিন।',
       storedNote:
         'সংরক্ষিত PDF-টিতে মূল চালানের পৃষ্ঠাগুলো ঠিক যেমন এসেছিল তেমনই আছে, তার পিছনে LBTS-এর তৈরি করা পিঠপাতা। সোর্স ফাইলটি নিজে কখনও আপলোড হয়নি।',
       openSourceBatch: 'সোর্স ব্যাচটি খুলুন',
@@ -2282,16 +2480,11 @@ export const bn: Translation<typeof en> = {
       documentAria: 'চালানের ডকুমেন্ট',
       generatedDocument: 'তৈরি হওয়া চালান ডকুমেন্ট',
       generatedDocumentHint: 'মূল চালানের পৃষ্ঠা, তারপর বারকোডসহ LBTS-এর পিঠপাতা।',
-      storedDocumentHeading: 'সংরক্ষিত ডকুমেন্ট',
-      storedDocumentHint: 'মূল চালানের পৃষ্ঠা। এগুলোর সঙ্গে মিলিয়ে মানগুলো দেখে নিন।',
-      storedDocumentAria: 'সংরক্ষিত চালান ডকুমেন্ট',
       waitingForDocument: 'ডকুমেন্টের অপেক্ষায়',
       correct: 'সংশোধন',
-      correctTitle: 'চালান সংশোধন',
       regenerates: 'সংরক্ষণ করলে ডকুমেন্টটি আবার তৈরি হবে।',
       regeneratesNote:
         'আপনি যা সেভ করবেন তা থেকে পিঠপাতাটি আবার আঁকা হয় এবং সংরক্ষিত PDF বদলে দেওয়া হয় — SL নম্বর, চালান নম্বর ও বারকোড একই থাকে। এর আগে ছাপা যেকোনো কপিতে পুরোনো তথ্যই থাকবে, তাই সেটি ছড়িয়ে গিয়ে থাকলে আবার প্রিন্ট করুন। পৃষ্ঠার সীমা ({file}-এর {range}) এখান থেকে বদলানো যায় না — সোর্স PDF কখনও সংরক্ষণ করা হয়নি।',
-      detailsAria: 'চালানের বিবরণ',
       filedLine: 'SL {sl} · {customer} · ফাইল {when}',
       filedLineBy: 'SL {sl} · {customer} · ফাইল {when}, {name}-এর হাতে',
       batchButton: 'ব্যাচ',
@@ -2402,6 +2595,8 @@ export const bn: Translation<typeof en> = {
 
     batch: {
       actionsAria: 'ব্যাচের কাজ',
+      summaryFiltered: '{pdfs} এই ফিল্টারে মিলেছে',
+      summaryTotal: '{pdfs} প্রক্রিয়া করা হয়েছে',
       summaryAria: 'ব্যাচের সারসংক্ষেপ',
       notFound: 'ব্যাচ পাওয়া যায়নি',
       notFoundHint:
@@ -2654,6 +2849,10 @@ export const bn: Translation<typeof en> = {
       batchDownloaded: 'ব্যাচ ডাউনলোড হয়েছে',
       assemblingBatchPrint: 'প্রিন্টের জন্য ব্যাচ PDF জোড়া দেওয়া হচ্ছে…',
       corrected: 'চালান সংশোধিত হয়েছে',
+      correctedNote:
+        '{challan} সংরক্ষিত হয়েছে এবং এর ডকুমেন্ট আবার তৈরি হয়েছে। পুরোনো কপি ছড়িয়ে গিয়ে থাকলে আবার প্রিন্ট করুন।',
+      locationSetNote: '{challan} এখন {district} / {thana} · {type}।',
+      locationClearedNote: '{challan}-এর আবার কোনো লোকেশন নেই। যেকোনো সময় বসানো যাবে।',
       batchComplete: 'ব্যাচ সম্পন্ন',
       blankCleared: 'ফাঁকা পৃষ্ঠার চিহ্ন মুছে গেছে',
       stillToAccount: {
@@ -2814,6 +3013,10 @@ export const bn: Translation<typeof en> = {
 
     changes: {
       removed: '{product} সরানো হয়েছে (ছিল {from})',
+      /** What a trip did to a line, as one sentence per case. */
+      sentInPlace: '{replaced}-এর বদলে {model} পাঠানো হয়েছে ({to})',
+      addedLine: '{product} {model} যোগ করা হয়েছে ({to})',
+      carriedLine: '{product} {model} {from}-এর মধ্যে {to} নেওয়া হয়েছে',
       added: '{product} যোগ হয়েছে ({to})',
       cutTo: '{product} কমিয়ে {to} করা হয়েছে (ছিল {from})',
       raisedTo: '{product} বাড়িয়ে {to} করা হয়েছে (ছিল {from})',
@@ -2824,6 +3027,9 @@ export const bn: Translation<typeof en> = {
         label: 'গাড়ি',
         hint: 'রিকশা ভ্যান, সিএনজি — শেষ অংশটুকু যা দিয়েই নেওয়া হোক।',
       },
+      /** The two column labels on a carrying-charge row. */
+      what: 'কী',
+      taka: 'টাকা',
       Labour: {
         label: 'মজুর',
         hint: 'ভেতরে বা উপরে তোলার জন্য যাঁদের ভাড়া করা হয়েছে।',
@@ -2879,6 +3085,15 @@ export const bn: Translation<typeof en> = {
 
     vehicle: {
       registrationNumber: 'রেজিস্ট্রেশন নম্বর',
+      noBrandOrModel: ' · কোনো ব্র্যান্ড বা মডেল লেখা নেই',
+      secondTripFine:
+        'একটি লরি দিনে দুটি চালান দিলে দ্বিতীয় ট্রিপ ঠিকই আছে — কেবল দেখে নিন এটি সেই একই গাড়ি।',
+      openTripsCount: '{trips} খোলা',
+      licenceExpiredNote:
+        'লাইসেন্সের মেয়াদ শেষ। ট্রিপটি তবুও নিশ্চিত করা যাবে — পাঠানোর আগে দেখে নিন।',
+      licenceSuffix: ' · লাইসেন্স {number}',
+      licenceExpires: ' (মেয়াদ শেষ {when})',
+      tripSerial: '{code} · ট্রিপ #{serial}',
       searchHint:
         'নম্বরপ্লেটের শেষ অঙ্কগুলো লিখুন — {digits} লিখলে {plate} পাওয়া যায়। যে গাড়িগুলো ট্রিপ নিতে পারে কেবল সেগুলোই দেখানো হয়।',
       fillsIn: 'গাড়িটি বেছে নেওয়ামাত্রই এর ভেন্ডর ও নির্ধারিত চালক বসে যাবে।',
@@ -2925,6 +3140,8 @@ export const bn: Translation<typeof en> = {
       selected: 'বাছাই করা',
       photo: 'ছবি',
       photoAria: 'চালকের ছবি',
+
+      photoFormats: 'ঐচ্ছিক। জেপিজি, পিএনজি বা ওয়েবপি, সর্বোচ্চ {size}।',
       choosePhoto: 'একটি ছবি বাছুন',
       chooseAnotherPhoto: 'অন্য একটি বাছুন',
       addedFor:
@@ -2966,6 +3183,10 @@ export const bn: Translation<typeof en> = {
     cart: {
       empty: 'এই ট্রিপে এখনও কোনো চালান নেই',
       emptyHint: 'আগে কোথাও ক্লিক করার দরকার নেই',
+      onThisTrip: 'এই ট্রিপে {pieces}',
+      emptyLong:
+        'উপরে খুঁজুন, বা ছাপা চালানগুলো হাতে নিয়ে একটার পর একটা বারকোড স্ক্যান করুন — প্রতিটি এখানে এসে বসবে, যা এখনও যাওয়ার বাকি তা নিয়ে।',
+      alreadyOnTrip: '{challan} আগেই এই ট্রিপে আছে',
       challanAria: 'চালান {challan}',
       actionsAria: '{challan}-এর কাজ',
       detailsEdited: 'তথ্য সম্পাদিত',
@@ -3002,6 +3223,10 @@ export const bn: Translation<typeof en> = {
 
     line: {
       addTitle: 'একটি পণ্য যোগ করুন',
+      addDescriptionPlain:
+        'লরিতে থাকা একটি পণ্য যা {challan}-এ লেখা নেই। এটি “যোগ করা” হিসেবে লেখা হয়।',
+      alreadyOnOtherTrips: ' · আগেই অন্য ট্রিপে {qty}',
+      onThisTripCount: 'এই ট্রিপে {qty}',
       changeTitle: 'এই লাইনটি বদলান',
       addDescription: 'এই ট্রিপে যোগ করা একটি লাইন।',
       replaceDescription:
@@ -3027,6 +3252,11 @@ export const bn: Translation<typeof en> = {
       description:
         'প্রতিটি লাইনের কতটুকু এই ট্রিপ নেবে তা বেছে নিন। বাকিটা পরের ট্রিপের জন্য চালানেই থেকে যাবে — এখানেই এটি কার্ডে সংখ্যা কমিয়ে দেওয়ার থেকে আলাদা, কারণ ওটি যা গেছে সেই অনুযায়ী চালানটিকেই কমিয়ে সংশোধন করে।',
       everythingLeft: 'যা বাকি আছে সবটুকু',
+      half: 'অর্ধেক',
+      none: 'কিছুই না',
+      onOtherTrips: ' · অন্য ট্রিপে {qty}',
+      laterCount: 'পরে {qty}',
+      nothingHeld: 'কিছু ধরে রাখা হয়নি',
       title: '{challan} ভাগ করুন',
       mustCarrySomething:
         'এই ট্রিপকে চালান থেকে অন্তত কিছু নিতেই হবে। পুরোটা পরে পাঠাতে চাইলে বরং চালানটিকেই এই ট্রিপ থেকে সরিয়ে দিন।',
@@ -3035,6 +3265,8 @@ export const bn: Translation<typeof en> = {
 
     summary: {
       panelAria: 'ডেলিভারির সারসংক্ষেপ',
+      forThisTripOnly: ' · কেবল এই ট্রিপের জন্য',
+      challansDone: '{total}টি চালানের মধ্যে {done}টি হয়ে গেছে। {description}',
       heading: 'ডেলিভারির সারসংক্ষেপ',
       noVehicle: 'এখনও কোনো গাড়ি বাছা হয়নি',
       tripDate: 'ট্রিপের তারিখ',
@@ -3075,12 +3307,17 @@ export const bn: Translation<typeof en> = {
 
     overage: {
       title: 'চালানের অর্ডারের চেয়ে বেশি',
+      bodyRaises:
+        'এই সারিগুলো মালের সাথে মিলিয়ে দেখুন। তবুও পাঠানো যায় — ট্রিপ আসলে যা গেছে তাই লেখে — কিন্তু এটি মিলিয়ে নিতে {raises}, তাই ভুল করে লেখা একটি সংখ্যা অফিসের রেকর্ড বদলে দেবে।',
+      raisesTheChallan: 'চালানও বাড়ায়',
       goBack: 'ফিরে গিয়ে ঠিক করুন',
       sendAnyway: 'তবুও পাঠান',
     },
 
     created: {
       assignedTo: 'ট্রিপটি {vendor}-এর নামে দেওয়া হয়েছে',
+      barcodeNote:
+        'ম্যানিফেস্টে এই ট্রিপের বারকোড থাকে — ডেলিভারি পৃষ্ঠায় সেটি স্ক্যান করলে ট্রিপটি আবার খোলে।',
       saved: 'ট্রিপ সংরক্ষিত হয়েছে',
       startAnother: 'আরেকটি ডেলিভারি শুরু করুন',
       printManifest: 'ম্যানিফেস্ট প্রিন্ট করুন',
@@ -3089,6 +3326,10 @@ export const bn: Translation<typeof en> = {
 
     dispatch: {
       panelAria: 'পাঠানো',
+      piecesSent: '{ordered} পিসের মধ্যে {sent} পাঠানো হয়েছে',
+      cameBackCount: '{returned} ফিরে এসেছে',
+      stillToGo: '{remaining} এখনও যাওয়ার বাকি',
+      cameBackOffLorry: 'লরি থেকে {qty} ফিরে এসেছে',
       heading: 'পাঠানো',
       nothingDelivered: 'এই চালানের কিছুই এখনও ডেলিভারি হয়নি',
       cameBack: 'ফেরত এসেছে',
@@ -3109,10 +3350,12 @@ export const bn: Translation<typeof en> = {
 
     completion: {
       heading: 'পণ্যের কী হলো?',
+      returnedLabel: '{product} {model} ফেরত',
+      ofTotal: '{total}-এর মধ্যে',
+      someCameBack: '{total}-এর মধ্যে {back} ফিরে এসেছে · {delivered} ডেলিভারি হয়েছে।',
       radioAria: 'পণ্যের কী হলো',
       allDelivered: 'সব ডেলিভারি হয়েছে',
       allDeliveredHint: 'কিছুই ফেরত আসেনি',
-      someCameBack: 'কিছু ফেরত এসেছে',
       someCameBackHint: 'কী ফেরত এসেছে বাছুন',
       fullReturn: 'পুরো চালান ফেরত',
       fullReturnHint: 'এক ক্লিক · কোনো কপি লাগবে না',
@@ -3152,6 +3395,10 @@ export const bn: Translation<typeof en> = {
 
     copy: {
       heading: 'স্বাক্ষরিত কপি',
+      pagesSuffix: ' · {pages}',
+      filedBy: ' · {name} জমা দিয়েছেন',
+      viewerTitle: 'সই করা কপি · {challan}',
+      filedOn: ' · জমা {when}',
       fallbackName: 'স্বাক্ষরিত কপি',
       replace: 'বদলান',
       removeAria: 'স্বাক্ষরিত কপিটি সরান',
@@ -3217,8 +3464,11 @@ export const bn: Translation<typeof en> = {
 
     trip: {
       printManifest: 'ম্যানিফেস্ট প্রিন্ট করুন',
+      lastSaved: 'সর্বশেষ সংরক্ষণ {when}',
+      lastSavedBy: '{name} সর্বশেষ সংরক্ষণ করেছেন {when}',
       deleteTrip: 'ট্রিপ মুছুন',
       deleting: 'মুছে ফেলা হচ্ছে…',
+      keepIt: 'রেখে দিন',
       deleteTitle: '{trip} মুছে ফেলবেন?',
       deleteTitleGeneric: 'ট্রিপ মুছে ফেলবেন?',
       deleteDescription:
@@ -3281,6 +3531,8 @@ export const bn: Translation<typeof en> = {
 
     manifest: {
       onTheLorry: 'লরিতে যা আছে',
+      forModel: ' {model}-এর জন্য',
+      ofQty: ' {qty}-এর মধ্যে',
       where: 'থানা: {thana} · জেলা: {district}',
       date: 'তারিখ:',
       status: 'অবস্থা:',
@@ -3586,6 +3838,8 @@ export const bn: Translation<typeof en> = {
       rescan: 'আবার স্ক্যান',
       removeDocument: 'ডকুমেন্ট সরান',
       loadingRecord: 'গেট পাসটি লোড হচ্ছে',
+
+      loadFailedSentence: 'ডকুমেন্টটি লোড করা যায়নি।',
     },
 
     duplicate: {
@@ -3730,6 +3984,8 @@ export const bn: Translation<typeof en> = {
       unopenable: '{file} খোলা যায়নি। এটি নষ্ট হয়ে থাকতে পারে।',
       needTwoSheets: 'জোড়া দিতে অন্তত দুটি কাগজ বাছুন।',
       imageConvertFailed: 'এই ব্রাউজার ওই ছবিটি রূপান্তর করতে পারেনি। এটি PDF হিসেবে স্ক্যান করুন।',
+      mergedTooLarge:
+        'ওই {sheets} মিলে {size} হয়, যা {limit} সীমার বেশি। কম শিট জোড়া দিন, বা স্ট্যাকটি কম রেজোলিউশনে স্ক্যান করুন।',
     },
 
     validation: {
@@ -3849,10 +4105,17 @@ export const bn: Translation<typeof en> = {
       linked: 'ট্রিপ DO বসানো',
       waiting: 'ট্রিপ DO-এর অপেক্ষায়',
       returns: 'ফেরত ও পুনঃপ্রেরণ',
+
+      rowsHint: '{pieces} · {amount}',
+      linkedHint: '{total} পিসের মধ্যে {linked} · {rows}',
+      waitingHint: '{pieces} কোনো গেট পাসের সাথে মেলানো হয়নি',
+      returnsHint: '{returned} ফিরে এসেছে · {resent} আবার গেছে',
     },
 
     directory: {
       loading: 'ট্রিপ DO শিট লোড হচ্ছে',
+      summaryFiltered: '{rows} · {pieces} · {amount} এই ফিল্টারে মিলেছে',
+      summaryTotal: 'শিটে {rows} · {pieces} · {amount}',
       loadFailed: 'শিটটি লোড করা যায়নি',
       retrying: 'আবার চেষ্টা করা হচ্ছে…',
       noRows: 'কোনো সারি মেলেনি',
@@ -3885,6 +4148,21 @@ export const bn: Translation<typeof en> = {
       tickRows: 'যে সারিগুলো একটি গেট পাসে বেরিয়েছে সেগুলোতে টিক দিন।',
       differentModels:
         'টিক দেওয়া সারিগুলোতে আলাদা মডেল আছে। একবারে একটি গেট পাস লাইনেই ট্রিপ DO বসানো যায়।',
+
+      thisProduct: 'এই পণ্য',
+      matchingSearch:
+        '“{query}”-এর সাথে মেলে যাওয়া দাখিল হওয়া গেট পাস, মডেল বা কাস্টমারের নাম অন্যভাবে লেখা থাকলেও।',
+      recentWith:
+        '{model} আছে এমন সাম্প্রতিক দাখিল হওয়া গেট পাস, বা কাছাকাছি মডেল বা কাস্টমার, যেগুলো এখনও যুক্ত করা বাকি।',
+      noOfferHint:
+        'সাম্প্রতিক কোনোটিতে {model} বা এর কাছাকাছি কিছু নেই যাতে পিস এখনও যুক্ত না হয়ে আছে। তবুও খুঁজতে ট্রিপ ডিও, গেট পাস নম্বর বা গাড়ির নম্বর লিখুন।',
+      maxPieces: 'সর্বোচ্চ {max}',
+      /** The two clauses under the quantity stepper, each a whole sentence. */
+      onTripDo: 'ট্রিপ ডিও {tripDo}-তে {linked}',
+      remainderStays: '{remainder} একটি নতুন সারিতে থেকে যাবে, ট্রিপ ডিও-র অপেক্ষায়',
+      rowsLabel: '{rows}',
+      notOnChallan: '{qty} কোনো চালানে নেই',
+      lineLinked: '{total} পিসের মধ্যে {linked} চালানে যুক্ত',
     },
 
     split: {
@@ -3899,6 +4177,10 @@ export const bn: Translation<typeof en> = {
       tooManyParts: 'সর্বোচ্চ {max} ভাগে ভাগ করুন।',
       stillToPlace: 'আরও {short}টি বসানো বাকি — অংশগুলো মিলে {total}-এর মধ্যে {sum} হচ্ছে।',
       tooMany: '{over}টি বেশি হয়ে গেছে — অংশগুলো মিলে {total}-এর মধ্যে {sum} হচ্ছে।',
+
+      part: 'ভাগ {n}',
+      piecesInPart: 'ভাগ {n}-এর পিস',
+      removePart: 'ভাগ {n} সরান',
     },
 
     gatePassPanel: {
@@ -3911,6 +4193,15 @@ export const bn: Translation<typeof en> = {
     sheet: {
       tickAll: 'এই পৃষ্ঠার প্রতিটি সারিতে টিক দিন',
       sl: 'SL',
+
+      tickRow: '{challan} {model} টিক দিন',
+      openChallanTitle: '{challan} খুলুন',
+      actionsFor: '{challan} {model}-এর জন্য কাজ',
+      /** The Trip DO cell's hover title, then how to change it. */
+      linkTitle: 'ট্রিপ ডিও {tripDo} · {gatePass} · সিএসডি {csd} · ইউনিট {unit}',
+      linkTitleModel: ' · গেট পাসের মডেল {model}',
+      linkTitleBy: ' · বসিয়েছেন {name}',
+      pressToChange: 'বদলাতে চাপ দিন',
     },
 
     rowMenu: {
@@ -3935,6 +4226,15 @@ export const bn: Translation<typeof en> = {
       removed: 'ট্রিপ DO সরানো হয়েছে',
       removedNote:
         'সারিটি আবার ট্রিপ DO-এর অপেক্ষায় আছে, এবং লাইনের অপেক্ষমাণ অন্য যেকোনো অংশের সঙ্গে মিলিয়ে দেওয়া হয়েছে।',
+
+      /** What a link, a bulk link and a split report when they land. */
+      linkedOne: '{pieces}-এ ট্রিপ ডিও {tripDo} বসানো হয়েছে',
+      linkedMany: '{rows}-এ ট্রিপ ডিও {tripDo} বসানো হয়েছে',
+      linkedManyNote: '{pieces} · {detail}',
+      linkDetail: 'সিএসডি {csd} · ইউনিট {unit} · {gatePass}',
+      linkRemainder: '{remainder} নিজের একটি সারিতে রয়ে গেছে',
+      splitDone: 'সারিটি {parts}-এ ভাগ করা হয়েছে',
+      rateTiered: '{rest} / {first} (প্রথম {count})',
       mergedBack: 'অংশগুলো মিলে আবার {qty} হয়েছে',
       nothingToMerge: 'মেলানোর মতো কিছু নেই',
       partsApart: 'এই লাইনের অন্য অংশগুলোতে আলাদা ট্রিপ DO আছে, তাই সেগুলো আলাদাই থাকবে।',
@@ -3947,6 +4247,11 @@ export const bn: Translation<typeof en> = {
       exportExcel: 'এক্সেল এক্সপোর্ট',
       buildingToast: 'স্প্রেডশিট তৈরি হচ্ছে…',
       downloaded: 'স্প্রেডশিট ডাউনলোড হয়েছে',
+
+      confirmTitle: '{rows} এক্সপোর্ট করবেন?',
+      confirmWorth: '{pieces}, মূল্য {amount}, ',
+      confirmBody:
+        'প্রতিটি চালান পণ্যের সারির জন্য একটি সারি, তার ফেরত ও পুনঃপ্রেরণসহ, শিটের নিজের কলামের ক্রমে — চলতি ফিল্টার যে সারিগুলো দেখাচ্ছে ঠিক সেগুলোই, প্রতিটি পাতার।',
     },
   },
 
@@ -4040,6 +4345,9 @@ export const bn: Translation<typeof en> = {
       doneBy: 'করেছেন',
       when: 'কখন',
       changed: 'কী বদলেছে',
+
+      noChanges:
+        'এই ঘটনার জন্য মাঠ-ধরে কোনো বিবরণ লেখা হয়নি — উপরের সারসংক্ষেপটিই এর পুরোটা।',
       reference: 'তথ্যসূত্র',
       action: 'কার্যক্রম',
       eventId: 'ঘটনার আইডি',
@@ -4048,6 +4356,9 @@ export const bn: Translation<typeof en> = {
 
     toolbar: {
       searchPlaceholder: 'কী ঘটেছে, কোন রেকর্ড, বা কে',
+      summaryFiltered: '{events} এই ফিল্টারে মিলেছে',
+      summaryTotal: 'জার্নালে {events}',
+      journalAria: 'কার্যক্রমের জার্নাল',
       searchAria: 'জার্নালে খুঁজুন',
       moduleAria: 'মডিউল অনুযায়ী ফিল্টার',
       everyModule: 'সব মডিউল',
@@ -4116,6 +4427,9 @@ export const bn: Translation<typeof en> = {
 
     directory: {
       loading: 'ব্যবহারকারী লোড হচ্ছে',
+      summaryFiltered: '{accounts} এই ফিল্টারে মিলেছে',
+      summaryTotal: 'রেকর্ডে {accounts}',
+      managementAria: 'ব্যবহারকারী ব্যবস্থাপনা',
       noneFound: 'কোনো ব্যবহারকারী পাওয়া যায়নি',
       noneYet: 'এখনও কোনো অ্যাকাউন্ট নেই',
       filteredHint: 'আপনার খোঁজা শব্দ বা ফিল্টার বদলে দেখুন।',
@@ -4165,6 +4479,10 @@ export const bn: Translation<typeof en> = {
       chooseVendor: 'একটি ভেন্ডর বেছে নিন',
       vendorScopeNote:
         'এই অ্যাকাউন্টটি ওই ভেন্ডরের গাড়ি, চালক, অ্যাসাইনমেন্ট ও ডকুমেন্ট দেখতে পাবে — শুধু পড়ার জন্য, এবং অন্য কোনো ভেন্ডরের কিছুই নয়।',
+
+      changed: '{name} এখন {role}',
+      changedLinked:
+        '{vendor} ({code})-এর সাথে সংযুক্ত। তাঁরা সেই ভেন্ডরের বহর দেখবেন, কেবল পড়ার জন্য।',
       noVendors:
         'এখনও কোনো ভেন্ডর নেই। অ্যাকাউন্ট যুক্ত করার আগে ভেন্ডর পৃষ্ঠা থেকে একটি যোগ করুন।',
       summary: 'আপনি এই ব্যবহারকারীর ভূমিকা {from} থেকে {to} করছেন।',
@@ -4438,6 +4756,10 @@ export const bn: Translation<typeof en> = {
 
       expenses: {
         title: 'খরচ',
+
+        emptyTitle: 'এখানে কোনো খরচ নেই',
+        emptyHint:
+          'অফিস ভাড়া, বিল, বেতন, যাতায়াত — অফিস যা কিছু খরচ করে তার সবই একটি খরচ।',
         description:
           'প্রতিটি অফিস খরচ, মাসে মাসে, যে নামে লেখা হয়েছে সেই নাম অনুযায়ী সাজানো। খরচ যোগ করার সময় নামটি টাইপ করুন — আগে ব্যবহার করা নামগুলো দেখানো হয়।',
         officeExpenses: 'অফিস খরচ',
@@ -4480,6 +4802,10 @@ export const bn: Translation<typeof en> = {
 
       labourBill: {
         title: 'ওয়ালটন লেবার বিল',
+
+        monthHint: '{bill} · {status}',
+        receiptsEmptyTitle: 'এখনও কোনো পেমেন্ট লেখা হয়নি',
+        receiptsEmptyHint: 'যে সিএসডি এটি মেটায় সেখান থেকে লিখুন, তাহলে এখানে দেখাবে।',
         monthDescription:
           'এই মাসের প্রতিটি CSD আলাদাভাবে নিষ্পত্তি হয়, তাই প্রত্যেকটির নিজের কার্ড আছে। কোনটি কত পাবে তা আসে লেবার বিল শিট থেকে; কত এসেছে তা এখানে লেখা পেমেন্টগুলো।',
         allMonths: 'সব মাস',
@@ -4489,7 +4815,8 @@ export const bn: Translation<typeof en> = {
         openSheetHint: 'এই অঙ্কগুলোর পিছনের সারিগুলো দেখুন',
         csdsAria: 'CSD',
         nothingYet: 'এই মাসের লেবার বিলে এখনও কিছুই নেই',
-        scanOnto: 'চালানগুলো স্ক্যান করুন',
+        scanOnto:
+          '{link}-এ চালানগুলো স্ক্যান করুন, তাহলে প্রতিটি CSD কত পাবে তা নিয়ে এখানে দেখা যাবে।',
         paymentsReceived: 'পাওয়া পেমেন্ট',
         paymentsHint: 'এই মাসের কোনো CSD-র বিপরীতে লেখা প্রতিটি ওয়ালটন পেমেন্ট।',
         labourBilled: 'লেবার বিল হয়েছে',
@@ -4513,6 +4840,11 @@ export const bn: Translation<typeof en> = {
       vendorBill: {
         title: '{vendor} · ট্রিপ বিল',
         titleGeneric: 'ভেন্ডরের ট্রিপ বিল',
+
+        advancesEmptyTitle: 'কোনো অগ্রিম নেই',
+        advancesEmptyHint: 'বিলের আগেই ভেন্ডরকে দিতে হলে ট্রিপে “অগ্রিম” ব্যবহার করুন।',
+        paymentsEmptyTitle: 'এখনও কিছু দেওয়া হয়নি',
+        paymentsEmptyHint: 'অগ্রিমের পর যা বাকি থাকে, মাসিক পেমেন্ট সেটিই মেটায়।',
         description:
           'মাসের প্রতিটি ট্রিপ, তার ভাড়া ও লেবার বিল, সেগুলোর বিপরীতে দেওয়া অগ্রিম, এবং মাসিক পেমেন্টগুলো।',
         allVendors: 'সব ভেন্ডর',
@@ -4548,6 +4880,11 @@ export const bn: Translation<typeof en> = {
 
       overview: {
         vendorDue: 'ভেন্ডর বিল বাকি',
+
+        vendorDueHint: '{vendors}, অগ্রিম বাদ দিয়ে',
+        openAdvancesHint: '{count}টি এখনও নিষ্পত্তি হয়নি',
+        profitHint: 'আয় {income} · খরচ {cost}',
+        entriesEmpty: 'প্রতিটি ওয়ালেটের শুরুর ব্যালেন্স লিখতে “টাকা যোগ করুন” দিয়ে শুরু করুন।',
         openAdvances: 'খোলা অগ্রিম',
         receivable: 'ওয়ালটনের কাছে পাওনা',
         profitPeriod: 'লাভ · {period}',
@@ -4560,6 +4897,7 @@ export const bn: Translation<typeof en> = {
     },
     hero: {
       cashBalance: 'ক্যাশ ব্যালেন্স',
+      yearLabel: '{year} · বছর',
       noCashWallet: 'এখনও কোনো ক্যাশ ওয়ালেট নেই',
       byMonthAndYear: 'মাস ও বছর ধরে ক্যাশ ইন ও আউট',
       paidFromHand: 'আগে থেকেই হাতে যা ছিল তা থেকেই পরিশোধ',
@@ -4569,6 +4907,26 @@ export const bn: Translation<typeof en> = {
 
     attention: {
       heading: 'নজর দেওয়া দরকার',
+      owedToVendors: 'ভেন্ডরদের পাওনা {amount}',
+      owedToVendorsDetail: 'সব মাস মিলিয়ে {vendors}',
+      tripsNoBill: {
+        one: '{count}টি ট্রিপের বিল লেখা হয়নি',
+        other: '{count}টি ট্রিপের বিল লেখা হয়নি',
+      },
+      awaitingFinal: {
+        one: '{count}টি এক্সেল বিল চূড়ান্ত বিলের অপেক্ষায়',
+        other: '{count}টি এক্সেল বিল চূড়ান্ত বিলের অপেক্ষায়',
+      },
+      toReceive: 'ওয়ালটনের কাছ থেকে পাওনা {amount}',
+      toReceiveDetail: {
+        one: '{count}টি চূড়ান্ত বিল পুরোপুরি পরিশোধ হয়নি',
+        other: '{count}টি চূড়ান্ত বিল পুরোপুরি পরিশোধ হয়নি',
+      },
+      openAdvancesTitle: 'খোলা অগ্রিমে {amount}',
+      openAdvancesDetail: {
+        one: '{count}টি অগ্রিম এখনও নিষ্পত্তি হয়নি',
+        other: '{count}টি অগ্রিম এখনও নিষ্পত্তি হয়নি',
+      },
       description: 'কী কী এখনও বাকি, ফাঁকা বা অনিষ্পন্ন।',
       allCaughtUp: 'সব গোছানো',
       nothingWaiting: 'কিছুই বাকি, ফাঁকা বা অপেক্ষায় নেই।',
@@ -4578,6 +4936,7 @@ export const bn: Translation<typeof en> = {
 
     cash: {
       deposits: 'জমা',
+      period: 'সময়কাল',
       transfersIn: 'স্থানান্তর এসেছে',
       vendorPayments: 'ভেন্ডর পেমেন্ট',
       tripAdvances: 'ট্রিপ অগ্রিম',
@@ -4597,6 +4956,8 @@ export const bn: Translation<typeof en> = {
 
     advance: {
       noPurpose: 'কোনো কারণ লেখা হয়নি',
+      settledEmptyTitle: 'এখনও কিছু নিষ্পত্তি হয়নি',
+      settledEmptyHint: 'এই অগ্রিমের বিপরীতে ফেরত আসা নগদ এখানে দেখা যাবে।',
       settled: 'নিষ্পত্তি',
       cashReturned: 'নগদ ফেরত',
       history: 'ইতিহাস',
@@ -4610,6 +4971,8 @@ export const bn: Translation<typeof en> = {
 
     deposit: {
       fillIt: 'বসিয়ে দিন',
+      labourCsdValue: '{csd} · {period}',
+      labourCsdDetail: '{bill} · বিল {billed} · প্রাপ্ত {received}',
       againstFinalBill: 'ফাইনাল বিলের বিপরীতে ওয়ালটনের পেমেন্ট',
       finalBill: 'ফাইনাল বিল',
       unitAndPeriod: '{unit} · {period}',
@@ -4620,6 +4983,9 @@ export const bn: Translation<typeof en> = {
 
     voucher: {
       removeTitle: '{entry} থেকে ভাউচারটি সরিয়ে ফেলবেন?',
+      sheetsSuffix: ' · {sheets}',
+      replacesOnRecord: ' · রেকর্ডে থাকা ফাইলটির বদলে বসবে',
+      attachedBy: ' · {name} জুড়েছেন',
       removeDescription:
         'এন্ট্রিটি নিজে অপরিবর্তিত থাকবে — অঙ্ক, ওয়ালেট আর দিন ঠিক যেমন আছে তেমনই থাকবে। কেবল এর পিছনের ফাইলটি মুছে যাবে, আর তা ফেরানো যাবে না।',
       remove: 'ভাউচার সরান',
@@ -4653,6 +5019,8 @@ export const bn: Translation<typeof en> = {
 
     finalBill: {
       actionsFor: '{unit} {period}-এর জন্য কাজ',
+      alreadyReceived: 'এই বিলের বিপরীতে আগেই {amount} পাওয়া গেছে।',
+      submittedNone: 'নেই',
       excelBill: 'এক্সেল বিল',
       finalBill: 'ফাইনাল বিল',
       auditDifference: 'নিরীক্ষার পার্থক্য',
@@ -4680,12 +5048,19 @@ export const bn: Translation<typeof en> = {
       received: 'পাওয়া গেছে',
       billed: 'বিল হয়েছে',
       pendingRows:
-        'এই সারিগুলো ট্রিপ DO-এর অপেক্ষায় আছে, তাই এগুলো কোনো CSD-র অধীনে পড়ে না এবং এগুলোর জন্য এখনও কারও কাছে বিল যায়নি।',
+        'এই সারিগুলো ট্রিপ DO-এর অপেক্ষায় আছে, তাই এগুলো কোনো CSD-র অধীনে পড়ে না এবং এগুলোর জন্য এখনও কারও কাছে বিল যায়নি। {link} থেকে এটি বসিয়ে দিন, তাহলে এগুলো নিজে নিজেই নিজের CSD-তে চলে যাবে।',
       tripDoSheet: 'ট্রিপ DO শিট',
     },
 
     profit: {
       finalBillIncome: 'ওয়ালটন ফাইনাল বিল',
+      excelBillsAsk: ' — এক্সেল বিলে চাওয়া হয়েছে {amount}',
+      profitWord: 'লাভ',
+      lossWord: 'ক্ষতি',
+      marginSuffix: '(মার্জিন {margin})',
+      noIncomeInPeriod: 'এই সময়ে কোনো চূড়ান্ত বিল নেই।',
+      noExpenseInPeriod: 'এই সময়ে অফিসের কোনো খরচ নেই।',
+      noTripInPeriod: 'এই সময়ে কোনো ট্রিপ নেই।',
       labourIncome: 'ওয়ালটন লেবার বিল',
       tripRent: 'ট্রিপ ভাড়া',
       labourBill: 'লেবার বিল',
@@ -4730,6 +5105,7 @@ export const bn: Translation<typeof en> = {
 
     trip: {
       label: 'ট্রিপ',
+      loadingTrips: 'ট্রিপ লোড হচ্ছে…',
       selected: 'বেছে নেওয়া ট্রিপ',
       searchHint: 'ট্রিপ নম্বর, ভেন্ডর, ড্রাইভার বা প্লেটের অঙ্ক দিয়ে খুঁজুন।',
       listAria: 'ট্রিপ',
@@ -4743,6 +5119,70 @@ export const bn: Translation<typeof en> = {
 
     vendorBill: {
       tripAdvances: 'ট্রিপ অগ্রিম',
+
+      /** The printed statement, handed over with the payment. */
+      statement: {
+        title: 'ভেন্ডর ট্রিপ বিল বিবরণী',
+        documentTitle: '{vendor} — ট্রিপ বিল বিবরণী — {period}',
+        brand: 'এলবিটিএস · লাইন বিজনেস ট্রান্সপোর্ট সার্ভিস',
+        month: 'মাস:',
+        status: 'অবস্থা:',
+        vendor: 'ভেন্ডর',
+        vendorCode: 'ভেন্ডর কোড',
+        mobile: 'মোবাইল',
+        tripRent: 'ট্রিপ ভাড়া',
+        plusLabour: '+ লেবার বিল',
+        lessAdvances: '− ট্রিপ অগ্রিম',
+        lessPaid: '− পরিশোধিত',
+        equalsDue: '= বাকি',
+        equalsOverpaid: '= অতিরিক্ত দেওয়া',
+        inWords: 'কথায়:',
+        overpaidSuffix: ' (অতিরিক্ত দেওয়া)',
+        note: 'দ্রষ্টব্য:',
+        blankBillsWarning: {
+          one: '{count}টি ট্রিপের ভাড়া বা লেবার বিল এখনও লেখা হয়নি। উপরে সেটি শূন্য ধরা হয়েছে, তাই লেখা হলে বাকির পরিমাণ বাড়তে পারে।',
+          other: '{count}টি ট্রিপের ভাড়া বা লেবার বিল এখনও লেখা হয়নি। উপরে সেগুলো শূন্য ধরা হয়েছে, তাই লেখা হলে বাকির পরিমাণ বাড়তে পারে।',
+        },
+        tripsHeading: 'ট্রিপ · {period}',
+        paymentsHeading: '{period}-এর পেমেন্ট',
+        noTrip: 'এই মাসে এই ভেন্ডরের কোনো ট্রিপ চলেনি।',
+        nothingPaid: 'এই মাসের জন্য এখনও কিছু দেওয়া হয়নি।',
+        notEntered: 'লেখা হয়নি',
+        /** The trip table's column heads. */
+        colNumber: 'ক্রম',
+        colDate: 'তারিখ',
+        colTrip: 'ট্রিপ',
+        colVehicle: 'গাড়ি',
+        colDriver: 'চালক',
+        colPlaces: 'জেলা / থানা',
+        colChallans: 'চালান',
+        colChallansTitle: 'চালান',
+        colQty: 'পরিমাণ',
+        colTripRent: 'ট্রিপ ভাড়া',
+        colLabour: 'লেবার',
+        colBill: 'বিল',
+        colAdvance: 'অগ্রিম',
+        colNet: 'নিট',
+        /** The payments table's own. */
+        colEntry: 'এন্ট্রি',
+        colPaidFrom: 'যেখান থেকে দেওয়া',
+        colReceivedBy: 'যিনি নিয়েছেন',
+        colAmount: 'টাকা',
+        reference: 'রেফ: {value}',
+        entriesTotal: '{entries}',
+        tripsTotal: '{trips}',
+        accountToDate: 'আজ পর্যন্ত হিসাব (সব মাস):',
+        accountBilled: 'বিল {amount}',
+        accountSettled: 'অগ্রিম ও পরিশোধিত {amount}',
+        accountDue: 'বাকি {amount}',
+        accountOverpaid: 'অতিরিক্ত দেওয়া {amount}',
+        preparedBy: 'প্রস্তুতকারী',
+        approvedBy: 'অনুমোদনকারী',
+        receivedByVendor: 'গ্রহণকারী (ভেন্ডর)',
+        printedAt: 'প্রিন্ট {when}',
+      },
+      advancePlusPaid: 'অগ্রিম + পরিশোধিত',
+      blankBillsSuffix: ' · {count}টি বিল ফাঁকা',
       vendorProfile: 'ভেন্ডর প্রোফাইল',
       pay: '{amount} পরিশোধ করুন',
       overpaid: 'বেশি পরিশোধ',
@@ -4770,6 +5210,8 @@ export const bn: Translation<typeof en> = {
 
     wallet: {
       title: 'ওয়ালেট',
+      flow: 'জমা {in} · খরচ {out} · {entries}',
+      lastEntrySuffix: ' · সর্বশেষ {when}',
       description:
         'প্রতিটি লেনদেনই ক্যাশের মধ্য দিয়ে যায়। ব্যাংক ও মোবাইল ওয়ালেট কেবল ওয়ালটনের বিলের পেমেন্ট নেয়।',
       add: 'ওয়ালেট যোগ করুন',
@@ -4841,6 +5283,770 @@ export const bn: Translation<typeof en> = {
       unitRequired: 'ইউনিটটি লিখুন।',
       finalAmountRequired: 'ফাইনাল বিলের অঙ্ক লিখুন।',
       walletNameRequired: 'ওয়ালেটের একটি নাম দিন।',
+    },
+  },
+
+  vendor: {
+    unknown: 'অজানা',
+    unrecognised: 'চেনা মানগুলোর মধ্যে পড়ে না।',
+    current: 'চলমান',
+    period: '{from} — {until}',
+    title: 'ভেন্ডর',
+    allVendors: 'সব ভেন্ডর',
+    addedOn: 'যোগ হয়েছে {when}',
+    somethingWrong: 'কিছু একটা ভুল হয়েছে।',
+    removedVehicle: 'মুছে ফেলা গাড়ি',
+    removedDriver: 'মুছে ফেলা ড্রাইভার',
+    notRecorded: 'লেখা হয়নি',
+    noExpiryRecorded: 'কোনো মেয়াদ লেখা হয়নি',
+    noDriverAssigned: 'কোনো ড্রাইভার দেওয়া হয়নি',
+    notAssigned: 'দেওয়া হয়নি',
+    unassigned: 'বরাদ্দহীন',
+    noLicence: 'কোনো লাইসেন্স লেখা হয়নি',
+    notAssignedToVehicle: 'কোনো গাড়িতে দেওয়া হয়নি',
+
+    /** The three states a list panel can be in besides rows. */
+    panel: {
+      nothingMatches: 'এই ফিল্টারগুলোর সাথে কিছু মেলেনি',
+      widenFilters: 'বাকিগুলো দেখতে ফিল্টার একটু আলগা করুন বা মুছে দিন।',
+      retrying: 'আবার চেষ্টা করা হচ্ছে…',
+    },
+
+    /** The two routes: the directory and a vendor account's own record. */
+    page: {
+      title: 'ভেন্ডর ব্যবস্থাপনা',
+      description:
+        'ভেন্ডর, গাড়ি, চালক এবং কাগজপত্রের হালনাগাদ এখান থেকে দেখা ও পরিচালনা করা হয়। প্রতিটি ভেন্ডরের নিজের বহর আছে, আর একজন চালককে কেবল সেই ভেন্ডরের নিজের গাড়িতেই বসানো যায়।',
+      directoryAria: 'ভেন্ডর তালিকা',
+      myTitle: 'আমার ভেন্ডর',
+      myDescription: 'আপনার ভেন্ডরের বহর, চালক, নিয়োগ এবং কাগজপত্র।',
+      myLoadFailed: 'আপনার ভেন্ডর লোড করা যায়নি',
+      notLinkedDescription:
+        'একটি ভেন্ডর অ্যাকাউন্ট যে ভেন্ডরের হয়ে কথা বলে, তার সাথে আগে সংযুক্ত হতে হয় — তার আগে দেখানোর কিছু থাকে না। প্রশাসন পৃষ্ঠা থেকে একজন অ্যাডমিন সেটি করে দেন।',
+      readOnlyNotice:
+        'আপনি নিজের ভেন্ডর রেকর্ড দেখছেন। এখানে সবকিছু কেবল পড়ার জন্য — কোনো কিছু বদলাতে হলে এলবিটিএস অফিসে যোগাযোগ করুন।',
+
+      notFound: 'ভেন্ডর পাওয়া যায়নি',
+      notFoundHint: 'এটি সরিয়ে ফেলা হয়ে থাকতে পারে, বা এই অ্যাকাউন্ট এই ভেন্ডরটি খুলতে না-ও পারে।',
+      backToVendors: 'ভেন্ডর তালিকায় ফিরুন',
+      loadFailed: 'এই ভেন্ডরটি লোড করা যায়নি',
+    },
+
+    documentTypes: {
+      'Registration Certificate': 'রেজিস্ট্রেশন সার্টিফিকেট',
+      'Fitness Certificate': 'ফিটনেস সার্টিফিকেট',
+      'Tax Token': 'ট্যাক্স টোকেন',
+      'Route Permit': 'রুট পারমিট',
+      Insurance: 'ইনস্যুরেন্স',
+      'Driving License': 'ড্রাইভিং লাইসেন্স',
+      NID: 'এনআইডি',
+    },
+
+    tabs: {
+      overview: 'সারসংক্ষেপ',
+      vehicles: 'গাড়ি',
+      drivers: 'ড্রাইভার',
+      assignments: 'অ্যাসাইনমেন্ট',
+      documents: 'কাগজপত্র',
+      trips: 'ট্রিপ',
+      activity: 'কার্যক্রম',
+      sectionsAria: 'ভেন্ডরের বিভাগ',
+      attentionAria: 'নজর দেওয়া দরকার',
+    },
+
+    stats: {
+      activeVendors: 'সক্রিয় ভেন্ডর',
+      activeVendorsHint: 'নতুন অ্যাসাইনমেন্ট নিতে পারে',
+      vehicles: 'গাড়ি',
+      acrossEvery: 'সব ভেন্ডর মিলিয়ে',
+      drivers: 'ড্রাইভার',
+      expiredDocuments: 'মেয়াদোত্তীর্ণ কাগজ',
+      expiredHint: 'যে কাগজের মেয়াদ শেষ হয়ে গেছে',
+      loadFailed: 'ভেন্ডরের সারসংক্ষেপ লোড করা যায়নি।',
+    },
+
+    directory: {
+      loadFailed: 'ভেন্ডর লোড করা যায়নি',
+      noneYet: 'এখনও কোনো ভেন্ডর নেই',
+      noneHint:
+        'ভেন্ডর হলো সেই প্রতিষ্ঠান যারা গাড়ি ও ড্রাইভার সরবরাহ করে। প্রথমটি যোগ করুন, তারপর তার নিচে তার ফ্লিট লিখুন।',
+      add: 'ভেন্ডর যোগ করুন',
+      editVendor: 'ভেন্ডর সম্পাদনা',
+      editDescription:
+        'ভেন্ডরের কোড একই থাকে — এর নিচের প্রতিটি গাড়ি, ড্রাইভার ও অ্যাসাইনমেন্ট এই কোডেরই অধীনে লেখা।',
+      addDescription:
+        'ভেন্ডরের কোড স্বয়ংক্রিয়ভাবে দেওয়া হয়। ভেন্ডরটি তৈরি হলে তার নিচে গাড়ি ও ড্রাইভার যোগ করা হয়।',
+      information: 'ভেন্ডরের তথ্য',
+      nameLabel: 'ভেন্ডরের নাম',
+      mobileHint:
+        'যেমন টাইপ করা হয়েছে তেমনই রাখা হয়। মিলিয়ে দেখা হয় ১১ অঙ্কের রূপে, তাই দেশের কোড দিয়ে লেখা একই নম্বরেও এই ভেন্ডরটিই পাওয়া যায়।',
+      searchPlaceholder: 'ভেন্ডরের নাম, কোড বা মোবাইল',
+      searchAria: 'ভেন্ডর খুঁজুন',
+      statusAria: 'ভেন্ডরের অবস্থা দিয়ে ফিল্টার',
+      complianceAria: 'কাগজপত্রের অবস্থা দিয়ে ফিল্টার',
+      sortAria: 'ভেন্ডর সাজান',
+      anyCompliance: 'যেকোনো অবস্থা',
+      hasExpired: 'মেয়াদোত্তীর্ণ কাগজ আছে',
+      hasExpiring: 'মেয়াদ শেষ হচ্ছে এমন কাগজ আছে',
+      allInOrder: 'সব কাগজ ঠিক আছে',
+      sortName: 'নাম (অ–হ)',
+      sortRecent: 'সম্প্রতি যোগ হওয়া',
+      sortVehicles: 'সবচেয়ে বেশি গাড়ি',
+      sortDrivers: 'সবচেয়ে বেশি ড্রাইভার',
+      vendor: 'ভেন্ডর',
+      contact: 'যোগাযোগ',
+      status: 'অবস্থা',
+      compliance: 'কাগজপত্র',
+      actions: 'কাজ',
+      actionsFor: '{name}-এর জন্য কাজ',
+      editDetails: 'তথ্য সম্পাদনা',
+      changeStatus: 'অবস্থা বদলান',
+      loading: 'লোড হচ্ছে',
+
+      summaryFiltered: { one: '{count}টি ভেন্ডর এই ফিল্টারে মিলেছে', other: '{count}টি ভেন্ডর এই ফিল্টারে মিলেছে' },
+      summaryTotal: { one: '{count}টি ভেন্ডর', other: '{count}টি ভেন্ডর' },
+      attention: {
+        one: '{count}টি কাগজে নজর দেওয়া দরকার',
+        other: '{count}টি কাগজে নজর দেওয়া দরকার',
+      },
+      activeConsequence: 'এই ভেন্ডরের গাড়ি ও চালকদের আবার নিয়োগ দেওয়া যাবে।',
+      inactiveConsequence:
+        'আগের গাড়ি, চালক, নিয়োগ ও কাগজপত্র সব রেখে দেওয়া হয়। আবার সক্রিয় না হওয়া পর্যন্ত এই ভেন্ডরের অধীনে নতুন কিছু নিয়োগ দেওয়া যাবে না।',
+      /** Two removals, the same rule: the page adds what it stops being offered for. */
+      removeDescription:
+        'কোনো গাড়ি, চালক, নিয়োগ বা ব্যবহারকারী অ্যাকাউন্ট এই ভেন্ডরকে না ধরলে এটি একেবারে মুছে যায়। কোনোটি ধরলে বদলে এটি {kept} — এক বছরের নিয়োগ রেকর্ডকে বলতে পারতে হয় কে গাড়ি চালাচ্ছিল, আর ভেন্ডর মুছে দিলে সেগুলো শূন্যের দিকে তাকিয়ে থাকবে।',
+      removeDescriptionListed:
+        'কোনো গাড়ি, চালক, নিয়োগ বা ব্যবহারকারী অ্যাকাউন্ট এই ভেন্ডরকে না ধরলে এটি একেবারে মুছে যায়। কোনোটি ধরলে বদলে এটি {kept} — এক বছরের নিয়োগ রেকর্ডকে বলতে পারতে হয় কে গাড়ি চালাচ্ছিল, আর ভেন্ডর মুছে দিলে সেগুলো শূন্যের দিকে তাকিয়ে থাকবে। যেভাবেই হোক, নতুন কাজের জন্য এটি আর দেখানো হবে না।',
+      deactivatedAndKept: 'নিষ্ক্রিয় করে রেখে দেওয়া হয়',
+    },
+
+    header: {
+      changePhoto: 'ভেন্ডরের ছবি বদলান',
+      moreActions: 'ভেন্ডরের আরও কাজ',
+      removePhoto: 'ছবি সরান',
+      remove: 'ভেন্ডর মুছে ফেলুন',
+
+      /** Provenance, as two whole sentences joined by a separator. */
+      addedOnBy: '{name} {when} যোগ করেছেন',
+      statusChanged: 'অবস্থা সর্বশেষ বদলেছে {when}',
+      statusChangedBy: '{name} {when} অবস্থা সর্বশেষ বদলেছেন',
+    },
+
+    kpi: {
+      vehicles: 'গাড়ি',
+      drivers: 'ড্রাইভার',
+      compliance: 'কাগজপত্র',
+
+      inFleet: 'বহরে',
+      onBooks: 'খাতায়',
+      documentsOnFile: 'কাগজ জমা আছে',
+      active: 'সক্রিয়',
+      underMaintenance: 'মেরামতে',
+      expiredPapers: 'মেয়াদ শেষ কাগজ',
+      inactiveOrSuspended: 'নিষ্ক্রিয় বা স্থগিত',
+      onLeave: 'ছুটিতে',
+      suspended: 'স্থগিত',
+      inactive: 'নিষ্ক্রিয়',
+      valid: 'বৈধ',
+      expiringSoon: 'মেয়াদ শেষের পথে',
+      expired: 'মেয়াদ শেষ',
+
+
+    },
+
+    overview: {
+      loadFailed: 'সারসংক্ষেপ লোড করা যায়নি',
+      expiringDocuments: 'মেয়াদ শেষ হতে থাকা কাগজ',
+      allDocuments: 'সব কাগজ',
+      nothingDue: 'আগামী {days} দিনে নবায়নের মতো কিছুই নেই।',
+      recentAssignments: 'সাম্প্রতিক অ্যাসাইনমেন্ট',
+      allAssignments: 'সব অ্যাসাইনমেন্ট',
+      noneAssignedYet: 'এখনও কোনো ড্রাইভারকে কোনো গাড়িতে দেওয়া হয়নি।',
+      nothingNeedsAttention: 'নজর দেওয়ার মতো কিছু নেই',
+      nothingWrong:
+        'ফাইলে থাকা প্রতিটি কাগজ মেয়াদের মধ্যে আছে, আর কোনো গাড়ি বা ড্রাইভার সেবার বাইরে নেই।',
+      recentActivity: 'সাম্প্রতিক কার্যক্রম',
+      recentActivityHint: 'কাজ করার সময়েই লেখা হয়, কখনও সম্পাদনা করা হয় না।',
+      activityEmpty:
+        '{vendor}-এর জন্য গাড়ি যোগ করা, ড্রাইভার দেওয়া, কাগজ জমা দেওয়া বা ট্রিপ চালানো হলে তা এখানে দেখা যাবে।',
+
+      nothingRecordedYet: 'এখনও কিছু লেখা হয়নি',
+      activityDescription:
+        '{vendor}, তার বহর, তার চালক এবং তার চালানো ট্রিপে যা বদলেছে — নতুনটি আগে। কাজ করার সময়েই লেখা হয়, কখনও সম্পাদনা করা হয় না।',
+      moreAlerts: {
+        one: 'আরও {count}টি সতর্কতা দেখানো হয়নি। বাকিগুলো কাগজপত্র ট্যাবে ফিল্টার করে নিষ্পত্তি করা হয়।',
+        other: 'আরও {count}টি সতর্কতা দেখানো হয়নি। বাকিগুলো কাগজপত্র ট্যাবে ফিল্টার করে নিষ্পত্তি করা হয়।',
+      },
+    },
+
+    vehicle: {
+      panel: 'গাড়ি',
+      searchPlaceholder: 'রেজিস্ট্রেশন, ব্র্যান্ড বা মডেল',
+      searchAria: 'গাড়ি খুঁজুন',
+      statusAria: 'গাড়ির অবস্থা দিয়ে ফিল্টার',
+      ownershipAria: 'মালিকানা দিয়ে ফিল্টার',
+      add: 'গাড়ি যোগ করুন',
+      loadFailed: 'ফ্লিট লোড করা যায়নি',
+      noneYet: 'এখনও কোনো গাড়ি যোগ করা হয়নি',
+      noneHint:
+        'প্রতিটি গাড়ি ঠিক একটি ভেন্ডরের অধীনে থাকে। {vendor}-এর প্রথম গাড়িটি যোগ করুন, তারপর তাতে একজন ড্রাইভার দিন।',
+      registration: 'রেজিস্ট্রেশন',
+      brandModel: 'ব্র্যান্ড / মডেল',
+      ownership: 'মালিকানা',
+      currentDriver: 'বর্তমান ড্রাইভার',
+      viewDetails: 'বিস্তারিত দেখুন',
+      actionsFor: '{plate}-এর জন্য কাজ',
+      removeTitle: '{plate} মুছে ফেলবেন?',
+      editTitle: 'গাড়ি সম্পাদনা',
+      addTitle: 'গাড়ি যোগ করুন',
+      editDescription:
+        'গাড়ির কোড আর যে ভেন্ডরের অধীনে আছে তা একই থাকে। এক ভেন্ডর থেকে আরেক ভেন্ডরে গাড়ি সরালে তার অ্যাসাইনমেন্টের ইতিহাস আটকে পড়ত, তাই এটি সম্পাদনার বিষয় নয়।',
+      addDescription: 'এই গাড়িটি {vendor}-এর অধীনে থাকবে। গাড়ির কোড স্বয়ংক্রিয়ভাবে দেওয়া হয়।',
+      information: 'গাড়ির তথ্য',
+      registrationLabel: 'রেজিস্ট্রেশন নম্বর',
+      registrationHint:
+        'ফাঁকসহ ঠিক যেমন টাইপ করা হয়েছে তেমনই রাখা হয়। মিলিয়ে দেখা হয় একটি সাধারণ রূপে, তাই একই প্লেট সিস্টেমে কেবল একটি গাড়িতেই থাকতে পারে।',
+      ownershipSection: 'মালিকানা',
+      ownedOrRented: 'নিজের না ভাড়া',
+      information2: 'তথ্য',
+
+      summaryFiltered: { one: '{count}টি গাড়ি এই ফিল্টারে মিলেছে', other: '{count}টি গাড়ি এই ফিল্টারে মিলেছে' },
+      summaryTotal: { one: 'এই বহরে {count}টি গাড়ি', other: 'এই বহরে {count}টি গাড়ি' },
+      changeDriver: 'চালক বদলান',
+      removeDescription:
+        'গাড়ি, তার কাগজপত্র এবং তার {history} মুছে যায়। যে নিয়োগের গাড়িটিই নেই, সেটি কর্তা ছাড়া একটি বাক্য — তাই সেই সারিগুলো রাখা যায় না। গাড়িটি যদি কেবল বহর ছেড়ে গিয়ে থাকে, নিষ্ক্রিয় চিহ্নিত করলে ইতিহাসটি থেকে যায়।',
+      wholeHistory: 'পুরো নিয়োগের ইতিহাস',
+      changePhoto: 'গাড়ির ছবি বদলান',
+      addPhoto: 'গাড়ির ছবি যোগ করুন',
+      brand: 'ব্র্যান্ড',
+      model: 'মডেল',
+      vendor: 'ভেন্ডর',
+      documentsEmpty: 'এই গাড়ির জন্য এখনও কোনো কাগজ জমা দেওয়া হয়নি।',
+      assignmentsEmpty: 'এই গাড়িতে এখনও কোনো ড্রাইভার দেওয়া হয়নি।',
+      activeConsequence: 'এটিকে আবার ড্রাইভার দেওয়া যাবে।',
+      inactiveConsequence:
+        'এটির বর্তমান অ্যাসাইনমেন্ট ঠিক যেমন আছে তেমনই থাকে — মঙ্গলবার রাস্তার বাইরে থাকা গাড়িটির সোমবারও একজন ড্রাইভার ছিল। সক্রিয় না হওয়া পর্যন্ত শুধু নতুন ড্রাইভার নিতে পারবে না।',
+    },
+
+    driver: {
+      panel: 'ড্রাইভার',
+      searchPlaceholder: 'নাম, মোবাইল বা লাইসেন্স নম্বর',
+      searchAria: 'ড্রাইভার খুঁজুন',
+      statusAria: 'ড্রাইভারের অবস্থা দিয়ে ফিল্টার',
+      licenceAria: 'লাইসেন্সের মেয়াদ দিয়ে ফিল্টার',
+      anyLicence: 'যেকোনো লাইসেন্স',
+      licenceExpired: 'লাইসেন্সের মেয়াদ শেষ',
+      licenceExpiring: 'লাইসেন্সের মেয়াদ শেষ হচ্ছে',
+      add: 'ড্রাইভার যোগ করুন',
+      loadFailed: 'ড্রাইভার লোড করা যায়নি',
+      noneYet: 'এখনও কোনো ড্রাইভার যোগ করা হয়নি',
+      noneHint:
+        'প্রতিটি ড্রাইভার ঠিক একটি ভেন্ডরের অধীনে থাকেন, আর কেবল {vendor}-এর নিজের গাড়িতেই দেওয়া যায়।',
+      driver: 'ড্রাইভার',
+      mobile: 'মোবাইল',
+      licence: 'লাইসেন্স',
+      assignedVehicle: 'যে গাড়িতে দেওয়া',
+      viewDetails: 'বিস্তারিত দেখুন',
+      actionsFor: '{name}-এর জন্য কাজ',
+      removeTitle: '{name}-কে মুছে ফেলবেন?',
+      editTitle: 'ড্রাইভার সম্পাদনা',
+      addTitle: 'ড্রাইভার যোগ করুন',
+      editDescription: 'ড্রাইভারের কোড আর যে ভেন্ডরের হয়ে কাজ করেন তা একই থাকে।',
+      addDescription:
+        'এই ড্রাইভার {vendor}-এর হয়ে কাজ করবেন। ড্রাইভারের কোড স্বয়ংক্রিয়ভাবে দেওয়া হয়।',
+      information: 'ড্রাইভারের তথ্য',
+      fullName: 'পুরো নাম',
+
+      summaryFiltered: { one: '{count}জন চালক এই ফিল্টারে মিলেছেন', other: '{count}জন চালক এই ফিল্টারে মিলেছেন' },
+      summaryTotal: { one: 'খাতায় {count}জন চালক', other: 'খাতায় {count}জন চালক' },
+      changeVehicle: 'গাড়ি বদলান',
+      assignVehicle: 'গাড়ি দিন',
+      removeDescription:
+        'চালক, তাঁর কাগজপত্র এবং তাঁর {history} মুছে যায়। তিনি যদি কেবল এই ভেন্ডর ছেড়ে গিয়ে থাকেন, নিষ্ক্রিয় চিহ্নিত করলে কোন গাড়ি কখন চালিয়েছেন সেই রেকর্ড থেকে যায়।',
+      wholeHistory: 'পুরো নিয়োগের ইতিহাস',
+      licenceNote:
+        'এখানে লেখা লাইসেন্স একটি {document} কাগজ হিসেবেও জমা হয়, আর সেটিই এর মেয়াদ এই ভেন্ডরের কাগজ হিসাবে তোলে। কাগজপত্র ট্যাব থেকে এর একটি স্ক্যান জুড়ে দিন।',
+      mobileNumber: 'মোবাইল নম্বর',
+      identity: 'পরিচয়',
+      licenceSection: 'লাইসেন্স',
+      licenceExpiry: 'লাইসেন্সের মেয়াদ',
+      changePhoto: 'ড্রাইভারের ছবি বদলান',
+      contact: 'যোগাযোগ',
+      address: 'ঠিকানা',
+      nid: 'এনআইডি নম্বর',
+      licenceNumber: 'লাইসেন্স নম্বর',
+      expiry: 'মেয়াদ',
+      currentVehicle: 'বর্তমান গাড়ি',
+      documents: 'কাগজপত্র',
+      documentsEmpty: 'এই ড্রাইভারের জন্য এখনও কোনো কাগজ জমা দেওয়া হয়নি।',
+      assignmentHistory: 'অ্যাসাইনমেন্টের ইতিহাস',
+      assignmentsEmpty: 'এই ড্রাইভারকে এখনও কোনো গাড়িতে দেওয়া হয়নি।',
+      activeConsequence: 'তাঁকে আবার গাড়ি দেওয়া যাবে।',
+      inactiveConsequence:
+        'তাঁর বর্তমান অ্যাসাইনমেন্ট ঠিক যেমন আছে তেমনই থাকে — মঙ্গলবার থেকে ছুটিতে থাকা ড্রাইভার সোমবারও গাড়ি চালাচ্ছিলেন। সক্রিয় না হওয়া পর্যন্ত শুধু নতুন অ্যাসাইনমেন্ট নিতে পারবেন না।',
+    },
+
+    assignment: {
+      panel: 'অ্যাসাইনমেন্ট',
+      statusAria: 'অ্যাসাইনমেন্টের অবস্থা দিয়ে ফিল্টার',
+      activeAndEnded: 'সক্রিয় ও শেষ হওয়া',
+      fromAria: 'যেদিন থেকে বলবৎ',
+      untilAria: 'যেদিন পর্যন্ত বলবৎ',
+      assign: 'ড্রাইভার দিন',
+      rangeNote:
+        'একটি সময়সীমা দিলে সেই সময়ে বলবৎ থাকা প্রতিটি অ্যাসাইনমেন্ট দেখা যায়, কেবল সেই সময়ে শুরু হওয়াগুলো নয়।',
+      loadFailed: 'অ্যাসাইনমেন্ট লোড করা যায়নি',
+      noneYet: 'এখনও কোনো অ্যাসাইনমেন্ট নেই',
+      noneHint:
+        'কোনো গাড়িতে ড্রাইভার দেওয়া মানে একটি ঘর পূরণ নয়, একটি সময়কাল লেখা — তাই এই তালিকাটিই কে কখন কোন গাড়ি চালিয়েছেন তার পূর্ণ ইতিহাস।',
+      endTitle: 'এই অ্যাসাইনমেন্ট শেষ করবেন?',
+      endConfirm: 'অ্যাসাইনমেন্ট শেষ করুন',
+      ending: 'শেষ করা হচ্ছে…',
+      deleteTitle: 'এই অ্যাসাইনমেন্টের রেকর্ড মুছে ফেলবেন?',
+      deleteConfirm: 'রেকর্ড মুছে ফেলুন',
+      actionsFor: '{from} থেকে শুরু হওয়া অ্যাসাইনমেন্টের জন্য কাজ',
+      vehicle: 'গাড়ি',
+      driver: 'ড্রাইভার',
+      from: 'থেকে',
+      until: 'পর্যন্ত',
+      status: 'অবস্থা',
+      recorded: 'লেখা হয়েছে',
+      current: 'চলমান',
+      dialogTitle: 'ড্রাইভার দিন',
+      dialogDescription:
+        'গাড়ি আর ড্রাইভার একই ভেন্ডরের হতে হবে, আর একটি গাড়িতে একসঙ্গে কেবল একজনই সক্রিয় ড্রাইভার থাকতে পারেন।',
+      section: 'অ্যাসাইনমেন্ট',
+      chooseVehicle: 'একটি গাড়ি বাছুন',
+      chooseDriver: 'একজন ড্রাইভার বাছুন',
+      noActiveVehicles:
+        'কোনো সক্রিয় গাড়ি নেই। মেরামতে থাকা, স্থগিত বা কাগজের মেয়াদ শেষ হওয়া গাড়িকে ড্রাইভার দেওয়া যায় না।',
+      noActiveDrivers:
+        'কোনো সক্রিয় ড্রাইভার নেই। ছুটিতে থাকা, স্থগিত বা নিষ্ক্রিয় ড্রাইভারকে দেওয়া যায় না।',
+      alreadyDriving: '{from} থেকে ইতিমধ্যেই {plate} চালাচ্ছেন',
+      periodSection: 'সময়কাল',
+      assignedFrom: 'যেদিন থেকে',
+      assignedUntil: 'যেদিন পর্যন্ত (ঐচ্ছিক)',
+      assignedUntilHint: 'খোলা-মেয়াদি অ্যাসাইনমেন্টের জন্য ফাঁকা রাখুন, সাধারণত তাই হয়।',
+      closeCurrent: 'বর্তমান অ্যাসাইনমেন্ট বন্ধ করে এই ড্রাইভারকে সক্রিয় করুন।',
+      currentlyDrivenBy: 'এখন চালাচ্ছেন {label}',
+      currentlyDriving: 'এখন চালাচ্ছেন {label}',
+
+      summaryRange: {
+        one: 'এই সময়সীমায় {count}টি নিয়োগ বলবৎ ছিল',
+        other: 'এই সময়সীমায় {count}টি নিয়োগ বলবৎ ছিল',
+      },
+      summaryTotal: { one: 'রেকর্ডে {count}টি নিয়োগ', other: 'রেকর্ডে {count}টি নিয়োগ' },
+      theDriver: 'চালক',
+      thisVehicle: 'এই গাড়ি',
+      now: 'এখন',
+      endDescription:
+        '{driver} আজ থেকে আর {vehicle}-এর সক্রিয় চালক থাকবেন না, আর সারিটি আজকের তারিখকে শেষ তারিখ ধরে ইতিহাসে থেকে যাবে। নতুন কাউকে না দেওয়া পর্যন্ত গাড়িটির কোনো চালক থাকবে না।',
+      deleteDescription:
+        'এটি এমন সারির জন্য যা {never} — ধরুন, ভুল গাড়ির নামে লেখা একটি হাতবদল। নিয়োগ এভাবে শেষ হয় না: সত্যিই চলেছে এমন একটি সময়কাল অফিসের দরকারি ইতিহাস, আর সেটি শেষ করার কাজটি করে {ends}।',
+      neverExisted: 'কখনও থাকারই কথা ছিল না',
+      deletePeriod: 'এই সারিটি {from} থেকে {until} পর্যন্ত।',
+      handover:
+        '{driver} {vehicle}-এর সক্রিয় চালক হবেন। {displaced}-এর সাথে চলতি নিয়োগটি {day} তারিখে বন্ধ করা হবে, আর ইতিহাসে রেখে দেওয়া হবে।',
+      handoverUndated:
+        '{driver} {vehicle}-এর সক্রিয় চালক হবেন। {displaced}-এর সাথে চলতি নিয়োগটি বন্ধ করা হবে, আর ইতিহাসে রেখে দেওয়া হবে।',
+      replaceDriver: 'চালক বদলান',
+    },
+
+    document: {
+      panel: 'কাগজপত্র',
+      searchPlaceholder: 'কাগজের নম্বর',
+      searchAria: 'কাগজ খুঁজুন',
+      statusAria: 'কাগজের অবস্থা দিয়ে ফিল্টার',
+      belongsToAria: 'কার কাগজ তা দিয়ে ফিল্টার',
+      typeAria: 'কাগজের ধরন দিয়ে ফিল্টার',
+      anyType: 'যেকোনো ধরন',
+      allDocuments: 'সব কাগজ',
+      vehicleDocuments: 'গাড়ির কাগজ',
+      driverDocuments: 'ড্রাইভারের কাগজ',
+      file: 'কাগজ জমা দিন',
+      loadFailed: 'কাগজপত্র লোড করা যায়নি',
+      noneYet: 'এখনও কোনো কাগজ জমা দেওয়া হয়নি',
+      removeTitle: 'এই {type} সরিয়ে ফেলবেন?',
+      renewTitle: 'নবায়ন বা প্রতিস্থাপন',
+      renewDescription:
+        '{subject}-এর জন্য রেকর্ডে থাকা {type} নবায়ন করা হচ্ছে। এটি দ্বিতীয় একটি কাগজ যোগ না করে সেই কাগজটিই বদলে দেয়, ফলে কাগজের হিসাব সঠিক থাকে।',
+      detailsSection: 'কাগজের বিবরণ',
+      typeLabel: 'কাগজের ধরন',
+      alreadyOnRecord:
+        'ইতিমধ্যেই রেকর্ডে আছে। সেভ করলে দ্বিতীয় একটি কাগজ জমা না হয়ে ওই কাগজটিই নবায়ন হবে।',
+      issueDate: 'ইস্যুর তারিখ (ঐচ্ছিক)',
+      expiryDate: 'মেয়াদ শেষের তারিখ',
+      expiryHint: 'যে কাগজের মেয়াদ শেষ হয় না, যেমন এনআইডি, তার জন্য ফাঁকা রাখুন।',
+      attachment: 'সংযুক্তি',
+      attachmentHint:
+        'ঐচ্ছিক — সতর্কতা আসে মেয়াদের তারিখ থেকে, আর স্ক্যানারের অপেক্ষায় থাকতে গিয়েই মেয়াদোত্তীর্ণ সার্টিফিকেট চোখ এড়িয়ে যায়। এটি গোপনে সংরক্ষিত হয় এবং কেবল এই অ্যাপ দিয়েই দেখা যায়।',
+      subjectTitle: 'এই কাগজটি কার জন্য?',
+      subjectDescription:
+        'একটি কাগজ কোনো গাড়ির বা কোনো ড্রাইভারের হয়। এখানে বেছে নিলে ধরনের তালিকা কেবল সেগুলোতেই সীমিত হয় যেগুলো এর জন্য অর্থবহ।',
+      vehicles: 'গাড়ি',
+      drivers: 'ড্রাইভার',
+      actionsFor: '{owner}-এর {type}-এর জন্য কাজ',
+      viewFile: 'ফাইল দেখুন',
+      document: 'কাগজ',
+      number: 'নম্বর',
+      expiry: 'মেয়াদ',
+      fileColumn: 'ফাইল',
+      noExpiry: 'মেয়াদ নেই',
+      attached: 'সংযুক্ত',
+      none: 'নেই',
+      noFileAttached: 'কোনো ফাইল সংযুক্ত নেই।',
+      removeChosenFile: 'বেছে নেওয়া ফাইলটি সরান',
+      scanIt: 'স্ক্যান করুন',
+      holding: '{name} ({size}) ধরে রাখা আছে। নতুন ফাইল দিলে এটি বদলে যাবে।',
+
+      summaryFiltered: {
+        one: '{count}টি কাগজ এই ফিল্টারে মিলেছে',
+        other: '{count}টি কাগজ এই ফিল্টারে মিলেছে',
+      },
+      summaryTotal: { one: 'জমা আছে {count}টি কাগজ', other: 'জমা আছে {count}টি কাগজ' },
+      soonestFirst: 'যেটির মেয়াদ আগে শেষ, সেটি আগে',
+      addDescription:
+        '{subject}-এর একটি কাগজ। এর অবস্থা মেয়াদের তারিখ থেকেই বের করা হয়, তাই হাতে কিছু বসানোর নেই।',
+      removeDescription:
+        'সারিটি ও তার সাথে জোড়া ফাইল মুছে যায়, আর এটি {vendor}-এর কাগজ হিসাবে আর গোনা হয় না। কাগজটি যদি কেবল নবায়ন হয়ে থাকে, নতুন তারিখ দিয়ে এটিকেই হালনাগাদ করলে হিসাবটি সঠিক থাকে।',
+      noSubjectsYet:
+        'এই ভেন্ডরের এখনও কোনো সক্রিয় গাড়ি বা চালক নেই। আগে একটি যোগ করুন — কাগজ কোনো কিছুর হতে হয়।',
+      onRecordChip: 'রেকর্ডে আছে',
+      typeFixed:
+        'ধরন বদলানো যায় না — ট্যাক্স টোকেন আর রুট পারমিট এক নয়, প্রতিটির নিজের সারি আছে।',
+      replaceAttached: 'জোড়া ফাইলটি বদলান',
+      formatsHint:
+        'পিডিএফ, জেপিজি, পিএনজি বা ওয়েবপি, সর্বোচ্চ {size}। কয়েক পাতার স্ক্যান একটি পিডিএফ হিসেবেই রাখা হয়, কারণ একটি কাগজ একটিই ফাইল।',
+      viewerTitle: '{owner}-এর {type}',
+      fileMeta: '{name} · {size}',
+      noNumberRecorded: 'নম্বর লেখা নেই',
+    },
+
+    trip: {
+      panel: 'ট্রিপ',
+      loadFailed: 'ট্রিপ লোড করা যায়নি',
+      noneThisMonth: 'এই মাসে কোনো ট্রিপ নেই',
+      noneHint:
+        '{vendor}-এর কোনো গাড়িই এই মাসে এখনও বেরোয়নি। আগের ট্রিপ দেখতে “যেকোনো তারিখ” বাছুন।',
+      searchPlaceholder: 'ট্রিপ নম্বর, প্লেট বা ড্রাইভার',
+      searchAria: 'ট্রিপ খুঁজুন',
+      fromAria: 'যেদিন থেকে ট্রিপ',
+      untilAria: 'যেদিন পর্যন্ত ট্রিপ',
+      trip: 'ট্রিপ',
+      challans: 'চালান',
+      tripRent: 'ট্রিপ ভাড়া',
+      labour: 'লেবার',
+      labourBill: 'লেবার বিল',
+      totalAmount: 'মোট অঙ্ক',
+      advance: 'অগ্রিম',
+      netAmount: 'নিট অঙ্ক',
+      status: 'অবস্থা',
+      notEntered: 'লেখা হয়নি',
+      overpaid: '{amount} বেশি পরিশোধ',
+      overpaidTitle: 'লেখা বিলের চেয়ে অগ্রিম ও পেমেন্ট বেশি',
+      advancesAgainst: 'এই ট্রিপের বিপরীতে অগ্রিম',
+      monthlyBillAria: 'মাসিক বিল',
+      paid: 'পরিশোধিত',
+      detailLoadFailed: 'ট্রিপটি লোড করা যায়নি',
+      openInDelivery: 'ডেলিভারিতে খুলুন',
+      tripSection: 'ট্রিপ',
+      vehicle: 'গাড়ি',
+      driver: 'ড্রাইভার',
+      pieces: 'পিস',
+      billSection: 'বিল ও পেমেন্ট',
+      challansSection: 'চালান',
+      complete: 'সম্পন্ন',
+      pending: 'বাকি',
+
+      vehicleDriver: 'গাড়ি · চালক',
+      noAdvance: 'এই ট্রিপের বিপরীতে কোনো অগ্রিম দেওয়া হয়নি।',
+      awaitingCopy: 'কপির অপেক্ষায়',
+      completed: 'সম্পন্ন',
+      noRent: 'ট্রিপ ভাড়া নেই',
+      noLabour: 'লেবার বিল নেই',
+      rentTotal: 'ট্রিপ ভাড়া {amount}',
+      labourTotal: 'লেবার বিল {amount}',
+      tripFallback: 'ট্রিপ',
+    },
+
+    dashboard: {
+      title: 'ড্যাশবোর্ড',
+      description:
+        'LBTS-এর জন্য আপনার ট্রিপ — কী বেরিয়েছে, কী ফেরত এসেছে, কত বিল হয়েছে আর কত এখনও বাকি।',
+      notLinkedBadge: 'এখনও সংযুক্ত নয়',
+      notLinkedTitle: 'এই অ্যাকাউন্টের সঙ্গে কোনো ভেন্ডর সংযুক্ত নেই',
+      loadFailed: 'আপনার ড্যাশবোর্ড লোড করা যায়নি',
+      notLinkedFootnote: 'অ্যাকাউন্টটি সংযুক্ত করাতে একজন প্রশাসকের সঙ্গে যোগাযোগ করুন।',
+      needsAttention: 'নজর দেওয়া দরকার',
+      lastSixMonths: 'গত ছয় মাস',
+      lastSixHint:
+        'প্রতিটি মাসের ট্রিপে কত বিল হয়েছে। যে মাসে কোনো ট্রিপ নেই সেটি শূন্য, ফাঁক নয়।',
+      readOnly:
+        'এখানে যা আছে সবই আপনার নিজের ভেন্ডর রেকর্ড এবং কেবল পড়ার জন্য। ট্রিপ, বিল ও পেমেন্ট লেখে LBTS — কিছু সংশোধন করাতে অফিসে যোগাযোগ করুন।',
+      paidAhead: 'আগেই পরিশোধ',
+      billed: 'বিল হয়েছে',
+      advance: 'অগ্রিম',
+      paid: 'পরিশোধিত',
+      everyTripByMonth: 'প্রতিটি ট্রিপ, মাসে মাসে',
+      nothingOutThisMonth: 'এই মাসে এখনও কিছুই বেরোয়নি',
+      today: 'আজ',
+      noLorryYet: '{day} তারিখে এখনও কোনো লরি বেরোয়নি',
+      outOn: '{day} তারিখে বেরিয়েছে',
+      nothingBilledYet: 'এই সময়সীমায় এখনও কোনো বিল হয়নি',
+      chartCaption: 'মাস অনুযায়ী ট্রিপ, পিস ও বিল হওয়া অঙ্ক',
+      month: 'মাস',
+      trips: 'ট্রিপ',
+      pieces: 'পিস',
+      latestTrips: 'সাম্প্রতিক ট্রিপ',
+      latestTripsHint:
+        'LBTS-এর জন্য সবচেয়ে সাম্প্রতিক চালানগুলো। কোনোটি খুললে তার চালান ও হিসাব দেখা যাবে।',
+      allTrips: 'সব ট্রিপ',
+      noTripYet: 'LBTS-এর জন্য এখনও কোনো ট্রিপ চালানো হয়নি। চালানো হলে তা এখানে দেখা যাবে।',
+      nothingOutstanding: 'বাকি কিছু নেই',
+      nothingOutstandingHint:
+        'প্রতিটি সই করা কপি এসে গেছে, প্রতিটি ট্রিপের বিল আছে, আর ফাইলে থাকা প্রতিটি কাগজ মেয়াদের মধ্যে আছে।',
+      renewBeforeLapse:
+        'তারিখ পেরিয়ে গিয়ে গাড়ি বা ড্রাইভার অ্যাসাইন করার অযোগ্য হওয়ার আগেই নবায়ন করুন।',
+      deliveredThisMonth: 'এই মাসে ডেলিভারি',
+      nothingCarried: 'এখনও কিছুই বহন হয়নি',
+      backAtDepot: 'ডিপোতে ফেরত',
+      nothingCameBack: 'এই মাসে কিছুই ফেরত আসেনি',
+      awaitingCopy: 'সই করা কপির অপেক্ষায়',
+      everyCopyIn: 'প্রতিটি কপি এসে গেছে',
+      tripsCompleted: 'সম্পন্ন ট্রিপ',
+      noTripsThisMonth: 'এই মাসে এখনও কোনো ট্রিপ নেই',
+      documentsLapsing: 'মেয়াদ শেষ হতে থাকা কাগজ',
+      documents: 'কাগজপত্র',
+      inDate: 'মেয়াদের মধ্যে',
+      fleetAria: 'রেকর্ডে থাকা ফ্লিট',
+      deliveredNote: 'বহন করা {carried}-এর মধ্যে · {rate}',
+      returnedNote: 'এই মাসে ট্রিপ থেকে ফেরত আসা পিস',
+      awaitingNote: '{trips} জুড়ে',
+      awaitingNoteOldest: '{trips} জুড়ে · সবচেয়ে পুরোনো {day}',
+      completedNote: 'এই মাসের {trips}-এর মধ্যে',
+
+      copiesTitle: '{copies} এখনও ফেরত আসেনি',
+      copiesDetail:
+        '{trips}-এ। প্রতিটি গ্রহীতার সই করা চালান স্ক্যান হয়ে গেলেই একটি ট্রিপ বন্ধ হয়।',
+      copiesDetailOldest:
+        '{trips}-এ, সবচেয়ে পুরোনোটি চলেছিল {day}। প্রতিটি গ্রহীতার সই করা চালান স্ক্যান হয়ে গেলেই একটি ট্রিপ বন্ধ হয়।',
+      billsTitle: '{trips}-এর পূর্ণ বিল নেই',
+      billsDetail: {
+        one: 'এর বিপরীতে ভাড়া বা লেবার এখনও লেখা হয়নি, তাই {period}-এর মোট অঙ্ক প্রকৃত পাওনার চেয়ে কম দেখাচ্ছে।',
+        other: 'এগুলোর বিপরীতে ভাড়া বা লেবার এখনও লেখা হয়নি, তাই {period}-এর মোট অঙ্ক প্রকৃত পাওনার চেয়ে কম দেখাচ্ছে।',
+      },
+      expiredTitle: '{documents} মেয়াদোত্তীর্ণ',
+      expiredDetail:
+        'যে লরির কাগজের মেয়াদ শেষ, সেটিকে পাঠানো যায় না। নবায়ন করা সার্টিফিকেটটি LBTS-এ পাঠিয়ে ফাইল করিয়ে নিন।',
+      expiringTitle: '{documents}-এর মেয়াদ শেষ হচ্ছে',
+
+      due: 'বাকি',
+      settled: 'মিটে গেছে',
+      piecesCarried: '{pieces} বহন করা হয়েছে',
+      deliveredShare: 'যা বেরিয়েছিল তার {rate} ডেলিভারি হয়েই রয়ে গেছে',
+      billedPerMonth: 'মাসে বিল — ট্রিপ ভাড়া ও লেবার',
+      billedSeries: 'বিল',
+      /** An axis figure at the local scale: 12K, 1.5L, 2Cr. */
+      compactThousand: '{value} হাজার',
+      compactLakh: '{value} লক্ষ',
+      compactCrore: '{value} কোটি',
+    },
+
+    statusDialog: {
+      title: 'অবস্থা বদলান',
+      description:
+        'একটি {noun}-এর অবস্থা ঠিক করে দেয় এরপর এটি নিয়ে কী করা যাবে। আগে লেখা কিছুই এতে বদলায় না বা মুছে যায় না।',
+      currently: 'এখন {status}',
+      selectAria: 'একটি অবস্থা বাছুন',
+      reason: 'কারণ (ঐচ্ছিক)',
+      reasonPlaceholder: 'রেকর্ডে লেখা থাকে, আর আবার সক্রিয় হলে মুছে যায়।',
+      confirm: 'পরিবর্তন নিশ্চিত করুন',
+      nounVendor: 'ভেন্ডর',
+      nounVehicle: 'গাড়ি',
+      nounDriver: 'ড্রাইভার',
+    },
+
+    remove: {
+      vendorTitle: '{name} মুছে ফেলবেন?',
+      confirm: 'মুছে ফেলুন',
+      removing: 'মুছে ফেলা হচ্ছে…',
+
+      /** What "cancel" says on a removal: what happens if you do not. */
+      keepIt: 'রেখে দিন',
+      keepThem: 'রেখে দিন',
+    },
+
+    photo: {
+      viewFullSize: '{label}-এর ছবি পূর্ণ আকারে দেখুন',
+      thisVehicle: 'এই গাড়ি',
+      removePhoto: 'ছবি সরান',
+
+      formatsHint: 'জেপিজি, পিএনজি বা ওয়েবপি, সর্বোচ্চ {size}',
+    },
+
+    validation: {
+      mobileRequired: 'মোবাইল নম্বর লিখতে হবে',
+      mobileInvalid: '১১ অঙ্কের মোবাইল নম্বর লিখুন, যেমন 01712345678।',
+      vendorNameTooShort: 'ভেন্ডরের নাম অন্তত ২ অক্ষরের হতে হবে',
+      vendorNameTooLong: 'ভেন্ডরের নাম সর্বোচ্চ ১৬০ অক্ষরের হতে পারে',
+      addressTooLong: 'ঠিকানা সর্বোচ্চ ৪০০ অক্ষরের হতে পারে',
+      registrationTooShort: 'রেজিস্ট্রেশন নম্বর অন্তত ৪ অক্ষরের হতে হবে',
+      registrationTooLong: 'রেজিস্ট্রেশন নম্বর সর্বোচ্চ ৬০ অক্ষরের হতে পারে',
+      ownershipRequired: 'গাড়িটি কীভাবে মালিকানায় আছে তা বাছুন।',
+      dateInvalid: 'একটি সঠিক তারিখ দিন।',
+      driverNameTooShort: 'ড্রাইভারের নাম অন্তত ২ অক্ষরের হতে হবে',
+      driverNameTooLong: 'ড্রাইভারের নাম সর্বোচ্চ ১৬০ অক্ষরের হতে পারে',
+      licenceTooLong: 'লাইসেন্স নম্বর সর্বোচ্চ ৬০ অক্ষরের হতে পারে',
+      licenceNumberNeeded: 'এই মেয়াদ যে লাইসেন্স নম্বরের, সেটি লিখুন।',
+      vehicleRequired: 'একটি গাড়ি বাছুন।',
+      driverRequired: 'একজন ড্রাইভার বাছুন।',
+      assignedFromRequired: 'অ্যাসাইনমেন্ট যেদিন শুরু হচ্ছে সেই তারিখ বাছুন।',
+      documentTypeRequired: 'কাগজের একটি ধরন বাছুন।',
+
+      nidTooLong: 'এনআইডি ৪০ অক্ষর বা তার কম হতে হবে',
+      endBeforeStart: 'শেষ তারিখ শুরুর তারিখের আগে হতে পারে না।',
+      expiryBeforeIssue: 'মেয়াদের তারিখ ইস্যুর তারিখের আগে হতে পারে না।',
+    },
+
+    toasts: {
+      vehicleAdded: '{plate} যোগ হয়েছে, কোড {code}',
+      vehicleUpdated: '{plate} হালনাগাদ হয়েছে',
+      vehicleStatus: '{plate} এখন {status}',
+      vehicleActiveNote: 'এটিকে আবার ড্রাইভার দেওয়া যাবে।',
+      vehicleInactiveNote:
+        'এর অ্যাসাইনমেন্টের ইতিহাস অপরিবর্তিত। সক্রিয় না হওয়া পর্যন্ত নতুন ড্রাইভার নিতে পারবে না।',
+      vehiclePhotoUpdated: '{plate}-এর ছবি হালনাগাদ হয়েছে',
+      vehiclePhotoRemoved: '{plate} থেকে ছবি সরানো হয়েছে',
+      vehicleRemoved: '{label} মুছে ফেলা হয়েছে',
+      vehicleRemovedNote: 'এর অ্যাসাইনমেন্টের ইতিহাস ও কাগজপত্রও সঙ্গে গেছে।',
+      driverAdded: '{name} যোগ হয়েছেন, কোড {code}',
+      driverLicenceNote:
+        'লাইসেন্সটি একটি কাগজ হিসেবে জমা হয়েছে, তাই এর মেয়াদ এখন কাগজপত্রের হিসাবে দেখা যাবে।',
+      driverUpdated: '{name} হালনাগাদ হয়েছেন',
+      driverStatus: '{name} এখন {status}',
+      driverActiveNote: 'তাঁকে আবার অ্যাসাইন করা যাবে।',
+      driverInactiveNote:
+        'তাঁর অ্যাসাইনমেন্টের ইতিহাস অপরিবর্তিত। সক্রিয় না হওয়া পর্যন্ত নতুন অ্যাসাইনমেন্ট নিতে পারবেন না।',
+      driverRemoved: '{label} মুছে ফেলা হয়েছে',
+      driverRemovedNote: 'তাঁর অ্যাসাইনমেন্টের ইতিহাস ও কাগজপত্রও সঙ্গে গেছে।',
+      photoUpdated: 'ছবি হালনাগাদ হয়েছে',
+      photoRemoved: 'ছবি সরানো হয়েছে',
+      assignmentEnded: 'অ্যাসাইনমেন্ট শেষ হয়েছে',
+      assignmentEndedNote: '{plate}-এর এখন কোনো ড্রাইভার নেই।',
+      theVehicle: 'গাড়িটির',
+      assignmentRemoved: 'অ্যাসাইনমেন্টের রেকর্ড সরানো হয়েছে',
+      assignmentRemovedNote: 'এটি শেষ হিসেবে চিহ্নিত না হয়ে ইতিহাস থেকেই মুছে গেছে।',
+      documentFiled: '{owner}-এর জন্য {type} জমা হয়েছে',
+      documentUpdated: '{type} হালনাগাদ হয়েছে',
+      documentRemoved: '{label} মুছে ফেলা হয়েছে',
+      vendorAdded: '{name} যোগ হয়েছে, কোড {code}',
+      vendorActiveNote: 'এটি সঙ্গে সঙ্গেই অ্যাসাইনমেন্ট নিতে পারবে।',
+      vendorInactiveNote: 'এটি {status}, তাই এর অধীনে এখনও কিছুই অ্যাসাইন করা যাবে না।',
+      vendorUpdated: '{name} হালনাগাদ হয়েছে',
+      vendorStatus: '{name} এখন {status}',
+      vendorStatusActiveNote: 'এটি আবার নতুন অ্যাসাইনমেন্ট নিতে পারবে।',
+      vendorStatusInactiveNote:
+        'পুরোনো রেকর্ড রেখে দেওয়া হয়েছে। এর অধীনে নতুন কিছুই অ্যাসাইন করা যাবে না।',
+      vendorGone: 'কিছুই এটিকে উল্লেখ করেনি, তাই এটি মুছে গেছে।',
+      fileLoadFailed: 'ফাইলটি লোড করা যায়নি।',
+      fileDownloadFailed: 'সেই ফাইলটি ডাউনলোড করা যায়নি।',
+      photoTypeUnsupported: 'এই ধরনের ফাইল চলবে না',
+      photoTypeHint: 'জেপিজি, পিএনজি বা ওয়েবপি ধরনের একটি ছবি বাছুন।',
+      photoTooLarge: 'ছবিটি ৫ MB-র চেয়ে বড়',
+      photoTooLargeHint: 'ছোট একটি ফাইল বাছুন, বা কম রেজোলিউশনে রপ্তানি করুন।',
+      documentTypeHint: 'পিডিএফ, জেপিজি, পিএনজি বা ওয়েবপি ধরনের একটি ফাইল সংযুক্ত করুন।',
+      documentTooLarge: 'ফাইলটি ২৫ MB-র চেয়ে বড়',
+      documentTooLargeHint: 'কম রেজোলিউশনে স্ক্যান করে আবার সংযুক্ত করুন।',
+
+      assignmentCreated: '{driver}-কে {vehicle}-এ দেওয়া হয়েছে',
+      aDriver: 'চালক',
+      theVehicleLower: 'গাড়িটি',
+      vendorDeactivated: '{label} নিষ্ক্রিয় করা হয়েছে',
+      vendorDeleted: '{label} মুছে ফেলা হয়েছে',
+      vendorStillReferenced: {
+        one: '{count}টি রেকর্ড এখনও এটিকে ধরে আছে, তাই মুছে না ফেলে ব্যবহারের বাইরে রাখা হয়েছে।',
+        other: '{count}টি রেকর্ড এখনও এটিকে ধরে আছে, তাই মুছে না ফেলে ব্যবহারের বাইরে রাখা হয়েছে।',
+      },
+    },
+    filters: {
+      anyStatus: 'যেকোনো অবস্থা',
+      anyOwnership: 'যেকোনো মালিকানা',
+    },
+    compliance: {
+      noneFiled: 'কিছুই জমা নেই',
+      allValid: '{n}টি বৈধ',
+      expired: '{n}টি মেয়াদোত্তীর্ণ',
+      expiring: '{n}টির মেয়াদ শেষ হচ্ছে',
+      expiredTitle: {
+        one: 'এই বিষয়ের জমা দেওয়া {total}টি কাগজের {n}টির মেয়াদ পেরিয়ে গেছে',
+        other: 'এই বিষয়ের জমা দেওয়া {total}টি কাগজের {n}টির মেয়াদ পেরিয়ে গেছে',
+      },
+      expiringTitle: {
+        one: 'এই বিষয়ের জমা দেওয়া {total}টি কাগজের {n}টির মেয়াদ {days} দিনের মধ্যে শেষ হচ্ছে',
+        other: 'এই বিষয়ের জমা দেওয়া {total}টি কাগজের {n}টির মেয়াদ {days} দিনের মধ্যে শেষ হচ্ছে',
+      },
+    },
+
+    vendorStatuses: {
+      Pending: { label: 'অপেক্ষমাণ', description: 'রেকর্ডে আছে, তবে এখনও কাজের অনুমতি পায়নি।' },
+      Active: { label: 'সক্রিয়', description: 'কাজ করছে, এবং নতুন অ্যাসাইনমেন্ট নিতে পারে।' },
+      Inactive: {
+        label: 'নিষ্ক্রিয়',
+        description: 'ব্যবহারে নেই। পুরোনো রেকর্ড রেখে দেওয়া হয়; নতুন কিছু দেওয়া হয় না।',
+      },
+      Suspended: {
+        label: 'স্থগিত',
+        description: 'আমরা থামিয়ে রেখেছি। আবার চালু না করা পর্যন্ত নতুন কোনো অ্যাসাইনমেন্ট নয়।',
+      },
+    },
+
+    vehicleStatuses: {
+      Active: { label: 'সক্রিয়', description: 'রাস্তায় আছে, এবং ড্রাইভার নিতে পারে।' },
+      Inactive: { label: 'নিষ্ক্রিয়', description: 'আপাতত ফ্লিটের বাইরে।' },
+      'Under Maintenance': {
+        label: 'মেরামতে',
+        description: 'ওয়ার্কশপে আছে। নতুন অ্যাসাইনমেন্টের জন্য পাওয়া যাবে না।',
+      },
+      Suspended: { label: 'স্থগিত', description: 'পরবর্তী নির্দেশ পর্যন্ত আমরা থামিয়ে রেখেছি।' },
+      Expired: {
+        label: 'মেয়াদোত্তীর্ণ',
+        description: 'কাগজপত্রের মেয়াদ শেষ। এটিকে ড্রাইভার দেওয়া যাবে না।',
+      },
+    },
+
+    driverStatuses: {
+      Active: { label: 'সক্রিয়', description: 'পাওয়া যাচ্ছে, এবং অ্যাসাইন করা যাবে।' },
+      Inactive: { label: 'নিষ্ক্রিয়', description: 'এই ভেন্ডরের হয়ে আর কাজ করেন না।' },
+      Suspended: { label: 'স্থগিত', description: 'আমরা থামিয়ে রেখেছি। অ্যাসাইন করা যাবে না।' },
+      'On Leave': {
+        label: 'ছুটিতে',
+        description: 'ছুটিতে আছেন, পরে ফিরবেন। এর মধ্যে নতুন অ্যাসাইনমেন্ট নিতে পারবেন না।',
+      },
+    },
+
+    assignmentStatuses: {
+      Active: { label: 'সক্রিয়', description: 'এখন বলবৎ আছে।' },
+      Ended: {
+        label: 'শেষ হয়েছে',
+        description: 'ইতিহাস। কে চালাচ্ছিলেন তা রেকর্ড যাতে বলতে পারে, সে জন্য রাখা।',
+      },
+    },
+
+    documentStatuses: {
+      Valid: { label: 'বৈধ', description: 'মেয়াদের মধ্যে, হাতে সময়ও আছে।' },
+      'Expiring Soon': {
+        label: 'মেয়াদ শেষ হচ্ছে',
+        description: 'নবায়নের সময়সীমার মধ্যে আছে। মেয়াদ শেষ হওয়ার আগেই নবায়ন করুন।',
+      },
+      Expired: {
+        label: 'মেয়াদোত্তীর্ণ',
+        description: 'মেয়াদ শেষ। এটি নিয়ে গাড়ি বা ড্রাইভারের কাজ করা উচিত নয়।',
+      },
+    },
+
+    ownership: {
+      'Vendor Owned': { label: 'নিজের', description: 'ভেন্ডরের নিজের গাড়ি।' },
+      Rented: { label: 'ভাড়া', description: 'ভেন্ডর ভাড়ায় এনেছে।' },
     },
   },
 

@@ -19,11 +19,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatDate } from '@/lib/format'
+import { formatFileSize } from '@/lib/format'
 import { MAX_PHOTO_BYTES, isAllowedPhoto } from '../lib/photo-rules'
 import type { VendorRecord } from '../types'
 import { VendorStatusBadge } from './status-badges'
 import { VendorAvatar } from './vendor-identity'
+import { useFormatters, useT } from '@/lib/i18n'
 
 interface VendorHeaderProps {
   vendor: VendorRecord
@@ -61,6 +62,9 @@ export function VendorHeader({
   onPhotoChosen,
   onPhotoRemoved,
 }: VendorHeaderProps) {
+  const t = useT()
+  const format = useFormatters()
+
   const fileInput = useRef<HTMLInputElement>(null)
 
   return (
@@ -71,7 +75,7 @@ export function VendorHeader({
           className="mb-3 inline-flex items-center gap-1 rounded-sm text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ChevronLeft className="size-3.5" aria-hidden />
-          All vendors
+          {t('vendor.allVendors')}
         </Link>
       )}
 
@@ -105,8 +109,10 @@ export function VendorHeader({
                   <Button
                     variant="outline"
                     size="icon"
-                    aria-label="Change vendor photo"
-                    title={`JPG, PNG or WEBP, up to ${MAX_PHOTO_BYTES / (1024 * 1024)} MB`}
+                    aria-label={t('vendor.header.changePhoto')}
+                    title={t('vendor.photo.formatsHint', {
+                      size: formatFileSize(MAX_PHOTO_BYTES),
+                    })}
                     disabled={isPhotoPending}
                     onClick={() => fileInput.current?.click()}
                     className="absolute -right-1.5 -bottom-1.5 size-7 rounded-full bg-card shadow-sm"
@@ -156,32 +162,32 @@ export function VendorHeader({
             <div className="flex shrink-0 items-center gap-2">
               <Button variant="outline" size="sm" onClick={onEdit}>
                 <PencilLine data-icon="inline-start" aria-hidden />
-                Edit
+                {t('common.actions.edit')}
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
-                    <Button variant="outline" size="sm" aria-label="More vendor actions" />
+                    <Button variant="outline" size="sm" aria-label={t('vendor.header.moreActions')} />
                   }
                 >
-                  More
+                  {t('common.actions.more')}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={onChangeStatus}>
                     <ShieldCheck aria-hidden />
-                    Change status
+                    {t('vendor.directory.changeStatus')}
                   </DropdownMenuItem>
                   {vendor.photoUrl && (
                     <DropdownMenuItem disabled={isPhotoPending} onClick={onPhotoRemoved}>
                       <Camera aria-hidden />
-                      Remove photo
+                      {t('vendor.header.removePhoto')}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onClick={onDelete}>
                     <Trash2 aria-hidden />
-                    Remove vendor
+                    {t('vendor.header.remove')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -190,11 +196,28 @@ export function VendorHeader({
         </div>
 
         <p className="mt-4 border-t pt-3 text-[11px] text-muted-foreground/80">
-          Added {formatDate(vendor.createdAt)}
-          {vendor.createdBy ? ` by ${vendor.createdBy.name}` : ''}
+          {/*
+           * Two whole sentences joined by a separator rather than one sentence
+           * grown a clause at a time: "added by" and "changed by" put the name
+           * in different places in Bangla, and a tail appended in JSX could
+           * only ever be right in one of them.
+           */}
+          {vendor.createdBy
+            ? t('vendor.header.addedOnBy', {
+                when: format.date(vendor.createdAt),
+                name: vendor.createdBy.name,
+              })
+            : t('vendor.addedOn', { when: format.date(vendor.createdAt) })}
           {vendor.statusChangedAt
-            ? ` · Status last changed ${formatDate(vendor.statusChangedAt)}${
-                vendor.statusChangedBy ? ` by ${vendor.statusChangedBy.name}` : ''
+            ? ` · ${
+                vendor.statusChangedBy
+                  ? t('vendor.header.statusChangedBy', {
+                      when: format.date(vendor.statusChangedAt),
+                      name: vendor.statusChangedBy.name,
+                    })
+                  : t('vendor.header.statusChanged', {
+                      when: format.date(vendor.statusChangedAt),
+                    })
               }`
             : ''}
         </p>

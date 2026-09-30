@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { t } from '@/lib/i18n'
 import { fetchGatePassDocument } from '../api/gate-pass-api'
 import type { ApiError } from '@/lib/axios'
 
@@ -63,7 +64,11 @@ export function useGatePassDocument(id: string | null, hasDocument: boolean): Do
         if (cancelled) {
           return
         }
-        setLoaded({ key, url: null, error: failure.message || 'The document could not be loaded.' })
+        setLoaded({
+          key,
+          url: null,
+          error: failure.message || t('gatePass.viewer.loadFailedSentence'),
+        })
       })
 
     return () => {

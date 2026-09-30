@@ -39,15 +39,22 @@ export function TripDoLinkCell({ row, canWrite, onLink }: TripDoLinkCellProps) {
       </>
     )
 
-    const title = `Trip DO ${link.tripDo} · ${link.gatePassNumber} · CSD ${link.csd} · Unit ${link.unit}${
-      link.model && link.model !== row.model ? ` · gate pass model ${link.model}` : ''
-    }${link.linkedBy ? ` · set by ${link.linkedBy.name}` : ''}`
+    const title = `${t('tripDo.sheet.linkTitle', {
+      tripDo: link.tripDo,
+      gatePass: link.gatePassNumber,
+      csd: link.csd,
+      unit: link.unit,
+    })}${
+      link.model && link.model !== row.model
+        ? t('tripDo.sheet.linkTitleModel', { model: link.model })
+        : ''
+    }${link.linkedBy ? t('tripDo.sheet.linkTitleBy', { name: link.linkedBy.name }) : ''}`
 
     return canWrite ? (
       <button
         type="button"
         onClick={() => onLink(row)}
-        title={`${title}\nPress to change`}
+        title={`${title}\n${t('tripDo.sheet.pressToChange')}`}
         className="flex min-w-0 items-center gap-2 rounded-md px-1 py-0.5 text-left outline-none hover:bg-background/80 focus-visible:ring-2 focus-visible:ring-ring/50"
       >
         {content}

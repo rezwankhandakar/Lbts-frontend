@@ -8,6 +8,7 @@ import { VendorHeaderSkeleton } from '@/features/vendor/components/vendor-header
 import { VendorWorkspace } from '@/features/vendor/components/vendor-workspace'
 import { useVendor } from '@/features/vendor/hooks/use-vendors'
 import { canManageVendors } from '@/features/vendor/types'
+import { useT } from '@/lib/i18n'
 
 /**
  * One vendor and everything underneath it.
@@ -19,6 +20,8 @@ import { canManageVendors } from '@/features/vendor/types'
  * as a claim. That is why there is no guard here beyond the read roles.
  */
 export function VendorDetailsPage() {
+  const t = useT()
+
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const role = useCurrentRole()
@@ -49,17 +52,19 @@ export function VendorDetailsPage() {
       <div className="mx-auto w-full max-w-3xl">
         <EmptyState
           icon={Building2}
-          title={notFound ? 'Vendor not found' : 'Could not load this vendor'}
+          title={notFound ? t('vendor.page.notFound') : t('vendor.page.loadFailed')}
           description={
             notFound
-              ? 'It may have been removed, or it may not be a vendor this account can open.'
-              : (query.error?.message ?? 'Something went wrong.')
+              ? t('vendor.page.notFoundHint')
+              : (query.error?.message ?? t('vendor.somethingWrong'))
           }
           action={
             notFound ? (
-              <Button render={<Link to="/vendors" />}>Back to vendors</Button>
+              <Button render={<Link to="/vendors" />}>{t('vendor.page.backToVendors')}</Button>
             ) : (
-              <Button onClick={() => void query.refetch()}>Try again</Button>
+              <Button onClick={() => void query.refetch()}>
+                {t('common.actions.retry')}
+              </Button>
             )
           }
         />

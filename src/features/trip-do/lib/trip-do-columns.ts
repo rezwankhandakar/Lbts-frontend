@@ -1,6 +1,6 @@
 import { shortTripNumber } from '@/features/delivery/lib/cart'
 import { formatTripDate } from '@/features/gate-pass/lib/gate-pass-meta'
-import { formatTaka } from '@/lib/format'
+import { formatNumber, formatTaka } from '@/lib/format'
 import type { TranslationKey, Translator } from '@/lib/i18n'
 import type { ColumnValue, TripDoColumnId } from '../types'
 import { rowStatusMeta } from './trip-do-meta'
@@ -41,14 +41,18 @@ export const COLUMNS: SheetColumn[] = [
 ]
 
 /** `flat:1100` or `tiered:5:60:24`, as the Rate cell would print it. */
-function rateKeyLabel(key: string): string {
+function rateKeyLabel(key: string, t: Translator): string {
   const [kind, ...rest] = key.split(':')
   const numbers = rest.map(Number)
   if (kind === 'flat' && numbers.length === 1) {
     return formatTaka(numbers[0])
   }
   if (kind === 'tiered' && numbers.length === 3) {
-    return `${formatTaka(numbers[1])} / ${formatTaka(numbers[2])} (first ${numbers[0]})`
+    return t('tripDo.remove.rateTiered', {
+      rest: formatTaka(numbers[1]),
+      first: formatTaka(numbers[2]),
+      count: formatNumber(numbers[0]),
+    })
   }
   return key
 }
@@ -72,7 +76,7 @@ export function columnValueLabel(
     case 'amount':
       return formatTaka(Number(value))
     case 'rate':
-      return rateKeyLabel(String(value))
+      return rateKeyLabel(String(value), t)
     default:
       return String(value)
   }

@@ -16,6 +16,7 @@ import { ReceivedCopySection } from './received-copy-section'
 import { ReturnChoice } from './return-choice'
 import type { ReturnChoiceValue } from './return-choice'
 import { useT } from '@/lib/i18n'
+import { formatNumber } from '@/lib/format'
 
 interface DeliveryCompletionEditorProps {
   trip: TripRecord
@@ -104,7 +105,11 @@ export function DeliveryCompletionEditor({ trip, challan, canWrite }: DeliveryCo
               <p className="min-w-48 flex-1 text-xs text-muted-foreground">
                 {draftQty === 0
                   ? t('delivery.completion.setReturned')
-                  : `${draftQty} of ${challan.totalQty} came back · ${challan.totalQty - draftQty} delivered.`}{' '}
+                  : t('delivery.completion.someCameBack', {
+                      back: formatNumber(draftQty),
+                      total: formatNumber(challan.totalQty),
+                      delivered: formatNumber(challan.totalQty - draftQty),
+                    })}{' '}
                 {t('delivery.completion.returnedStay')}
               </p>
               <Button

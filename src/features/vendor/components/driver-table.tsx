@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { formatDay } from '../lib/vendor-meta'
 import type { DriverRecord } from '../types'
@@ -39,6 +40,8 @@ export function DriverMenu({
   driver: DriverRecord
   actions: DriverActions
 }) {
+  const t = useT()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -47,7 +50,7 @@ export function DriverMenu({
             variant="ghost"
             size="icon"
             className="size-7"
-            aria-label={`Actions for ${driver.name}`}
+            aria-label={t('vendor.driver.actionsFor', { name: driver.name })}
           />
         }
       >
@@ -57,11 +60,13 @@ export function DriverMenu({
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => actions.onOpen(driver)}>
           <Eye aria-hidden />
-          View details
+          {t('vendor.driver.viewDetails')}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => actions.onDocuments(driver)}>
           <FileText aria-hidden />
-          {actions.canManage ? 'Renew or replace' : 'Documents'}
+          {actions.canManage
+            ? t('vendor.document.renewTitle')
+            : t('vendor.driver.documents')}
         </DropdownMenuItem>
 
         {actions.canManage && (
@@ -69,20 +74,22 @@ export function DriverMenu({
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => actions.onEdit(driver)}>
               <PencilLine aria-hidden />
-              Edit
+              {t('common.actions.edit')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => actions.onAssign(driver)}>
               <TruckIcon aria-hidden />
-              {driver.currentVehicle ? 'Change vehicle' : 'Assign vehicle'}
+              {driver.currentVehicle
+                ? t('vendor.driver.changeVehicle')
+                : t('vendor.driver.assignVehicle')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => actions.onStatus(driver)}>
               <ShieldCheck aria-hidden />
-              Change status
+              {t('vendor.directory.changeStatus')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={() => actions.onDelete(driver)}>
               <Trash2 aria-hidden />
-              Remove
+              {t('common.actions.remove')}
             </DropdownMenuItem>
           </>
         )}
@@ -112,19 +119,21 @@ export function DriverTable({
   records: DriverRecord[]
   actions: DriverActions
 }) {
+  const t = useT()
+
   return (
     <div className="hidden overflow-x-auto md:block">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Driver</TableHead>
-            <TableHead className="hidden lg:table-cell">Mobile</TableHead>
-            <TableHead>Licence</TableHead>
-            <TableHead className="hidden xl:table-cell">Assigned vehicle</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="hidden xl:table-cell">Documents</TableHead>
+            <TableHead>{t('vendor.driver.driver')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('vendor.driver.mobile')}</TableHead>
+            <TableHead>{t('vendor.driver.licence')}</TableHead>
+            <TableHead className="hidden xl:table-cell">{t('vendor.driver.assignedVehicle')}</TableHead>
+            <TableHead>{t('vendor.directory.status')}</TableHead>
+            <TableHead className="hidden xl:table-cell">{t('vendor.tabs.documents')}</TableHead>
             <TableHead className="w-10">
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{t('vendor.directory.actions')}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -171,11 +180,11 @@ export function DriverTable({
                         </span>
                       </span>
                     ) : (
-                      <span className="text-[11px] text-muted-foreground">No expiry recorded</span>
+                      <span className="text-[11px] text-muted-foreground">{t('vendor.noExpiryRecorded')}</span>
                     )}
                   </span>
                 ) : (
-                  <span className="text-xs text-muted-foreground">Not recorded</span>
+                  <span className="text-xs text-muted-foreground">{t('vendor.notRecorded')}</span>
                 )}
               </TableCell>
 
@@ -183,7 +192,7 @@ export function DriverTable({
                 {record.currentVehicle ? (
                   <span className="text-[13px]">{record.currentVehicle.registrationNo}</span>
                 ) : (
-                  <span className="text-xs text-muted-foreground">Unassigned</span>
+                  <span className="text-xs text-muted-foreground">{t('vendor.unassigned')}</span>
                 )}
               </TableCell>
 

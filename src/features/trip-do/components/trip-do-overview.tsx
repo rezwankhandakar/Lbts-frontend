@@ -1,8 +1,8 @@
 import { FileSpreadsheet, Hourglass, Link2, Repeat } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatTaka } from '@/lib/format'
-import { useT } from '@/lib/i18n'
+import { formatNumber, formatTaka } from '@/lib/format'
+import { countOf, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { TripDoFilterPatch, TripDoListParams, TripDoPageMeta } from '../types'
 
@@ -51,14 +51,21 @@ export function TripDoOverview({ meta, isLoading, params, onChange }: TripDoOver
     {
       label: t('tripDo.overview.rows'),
       value: meta.total.toLocaleString(),
-      hint: `${meta.totalQty.toLocaleString()} pcs · ${formatTaka(meta.totalAmount)}`,
+      hint: t('tripDo.overview.rowsHint', {
+        pieces: countOf(meta.totalQty, 'nouns.pc', t),
+        amount: formatTaka(meta.totalAmount),
+      }),
       icon: FileSpreadsheet,
       chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
     },
     {
       label: t('tripDo.overview.linked'),
       value: `${percent}%`,
-      hint: `${meta.linkedQty.toLocaleString()} of ${meta.totalQty.toLocaleString()} pcs · ${meta.linkedRows} rows`,
+      hint: t('tripDo.overview.linkedHint', {
+        linked: formatNumber(meta.linkedQty),
+        total: formatNumber(meta.totalQty),
+        rows: countOf(meta.linkedRows, 'nouns.row', t),
+      }),
       icon: Link2,
       chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
       progress: percent,
@@ -67,7 +74,9 @@ export function TripDoOverview({ meta, isLoading, params, onChange }: TripDoOver
     {
       label: t('tripDo.overview.waiting'),
       value: meta.unlinkedRows.toLocaleString(),
-      hint: `${meta.unlinkedQty.toLocaleString()} pcs not matched to a gate pass`,
+      hint: t('tripDo.overview.waitingHint', {
+        pieces: countOf(meta.unlinkedQty, 'nouns.pc', t),
+      }),
       icon: Hourglass,
       chip: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
       filter: { pressed: params.link === 'unlinked', apply: { link: 'unlinked' }, clear: { link: 'all' } },
@@ -75,7 +84,10 @@ export function TripDoOverview({ meta, isLoading, params, onChange }: TripDoOver
     {
       label: t('tripDo.overview.returns'),
       value: (meta.returnRows + meta.resentRows).toLocaleString(),
-      hint: `${meta.returnRows} came back · ${meta.resentRows} went out again`,
+      hint: t('tripDo.overview.returnsHint', {
+        returned: formatNumber(meta.returnRows),
+        resent: formatNumber(meta.resentRows),
+      }),
       icon: Repeat,
       chip: 'bg-tone-rose/10 text-tone-rose ring-tone-rose/20',
       filter: { pressed: params.kind === 'Return', apply: { kind: 'Return' }, clear: { kind: 'all' } },

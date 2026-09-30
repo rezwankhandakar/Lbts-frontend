@@ -1,5 +1,6 @@
 import { ArrowDownLeft, CircleDashed, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { SentenceWith } from '@/components/shared/sentence-with'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
@@ -103,11 +104,11 @@ export function LabourCsdCard({ month, csd, canWrite }: LabourCsdCardProps) {
 
         {csd.isPending ? (
           <p className="text-[11px] text-pretty text-muted-foreground">
-            {t('accounts.labour.pendingRows')} Set it on the{' '}
-            <Link to="/trip-do" className="font-medium text-primary hover:underline">
-              {t('accounts.labour.tripDoSheet')}
-            </Link>
-            , and they move into their own CSD by themselves.
+            <SentenceWith text={t('accounts.labour.pendingRows')}>
+              <Link to="/trip-do" className="font-medium text-primary hover:underline">
+                {t('accounts.labour.tripDoSheet')}
+              </Link>
+            </SentenceWith>
           </p>
         ) : (
           canWrite &&

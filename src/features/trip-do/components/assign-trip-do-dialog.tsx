@@ -164,8 +164,10 @@ function AssignTripDoBody({
         </div>
         <p className="text-xs text-muted-foreground">
           {settled
-            ? `Filed gate passes matching “${settled}”, even where the model or customer is written differently.`
-            : `Recent filed gate passes with ${target.model || 'this product'}, or a close model or customer, still to link.`}
+            ? t('tripDo.assign.matchingSearch', { query: settled })
+            : t('tripDo.assign.recentWith', {
+                model: target.model || t('tripDo.assign.thisProduct'),
+              })}
         </p>
         <GatePassOptionList
           options={list}

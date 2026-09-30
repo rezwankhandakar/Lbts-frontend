@@ -18,6 +18,8 @@
  * through one agent is the correct shape rather than a compromise.
  */
 
+import { t } from '@/lib/i18n'
+
 export type ScanSource = 'flatbed' | 'feeder'
 export type ScanColorMode = 'color' | 'grayscale' | 'blackwhite'
 export const SCAN_RESOLUTIONS = [200, 300, 600] as const
@@ -200,17 +202,17 @@ async function call(path: string, options: RequestOptions = {}): Promise<Respons
     // fetch rejects for a refused connection, a DNS failure, an abort and a
     // blocked cross-origin request alike — from here they are one thing: the
     // helper is not answering.
-    throw new ScannerAgentError('unreachable', 'The scanner helper is not running on this computer.')
+    throw new ScannerAgentError('unreachable', t('errors.scannerUnreachable'))
   } finally {
     window.clearTimeout(timer)
   }
 
   if (response.status === 401) {
-    throw new ScannerAgentError('unauthorized', 'This computer is not paired with the scanner helper.')
+    throw new ScannerAgentError('unauthorized', t('errors.scannerUnauthorized'))
   }
 
   if (!response.ok && response.status !== 409) {
-    throw new ScannerAgentError('error', 'The scanner helper could not complete that request.')
+    throw new ScannerAgentError('error', t('errors.scannerFailed'))
   }
 
   return response
@@ -247,7 +249,7 @@ export function createHttpScannerAgent(): ScannerAgent {
       })
 
       if (response.status === 409) {
-        throw new ScannerAgentError('error', 'The scanner is already busy with another job.')
+        throw new ScannerAgentError('error', t('errors.scannerBusy'))
       }
 
       return (await readJson<{ job: ScanJob }>(response)).job

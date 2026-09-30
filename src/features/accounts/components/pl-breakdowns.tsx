@@ -34,7 +34,7 @@ export function PlBreakdowns({ report, fromParam }: { report: ProfitLossReport; 
         description={t('accounts.profit.incomeByUnitHint')}
       >
         {report.incomeByUnit.length === 0 ? (
-          <Empty text="No final bill in this period." />
+          <Empty text={t('accounts.profit.noIncomeInPeriod')} />
         ) : (
           <ul className="grid gap-3 p-4">
             {report.incomeByUnit.map((row) => (
@@ -63,7 +63,7 @@ export function PlBreakdowns({ report, fromParam }: { report: ProfitLossReport; 
         description={t('accounts.profit.officeExpensesHint')}
       >
         {report.expenseByName.length === 0 ? (
-          <Empty text="No office expense in this period." />
+          <Empty text={t('accounts.profit.noExpenseInPeriod')} />
         ) : (
           <ul className="grid gap-3 p-4">
             {report.expenseByName.map((row) => (
@@ -86,7 +86,7 @@ export function PlBreakdowns({ report, fromParam }: { report: ProfitLossReport; 
         description={t('accounts.profit.tripCostHint')}
       >
         {report.costByVendor.length === 0 ? (
-          <Empty text="No trip in this period." />
+          <Empty text={t('accounts.profit.noTripInPeriod')} />
         ) : (
           <ul className="grid gap-3 p-4">
             {report.costByVendor.slice(0, 10).map((row) => (

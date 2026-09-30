@@ -13,6 +13,7 @@ import type {
   VendorTab,
 } from '../types'
 import { AssignmentPanel } from './assignment-panel'
+import { SentenceWith } from '@/components/shared/sentence-with'
 import { ConfirmDialog } from './confirm-dialog'
 import { DocumentPanel } from './document-panel'
 import { DriverPanel } from './driver-panel'
@@ -24,6 +25,7 @@ import { VendorOverview } from './vendor-overview'
 import { VendorTabs } from './vendor-tabs'
 import { VendorActivityPanel } from './vendor-activity-panel'
 import { VendorTripPanel } from './vendor-trip-panel'
+import { useT } from '@/lib/i18n'
 
 interface VendorWorkspaceProps {
   vendor: VendorRecord
@@ -57,6 +59,8 @@ export function VendorWorkspace({
   showBackLink,
   onDeleted,
 }: VendorWorkspaceProps) {
+  const t = useT()
+
   const [searchParams, setSearchParams] = useSearchParams()
 
   const requested = searchParams.get('tab') ?? 'overview'
@@ -193,7 +197,7 @@ export function VendorWorkspace({
             summary={summary.data}
             isLoading={summary.isPending}
             isError={summary.isError}
-            errorMessage={summary.error?.message ?? 'Something went wrong.'}
+            errorMessage={summary.error?.message ?? t('vendor.somethingWrong')}
             isFetching={summary.isFetching}
             onRetry={() => void summary.refetch()}
             onOpenTab={goToTab}
@@ -268,14 +272,14 @@ export function VendorWorkspace({
         open={actions.view === 'status'}
         isPending={actions.isPending}
         subject={vendor.name}
-        noun="vendor"
+        noun={t('vendor.statusDialog.nounVendor')}
         current={vendor.status}
         options={VENDOR_STATUSES}
         meta={vendorStatusMeta}
         consequence={(status) =>
           status === 'Active'
-            ? 'Vehicles and drivers under this vendor can be assigned again.'
-            : 'Existing vehicles, drivers, assignments and documents are all kept. Nothing new can be assigned under this vendor until it is active again.'
+            ? t('vendor.directory.activeConsequence')
+            : t('vendor.directory.inactiveConsequence')
         }
         onOpenChange={(open) => !open && actions.close()}
         onConfirm={actions.confirmStatus}
@@ -284,18 +288,15 @@ export function VendorWorkspace({
       <ConfirmDialog
         open={actions.view === 'delete'}
         isPending={actions.isPending}
-        title={`Remove ${vendor.name}?`}
+        title={t('vendor.remove.vendorTitle', { name: vendor.name })}
         description={
-          <>
-            If no vehicle, driver, assignment or user account references this vendor it is deleted
-            outright. If any do, it is <strong>deactivated and kept</strong> instead — a year of
-            assignments has to be able to say who was driving, and deleting the vendor would leave
-            them pointing at nothing.
-          </>
+          <SentenceWith text={t('vendor.directory.removeDescription')} placeholder="{kept}">
+            <strong>{t('vendor.directory.deactivatedAndKept')}</strong>
+          </SentenceWith>
         }
-        confirmLabel="Remove"
-        pendingLabel="Removing…"
-        cancelLabel="Keep it"
+        confirmLabel={t('vendor.remove.confirm')}
+        pendingLabel={t('vendor.remove.removing')}
+        cancelLabel={t('vendor.remove.keepIt')}
         onOpenChange={(open) => !open && actions.close()}
         onConfirm={() => actions.confirmDelete(onDeleted)}
       />

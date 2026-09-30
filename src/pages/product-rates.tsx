@@ -13,7 +13,7 @@ import {
 } from '@/features/product-rate/hooks/use-product-rates'
 import { canManageProductRates } from '@/features/product-rate/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * The Product Rate card: what a delivery is charged, per product and per
@@ -85,9 +85,12 @@ export function ProductRatesPage() {
           canManage={canManage}
           summary={
             meta && !ratesQuery.isPending
-              ? `${meta.total} ${meta.total === 1 ? 'rate' : 'rates'}${
-                  isFiltered ? ' match these filters' : ' on the card'
-                }`
+              ? t(
+                  isFiltered
+                    ? 'productRate.directory.summaryFiltered'
+                    : 'productRate.directory.summaryTotal',
+                  { rates: countOf(meta.total, 'nouns.rate', t) },
+                )
               : undefined
           }
         />

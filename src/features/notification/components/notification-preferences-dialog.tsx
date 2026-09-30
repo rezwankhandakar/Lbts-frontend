@@ -102,8 +102,7 @@ export function NotificationPreferencesDialog({
         <DialogHeader>
           <DialogTitle>{t('notification.preferences.title')}</DialogTitle>
           <DialogDescription>
-            Choose what reaches the bell. This changes what arrives from now on —
-            anything already in your list stays where it is.
+            {t('notification.preferences.description')}
           </DialogDescription>
         </DialogHeader>
 

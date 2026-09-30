@@ -68,7 +68,7 @@ export function TripDoSheetRow({
             checked={isSelected}
             disabled={Boolean(row.bill)}
             onCheckedChange={() => onToggle(row)}
-            aria-label={`Tick ${row.challanNumber} ${row.model}`}
+            aria-label={t('tripDo.sheet.tickRow', { challan: row.challanNumber, model: row.model })}
           />
         </td>
       )}
@@ -85,7 +85,7 @@ export function TripDoSheetRow({
             <Link
               to={`/challan/${row.challanId}`}
               className="font-mono text-[12.5px] font-semibold tabular-nums hover:text-primary hover:underline"
-              title={`Open ${row.challanNumber}`}
+              title={t('tripDo.sheet.openChallanTitle', { challan: row.challanNumber })}
             >
               {row.slNumber}
             </Link>

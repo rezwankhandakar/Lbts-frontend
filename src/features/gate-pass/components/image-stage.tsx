@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 interface ImageStageProps {
@@ -32,6 +33,8 @@ interface Size {
  * inside it and turned about its own middle.
  */
 export function ImageStage({ url, zoom, rotation, className }: ImageStageProps) {
+  const t = useT()
+
   const containerRef = useRef<HTMLDivElement>(null)
   const [measured, setMeasured] = useState<{ url: string; size: Size } | null>(null)
   const [viewport, setViewport] = useState<Size | null>(null)
@@ -132,7 +135,7 @@ export function ImageStage({ url, zoom, rotation, className }: ImageStageProps) 
         >
           <img
             src={url}
-            alt="Scanned gate pass"
+            alt={t('gatePass.viewer.scannedTitle')}
             draggable={false}
             className="absolute top-1/2 left-1/2 max-w-none rounded shadow-sm select-none"
             style={{

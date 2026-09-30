@@ -38,7 +38,7 @@ export function EntryActionsMenu({ entry }: { entry: EntryRecord }) {
         <DropdownMenuContent align="end" className="min-w-44">
           <DropdownMenuItem onClick={() => dialog.edit(entry)}>
             <Pencil aria-hidden />
-            Edit
+            {t('common.actions.edit')}
           </DropdownMenuItem>
           {/* Attaching and replacing both happen on the form, which is what
               Edit opens — so the menu carries only the verb the form has no
@@ -57,7 +57,7 @@ export function EntryActionsMenu({ entry }: { entry: EntryRecord }) {
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={() => setConfirming(true)}>
             <Trash2 aria-hidden />
-            Delete
+            {t('common.actions.delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

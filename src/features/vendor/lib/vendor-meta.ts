@@ -13,6 +13,8 @@ import {
   Wrench,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { formatCalendarDay } from '@/lib/format'
+import type { TranslationKey, Translator } from '@/lib/i18n'
 import type {
   AssignmentStatus,
   DocumentStatus,
@@ -43,10 +45,29 @@ interface ToneClasses {
   chip: string
 }
 
-export interface StatusMeta extends ToneClasses {
+/**
+ * The untranslatable half of a status: an icon and three class strings.
+ *
+ * The **words** are not here. `vendor.vendorStatuses.*` and its five siblings
+ * carry them, and each lookup below reads them through a translator, so a
+ * language switch renames every badge, title and filter at once.
+ */
+export interface StatusPresentation extends ToneClasses {
+  icon: LucideIcon
+}
+
+/**
+ * One of the six lookups, by reference.
+ *
+ * The status dialog takes whichever one belongs to its subject; naming the
+ * shape here means the translator travels with it rather than being closed over
+ * at each of the four call sites.
+ */
+export type StatusLookup = (value: string, t: Translator) => StatusMeta
+
+export interface StatusMeta extends StatusPresentation {
   label: string
   description: string
-  icon: LucideIcon
 }
 
 const NEUTRAL: ToneClasses = {
@@ -91,106 +112,31 @@ const CYAN: ToneClasses = {
   chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
 }
 
-export const VENDOR_STATUS_META: Record<VendorStatus, StatusMeta> = {
-  Pending: {
-    label: 'Pending',
-    description: 'Recorded, but not yet cleared to work.',
-    icon: Clock,
-    ...AMBER,
-  },
-  Active: {
-    label: 'Active',
-    description: 'Working, and able to take new assignments.',
-    icon: CircleCheck,
-    ...EMERALD,
-  },
-  Inactive: {
-    label: 'Inactive',
-    description: 'Out of use. Existing records are kept; nothing new is assigned.',
-    icon: CircleMinus,
-    ...NEUTRAL,
-  },
-  Suspended: {
-    label: 'Suspended',
-    description: 'Stopped by us. No new assignments until it is reinstated.',
-    icon: CircleSlash,
-    ...ROSE,
-  },
+export const VENDOR_STATUS_META: Record<VendorStatus, StatusPresentation> = {
+  Pending: { icon: Clock, ...AMBER },
+  Active: { icon: CircleCheck, ...EMERALD },
+  Inactive: { icon: CircleMinus, ...NEUTRAL },
+  Suspended: { icon: CircleSlash, ...ROSE },
 }
 
-export const VEHICLE_STATUS_META: Record<VehicleStatus, StatusMeta> = {
-  Active: {
-    label: 'Active',
-    description: 'On the road, and able to take a driver.',
-    icon: CircleCheck,
-    ...EMERALD,
-  },
-  Inactive: {
-    label: 'Inactive',
-    description: 'Off the fleet for now.',
-    icon: CircleMinus,
-    ...NEUTRAL,
-  },
-  'Under Maintenance': {
-    label: 'Maintenance',
-    description: 'In the workshop. Not available for a new assignment.',
-    icon: Wrench,
-    ...AMBER,
-  },
-  Suspended: {
-    label: 'Suspended',
-    description: 'Stopped by us until further notice.',
-    icon: CircleSlash,
-    ...ORANGE,
-  },
-  Expired: {
-    label: 'Expired',
-    description: 'Papers have run out. It cannot be given a driver.',
-    icon: FileWarning,
-    ...ROSE,
-  },
+export const VEHICLE_STATUS_META: Record<VehicleStatus, StatusPresentation> = {
+  Active: { icon: CircleCheck, ...EMERALD },
+  Inactive: { icon: CircleMinus, ...NEUTRAL },
+  'Under Maintenance': { icon: Wrench, ...AMBER },
+  Suspended: { icon: CircleSlash, ...ORANGE },
+  Expired: { icon: FileWarning, ...ROSE },
 }
 
-export const DRIVER_STATUS_META: Record<DriverStatus, StatusMeta> = {
-  Active: {
-    label: 'Active',
-    description: 'Available, and able to be assigned.',
-    icon: CircleCheck,
-    ...EMERALD,
-  },
-  Inactive: {
-    label: 'Inactive',
-    description: 'No longer working for this vendor.',
-    icon: CircleMinus,
-    ...NEUTRAL,
-  },
-  Suspended: {
-    label: 'Suspended',
-    description: 'Stopped by us. Cannot be assigned.',
-    icon: CircleSlash,
-    ...ROSE,
-  },
-  'On Leave': {
-    label: 'On leave',
-    description: 'Away, and back later. Cannot take a new assignment meanwhile.',
-    icon: Palmtree,
-    ...AMBER,
-  },
+export const DRIVER_STATUS_META: Record<DriverStatus, StatusPresentation> = {
+  Active: { icon: CircleCheck, ...EMERALD },
+  Inactive: { icon: CircleMinus, ...NEUTRAL },
+  Suspended: { icon: CircleSlash, ...ROSE },
+  'On Leave': { icon: Palmtree, ...AMBER },
 }
 
-export const ASSIGNMENT_STATUS_META: Record<AssignmentStatus, StatusMeta> = {
-  Active: {
-    label: 'Active',
-    description: 'In force now.',
-    icon: BadgeCheck,
-    ...EMERALD,
-  },
-  Ended: {
-    label: 'Ended',
-    description: 'History. Kept so the record can say who was driving.',
-    icon: CalendarClock,
-    ...NEUTRAL,
-  },
+export const ASSIGNMENT_STATUS_META: Record<AssignmentStatus, StatusPresentation> = {
+  Active: { icon: BadgeCheck, ...EMERALD },
+  Ended: { icon: CalendarClock, ...NEUTRAL },
 }
 
 /**
@@ -201,49 +147,48 @@ export const ASSIGNMENT_STATUS_META: Record<AssignmentStatus, StatusMeta> = {
  * information" rather than "nothing wrong". That is the same rule the Location
  * module's status badge follows.
  */
-export const DOCUMENT_STATUS_META: Record<DocumentStatus, StatusMeta> = {
-  Valid: {
-    label: 'Valid',
-    description: 'In date, with time to spare.',
-    icon: CircleCheck,
-    ...EMERALD,
-  },
-  'Expiring Soon': {
-    label: 'Expiring soon',
-    description: 'Inside the renewal window. Renew before it lapses.',
-    icon: Clock,
-    ...AMBER,
-  },
-  Expired: {
-    label: 'Expired',
-    description: 'Run out. The vehicle or driver should not be working on it.',
-    icon: FileWarning,
-    ...ROSE,
-  },
+export const DOCUMENT_STATUS_META: Record<DocumentStatus, StatusPresentation> = {
+  Valid: { icon: CircleCheck, ...EMERALD },
+  'Expiring Soon': { icon: Clock, ...AMBER },
+  Expired: { icon: FileWarning, ...ROSE },
 }
 
-export const OWNERSHIP_META: Record<VehicleOwnershipType, StatusMeta> = {
-  'Vendor Owned': {
-    label: 'Owned',
-    description: "The vendor's own vehicle.",
-    icon: Truck,
-    ...INDIGO,
-  },
-  Rented: {
-    label: 'Rented',
-    description: 'Hired in by the vendor.',
-    icon: KeyRound,
-    ...CYAN,
-  },
+export const OWNERSHIP_META: Record<VehicleOwnershipType, StatusPresentation> = {
+  'Vendor Owned': { icon: Truck, ...INDIGO },
+  Rented: { icon: KeyRound, ...CYAN },
 }
 
 /** Neutral presentation for a value the client does not recognise. */
-function unknownMeta(value: string): StatusMeta {
+function unknownMeta(value: string, t: Translator): StatusMeta {
   return {
-    label: value || 'Unknown',
-    description: 'Not one of the recognised values.',
+    label: value || t('vendor.unknown'),
+    description: t('vendor.unrecognised'),
     icon: CircleHelp,
     ...NEUTRAL,
+  }
+}
+
+/**
+ * One value out of one vocabulary, in words.
+ *
+ * The branch name is passed in rather than derived, so a vocabulary renamed in
+ * the dictionary is a compile error at exactly one line per lookup rather than
+ * a key that silently resolves to itself.
+ */
+function statusMeta(
+  branch: string,
+  value: string,
+  presentation: StatusPresentation | undefined,
+  t: Translator,
+): StatusMeta {
+  if (!presentation) {
+    return unknownMeta(value, t)
+  }
+
+  return {
+    ...presentation,
+    label: t(`${branch}.${value}.label` as TranslationKey),
+    description: t(`${branch}.${value}.description` as TranslationKey),
   }
 }
 
@@ -252,28 +197,49 @@ function unknownMeta(value: string): StatusMeta {
  * has to render as something — an unrecognised value degrades to a neutral
  * badge rather than throwing on `undefined.badge`.
  */
-export function vendorStatusMeta(value: string): StatusMeta {
-  return VENDOR_STATUS_META[value as VendorStatus] ?? unknownMeta(value)
+export function vendorStatusMeta(value: string, t: Translator): StatusMeta {
+  return statusMeta('vendor.vendorStatuses', value, VENDOR_STATUS_META[value as VendorStatus], t)
 }
 
-export function vehicleStatusMeta(value: string): StatusMeta {
-  return VEHICLE_STATUS_META[value as VehicleStatus] ?? unknownMeta(value)
+export function vehicleStatusMeta(value: string, t: Translator): StatusMeta {
+  return statusMeta('vendor.vehicleStatuses', value, VEHICLE_STATUS_META[value as VehicleStatus], t)
 }
 
-export function driverStatusMeta(value: string): StatusMeta {
-  return DRIVER_STATUS_META[value as DriverStatus] ?? unknownMeta(value)
+export function driverStatusMeta(value: string, t: Translator): StatusMeta {
+  return statusMeta('vendor.driverStatuses', value, DRIVER_STATUS_META[value as DriverStatus], t)
 }
 
-export function assignmentStatusMeta(value: string): StatusMeta {
-  return ASSIGNMENT_STATUS_META[value as AssignmentStatus] ?? unknownMeta(value)
+export function assignmentStatusMeta(value: string, t: Translator): StatusMeta {
+  return statusMeta(
+    'vendor.assignmentStatuses',
+    value,
+    ASSIGNMENT_STATUS_META[value as AssignmentStatus],
+    t,
+  )
 }
 
-export function documentStatusMeta(value: string): StatusMeta {
-  return DOCUMENT_STATUS_META[value as DocumentStatus] ?? unknownMeta(value)
+export function documentStatusMeta(value: string, t: Translator): StatusMeta {
+  return statusMeta(
+    'vendor.documentStatuses',
+    value,
+    DOCUMENT_STATUS_META[value as DocumentStatus],
+    t,
+  )
 }
 
-export function ownershipMeta(value: string): StatusMeta {
-  return OWNERSHIP_META[value as VehicleOwnershipType] ?? unknownMeta(value)
+/**
+ * What a document type is called.
+ *
+ * The value is stored — it comes off the record and out of `DOCUMENT_TYPES` —
+ * so this is a lookup rather than a table of labels, and an unrecognised type
+ * falls back to the value itself rather than to a blank cell.
+ */
+export function documentTypeLabel(value: string, t: Translator): string {
+  return t(`vendor.documentTypes.${value}` as TranslationKey)
+}
+
+export function ownershipMeta(value: string, t: Translator): StatusMeta {
+  return statusMeta('vendor.ownership', value, OWNERSHIP_META[value as VehicleOwnershipType], t)
 }
 
 /**
@@ -284,34 +250,25 @@ export function ownershipMeta(value: string): StatusMeta {
  * module is a calendar day: a licence expires *on* the 20th, not at an instant
  * on it. The same reasoning `formatTripDate` follows in Gate Pass.
  */
-const DAY_FORMAT = new Intl.DateTimeFormat(undefined, {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  timeZone: 'UTC',
-})
-
 export function formatDay(value: string | null | undefined): string {
-  if (!value) {
-    return '—'
-  }
-
-  const parsed = new Date(`${value.slice(0, 10)}T00:00:00.000Z`)
-  return Number.isNaN(parsed.getTime()) ? '—' : DAY_FORMAT.format(parsed)
+  return formatCalendarDay(value)
 }
 
-/** "01 Sep 2026 — current" : how an assignment period reads in a row. */
-export function formatPeriod(from: string, until: string | null): string {
-  return `${formatDay(from)} — ${until ? formatDay(until) : 'current'}`
-}
-
-/** A file size, for a document row. */
-export function formatFileSize(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`
-  }
-  if (bytes < 1024 * 1024) {
-    return `${Math.round(bytes / 1024)} KB`
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+/**
+ * "01 Sep 2026 — current" : how an assignment period reads in a row.
+ *
+ * It takes a translator because the open end of it is a word. Renamed from
+ * `formatPeriod` at the same time — the i18n module has a `formatPeriod` of its
+ * own for a month and a year, and two functions of that name meaning different
+ * things is one import away from a quiet mistake.
+ */
+export function formatAssignmentPeriod(
+  from: string,
+  until: string | null,
+  t: Translator,
+): string {
+  return t('vendor.period', {
+    from: formatDay(from),
+    until: until ? formatDay(until) : t('vendor.current'),
+  })
 }

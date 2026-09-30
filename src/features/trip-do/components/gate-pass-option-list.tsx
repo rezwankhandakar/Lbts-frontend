@@ -56,8 +56,7 @@ export function GatePassOptionList({
         <PackageSearch className="size-5 text-muted-foreground" aria-hidden />
         <p className="mt-2 text-[13px] font-medium">{t('tripDo.assign.noOffer')}</p>
         <p className="mt-1 max-w-sm text-xs text-pretty text-muted-foreground">
-          Nothing recent carries {model || 'this product'} or anything close to it with pieces still
-          unlinked. Type the Trip DO, gate pass number or vehicle to find it anyway.
+          {t('tripDo.assign.noOfferHint', { model: model || t('tripDo.assign.thisProduct') })}
         </p>
       </div>
     )

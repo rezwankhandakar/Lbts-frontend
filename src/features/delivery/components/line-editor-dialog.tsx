@@ -96,7 +96,7 @@ export function LineEditorDialog({
           </DialogTitle>
           <DialogDescription>
             {mode.kind === 'add'
-              ? `A product on the lorry that ${challanNumber} does not list. It is recorded as added.`
+              ? t('delivery.line.addDescriptionPlain', { challan: challanNumber })
               : source
                 ? t('delivery.line.replaceDescription', {
                     product: source.productName,

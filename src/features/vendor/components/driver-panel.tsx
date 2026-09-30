@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Users } from 'lucide-react'
 import { ListPagination } from '@/components/shared/list-pagination'
+import { SentenceWith } from '@/components/shared/sentence-with'
 import {
   useChangeDriverStatus,
   useCreateDriver,
@@ -25,6 +26,7 @@ import { DriverFormDialog } from './driver-form-dialog'
 import { DriverTable } from './driver-table'
 import { Panel, PanelEmpty, PanelError, PanelSkeleton } from './panel-states'
 import { StatusChangeDialog } from './status-change-dialog'
+import { useT } from '@/lib/i18n'
 
 type Overlay = 'form' | 'status' | 'delete' | 'detail'
 
@@ -56,6 +58,8 @@ export function DriverPanel({
   onAssign,
   onDocuments,
 }: DriverPanelProps) {
+  const t = useT()
+
   const { params, applied, isFiltered, applyFilters, setPage, clampToPages, reset } =
     useDriverListParams()
 
@@ -121,7 +125,7 @@ export function DriverPanel({
 
   return (
     <>
-      <Panel label="Drivers">
+      <Panel label={t('vendor.driver.panel')}>
         <DriverFilters
           params={params}
           onChange={applyFilters}
@@ -133,9 +137,9 @@ export function DriverPanel({
           canManage={canManage}
           summary={
             meta && !query.isPending
-              ? `${meta.total} ${meta.total === 1 ? 'driver' : 'drivers'}${
-                  isFiltered ? ' match these filters' : ' on the books'
-                }`
+              ? t(isFiltered ? 'vendor.driver.summaryFiltered' : 'vendor.driver.summaryTotal', {
+                  count: meta.total,
+                })
               : undefined
           }
         />
@@ -144,22 +148,22 @@ export function DriverPanel({
           <PanelSkeleton />
         ) : query.isError ? (
           <PanelError
-            title="Could not load the drivers"
-            message={query.error?.message ?? 'Something went wrong.'}
+            title={t('vendor.driver.loadFailed')}
+            message={query.error?.message ?? t('vendor.somethingWrong')}
             onRetry={() => void query.refetch()}
             isRetrying={query.isFetching}
           />
         ) : records.length === 0 ? (
           <PanelEmpty
             icon={Users}
-            title="No drivers added yet"
-            description={`Every driver belongs to exactly one vendor, and can only be assigned to ${vendor.name}'s own vehicles.`}
+            title={t('vendor.driver.noneYet')}
+            description={t('vendor.driver.noneHint', { vendor: vendor.name })}
             isFiltered={isFiltered}
             onReset={reset}
             action={
               canManage
                 ? {
-                    label: 'Add driver',
+                    label: t('vendor.driver.add'),
                     onClick: () => {
                       setTarget(null)
                       setOverlay('form')
@@ -218,14 +222,14 @@ export function DriverPanel({
           open={overlay === 'status'}
           isPending={isPending}
           subject={target.name}
-          noun="driver"
+          noun={t('vendor.statusDialog.nounDriver')}
           current={target.status}
           options={DRIVER_STATUSES}
           meta={driverStatusMeta}
           consequence={(next) =>
             next === 'Active'
-              ? 'They can be given a vehicle again.'
-              : 'Any assignment they currently hold is left exactly as it is — a driver on leave from Tuesday was still driving on Monday. They simply cannot take a new assignment until they are active.'
+              ? t('vendor.driver.activeConsequence')
+              : t('vendor.driver.inactiveConsequence')
           }
           onOpenChange={(open) => !open && close()}
           onConfirm={(next, note) =>
@@ -241,17 +245,15 @@ export function DriverPanel({
         <ConfirmDialog
           open={overlay === 'delete'}
           isPending={isPending}
-          title={`Remove ${target.name}?`}
+          title={t('vendor.driver.removeTitle', { name: target.name })}
           description={
-            <>
-              The driver, their documents and their <strong>whole assignment history</strong> are
-              deleted. If they have simply left this vendor, marking them inactive keeps the record
-              of which vehicles they drove and when.
-            </>
+            <SentenceWith text={t('vendor.driver.removeDescription')} placeholder="{history}">
+              <strong>{t('vendor.driver.wholeHistory')}</strong>
+            </SentenceWith>
           }
-          confirmLabel="Remove"
-          pendingLabel="Removing…"
-          cancelLabel="Keep them"
+          confirmLabel={t('vendor.remove.confirm')}
+          pendingLabel={t('vendor.remove.removing')}
+          cancelLabel={t('vendor.remove.keepThem')}
           onOpenChange={(open) => !open && close()}
           onConfirm={() =>
             remove.mutate({ id: target.id, label: target.name }, { onSuccess: close })

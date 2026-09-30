@@ -10,6 +10,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { formatNumber, formatPercent } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { formatDay } from '../lib/vendor-meta'
 import type { VendorDashboard } from '../types'
@@ -47,47 +48,57 @@ export function VendorDashboardTiles({ dashboard }: { dashboard: VendorDashboard
     {
       key: 'delivered',
       icon: PackageCheck,
-      label: 'Delivered this month',
+      label: t('vendor.dashboard.deliveredThisMonth'),
       value: month.delivered,
       note:
         month.qty === 0
-          ? 'Nothing carried yet'
-          : `of ${month.qty.toLocaleString()} pcs carried · ${month.deliveryRate}%`,
+          ? t('vendor.dashboard.nothingCarried')
+          : t('vendor.dashboard.deliveredNote', {
+              carried: countOf(month.qty, 'nouns.pc', t),
+              rate: formatPercent(month.deliveryRate),
+            }),
       tone: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
     },
     {
       key: 'returned',
       icon: Undo2,
-      label: 'Back at depot',
+      label: t('vendor.dashboard.backAtDepot'),
       value: month.returned,
       note:
         month.returned === 0
-          ? 'Nothing came back this month'
-          : 'pieces returned off a trip this month',
+          ? t('vendor.dashboard.nothingCameBack')
+          : t('vendor.dashboard.returnedNote'),
       tone: 'bg-tone-rose/10 text-tone-rose ring-tone-rose/20',
     },
     {
       key: 'awaiting',
       icon: FileClock,
-      label: 'Awaiting signed copy',
+      label: t('vendor.dashboard.awaitingCopy'),
       value: backlog.awaitingCopies,
       note:
         backlog.trips === 0
-          ? 'Every copy is in'
-          : `across ${countOf(backlog.trips, 'nouns.trip', t)}${
-              backlog.oldest ? ` · oldest ${formatDay(backlog.oldest)}` : ''
-            }`,
+          ? t('vendor.dashboard.everyCopyIn')
+          : backlog.oldest
+            ? t('vendor.dashboard.awaitingNoteOldest', {
+                trips: countOf(backlog.trips, 'nouns.trip', t),
+                day: formatDay(backlog.oldest),
+              })
+            : t('vendor.dashboard.awaitingNote', {
+                trips: countOf(backlog.trips, 'nouns.trip', t),
+              }),
       tone: 'bg-tone-amber/10 text-tone-amber ring-tone-amber/20',
     },
     {
       key: 'completed',
       icon: CircleCheckBig,
-      label: 'Trips completed',
+      label: t('vendor.dashboard.tripsCompleted'),
       value: month.completedTrips,
       note:
         month.trips === 0
-          ? 'No trips this month yet'
-          : `of ${countOf(month.trips, 'nouns.trip', t)} this month`,
+          ? t('vendor.dashboard.noTripsThisMonth')
+          : t('vendor.dashboard.completedNote', {
+              trips: countOf(month.trips, 'nouns.trip', t),
+            }),
       tone: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
     },
   ]
@@ -129,6 +140,7 @@ export function VendorDashboardTiles({ dashboard }: { dashboard: VendorDashboard
  * wrong.
  */
 export function VendorDashboardFleet({ dashboard }: { dashboard: VendorDashboard }) {
+  const t = useT()
   const { fleet } = dashboard
   const lapsing = fleet.expiredDocuments + fleet.expiringDocuments
 
@@ -136,15 +148,15 @@ export function VendorDashboardFleet({ dashboard }: { dashboard: VendorDashboard
     {
       to: '/my-vendor?tab=vehicles',
       icon: Truck,
-      label: 'Vehicles',
-      value: fleet.vehicles.toLocaleString(),
+      label: t('vendor.kpi.vehicles'),
+      value: formatNumber(fleet.vehicles),
       tone: '',
     },
     {
       to: '/my-vendor?tab=drivers',
       icon: IdCard,
-      label: 'Drivers',
-      value: fleet.drivers.toLocaleString(),
+      label: t('vendor.kpi.drivers'),
+      value: formatNumber(fleet.drivers),
       tone: '',
     },
     /**
@@ -157,22 +169,22 @@ export function VendorDashboardFleet({ dashboard }: { dashboard: VendorDashboard
       ? {
           to: '/my-vendor?tab=documents',
           icon: FileClock,
-          label: 'Documents lapsing',
-          value: lapsing.toLocaleString(),
+          label: t('vendor.dashboard.documentsLapsing'),
+          value: formatNumber(lapsing),
           tone: 'text-tone-amber',
         }
       : {
           to: '/my-vendor?tab=documents',
           icon: ShieldCheck,
-          label: 'Documents',
-          value: 'In date',
+          label: t('vendor.dashboard.documents'),
+          value: t('vendor.dashboard.inDate'),
           tone: 'text-tone-emerald',
         },
   ]
 
   return (
     <section
-      aria-label="Fleet on record"
+      aria-label={t('vendor.dashboard.fleetAria')}
       className="grid grid-cols-3 divide-x overflow-hidden rounded-xl border bg-card shadow-sm"
     >
       {links.map((link) => (

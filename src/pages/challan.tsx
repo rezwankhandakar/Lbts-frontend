@@ -14,7 +14,7 @@ import { canManageAnyChallan, canWriteChallans } from '@/features/challan/types'
 import type { ChallanListParams } from '@/features/challan/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
 import { useAuthStore } from '@/stores/use-auth-store'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * The challan records.
@@ -119,9 +119,9 @@ export function ChallanPage() {
           currentUserId={currentUserId}
           summary={
             meta && !query.isPending
-              ? `${meta.total} ${meta.total === 1 ? 'challan' : 'challans'}${
-                  list.isFiltered ? ' match these filters' : ' on record'
-                }`
+              ? t(list.isFiltered ? 'challan.list.summaryFiltered' : 'challan.list.summaryTotal', {
+                  challans: countOf(meta.total, 'nouns.challan', t),
+                })
               : undefined
           }
         />

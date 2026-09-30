@@ -50,9 +50,9 @@ export function ConfirmTripDialog({ workspace, open, onOpenChange, onConfirm }: 
     .map((challan) => ({ challan, changes: challanChanges(challan) }))
     .filter((entry) => entry.changes.length > 0)
   const rows: [string, string][] = [
-    ['Vehicle', vehicle.vehicle.registrationNo],
-    ['Vendor', `${vehicle.vendor.name} (${vehicle.vendor.vendorCode})`],
-    ['Driver', `${driver.name} · ${driver.mobile}`],
+    [t('common.labels.vehicle'), vehicle.vehicle.registrationNo],
+    [t('common.labels.vendor'), `${vehicle.vendor.name} (${vehicle.vendor.vendorCode})`],
+    [t('common.labels.driver'), `${driver.name} · ${driver.mobile}`],
     [t('delivery.summary.tripDate'), formatDay(tripDate)],
   ]
 

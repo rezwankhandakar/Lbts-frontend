@@ -110,8 +110,8 @@ function ExpensesBody() {
             errorMessage={query.isError ? query.error.message : null}
             onRetry={() => void query.refetch()}
             canWrite={canWrite}
-            emptyTitle="No expenses here"
-            emptyDescription="Office rent, bills, salary, conveyance — any cost the office pays is an expense."
+            emptyTitle={t('accounts.pages.expenses.emptyTitle')}
+            emptyDescription={t('accounts.pages.expenses.emptyHint')}
           />
           {meta && !query.isError && (
             <ListPagination meta={meta} onPageChange={list.setPage} isFetching={query.isFetching} nounKey="nouns.expense" />

@@ -82,7 +82,7 @@ export function CandidateGroupCard({ group, bill, selection, isAdding, onAddRows
           indeterminate={ticked > 0 && !allTicked}
           disabled={addableRows.length === 0}
           onCheckedChange={() => selection.setRows(addableRows, !allTicked)}
-          aria-label={`Tick every row of Trip DO ${group.tripDo}`}
+          aria-label={t('bill.search.tickEveryRow', { tripDo: group.tripDo })}
         />
 
         <div className="min-w-0 flex-1">
@@ -99,7 +99,11 @@ export function CandidateGroupCard({ group, bill, selection, isAdding, onAddRows
                   ? 'bg-background'
                   : 'border-tone-rose/30 bg-tone-rose/10 text-tone-rose',
               )}
-              title={group.unitMatches ? undefined : `This bill is for unit ${billUnit}`}
+              title={
+                group.unitMatches
+                  ? undefined
+                  : t('bill.search.billIsForUnit', { unit: billUnit })
+              }
             >
               {group.unit || t('bill.noUnit')}
             </span>

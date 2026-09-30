@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import type { TripOverage } from '../types'
 import { formatNumber } from '@/lib/format'
 import { useT } from '@/lib/i18n'
+import { SentenceWith } from '@/components/shared/sentence-with'
 
 interface OverageDialogProps {
   overages: TripOverage[] | null
@@ -38,9 +39,9 @@ export function OverageDialog({ overages, isPending, onCancel, onConfirm }: Over
         <AlertDialogHeader>
           <AlertDialogTitle>{t('delivery.overage.title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Check these lines against the load. Sending them anyway is allowed — the trip records
-            what actually went — but it also <strong>raises the challan</strong> to match, so a
-            quantity typed by mistake would rewrite the office&apos;s record.
+            <SentenceWith text={t('delivery.overage.bodyRaises')} placeholder="{raises}">
+              <strong>{t('delivery.overage.raisesTheChallan')}</strong>
+            </SentenceWith>
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -53,8 +54,14 @@ export function OverageDialog({ overages, isPending, onCancel, onConfirm }: Over
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
                 {t('delivery.line.ordered', { n: formatNumber(overage.ordered) })}
-                {overage.onOtherTrips > 0 && ` · ${overage.onOtherTrips} already on other trips`} ·{' '}
-                <span className="font-semibold text-tone-orange">{overage.onThisTrip} on this trip</span>
+                {overage.onOtherTrips > 0 &&
+                  t('delivery.line.alreadyOnOtherTrips', {
+                    qty: formatNumber(overage.onOtherTrips),
+                  })}{' '}
+                ·{' '}
+                <span className="font-semibold text-tone-orange">
+                  {t('delivery.line.onThisTripCount', { qty: formatNumber(overage.onThisTrip) })}
+                </span>
               </p>
             </li>
           ))}

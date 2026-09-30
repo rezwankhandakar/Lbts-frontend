@@ -1,5 +1,5 @@
 import { Building2, CircleAlert, Route, UserRound } from 'lucide-react'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { OwnershipBadge, VehicleStatusBadge } from '@/features/vendor/components/status-badges'
 import { VehicleAvatar } from '@/features/vendor/components/vendor-identity'
@@ -112,7 +112,9 @@ export function VehicleResultItem({
               <Route className="size-3" aria-hidden />
               {openTrips.length === 1
                 ? t('delivery.vehicle.onTrip', { trip: shortTripNumber(openTrips[0].tripNumber) })
-                : `${openTrips.length} open trips`}
+                : t('delivery.vehicle.openTripsCount', {
+                    trips: countOf(openTrips.length, 'nouns.trip', t),
+                  })}
             </span>
           )}
         </div>

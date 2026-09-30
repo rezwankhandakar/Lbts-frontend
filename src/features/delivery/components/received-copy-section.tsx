@@ -13,7 +13,7 @@ import type { TripChallanRecord, TripRecord } from '../types'
 import { CopyMissingForm } from './copy-missing-form'
 import { QuickCopyScan } from './quick-copy-scan'
 import { ReceivedCopyViewer } from './received-copy-viewer'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 interface ReceivedCopySectionProps {
   trip: TripRecord
@@ -68,8 +68,14 @@ export function ReceivedCopySection({ trip, challan, canWrite }: ReceivedCopySec
               <p className="truncate text-[13px] font-medium">{copy.originalName || t('delivery.copy.fallbackName')}</p>
               <p className="text-xs text-muted-foreground">
                 {formatBytes(copy.size)}
-                {copy.pageCount ? ` · ${copy.pageCount} pages` : ''}
-                {challan.completedBy ? ` · filed by ${challan.completedBy.name}` : ''}
+                {copy.pageCount
+                  ? t('delivery.copy.pagesSuffix', {
+                      pages: countOf(copy.pageCount, 'nouns.page', t),
+                    })
+                  : ''}
+                {challan.completedBy
+                  ? t('delivery.copy.filedBy', { name: challan.completedBy.name })
+                  : ''}
               </p>
             </div>
             <Button
@@ -81,7 +87,7 @@ export function ReceivedCopySection({ trip, challan, canWrite }: ReceivedCopySec
                 void copyFile.open(copy)
               }}
             >
-              View
+              {t('common.actions.view')}
             </Button>
             {canWrite && (
               <>
@@ -130,7 +136,7 @@ export function ReceivedCopySection({ trip, challan, canWrite }: ReceivedCopySec
             </div>
             {canWrite && (
               <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => clearMissing.mutate(target)}>
-                Undo
+                {t('common.actions.undo')}
               </Button>
             )}
           </div>

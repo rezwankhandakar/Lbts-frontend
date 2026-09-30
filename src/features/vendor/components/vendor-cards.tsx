@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { VendorRecord } from '../types'
 import { ComplianceChips, VendorStatusBadge } from './status-badges'
@@ -39,6 +40,8 @@ export function VendorCards({
   onChangeStatus,
   onDelete,
 }: VendorCardsProps) {
+  const t = useT()
+
   return (
     <ul className="divide-y md:hidden">
       {records.map((record) => {
@@ -112,7 +115,7 @@ export function VendorCards({
                       variant="ghost"
                       size="icon"
                       className="size-8 shrink-0"
-                      aria-label={`Actions for ${record.name}`}
+                      aria-label={t('vendor.directory.actionsFor', { name: record.name })}
                     />
                   }
                 >
@@ -122,16 +125,16 @@ export function VendorCards({
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => onEdit(record)}>
                     <PencilLine aria-hidden />
-                    Edit details
+                    {t('vendor.directory.editDetails')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onChangeStatus(record)}>
                     <ShieldCheck aria-hidden />
-                    Change status
+                    {t('vendor.directory.changeStatus')}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onClick={() => onDelete(record)}>
                     <Trash2 aria-hidden />
-                    Remove
+                    {t('common.actions.remove')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

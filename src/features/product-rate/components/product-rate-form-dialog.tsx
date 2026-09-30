@@ -155,8 +155,7 @@ export function ProductRateFormDialog({
                 {...register('productModel')}
               />
               <p className="text-xs leading-snug text-muted-foreground">
-                Leave blank if the product has no model. A blank row prices every challan line
-                naming this product, whatever model it carries.
+                {t('productRate.form.modelHint')}
               </p>
               {errors.productModel && (
                 <p role="alert" className="text-xs text-destructive">
@@ -177,9 +176,7 @@ export function ProductRateFormDialog({
               {...register('capacity')}
             />
             <p className="text-xs leading-snug text-muted-foreground">
-              What the card says beside the rate — &ldquo;21 to 40 kg&rdquo;, &ldquo;Gross 151-285
-              Litre&rdquo;. Copied onto every challan line this row prices, so somebody reading the
-              record can see which rate was applied.
+              {t('productRate.form.capacityHint')}
             </p>
           </div>
 
@@ -210,8 +207,7 @@ export function ProductRateFormDialog({
             <span className="min-w-0 flex-1">
               <span className="block text-[13px] font-medium">{t('productRate.form.inUse')}</span>
               <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
-                An inactive row prices nothing and is offered nowhere. Challans already charged from
-                it keep their figures.
+                {t('productRate.form.inactiveHint')}
               </span>
             </span>
           </label>

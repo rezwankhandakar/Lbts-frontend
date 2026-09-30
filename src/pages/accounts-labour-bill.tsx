@@ -1,5 +1,6 @@
 import { ArrowLeft, ExternalLink, HandCoins, HardHat, Wallet } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
+import { SentenceWith } from '@/components/shared/sentence-with'
 import { buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Panel, StatTile } from '@/features/accounts/components/account-atoms'
@@ -10,7 +11,8 @@ import { useLabourReceivable } from '@/features/accounts/hooks/use-accounts'
 import { taka } from '@/features/accounts/lib/accounts-meta'
 import { canWriteAccounts } from '@/features/accounts/types'
 import { useCurrentRole } from '@/hooks/use-current-role'
-import { useT } from '@/lib/i18n'
+import { labourBillStatusMeta } from '@/features/labour-bill/lib/labour-bill-meta'
+import { countOf, useT } from '@/lib/i18n'
 
 /**
  * One month's labour claim, split into the cards it is actually paid on.
@@ -75,14 +77,17 @@ function LabourBillBody({
         <StatTile
           label={month.periodLabel}
           value={taka(month.billedAmount)}
-          hint={`${month.billNumber} · ${month.status}`}
+          hint={t('accounts.pages.labourBill.monthHint', {
+            bill: month.billNumber,
+            status: labourBillStatusMeta(month.status, t).label,
+          })}
           icon={HardHat}
           tone="indigo"
         />
         <StatTile
           label={t('accounts.pages.labourBill.received')}
           value={taka(month.receivedAmount)}
-          hint={`${receipts.length} ${receipts.length === 1 ? 'payment' : 'payments'}`}
+          hint={countOf(receipts.length, 'nouns.payment', t)}
           icon={Wallet}
           tone="emerald"
         />
@@ -114,11 +119,14 @@ function LabourBillBody({
           <HardHat className="size-7 text-muted-foreground" aria-hidden />
           <p className="text-sm font-medium">{t('accounts.pages.labourBill.nothingYet')}</p>
           <p className="max-w-md text-xs text-muted-foreground">
-            {t('accounts.pages.labourBill.scanOnto')}{' '}
-            <Link to={`/labour-bills/${month.id}`} className="font-medium text-primary hover:underline">
-              {month.billNumber}
-            </Link>
-            , and each CSD appears here with what it is owed.
+            <SentenceWith text={t('accounts.pages.labourBill.scanOnto')}>
+              <Link
+                to={`/labour-bills/${month.id}`}
+                className="font-medium text-primary hover:underline"
+              >
+                {month.billNumber}
+              </Link>
+            </SentenceWith>
           </p>
         </div>
       )}
@@ -133,8 +141,8 @@ function LabourBillBody({
           errorMessage={null}
           onRetry={() => undefined}
           canWrite={canWrite}
-          emptyTitle="No payment recorded yet"
-          emptyDescription="Record one from the CSD it settles, and it appears here."
+          emptyTitle={t('accounts.pages.labourBill.receiptsEmptyTitle')}
+          emptyDescription={t('accounts.pages.labourBill.receiptsEmptyHint')}
         />
       </Panel>
     </div>

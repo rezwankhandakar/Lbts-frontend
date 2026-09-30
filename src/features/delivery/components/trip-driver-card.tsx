@@ -98,7 +98,7 @@ export function TripDriverCard({
       {driver?.licenceStatus === 'Expired' && (
         <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-tone-rose/10 px-2.5 py-1.5 text-[11px] text-tone-rose">
           <TriangleAlert className="mt-px size-3 shrink-0" aria-hidden />
-          The licence has expired. The trip can still be confirmed — check it before dispatch.
+          {t('delivery.vehicle.licenceExpiredNote')}
         </p>
       )}
 

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { Camera, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ALLOWED_PHOTO_EXTENSIONS, isAllowedPhoto } from '@/features/vendor/lib/photo-rules'
+import { MAX_PHOTO_BYTES, isAllowedPhoto } from '@/features/vendor/lib/photo-rules'
+import { formatFileSize } from '@/lib/format'
 import { useT } from '@/lib/i18n'
 
 interface DriverPhotoFieldProps {
@@ -73,7 +74,7 @@ export function DriverPhotoField({ file, onChange, disabled }: DriverPhotoFieldP
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            Optional. {ALLOWED_PHOTO_EXTENSIONS}, up to 5 MB.
+            {t('delivery.driver.photoFormats', { size: formatFileSize(MAX_PHOTO_BYTES) })}
           </p>
         </div>
 

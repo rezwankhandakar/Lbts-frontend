@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { formatNumber } from '@/lib/format'
 import { useT } from '@/lib/i18n'
 import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
@@ -113,7 +114,9 @@ function SplitBody({
               className={cn('size-2.5 shrink-0 rounded-full', SEGMENTS[index % SEGMENTS.length])}
               aria-hidden
             />
-            <span className="w-14 text-xs text-muted-foreground">Part {index + 1}</span>
+            <span className="w-14 text-xs text-muted-foreground">
+              {t('tripDo.split.part', { n: formatNumber(index + 1) })}
+            </span>
             <Input
               type="number"
               inputMode="numeric"
@@ -121,14 +124,14 @@ function SplitBody({
               value={part}
               onChange={(event) => setPart(index, Number.parseInt(event.target.value, 10) || 0)}
               className="h-8 w-24 tabular-nums"
-              aria-label={`Pieces in part ${index + 1}`}
+              aria-label={t('tripDo.split.piecesInPart', { n: formatNumber(index + 1) })}
             />
             {parts.length > 2 && (
               <Button
                 variant="ghost"
                 size="icon-xs"
                 onClick={() => setParts((current) => current.filter((_, at) => at !== index))}
-                aria-label={`Remove part ${index + 1}`}
+                aria-label={t('tripDo.split.removePart', { n: formatNumber(index + 1) })}
               >
                 <X aria-hidden />
               </Button>
