@@ -207,7 +207,7 @@ export function ChallanWorkspaceSession({ source, resume, onClose }: SessionProp
         <SessionProgressPanel
           pageCount={source.pageCount}
           progress={progress}
-          className="min-w-56 flex-1"
+          className="w-full sm:w-auto sm:min-w-56 sm:flex-1"
         />
 
         <div className="flex shrink-0 items-center gap-2">

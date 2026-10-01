@@ -102,7 +102,7 @@ export function DeliveryCompletionEditor({ trip, challan, canWrite }: DeliveryCo
 
           {drafts !== null && (
             <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 px-3 py-2">
-              <p className="min-w-48 flex-1 text-xs text-muted-foreground">
+              <p className="w-full text-xs text-muted-foreground sm:w-auto sm:min-w-48 sm:flex-1">
                 {draftQty === 0
                   ? t('delivery.completion.setReturned')
                   : t('delivery.completion.someCameBack', {

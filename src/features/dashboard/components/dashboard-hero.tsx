@@ -48,6 +48,16 @@ import type { DashboardData } from '../types'
  * counts as one strip to its right. **Nothing was dropped to get there** —
  * every figure, link and action that was here still is, and the saving is
  * entirely in what sits *beside* what rather than under it.
+ *
+ * **The band is only a band once there is room for one, which is `lg` and not
+ * `sm`.** The headline and the three counts need about 520px side by side — a
+ * count cannot shrink past its icon, its figure and its chevron — and a phone
+ * has roughly 300px, so below `lg` the two stack and the counts take a
+ * full-width row of their own. It is a `flex-col` that becomes a row rather
+ * than a wrapping row, because `flex-1` sets a flex base size of zero: the
+ * counts would never have *triggered* a wrap, they would simply have been
+ * squeezed onto the first line under their own minimum and spilled out of the
+ * card, which is exactly what they did.
  */
 export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; name: string }) {
   const t = useT()
@@ -236,12 +246,13 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
         </div>
 
         {/*
-         * The measurements, as one band. The hairline is what makes it read as
-         * an instrument rather than as more of the greeting, and it is the
-         * only rule drawn on this surface, so it carries that job on its own.
+         * The measurements, as one band from `lg` and as two stacked rows
+         * below it. The hairline is what makes it read as an instrument rather
+         * than as more of the greeting, and it is the only rule drawn on this
+         * surface, so it carries that job on its own.
          */}
         {(headline !== null || panels.length > 0) && (
-          <div className="mt-3.5 flex flex-wrap items-end gap-x-8 gap-y-4 border-t border-primary-foreground/15 pt-3.5">
+          <div className="mt-3.5 flex flex-col gap-4 border-t border-primary-foreground/15 pt-3.5 lg:flex-row lg:flex-wrap lg:items-end lg:gap-x-8">
             {headline && (
               <div className="min-w-0">
                 <p className="text-[10px] font-medium tracking-[0.16em] text-primary-foreground/60 uppercase">
@@ -273,7 +284,7 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
             {panels.length > 0 && (
               <div
                 className={cn(
-                  'grid min-w-0 flex-1 gap-2 sm:grid-cols-3',
+                  'grid min-w-0 gap-2 sm:grid-cols-3 lg:flex-1',
                   panels.length === 1 && 'sm:grid-cols-1',
                   panels.length === 2 && 'sm:grid-cols-2',
                 )}

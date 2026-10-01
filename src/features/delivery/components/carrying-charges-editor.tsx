@@ -89,7 +89,12 @@ export function CarryingChargesEditor({
                   </Select>
                 </div>
 
-                <div className="min-w-40 flex-1 space-y-1">
+                {/* Last on a phone and back in place from `sm`: the kind, the
+                    amount and the remove button fit one line together, and a
+                    free-text box is the one field here that wants the width of
+                    a row to itself. `order` moves it without moving it in the
+                    markup, so the tab order still reads what / details / taka. */}
+                <div className="order-last w-full space-y-1 sm:order-0 sm:w-auto sm:min-w-40 sm:flex-1">
                   <Label htmlFor={`carry-what-${index}`} className="text-xs text-muted-foreground">
                     {t('delivery.extras.detailsHeading')}
                   </Label>
@@ -104,7 +109,7 @@ export function CarryingChargesEditor({
                   />
                 </div>
 
-                <div className="w-28 space-y-1">
+                <div className="min-w-0 flex-1 space-y-1 sm:w-28 sm:flex-none">
                   <Label htmlFor={`carry-amount-${index}`} className="text-xs text-muted-foreground">
                     {t('delivery.carryingKinds.taka')}
                   </Label>
@@ -126,7 +131,7 @@ export function CarryingChargesEditor({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-8"
+                  className="size-8 shrink-0"
                   aria-label={t('delivery.extras.removeCharge')}
                   disabled={disabled}
                   onClick={() => onChange(entries.filter((_, at) => at !== index))}
