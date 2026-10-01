@@ -16,6 +16,7 @@ import {
   removeChallan,
   removeLine,
   restoreSource,
+  retakeChallan,
   setLineQty,
   splitChallan,
   shortTripNumber,
@@ -23,7 +24,6 @@ import {
   takenBySource,
   tallyProducts,
   toPayload,
-  updateParty,
 } from './cart.ts'
 import type { CartState, ChallanCandidate } from './cart.ts'
 
@@ -68,6 +68,37 @@ function withChallan(overrides: Partial<ChallanCandidate> = {}): CartState {
 }
 
 const first = (state: CartState) => state.challans[0]
+
+/** A challan as a saved trip carries it, taken exactly as the challan printed. */
+const storedChallan = {
+  challanId: 'ch1',
+  challanNumber: 'LBTS-CH-2026-000982',
+  slNumber: 10982,
+  customerName: 'ABC Electronics',
+  deliveryAddress: 'House 12',
+  thana: '',
+  district: '',
+  receiverMobile: '01712345678',
+  original: {
+    customerName: 'ABC Electronics',
+    deliveryAddress: 'House 12',
+    thana: '',
+    district: '',
+    receiverMobile: '01712345678',
+  },
+  location: null,
+  note: '',
+  lines: [
+    {
+      sourceIndex: 1,
+      source: { productName: 'Refrigerator', model: 'WFN-1D5 GDEL', qty: 4 },
+      productName: 'Refrigerator',
+      model: 'WFN-1D5 GDEL',
+      qty: 2,
+    },
+  ],
+  reserved: [{ productName: 'Refrigerator', model: 'WFN-1D5 GDEL', qty: 2 }],
+}
 
 describe('addChallan', () => {
   it('puts every line on the trip at its full order when nothing has gone out', () => {
@@ -327,23 +358,109 @@ describe('overagesOf', () => {
 })
 
 describe('delivery details', () => {
-  it('marks what the trip corrected, and only that', () => {
-    const state = updateParty(
-      withChallan(),
-      'ch1',
-      {
-        customerName: 'ABC Electronics',
-        deliveryAddress: 'House 12, Road 3 (behind the mosque)',
-        thana: 'Mirpur',
-        district: 'Dhaka',
-        receiverMobile: '01812345678',
-      },
-      'Call before arriving',
+  // Nothing in the cart edits these any more — a wrong address is corrected on
+  // the challan. A trip filed while that editor existed still carries what it
+  // corrected, so rebuilding one for an edit has to keep saying so.
+  it('marks what an older trip corrected, and only that', () => {
+    const state = fromTrip(
+      [
+        {
+          ...storedChallan,
+          deliveryAddress: 'House 12, Road 3 (behind the mosque)',
+          receiverMobile: '01812345678',
+          note: 'Call before arriving',
+        },
+      ],
+      [candidate()],
     )
 
     assert.deepEqual(editedFields(first(state)), ['deliveryAddress', 'receiverMobile'])
     assert.equal(first(state).note, 'Call before arriving')
     assert.equal(first(state).original.receiverMobile, '01712345678')
+  })
+
+  it('marks nothing on a trip that took the challan as printed', () => {
+    assert.deepEqual(editedFields(first(fromTrip([storedChallan], [candidate()]))), [])
+  })
+})
+
+describe('retakeChallan', () => {
+  // The whole reason this is not `refreshSources`: the challan changed, so
+  // what the operator had done to the old lines cannot be carried over.
+  it('takes the corrected lines and gives up what was trimmed', () => {
+    const state = withChallan()
+    const trimmed = setLineQty(state, 'ch1', first(state).lines[1].key, 1)
+
+    const corrected = retakeChallan(
+      trimmed,
+      candidate({
+        lines: [
+          {
+            index: 0,
+            productName: 'Refrigerator',
+            model: 'WFN-1D5 GDEX',
+            ordered: 3,
+            dispatched: 0,
+            remaining: 3,
+          },
+        ],
+        ordered: 3,
+        remaining: 3,
+      }),
+    )
+
+    assert.deepEqual(
+      first(corrected).lines.map((line) => [line.model, line.qty]),
+      [['WFN-1D5 GDEX', 3]],
+    )
+    assert.deepEqual(first(corrected).reserved, {})
+  })
+
+  it('takes the corrected delivery details as what the challan printed', () => {
+    const corrected = retakeChallan(
+      withChallan(),
+      candidate({ deliveryAddress: 'House 12, Road 3 (behind the mosque)' }),
+    )
+
+    assert.equal(first(corrected).deliveryAddress, 'House 12, Road 3 (behind the mosque)')
+    assert.equal(first(corrected).original.deliveryAddress, 'House 12, Road 3 (behind the mosque)')
+    // Nothing is marked, because nobody corrected it for the trip.
+    assert.deepEqual(editedFields(first(corrected)), [])
+  })
+
+  it('keeps the challan where it was in the list, and its note', () => {
+    const state = fromTrip(
+      [
+        { ...storedChallan, note: 'Call before arriving' },
+        { ...storedChallan, challanId: 'ch2', challanNumber: 'LBTS-CH-2026-000983', note: '' },
+      ],
+      [candidate(), candidate({ id: 'ch2', challanNumber: 'LBTS-CH-2026-000983' })],
+    )
+
+    const corrected = retakeChallan(state, candidate())
+
+    assert.deepEqual(
+      corrected.challans.map((challan) => challan.challanId),
+      ['ch1', 'ch2'],
+    )
+    assert.equal(first(corrected).note, 'Call before arriving')
+  })
+
+  it('gives fresh line keys rather than reusing the ones it replaced', () => {
+    const state = withChallan()
+    const before = first(state).lines.map((line) => line.key)
+    const after = first(retakeChallan(state, candidate())).lines.map((line) => line.key)
+
+    assert.equal(after.length, before.length)
+    assert.deepEqual(
+      after.filter((key) => before.includes(key)),
+      [],
+    )
+  })
+
+  it('leaves a challan that is not on the trip alone', () => {
+    const state = withChallan()
+    assert.equal(retakeChallan(state, candidate({ id: 'ch9' })), state)
   })
 })
 
@@ -415,38 +532,8 @@ describe('toPayload', () => {
 })
 
 describe('fromTrip', () => {
-  const stored = {
-    challanId: 'ch1',
-    challanNumber: 'LBTS-CH-2026-000982',
-    slNumber: 10982,
-    customerName: 'ABC Electronics',
-    deliveryAddress: 'House 12',
-    thana: '',
-    district: '',
-    receiverMobile: '01712345678',
-    original: {
-      customerName: 'ABC Electronics',
-      deliveryAddress: 'House 12',
-      thana: '',
-      district: '',
-      receiverMobile: '01712345678',
-    },
-    location: null,
-    note: '',
-    lines: [
-      {
-        sourceIndex: 1,
-        source: { productName: 'Refrigerator', model: 'WFN-1D5 GDEL', qty: 4 },
-        productName: 'Refrigerator',
-        model: 'WFN-1D5 GDEL',
-        qty: 2,
-      },
-    ],
-    reserved: [{ productName: 'Refrigerator', model: 'WFN-1D5 GDEL', qty: 2 }],
-  }
-
   it('keeps the trip lines and takes the live allocation', () => {
-    const state = fromTrip([stored], [candidate()])
+    const state = fromTrip([storedChallan], [candidate()])
 
     assert.equal(first(state).lines[0].qty, 2)
     assert.equal(first(state).sources.length, 2)
@@ -455,7 +542,7 @@ describe('fromTrip', () => {
   it('puts a stored reservation back on the line it belongs to', () => {
     // Stored by product, matched onto the challan's lines as they stand now —
     // so a split survives an edit rather than becoming a cut on the second save.
-    const state = fromTrip([stored], [candidate()])
+    const state = fromTrip([storedChallan], [candidate()])
 
     assert.deepEqual(first(state).reserved, { 1: 2 })
 
@@ -468,7 +555,7 @@ describe('fromTrip', () => {
   })
 
   it('falls back to the copy the trip took when the challan is gone', () => {
-    const state = fromTrip([stored], [])
+    const state = fromTrip([storedChallan], [])
 
     assert.deepEqual(
       first(state).sources.map((source) => [source.index, source.ordered]),
@@ -477,7 +564,7 @@ describe('fromTrip', () => {
   })
 
   it('refreshes allocation without touching the lines', () => {
-    const state = refreshSources(fromTrip([stored], []), [candidate()])
+    const state = refreshSources(fromTrip([storedChallan], []), [candidate()])
 
     assert.equal(first(state).sources.length, 2)
     assert.equal(first(state).lines[0].qty, 2)

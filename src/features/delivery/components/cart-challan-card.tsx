@@ -20,8 +20,8 @@ import type { TripCart } from '../hooks/use-trip-cart'
 import { SentenceWith } from '@/components/shared/sentence-with'
 
 export type CartCardDialog =
-  | { kind: 'party'; challanId: string }
   | { kind: 'split'; challanId: string }
+  | { kind: 'correct'; challanId: string }
   | { kind: 'line'; challanId: string; key: string | null }
 
 interface CartChallanCardProps {
@@ -35,10 +35,14 @@ interface CartChallanCardProps {
  * One challan on the trip — the unit an operator reviews before confirming.
  *
  * Top to bottom in the order it is checked against the paper: which challan,
- * who and where, then the goods. Everything on it can be changed for this trip
- * — the delivery details, each quantity, a model, a line added or taken off —
- * and every change is marked, so the review before Confirm is a look down the
- * badges rather than a comparison with the PDF.
+ * who and where, then the goods. The goods can be changed for this trip —
+ * each quantity, a model, a line added or taken off — and every change is
+ * marked, so the review before Confirm is a look down the badges rather than a
+ * comparison with the PDF. Who and where is read-only: it is what the challan
+ * printed, and correcting it is a correction to the challan.
+ *
+ * The edited-details badge stays, because a trip filed before that editor was
+ * removed can still carry a corrected address, and the card has to say so.
  */
 export function CartChallanCard({ challan, position, cart, onOpenDialog }: CartChallanCardProps) {
   const t = useT()

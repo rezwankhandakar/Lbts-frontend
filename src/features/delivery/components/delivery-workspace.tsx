@@ -88,7 +88,11 @@ export function DeliveryWorkspace({ workspace }: { workspace: TripWorkspace }) {
                 listening={listening}
                 excludeTripId={editing?.id}
               />
-              <DeliveryCart cart={cart} onDialogChange={setCartDialogOpen} />
+              <DeliveryCart
+                cart={cart}
+                onDialogChange={setCartDialogOpen}
+                excludeTripId={editing?.id}
+              />
             </div>
           </WorkspaceStep>
         </div>

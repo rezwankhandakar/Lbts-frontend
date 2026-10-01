@@ -157,7 +157,30 @@ export async function saveTripBill(args: {
   return data.data
 }
 
+/**
+ * One note added to the trip's log. The author and the moment are the
+ * server's — there is nothing else to send.
+ */
+export async function addTripNote(args: { tripId: string; text: string }): Promise<TripRecord> {
+  const { data } = await api.post<ApiEnvelope<TripRecord>>(`${BASE}/${args.tripId}/notes`, {
+    text: args.text,
+  })
+  return data.data
+}
+
+/** Taking a note back off the log. There is no edit — see `addTripNote`. */
+export async function removeTripNote(args: {
+  tripId: string
+  noteId: string
+}): Promise<TripRecord> {
+  const { data } = await api.delete<ApiEnvelope<TripRecord>>(
+    `${BASE}/${args.tripId}/notes/${args.noteId}`,
+  )
+  return data.data
+}
+
 /** The signed copy is lost: complete the delivery without it, with a reason. */
+
 export async function markCopyMissing(args: {
   tripId: string
   challanId: string

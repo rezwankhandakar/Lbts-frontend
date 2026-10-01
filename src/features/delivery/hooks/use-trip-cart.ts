@@ -8,12 +8,12 @@ import {
   removeChallan,
   removeLine,
   restoreSource,
+  retakeChallan,
   setLineQty,
   splitChallan,
   summarize,
-  updateParty,
 } from '../lib/cart'
-import type { CartParty, CartState, CartSummary, ChallanCandidate } from '../types'
+import type { CartState, CartSummary, ChallanCandidate } from '../types'
 
 type LineFields = { productName: string; model: string; qty: number }
 
@@ -26,8 +26,8 @@ type Action =
   | { type: 'add-line'; challanId: string; line: LineFields }
   | { type: 'restore'; challanId: string; index: number }
   | { type: 'split'; challanId: string; take: Record<number, number> }
-  | { type: 'party'; challanId: string; party: CartParty; note: string }
   | { type: 'refresh'; candidates: ChallanCandidate[] }
+  | { type: 'retake'; candidate: ChallanCandidate }
   | { type: 'reset'; state: CartState }
 
 /** Every action is one of the pure transitions in `lib/cart.ts`; nothing is decided here. */
@@ -49,10 +49,10 @@ function reducer(state: CartState, action: Action): CartState {
       return restoreSource(state, action.challanId, action.index)
     case 'split':
       return splitChallan(state, action.challanId, action.take)
-    case 'party':
-      return updateParty(state, action.challanId, action.party, action.note)
     case 'refresh':
       return refreshSources(state, action.candidates)
+    case 'retake':
+      return retakeChallan(state, action.candidate)
     case 'reset':
       return action.state
   }
@@ -69,8 +69,9 @@ export interface TripCart {
   addLine: (challanId: string, line: LineFields) => void
   restore: (challanId: string, index: number) => void
   split: (challanId: string, take: Record<number, number>) => void
-  updateParty: (challanId: string, party: CartParty, note: string) => void
   refresh: (candidates: ChallanCandidate[]) => void
+  /** Takes a challan again after the challan itself was corrected. */
+  retake: (candidate: ChallanCandidate) => void
   reset: (state?: CartState) => void
 }
 
@@ -94,9 +95,8 @@ export function useTripCart(initial: CartState = EMPTY_CART): TripCart {
       restore: (challanId: string, index: number) => dispatch({ type: 'restore', challanId, index }),
       split: (challanId: string, take: Record<number, number>) =>
         dispatch({ type: 'split', challanId, take }),
-      updateParty: (challanId: string, party: CartParty, note: string) =>
-        dispatch({ type: 'party', challanId, party, note }),
       refresh: (candidates: ChallanCandidate[]) => dispatch({ type: 'refresh', candidates }),
+      retake: (candidate: ChallanCandidate) => dispatch({ type: 'retake', candidate }),
       reset: (next: CartState = EMPTY_CART) => dispatch({ type: 'reset', state: next }),
     }),
     [],

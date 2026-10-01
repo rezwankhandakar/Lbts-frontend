@@ -6,13 +6,11 @@ import {
   fetchActivity,
   fetchActivityFilters,
   fetchActivityStats,
-  fetchVendorActivity,
 } from '../api/activity-api'
 import type {
   ActivityFilterOptions,
   ActivityListParams,
   ActivityListResult,
-  ActivityRecord,
   ActivityStats,
 } from '../types'
 
@@ -21,7 +19,6 @@ export const activityKeys = {
   list: (params: ActivityListParams) => ['activity', 'list', params] as const,
   stats: (params: ActivityListParams) => ['activity', 'stats', params] as const,
   filters: () => ['activity', 'filters'] as const,
-  vendor: (vendorId: string, limit: number) => ['activity', 'vendor', vendorId, limit] as const,
 }
 
 /**
@@ -80,27 +77,6 @@ export function useActivityFilters(): UseQueryResult<ActivityFilterOptions, ApiE
     queryKey: activityKeys.filters(),
     queryFn: fetchActivityFilters,
     staleTime: FILTER_STALE_TIME,
-    retry: 2,
-  })
-}
-
-/**
- * One vendor's journal, for the tab on its page.
- *
- * A key outside the vendor namespace, deliberately. Nothing a vendor page does
- * writes a journal row directly — the rows are a side effect of the writes it
- * already invalidates — and putting this under `['vendors', …]` would refetch
- * the whole history every time somebody renamed a driver.
- */
-export function useVendorActivity(
-  vendorId: string,
-  limit = 30,
-): UseQueryResult<ActivityRecord[], ApiError> {
-  return useQuery({
-    queryKey: activityKeys.vendor(vendorId, limit),
-    queryFn: () => fetchVendorActivity(vendorId, limit),
-    staleTime: LIST_STALE_TIME,
-    enabled: vendorId.length > 0,
     retry: 2,
   })
 }

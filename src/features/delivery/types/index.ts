@@ -72,7 +72,27 @@ export const MAX_FLOOR = 200
 /** Mirrors `MAX_TRIP_CHARGE`: the ceiling on a trip's rent or labour bill. */
 export const MAX_TRIP_CHARGE = 10_000_000
 
+/** Mirrors `MAX_TRIP_NOTE_LENGTH`: one note on the trip's log. */
+export const MAX_TRIP_NOTE_LENGTH = 600
+
+/** Mirrors `MAX_TRIP_NOTES`: how many notes one trip may carry. */
+export const MAX_TRIP_NOTES = 50
+
+/**
+ * One note off the trip's log.
+ *
+ * Append-only on the server, so there is no edit payload here either — a note
+ * is written or taken off, and correcting one is doing both.
+ */
+export interface TripNoteRecord {
+  id: string
+  text: string
+  createdBy: ActorRef | null
+  createdAt: string
+}
+
 /** A trip's rent and labour bill; `null` is "not entered yet". */
+
 export interface TripBillPayload {
   tripRent: number | null
   labourBill: number | null
@@ -310,6 +330,8 @@ export interface TripRecord {
   changedLines: number
   challanPreview: { challanNumber: string; customerName: string }[]
   challans?: TripChallanRecord[]
+  /** The note log, newest first. On a single record only, like the challans. */
+  notes?: TripNoteRecord[]
   /** Derived from the challans: set when the last signed copy came in. */
   completedAt: string | null
   /** Challans on the trip whose signed copy is in. */

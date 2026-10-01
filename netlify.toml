@@ -1,0 +1,22 @@
+# Netlify build for the LBTS SPA. This file is the repository root on Netlify,
+# because LBTS-Frontend is its own GitHub repository — there is no base
+# directory to set in the dashboard.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Pinned rather than left to Netlify's rolling default: the build runs
+  # `tsc -b` under TypeScript 6 and Vite 8, which wants Node 20.19+ / 22.12+.
+  # 24 is what the project is developed against.
+  NODE_VERSION = "24"
+
+# React Router needs this or a deep link 404s: Netlify looks for a file at
+# /gate-pass, finds none, and never reaches the SPA that owns that route.
+# Status 200 rather than 301 so the browser keeps the URL it asked for.
+# Last rule in the file, so it cannot shadow a real asset.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

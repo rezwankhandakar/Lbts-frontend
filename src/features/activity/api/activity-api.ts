@@ -78,17 +78,6 @@ export async function fetchActivityFilters(): Promise<ActivityFilterOptions> {
   return data.data
 }
 
-/** One vendor's journal, as the vendor page reads it. */
-export async function fetchVendorActivity(
-  vendorId: string,
-  limit: number,
-): Promise<ActivityRecord[]> {
-  const { data } = await api.get<ApiEnvelope<ActivityRecord[]>>(`/vendors/${vendorId}/activity`, {
-    params: { limit },
-  })
-  return data.data
-}
-
 /** Longer than the shared timeout: a cold instance builds the whole workbook first. */
 const EXPORT_TIMEOUT = 120_000
 

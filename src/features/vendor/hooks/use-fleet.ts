@@ -61,7 +61,7 @@ import { reportVendorError, useInvalidateVendors } from './use-vendors'
  * Every key lives under the same `['vendors']` namespace as the vendor itself,
  * because almost every write here changes more than one of them — adding a
  * vehicle changes the vehicle list, the vendor's counts on the directory, the
- * summary, the compliance totals and the activity feed. One invalidation is
+ * summary and the compliance totals. One invalidation is
  * what keeps the page telling one story.
  */
 

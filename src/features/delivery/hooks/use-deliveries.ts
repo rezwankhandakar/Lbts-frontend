@@ -4,8 +4,10 @@ import { toast } from 'sonner'
 import { t } from '@/lib/i18n'
 import type { ApiError } from '@/lib/axios'
 import {
+  addTripNote,
   clearCopyMissing,
   deleteTrip,
+  removeTripNote,
   markCopyMissing,
   fetchChallanDispatch,
   fetchTrip,
@@ -213,7 +215,59 @@ export function useSaveTripBill(): UseMutationResult<
   })
 }
 
+/**
+ * The trip's note log.
+ *
+ * Both writes answer with the whole trip, so the detail query is **written**
+ * rather than invalidated — there is nothing to refetch, and a note is not
+ * worth a round trip to a sleeping instance. Nothing else is touched either:
+ * a note changes no quantity, no dispatch status and no total, so the lists
+ * and the challans the other mutations invalidate have nothing to learn.
+ */
+function useTripNoteResult(): (trip: TripRecord) => void {
+  const client = useQueryClient()
+
+  return (trip) => {
+    client.setQueryData(deliveryKeys.detail(trip.id), trip)
+  }
+}
+
+export function useAddTripNote(): UseMutationResult<
+  TripRecord,
+  ApiError,
+  { tripId: string; text: string }
+> {
+  const applied = useTripNoteResult()
+
+  return useMutation({
+    mutationFn: addTripNote,
+    onSuccess: (trip) => {
+      toast.success(t('delivery.notes.added'))
+      applied(trip)
+    },
+    onError: reportDeliveryError,
+  })
+}
+
+export function useRemoveTripNote(): UseMutationResult<
+  TripRecord,
+  ApiError,
+  { tripId: string; noteId: string }
+> {
+  const applied = useTripNoteResult()
+
+  return useMutation({
+    mutationFn: removeTripNote,
+    onSuccess: (trip) => {
+      toast.success(t('delivery.notes.removed'))
+      applied(trip)
+    },
+    onError: reportDeliveryError,
+  })
+}
+
 export function useMarkCopyMissing(): UseMutationResult<
+
   TripRecord,
   ApiError,
   { tripId: string; challanId: string; reason: string }

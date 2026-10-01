@@ -587,11 +587,12 @@ export interface VendorRemoval {
 /**
  * The tabs on the details page, in the order they are drawn.
  *
- * `activity` is last and is a **reading**, not a workspace: everything before
- * it is something to do, and it is what was done. It was absent while the
- * journal had nowhere to be presented from — CLAUDE.md recorded the tab as
- * removed "until an Activity module exists to present them" — and the panel
- * now composes that module's own feed rather than rendering a second one.
+ * Every one of them is a **workspace**: something to look at and act on. There
+ * was briefly an `activity` tab at the end, which was the exception — a reading
+ * of what had been done, composed from the Activity module's own feed — and the
+ * business asked for it off. The rows are still written; `/activity` is where
+ * they are read, and it answers that question for every module at once rather
+ * than this page answering it a second time for one vendor.
  */
 export const VENDOR_TABS = [
   'overview',
@@ -600,7 +601,6 @@ export const VENDOR_TABS = [
   'assignments',
   'documents',
   'trips',
-  'activity',
 ] as const
 export type VendorTab = (typeof VENDOR_TABS)[number]
 

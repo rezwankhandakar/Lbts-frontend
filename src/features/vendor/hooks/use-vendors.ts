@@ -40,8 +40,8 @@ import type {
  * The query keys for the whole module.
  *
  * One namespace, because almost every write here changes more than one of them:
- * adding a vehicle changes the vehicle list, the vendor's counts, the summary,
- * the compliance totals and the activity feed. Invalidating the namespace is
+ * adding a vehicle changes the vehicle list, the vendor's counts, the summary
+ * and the compliance totals. Invalidating the namespace is
  * what stops the page telling two different stories — the same call the
  * Location module makes for the same reason.
  */
@@ -203,7 +203,7 @@ export function useVendorTrip(
  * Every write invalidates the whole namespace.
  *
  * Adding a vehicle changes the vehicle list, the vendor's counts on the
- * directory, the summary, the compliance totals and the activity feed.
+ * directory, the summary and the compliance totals.
  * Refetching one key would leave the page telling two different stories about
  * the same fleet.
  */

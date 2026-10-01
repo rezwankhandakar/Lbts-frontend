@@ -20,7 +20,8 @@ interface TripManifestProps {
  * What went on the lorry, challan by challan.
  *
  * Every departure from the paper is marked where it happened — a trimmed
- * quantity, a replaced model, an added product, a corrected receiver — so the
+ * quantity, a replaced model, an added product, and on an older trip a
+ * corrected receiver — so the
  * manifest can be checked against the challans without holding the two side by
  * side.
  *

@@ -10,6 +10,7 @@ import { TripActionsBar } from '@/features/delivery/components/trip-actions-bar'
 import { TripBillCard } from '@/features/delivery/components/trip-bill-card'
 import { TripLoadError } from '@/features/delivery/components/trip-load-error'
 import { TripManifest } from '@/features/delivery/components/trip-manifest'
+import { TripNotesCard } from '@/features/delivery/components/trip-notes-card'
 import { TripSidePanel } from '@/features/delivery/components/trip-side-panel'
 import { useBarcodeWedge } from '@/hooks/use-barcode-wedge'
 import { useTrip } from '@/features/delivery/hooks/use-deliveries'
@@ -110,6 +111,7 @@ export function DeliveryDetailsPage() {
 
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
           <TripBillCard key={trip.id} trip={trip} canChange={actions.canChange(trip)} />
+          <TripNotesCard key={`notes-${trip.id}`} trip={trip} canChange={actions.canChange(trip)} />
           <TripSidePanel trip={trip} />
         </aside>
       </div>

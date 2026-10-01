@@ -65,8 +65,9 @@ function Nothing({ children }: { children: string }) {
  *
  * The hierarchy is the design: the numbers first, then what needs doing about
  * them, then the two lists somebody acts on — the documents about to expire and
- * the latest assignments. Recent activity used to sit underneath; it left with
- * the Activity tab, and returns when there is an Activity module to show it.
+ * the latest assignments. Recent activity used to sit underneath and is not
+ * coming back: the Activity tab it left with has since been removed outright,
+ * and the journal is read on `/activity` rather than anywhere in this module.
  *
  * All of it comes from one request. The whole reason the server has a summary
  * endpoint is that six separate calls against a sleeping Render instance are

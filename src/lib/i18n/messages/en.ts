@@ -3374,7 +3374,6 @@ export const en = {
       changeModel: 'Change model or product',
       removeProduct: 'Remove this product',
       removeFromBoth: 'Remove from trip and challan',
-      editDetails: 'Edit delivery details',
       splitAcross: 'Split across trips',
       openChallan: 'Open the challan',
       correctChallan: 'Correct the filed challan',
@@ -3386,14 +3385,14 @@ export const en = {
       where: 'Thana: {thana} · District: {district}',
     },
 
-    party: {
-      forThisTripOnly: 'Changes here are for this trip only. The filed challan keeps what it printed.',
-      noteForDriver: 'Note for the driver',
-      useChallanDetails: 'Use the challan’s details',
-      saveForTrip: 'Save for this trip',
-      customerRequired: 'Customer name is required',
-      addressRequired: 'Delivery address is required',
-      mobileInvalid: 'Enter a valid receiver mobile, for example 01712345678.',
+    correct: {
+      loading: 'Reading the challan…',
+      changesChallan: 'This corrects the filed challan itself, not just this trip.',
+      retakeNote:
+        'The challan is taken again on this trip once it is saved, so a quantity trimmed or split on it goes back to whatever is still left to send.',
+      staleTitle: 'The challan was corrected, but the trip could not be re-read',
+      staleNote:
+        'The card still shows the challan as it was. Take it off this trip and add it again before confirming.',
     },
 
     line: {
@@ -3635,6 +3634,21 @@ export const en = {
       labour: 'Labour',
       save: 'Save bill',
       saved: 'Trip bill saved',
+    },
+
+    /** The trip's note log — append-only, so there is no "edit" wording here. */
+    notes: {
+      heading: 'Trip notes',
+      subheading: 'ট্রিপ সম্পর্কে নোট',
+      placeholder: 'Write a note about this trip…',
+      add: 'Add note',
+      added: 'Note added',
+      removed: 'Note removed',
+      removeAria: 'Remove this note',
+      removedAccount: 'Removed account',
+      empty: 'No notes on this trip yet.',
+      emptyWritable: 'No notes yet. Anything worth remembering about this run goes here.',
+      full: 'This trip has reached {max} notes. Remove one to add another.',
     },
 
     trip: {
@@ -5609,7 +5623,6 @@ export const en = {
       assignments: 'Assignments',
       documents: 'Documents',
       trips: 'Trips',
-      activity: 'Activity',
       sectionsAria: 'Vendor sections',
       attentionAria: 'Needs attention',
     },
@@ -5724,14 +5737,6 @@ export const en = {
       noneAssignedYet: 'No driver has been assigned to a vehicle yet.',
       nothingNeedsAttention: 'Nothing needs attention',
       nothingWrong: 'Every document on file is in date, and no vehicle or driver is out of service.',
-      recentActivity: 'Recent activity',
-      recentActivityHint: 'Written as people work, and never edited.',
-      activityEmpty:
-        'Adding a vehicle, assigning a driver, filing a document or running a trip for {vendor} will appear here.',
-
-      nothingRecordedYet: 'Nothing recorded yet',
-      activityDescription:
-        'Changes to {vendor}, its fleet, its drivers and the trips it has run — newest first. Written as people work, and never edited.',
       moreAlerts: {
         one: '{count} more alert is not shown. The documents tab, filtered, is where the rest are worked through.',
         other: '{count} more alerts are not shown. The documents tab, filtered, is where the rest are worked through.',

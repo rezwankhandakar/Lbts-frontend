@@ -210,11 +210,20 @@ export function isFullyDispatched(candidate: ChallanCandidate): boolean {
  *
  * Adding a challan already on the cart changes nothing — the caller says so.
  */
-export function addChallan(state: CartState, candidate: ChallanCandidate): CartState {
-  if (hasChallan(state, candidate.id)) {
-    return state
-  }
-
+/**
+ * One challan as the trip first takes it, and the key counter it advanced.
+ *
+ * Shared by `addChallan` and `retakeChallan` rather than copied, because
+ * "what a challan arrives on the trip as" is one answer: the same lines at
+ * their remaining quantity, the same party taken as printed, nothing held
+ * back. A second copy is how a corrected challan would come to be taken on a
+ * slightly different footing from a freshly scanned one.
+ */
+function takeChallan(
+  state: CartState,
+  candidate: ChallanCandidate,
+  note: string,
+): [CartChallan, CartState] {
   const full = isFullyDispatched(candidate)
   const picked = candidate.lines.filter((line) => full || line.remaining > 0)
 
@@ -239,27 +248,65 @@ export function addChallan(state: CartState, candidate: ChallanCandidate): CartS
     receiverMobile: candidate.receiverMobile,
   }
 
-  return {
-    ...next,
-    challans: [
-      ...next.challans,
-      {
-        challanId: candidate.id,
-        challanNumber: candidate.challanNumber,
-        slNumber: candidate.slNumber,
-        ...party,
-        original: party,
-        location: candidate.location,
-        sources: candidate.lines,
-        otherTrips: candidate.trips,
-        note: '',
-        lines,
-        // Nothing is held back until somebody splits it: what is offered is
-        // what is left to send, and sending less than that is a correction.
-        reserved: {},
-      },
-    ],
+  return [
+    {
+      challanId: candidate.id,
+      challanNumber: candidate.challanNumber,
+      slNumber: candidate.slNumber,
+      ...party,
+      original: party,
+      location: candidate.location,
+      sources: candidate.lines,
+      otherTrips: candidate.trips,
+      note,
+      lines,
+      // Nothing is held back until somebody splits it: what is offered is
+      // what is left to send, and sending less than that is a correction.
+      reserved: {},
+    },
+    next,
+  ]
+}
+
+export function addChallan(state: CartState, candidate: ChallanCandidate): CartState {
+  if (hasChallan(state, candidate.id)) {
+    return state
   }
+
+  const [challan, next] = takeChallan(state, candidate, '')
+
+  return { ...next, challans: [...next.challans, challan] }
+}
+
+/**
+ * Takes a challan again after the *challan itself* was corrected.
+ *
+ * `refreshSources` below is the wrong tool for this and the distinction
+ * matters: that one re-reads how much is left to go and deliberately keeps
+ * what the operator put on the trip, because the challan has not changed —
+ * another trip simply took some of it. Here the paper has changed. A model may
+ * have been replaced, a line removed, a quantity put right, the address
+ * corrected — so the trip's own lines may be describing goods the challan no
+ * longer lists, and keeping them would let somebody confirm a trip against a
+ * record that no longer says that.
+ *
+ * So the challan is taken from scratch, exactly as a fresh scan would take it,
+ * and whatever had been trimmed or split on it is given up. The position in
+ * the list and the driver's note are kept, because neither is a statement
+ * about the goods. A challan not on the trip is left alone — correcting one
+ * from somewhere else is not this cart's business.
+ */
+export function retakeChallan(state: CartState, candidate: ChallanCandidate): CartState {
+  const at = state.challans.findIndex((challan) => challan.challanId === candidate.id)
+  if (at === -1) {
+    return state
+  }
+
+  const [challan, next] = takeChallan(state, candidate, state.challans[at].note)
+  const challans = [...next.challans]
+  challans[at] = challan
+
+  return { ...next, challans }
 }
 
 export function removeChallan(state: CartState, challanId: string): CartState {
@@ -499,24 +546,14 @@ export function takenBySource(challan: CartChallan): Record<number, number> {
 
 // --- Delivery details ------------------------------------------------------
 
-export function updateParty(
-  state: CartState,
-  challanId: string,
-  party: CartParty,
-  note: string,
-): CartState {
-  return mapChallan(state, challanId, (challan) => ({
-    ...challan,
-    customerName: party.customerName.trim(),
-    deliveryAddress: party.deliveryAddress.trim(),
-    thana: party.thana.trim(),
-    district: party.district.trim(),
-    receiverMobile: party.receiverMobile.trim(),
-    note: note.trim(),
-  }))
-}
-
-/** The delivery fields whose trip value differs from what the challan printed. */
+/**
+ * The delivery fields whose trip value differs from what the challan printed.
+ *
+ * Nothing in the cart writes these any more — a trip takes the challan's own
+ * details and keeps them, and a wrong address is corrected on the challan. It
+ * stays because a trip filed while the editor existed still carries what it
+ * corrected, and rebuilding that trip for an edit has to keep saying so.
+ */
 export function editedFields(challan: CartChallan): (keyof CartParty)[] {
   return PARTY_FIELDS.filter((field) => challan[field].trim() !== challan.original[field].trim())
 }

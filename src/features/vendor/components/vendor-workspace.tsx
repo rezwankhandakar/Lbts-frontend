@@ -23,7 +23,6 @@ import { VendorFormDialog } from './vendor-form-dialog'
 import { VendorHeader } from './vendor-header'
 import { VendorOverview } from './vendor-overview'
 import { VendorTabs } from './vendor-tabs'
-import { VendorActivityPanel } from './vendor-activity-panel'
 import { VendorTripPanel } from './vendor-trip-panel'
 import { useT } from '@/lib/i18n'
 
@@ -252,12 +251,6 @@ export function VendorWorkspace({
         )}
 
         {tab === 'trips' && <VendorTripPanel vendor={vendor} />}
-
-        {/* A reading rather than a workspace, and it carries no handover:
-            there is nothing on it to be sent to. */}
-        {tab === 'activity' && (
-          <VendorActivityPanel vendorId={vendor.id} vendorName={vendor.name} />
-        )}
       </div>
 
       <VendorFormDialog
