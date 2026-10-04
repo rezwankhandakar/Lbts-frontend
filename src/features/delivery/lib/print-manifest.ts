@@ -2,7 +2,7 @@ import { barcodeSvg, barcodeWidthMm } from '@/lib/code128'
 import { countOf, formatNumber, t } from '@/lib/i18n'
 import { escapeHtml as escape, printHtml } from '@/lib/print-html'
 import { tallyProducts } from './cart'
-import { shortTripNumber, taka, tripStatusMeta } from './delivery-meta'
+import { shortTripNumber, taka } from './delivery-meta'
 import type { TripChallanRecord, TripLineRecord, TripRecord } from '../types'
 
 /**
@@ -20,9 +20,11 @@ import type { TripChallanRecord, TripLineRecord, TripRecord } from '../types'
  * end of the day, often on this sheet, so they are ruled boxes near the top
  * rather than absent — the figures are collected on the paper already in
  * somebody's hand and typed in afterwards against `PATCH /deliveries/:id/bill`.
- * Each delivery gets a Note column for the same reason. Anything already
- * recorded prints inside its own box, so reprinting a finished trip reads as a
- * record rather than as a blank form.
+ * Each delivery gets a Note column for the same reason, and the strip of
+ * boxes carries one more thing to mark: a tick box for the signed copies,
+ * which is what the office pens when the last one is in — see `copiesBox`.
+ * Anything already recorded prints inside its own box, so reprinting a
+ * finished trip reads as a record rather than as a blank form.
  *
  * **It is scanned.** The barcode at the top carries the trip number, so the
  * sheet that comes back from the lorry opens its own trip — see
@@ -184,6 +186,37 @@ function writeBox(label: string, value: string, width: string): string {
   return `<div class="box" style="flex:${width}"><b>${escape(label)}</b><span class="write">${value}</span></div>`
 }
 
+/**
+ * The tick box for the paperwork, and the one thing on this sheet that is
+ * ticked rather than written.
+ *
+ * The header used to print the trip's status, which on a manifest was almost
+ * always "Awaiting copy" — a sentence the paper could not act on, and one that
+ * was stale the moment the first copy came in. What somebody holding the sheet
+ * actually does is work down a stack of signed challans and, when the last one
+ * is in, mark the trip done with a pen. So the status reading is gone and this
+ * box is what replaced it.
+ *
+ * It is ticked **only** when every challan on the trip carries a signed copy,
+ * which is narrower than the trip being `Completed`: that also covers a load
+ * returned in full and a copy declared lost, and neither of those is a signed
+ * copy received. A reprint of a trip whose paperwork is all in therefore shows
+ * the tick already, the same convention the bill boxes follow — anything the
+ * record genuinely knows prints inside its own box, and everything else is
+ * left blank to be filled in by hand.
+ */
+function allCopiesReceived(trip: TripRecord): boolean {
+  const challans = trip.challans ?? []
+
+  return challans.length > 0 && challans.every((challan) => challan.receivedCopy !== null)
+}
+
+function copiesBox(trip: TripRecord): string {
+  return `<div class="box copies" style="flex:0 0 auto"><b>${escape(
+    t('delivery.manifest.allCopiesReceived'),
+  )}</b><span class="tick">${allCopiesReceived(trip) ? '&#10003;' : ''}</span></div>`
+}
+
 function challanRow(challan: TripChallanRecord): string {
   const thana = challan.thana || challan.location?.thana || '—'
   const district = challan.district || challan.location?.district || '—'
@@ -257,17 +290,22 @@ function billSection(trip: TripRecord): string {
   const amount = (value: number | null) => (value === null ? '' : taka(value))
 
   /**
-   * Two boxes and no total. A total printed beside the two figures it is the
+   * Two amounts and no total. A total printed beside the two figures it is the
    * sum of is either arithmetic the sheet did — which it cannot, because both
    * halves are blank when it prints — or a third box somebody has to add up by
    * hand and that nothing checks. The addition happens where the figures are
    * typed in, against `PATCH /deliveries/:id/bill`, which is also the only
    * place it can be wrong in a way anybody would see.
+   *
+   * The copies tick box rides in the same row because it is the same ritual:
+   * everything on this sheet that is filled in after the lorry has gone is in
+   * one strip, rather than scattered down a page somebody has to search.
    */
   return `<section class="bill">
     <div class="boxes">
       ${writeBox(t('delivery.manifest.tripRent'), amount(trip.tripRent), '1 1 0')}
       ${writeBox(t('delivery.manifest.labourBill'), amount(trip.labourBill), '1 1 0')}
+      ${copiesBox(trip)}
     </div>
   </section>`
 }
@@ -322,8 +360,19 @@ export function manifestHtml(trip: TripRecord): string {
   .boxes { display: flex; gap: 6px; }
   .box { border: 1px solid #bbb; border-radius: 3px; padding: 2px 5px 3px; background: #fff; }
   .box b { display: block; font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; color: #666; font-weight: 600; }
-  /* The writing line: a rule with room above it, whether or not it is filled. */
-  .write { display: block; min-height: 13px; border-bottom: 1px solid #999; }
+  /*
+   * The writing space: height and nothing else. It carried an underline, which
+   * was a rule drawn inside a ruled box — the box's own border is already the
+   * line somebody writes against, and the second one only crowded the figure
+   * sitting on it. What makes the space writable is the room, not the rule.
+   */
+  .write { display: block; min-height: 13px; }
+  /*
+   * The tick box: a square big enough for a pen, drawn whether or not it is
+   * marked, so the sheet is the form the paperwork is signed off on.
+   */
+  .box.copies { text-align: center; }
+  .tick { display: block; width: 7mm; height: 7mm; margin: 2px auto 0; border: 1px solid #555; border-radius: 1px; line-height: 6.6mm; font-size: 13px; font-weight: 700; }
   .bill { margin: 0 0 8px; page-break-inside: avoid; }
   .bill .write { min-height: 18px; font-size: 13px; font-weight: 700; }
   .sign-off { display: flex; justify-content: flex-end; margin-top: 18px; page-break-inside: avoid; }
@@ -361,9 +410,7 @@ ${punchGuide()}
   <div>
     <div class="muted">${escape(t('delivery.manifest.brandLine'))}</div>
     <h1 class="mono">${escape(shortTripNumber(trip.tripNumber))}</h1>
-    <div><b>${escape(t('delivery.manifest.date'))}</b> ${day(trip.tripDate)} · <b>${escape(
-      t('delivery.manifest.status'),
-    )}</b> ${escape(tripStatusMeta(trip.status, t).label)}</div>
+    <div><b>${escape(t('delivery.manifest.date'))}</b> ${day(trip.tripDate)}</div>
   </div>
   <div class="code">
     ${barcodeSvg(trip.tripNumber, {

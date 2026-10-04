@@ -79,7 +79,11 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
             <dt className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
               {t('challan.details.challanNumber')}
             </dt>
-            <dd className="mt-0.5 truncate text-2xl leading-tight font-semibold">
+            {/* Shrunk a step on a phone and allowed to break rather than
+                truncate: `LBTS-CH-2026-000041` at 24px overflows a 360px
+                column, and a truncated identifier is one somebody reads out
+                wrong — an ellipsis where the serial should be. */}
+            <dd className="mt-0.5 text-xl leading-tight font-semibold wrap-break-word sm:text-2xl">
               {record.challanNumber}
             </dd>
           </div>
@@ -134,7 +138,7 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
                 [t('challan.details.thana'), location.thana],
               ]}
             />
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5">
               <LocationTypeBadge value={location.locationType} />
               <span className="text-xs text-muted-foreground">
                 {location.resolvedBy
@@ -160,7 +164,12 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
         )}
 
         {onSetLocation && (
-          <Button variant="outline" size="sm" className="mt-3" onClick={onSetLocation}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3 w-full sm:w-auto"
+            onClick={onSetLocation}
+          >
             <MapPinned data-icon="inline-start" aria-hidden />
             {location ? t('challan.details.changeLocation') : t('challan.details.setLocation')}
           </Button>
@@ -238,7 +247,7 @@ export function ChallanDetails({ record, onSetLocation }: ChallanDetailsProps) {
         <Button
           variant="outline"
           size="sm"
-          className="mt-3"
+          className="mt-3 w-full sm:w-auto"
           render={<Link to={`/challan/batch/${record.batchId}`} />}
         >
           {t('challan.details.openSourceBatch')}

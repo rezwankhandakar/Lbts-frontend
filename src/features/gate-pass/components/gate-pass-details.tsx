@@ -41,7 +41,40 @@ export function GatePassDetails({ record }: GatePassDetailsProps) {
         raw
         className="sm:col-span-2"
       >
-        <div className="px-4 py-3 sm:px-5">
+        {/* Below `sm` the four columns are two usable ones: a product name and
+            a model are both long, and sharing ~220px between them against a
+            fixed `#` and `Qty` wraps every row into a block of broken words.
+            `sm` is also where this card claims both grid columns, so it is the
+            width the table was drawn for. A phone gets the same lines stacked
+            — a table from `sm` up and a card list below it, the shape every
+            list in this app takes. */}
+        <ul className="divide-y sm:hidden">
+          {record.items.map((item, index) => (
+            <li key={`${item.model}-${index}`} className="flex items-start gap-3 px-4 py-2.5">
+              <span className="w-5 shrink-0 pt-0.5 text-xs text-muted-foreground tabular-nums">
+                {formatNumber(index + 1)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-medium wrap-break-word">{item.productName}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground wrap-break-word">{item.model}</p>
+              </div>
+              <span className="shrink-0 text-right text-[13px] font-semibold tabular-nums">
+                {formatNumber(item.qty)}
+              </span>
+            </li>
+          ))}
+
+          {record.items.length > 1 && (
+            <li className="flex items-baseline justify-between gap-3 bg-muted/30 px-4 py-2.5">
+              <span className="text-xs text-muted-foreground">{t('gatePass.detail.total')}</span>
+              <span className="text-[13px] font-semibold tabular-nums">
+                {formatNumber(record.totalQty)}
+              </span>
+            </li>
+          )}
+        </ul>
+
+        <div className="hidden px-4 py-3 sm:block sm:px-5">
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b">

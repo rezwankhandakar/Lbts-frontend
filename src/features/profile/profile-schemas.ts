@@ -42,12 +42,7 @@ export const editProfileSchema = z.object({
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'profile.validation.currentRequired'),
-    newPassword: z
-      .string()
-      .min(8, 'auth.validation.passwordTooShort')
-      .regex(/[a-z]/, 'auth.validation.needsLowercase')
-      .regex(/[A-Z]/, 'auth.validation.needsUppercase')
-      .regex(/[0-9]/, 'auth.validation.needsNumber'),
+    newPassword: z.string().min(6, 'auth.validation.passwordTooShort'),
     confirmPassword: z.string().min(1, 'profile.validation.confirmRequired'),
   })
   .refine((values) => values.newPassword === values.confirmPassword, {

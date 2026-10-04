@@ -20,12 +20,17 @@ export function GatePassProductLineCard({ line }: { line: GatePassProductLine })
   return (
     <div className="px-4 py-3.5 sm:px-5">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-        <div className="min-w-0 flex-1">
+        {/* `basis-full` below `sm`: the badge and the 7rem count block take
+            about 200px between them, so sharing one row with them left the
+            product name ~80px on a phone — truncated to two or three letters,
+            which is the one value this line exists to name. It gets its own
+            row there and shares one from `sm` up. */}
+        <div className="min-w-0 flex-1 basis-full sm:basis-0">
           <p className="truncate text-[13px] font-medium">{line.productName}</p>
           <p className="truncate font-mono text-xs text-muted-foreground">{line.model}</p>
         </div>
         <ProductStatusBadge status={line.status} />
-        <p className="w-28 text-right text-xs text-muted-foreground">
+        <p className="ml-auto w-28 text-right text-xs text-muted-foreground">
           <span className="text-[13px] font-semibold text-foreground tabular-nums">{line.linkedQty}</span>{' '}
           of {line.qty} linked
           <span className="block text-[11px] tabular-nums">
@@ -64,7 +69,10 @@ export function GatePassProductLineCard({ line }: { line: GatePassProductLine })
                 SL {row.slNumber}
               </Link>
               <KindTag kind={row.kind} />
-              <span className="min-w-0 flex-1 truncate" title={row.customerName}>
+              {/* Its own row on a phone, for the reason the product name
+                  above takes one: squeezed between an SL, a tag, a trip
+                  number, a quantity and a badge it truncated to nothing. */}
+              <span className="min-w-0 flex-1 basis-full truncate sm:basis-0" title={row.customerName}>
                 {row.customerName}
                 {(row.thana || row.district) && (
                   <span className="text-muted-foreground">

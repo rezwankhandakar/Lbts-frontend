@@ -63,7 +63,11 @@ interface DetailRowProps {
 export function DetailRow({ label, value, numeric }: DetailRowProps) {
   return (
     <div className="flex flex-col gap-0.5 px-4 py-2.5 sm:flex-row sm:items-baseline sm:gap-4 sm:px-5">
-      <dt className="w-40 shrink-0 text-xs text-muted-foreground">{label}</dt>
+      {/* The 10rem column belongs to the `sm` row layout only. Below it the
+          row is a column, where a fixed width is not a column at all — it is
+          a 160px box a longer label wraps inside while the rest of the screen
+          sits empty beside it. */}
+      <dt className="shrink-0 text-xs text-muted-foreground sm:w-40">{label}</dt>
       <dd
         className={cn(
           'min-w-0 flex-1 text-[13px] wrap-break-word',

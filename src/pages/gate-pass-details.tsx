@@ -184,7 +184,12 @@ export function GatePassDetailsPage() {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Two full-width columns on a phone and a wrapping row from `sm` up.
+            A reviewer looking at a submitted pass sees six buttons here, and
+            six left to wrap on their own produced three ragged rows at 360px
+            with the last one stranded; a grid gives every action the same tap
+            target and the same edge. */}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
           {record.document && (
             <>
               <Button variant="outline" size="sm" onClick={() => actions.download(record)}>

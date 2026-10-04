@@ -25,29 +25,35 @@ export function GatePassTripDoPanel({ gatePassId, tripDo }: { gatePassId: string
   return (
     <section className="overflow-hidden rounded-xl border bg-card shadow-sm">
       <header className="flex flex-wrap items-center gap-2.5 border-b bg-muted/30 px-4 py-3 sm:px-5">
-        <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-tone-emerald/10 text-tone-emerald ring-1 ring-tone-emerald/20"
-          aria-hidden
-        >
-          <Link2 className="size-4" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-[13px] font-semibold tracking-tight">
-            {t('tripDo.gatePassPanel.heading')}
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            {status
-              ? t('tripDo.assign.lineLinked', {
-                  linked: formatNumber(status.linkedQty),
-                  total: formatNumber(status.totalQty),
-                })
-              : t('tripDo.gatePassPanel.description')}
-          </p>
+        {/* The chip and the heading keep a row to themselves below `sm`, where
+            the badge and the link take about 200px of a 288px line between
+            them and the heading would otherwise be squeezed past reading. */}
+        <div className="flex min-w-0 flex-1 basis-full items-center gap-2.5 sm:basis-0">
+          <span
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-tone-emerald/10 text-tone-emerald ring-1 ring-tone-emerald/20"
+            aria-hidden
+          >
+            <Link2 className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[13px] font-semibold tracking-tight">
+              {t('tripDo.gatePassPanel.heading')}
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              {status
+                ? t('tripDo.assign.lineLinked', {
+                    linked: formatNumber(status.linkedQty),
+                    total: formatNumber(status.totalQty),
+                  })
+                : t('tripDo.gatePassPanel.description')}
+            </p>
+          </div>
         </div>
         {status && <ProductStatusBadge status={status.status} />}
         <Button
           variant="ghost"
           size="sm"
+          className="ml-auto"
           render={<Link to={`/trip-do?q=${encodeURIComponent(tripDo)}`} />}
         >
           {t('tripDo.openSheet')}

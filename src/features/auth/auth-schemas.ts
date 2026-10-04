@@ -24,12 +24,7 @@ export const signUpSchema = z
       .min(2, 'auth.validation.nameTooShort')
       .max(80, 'auth.validation.nameTooLong'),
     email: z.email('auth.validation.emailInvalid'),
-    password: z
-      .string()
-      .min(8, 'auth.validation.passwordTooShort')
-      .regex(/[a-z]/, 'auth.validation.needsLowercase')
-      .regex(/[A-Z]/, 'auth.validation.needsUppercase')
-      .regex(/[0-9]/, 'auth.validation.needsNumber'),
+    password: z.string().min(6, 'auth.validation.passwordTooShort'),
     confirmPassword: z.string().min(1, 'auth.validation.confirmRequired'),
     acceptTerms: z.literal(true, 'auth.validation.acceptTerms'),
   })

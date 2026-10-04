@@ -176,7 +176,11 @@ export function ChallanDetailsPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Two full-width columns on a phone and a wrapping row from `sm` up.
+            Five buttons left to wrap on their own produced a ragged two-and-a-
+            half rows at 360px, with the last one stranded; a grid gives every
+            action the same tap target and the same edge. */}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
           <Button variant="outline" size="sm" onClick={() => actions.download(record)}>
             <Download data-icon="inline-start" aria-hidden />
             {t('common.actions.download')}

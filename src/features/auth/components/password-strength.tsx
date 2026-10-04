@@ -7,12 +7,14 @@ interface PasswordStrengthProps {
 }
 
 /**
- * Mirrors the rules already enforced by `signUpSchema` — it reports on the
- * same four checks rather than inventing a policy of its own, so the meter can
- * never disagree with validation.
+ * The first check is the only rule `signUpSchema` enforces — six characters,
+ * Firebase's own floor. The other three are **advice**: a password made only
+ * of lowercase letters is accepted, and the meter says it is weak rather than
+ * refusing it. So this reports on a policy wider than validation's, never
+ * narrower, and a password the meter rates at one bar still signs somebody up.
  */
 const CHECKS = [
-  (value: string) => value.length >= 8,
+  (value: string) => value.length >= 6,
   (value: string) => /[a-z]/.test(value),
   (value: string) => /[A-Z]/.test(value),
   (value: string) => /[0-9]/.test(value),

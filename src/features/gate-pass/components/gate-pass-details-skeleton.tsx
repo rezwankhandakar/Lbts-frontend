@@ -14,11 +14,15 @@ export function GatePassDetailsSkeleton() {
       <span className="sr-only">{t('gatePass.viewer.loadingRecord')}</span>
 
       <div className="mb-6 space-y-2">
-        <Skeleton className="h-7 w-56" />
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-7 w-56 max-w-full" />
         <Skeleton className="h-4 w-80 max-w-full" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+      {/* The same split and the same viewer height the real page uses, so the
+          swap does not move the fold — on a phone the viewer is `h-88` under a
+          single column of cards, not a 26rem block beside them. */}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-start">
         <div className="grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }, (_, index) => (
             <div key={index} className="rounded-xl border bg-card p-4 shadow-sm">
@@ -32,7 +36,7 @@ export function GatePassDetailsSkeleton() {
           ))}
         </div>
 
-        <Skeleton className="h-[26rem] rounded-xl" />
+        <Skeleton className="h-88 rounded-xl sm:h-104 lg:h-128" />
       </div>
     </div>
   )
