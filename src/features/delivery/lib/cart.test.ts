@@ -654,16 +654,20 @@ describe('tallyProducts', () => {
 })
 
 /**
- * The trip number as it is read rather than as it is stored.
+ * The trip number as it is read, which since the serial went global is the
+ * number itself.
  *
- * Storage keeps the vendor code, because the serial is the vendor's own count
- * and the code is the whole of what makes the number unique — a unique index
- * depends on it. These pin that the display half never touches anything it
- * does not recognise, which is what stops it mangling a number some later
- * format produces.
+ * What is left to pin is the retired `V-0007-TRIP-0012` form, which survives
+ * in the frozen copies a correction may not rewrite — and that the reducer
+ * never touches anything it does not recognise, which is what stops it
+ * mangling a number some later format produces.
  */
 describe('shortTripNumber', () => {
-  it('drops the vendor code a reader does not need', () => {
+  it('leaves a global serial exactly as it is', () => {
+    assert.equal(shortTripNumber('TRIP-0012'), 'TRIP-0012')
+  })
+
+  it('drops the vendor code off the retired form', () => {
     assert.equal(shortTripNumber('V-0007-TRIP-0012'), 'TRIP-0012')
   })
 
@@ -676,7 +680,6 @@ describe('shortTripNumber', () => {
   })
 
   it('returns anything it does not recognise untouched', () => {
-    assert.equal(shortTripNumber('TRIP-0012'), 'TRIP-0012')
     assert.equal(shortTripNumber('LBTS-CH-2026-000067'), 'LBTS-CH-2026-000067')
     assert.equal(shortTripNumber(''), '')
   })

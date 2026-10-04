@@ -3270,7 +3270,6 @@ export const en = {
         'The licence has expired. The trip can still be confirmed — check it before dispatch.',
       licenceSuffix: ' · Licence {number}',
       licenceExpires: ' (expires {when})',
-      tripSerial: '{code} · trip #{serial}',
       searchHint: 'Type the last digits on the plate — {digits} finds {plate}. Only vehicles that can take a trip are listed.',
       fillsIn: 'The vehicle’s vendor and its assigned driver fill in as soon as you choose it.',
       searchFailed: 'The vehicle search failed.',
@@ -3471,7 +3470,7 @@ export const en = {
       createTitle: 'Create this delivery?',
       saveTitle: 'Save {trip}?',
       createDescription:
-        'The trip is assigned to {vendor} and numbered from their own serial. A number, once given, is never reused.',
+        'The trip is assigned to {vendor} and takes the next trip number. A number, once given, is never reused.',
       saveDescription:
         'The trip keeps its number. Every challan on it is re-read against the current paper.',
       backToCart: 'Back to the cart',
@@ -3661,7 +3660,7 @@ export const en = {
       deleteTitle: 'Delete {trip}?',
       deleteTitleGeneric: 'Delete trip?',
       deleteDescription:
-        'Only a trip that has not been dispatched can be deleted. Every challan on it is released for another trip. The trip number is not reused — the vendor’s serial simply skips it.',
+        'Only a trip that has not been dispatched can be deleted. Every challan on it is released for another trip. The trip number is not reused — the sequence simply skips it.',
       deleted: 'Trip deleted',
       deletedNote: 'Every challan quantity it held is free for another trip.',
       actionsAria: 'Actions for {trip}',

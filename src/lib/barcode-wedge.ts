@@ -106,8 +106,8 @@ export function isChallanCode(value: string): boolean {
   return CHALLAN_CODE.test(value.trim())
 }
 
-/** A trip number in its **stored** form, which is what a manifest's barcode carries. */
-const TRIP_CODE = /^V-\d+-TRIP-\d+$/i
+/** A trip number, as a manifest's barcode carries it — and the retired form beside it. */
+const TRIP_CODE = /^(TRIP-\d+|V-\d+-TRIP-\d+)$/i
 
 /**
  * Whether a scan is a **trip manifest's** barcode rather than a challan's.
@@ -118,11 +118,12 @@ const TRIP_CODE = /^V-\d+-TRIP-\d+$/i
  * which page happens to be open, because a scanner is pointed at paper and the
  * paper is what says which question is being asked.
  *
- * The **stored** form only — `V-0007-TRIP-0012`, vendor code and all. The
- * short form the screens read (`TRIP-0012`) is the vendor's own running count
- * and two vendors both have a twelfth trip, so a bare one names no trip. That
- * is exactly why the barcode carries the long form even though nobody says it
- * out loud.
+ * `TRIP-0012` is the whole of a trip number now — one global running serial,
+ * which is unique on its own, so what the barcode carries and what the screens
+ * read are the same string. The retired `V-0007-TRIP-0012` form is matched
+ * beside it, because a manifest printed before the renumbering is still paper
+ * in somebody's hand, and a scanner pointed at it should open its trip rather
+ * than be sent into the receipt lookup to report that no challan carries it.
  */
 export function isTripCode(value: string): boolean {
   return TRIP_CODE.test(value.trim())

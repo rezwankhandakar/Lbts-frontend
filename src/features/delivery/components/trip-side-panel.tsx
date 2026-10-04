@@ -1,7 +1,7 @@
 import { Building2, Phone, Truck, UserRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { formatDateTime, formatNumber } from '@/lib/format'
+import { formatDateTime } from '@/lib/format'
 import { formatDay } from '@/features/vendor/lib/vendor-meta'
 import type { TripRecord } from '../types'
 import { useT } from '@/lib/i18n'
@@ -75,12 +75,7 @@ export function TripSidePanel({ trip }: { trip: TripRecord }) {
         <Link to={`/vendors/${trip.vendor.id}`} className="font-medium hover:underline">
           {trip.vendor.name}
         </Link>
-        <p className="text-xs text-muted-foreground">
-          {t('delivery.vehicle.tripSerial', {
-            code: trip.vendor.vendorCode,
-            serial: formatNumber(trip.vendorTripSerial),
-          })}
-        </p>
+        <p className="text-xs text-muted-foreground">{trip.vendor.vendorCode}</p>
         <Tel value={trip.vendor.mobile} />
       </Block>
 

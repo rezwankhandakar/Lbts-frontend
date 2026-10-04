@@ -91,18 +91,21 @@ describe('normalizeScan', () => {
 
 describe('telling the two printed barcodes apart', () => {
   it('reads a manifest barcode as a trip', () => {
-    assert.equal(isTripCode('V-0007-TRIP-0012'), true)
-    assert.equal(isTripCode(' v-12-trip-3 '), true)
+    assert.equal(isTripCode('TRIP-0012'), true)
+    assert.equal(isTripCode(' trip-3 '), true)
   })
 
-  it('refuses the short form, which names no trip on its own', () => {
-    // Every vendor has a twelfth trip, so a bare TRIP-0012 is not an identifier.
-    assert.equal(isTripCode('TRIP-0012'), false)
+  it('still reads a manifest printed under the retired vendor-prefixed form', () => {
+    // Paper outlives a renumbering, and a scan of it must open its trip rather
+    // than fall through to the receipt lookup.
+    assert.equal(isTripCode('V-0007-TRIP-0012'), true)
+    assert.equal(isTripCode(' v-12-trip-3 '), true)
   })
 
   it('never reads one sheet as the other', () => {
     assert.equal(isTripCode('LBTS-CH-2026-000982'), false)
     assert.equal(isTripCode('41822'), false)
+    assert.equal(isChallanCode('TRIP-0012'), false)
     assert.equal(isChallanCode('V-0007-TRIP-0012'), false)
   })
 })

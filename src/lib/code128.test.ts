@@ -49,7 +49,7 @@ describe('Code 128-B', () => {
   })
 
   it('starts on a bar and alternates strictly from there', () => {
-    const symbol = encodeCode128B('V-0007-TRIP-0012')
+    const symbol = encodeCode128B('TRIP-0012')
     assert.equal(symbol.elements[0].isBar, true)
 
     for (let index = 1; index < symbol.elements.length; index += 1) {
@@ -63,14 +63,14 @@ describe('Code 128-B', () => {
   })
 
   it('ends on a bar, as the stop pattern requires', () => {
-    const symbol = encodeCode128B('V-0007-TRIP-0012')
+    const symbol = encodeCode128B('TRIP-0012')
     assert.equal(symbol.elements[symbol.elements.length - 1].isBar, true)
   })
 
   it('gives two trips two different symbols', () => {
     assert.notDeepEqual(
-      encodeCode128B('V-0007-TRIP-0012').codes,
-      encodeCode128B('V-0007-TRIP-0013').codes,
+      encodeCode128B('TRIP-0012').codes,
+      encodeCode128B('TRIP-0013').codes,
     )
   })
 
@@ -81,14 +81,16 @@ describe('Code 128-B', () => {
 })
 
 describe('barcodeSvg', () => {
-  const TRIP = 'V-0007-TRIP-0012'
+  const TRIP = 'TRIP-0012'
   const WIDTH_MM = barcodeWidthMm(TRIP)
 
   it('keeps the narrowest bar above what a scanner can measure', () => {
-    // Every trip number the counter can produce, not just the short one: a
-    // vendor past V-9999 or a vendor past its thousandth trip is longer, and
-    // the width has to follow it rather than squeezing the modules.
-    for (const value of ['V-0001-TRIP-0001', TRIP, 'V-00012-TRIP-00123', 'V-000123-TRIP-000456']) {
+    // Every trip number the counter can produce, not just the four-digit one:
+    // the ten-thousandth trip grows a digit, and the width has to follow it
+    // rather than squeezing the modules. The retired vendor-prefixed form is in
+    // the list because a manifest printed under it is still reprinted from the
+    // record, and it is the longest payload this sheet ever carries.
+    for (const value of ['TRIP-0001', TRIP, 'TRIP-123456', 'V-000123-TRIP-000456']) {
       const { moduleWidthMm } = barcodeMetrics(value, barcodeWidthMm(value))
       assert.ok(
         moduleWidthMm >= MIN_MODULE_WIDTH_MM,
@@ -98,7 +100,7 @@ describe('barcodeSvg', () => {
   })
 
   it('takes a wider strip for a longer number rather than a narrower bar', () => {
-    assert.ok(barcodeWidthMm('V-00012-TRIP-00123') > barcodeWidthMm(TRIP))
+    assert.ok(barcodeWidthMm('TRIP-123456') > barcodeWidthMm(TRIP))
   })
 
   it('draws one rectangle per bar and no rectangle per space', () => {

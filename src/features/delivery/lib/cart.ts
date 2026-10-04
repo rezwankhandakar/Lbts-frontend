@@ -676,18 +676,19 @@ export function summarize(state: CartState): CartSummary {
 }
 
 /**
- * A trip number without the vendor code in front of it.
+ * A trip number as it is read: `TRIP-0012`.
  *
- * The stored number is `V-0007-TRIP-0012` and it stays that way: the serial is
- * the vendor's own running count, so the code in front is the whole of what
- * makes the number unique across the collection, and a unique index depends on
- * it. What it is not is what anybody says out loud. At a gate it is "trip
- * twelve", the vendor's name is already on the row beside it, and four
- * characters of prefix on every screen is four characters of noise.
+ * A trip number **is** that now — one global running serial, no vendor code —
+ * so for every trip this app writes this returns what it was given. What it
+ * still does is reduce the retired `V-0007-TRIP-0012` form, which survives in
+ * the frozen copies a correction is not allowed to rewrite: a finalized bill
+ * line, and anything else that quoted a number before the renumbering. Reading
+ * one of those beside a current trip should not be reading two formats.
  *
- * So the prefix is dropped for reading and never for storing. Anything that
+ * It is kept rather than deleted for that reason alone, and it is the one place
+ * the old shape is known, so nothing else has to carry the regex. Anything that
  * does not look like a vendor-prefixed number is returned untouched, which is
- * what keeps this from quietly mangling a number some future format produces.
+ * what keeps it from quietly mangling a number some future format produces.
  */
 export function shortTripNumber(tripNumber: string): string {
   return tripNumber.replace(/^V-\d+-(?=TRIP-)/, '')

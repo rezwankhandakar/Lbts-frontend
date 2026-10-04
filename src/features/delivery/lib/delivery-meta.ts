@@ -70,9 +70,9 @@ export function tripStatusMeta(value: string, t: Translator): TripStatusMeta {
 }
 
 /**
- * A trip number as it is read rather than as it is stored — see
- * `shortTripNumber` in `cart.ts`, the import-free file that owns it so
- * `node --test` can load it.
+ * A trip number as it is read, which for anything written since the global
+ * serial is the number itself — see `shortTripNumber` in `cart.ts`, the
+ * import-free file that owns it so `node --test` can load it.
  */
 export { shortTripNumber } from './cart'
 

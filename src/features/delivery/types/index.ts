@@ -302,7 +302,7 @@ export type ReservedRecord = StoredTripChallan['reserved'][number]
 export interface TripRecord {
   id: string
   tripNumber: string
-  vendorTripSerial: number
+  tripSerial: number
   status: TripStatus
   tripDate: string
   vendor: { id: string; vendorCode: string; name: string; mobile: string }
