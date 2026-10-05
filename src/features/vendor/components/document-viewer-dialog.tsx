@@ -7,6 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { PdfUrlView } from '@/components/shared/pdf-url-view'
+import { ZoomToolbar } from '@/components/shared/zoom-toolbar'
+import { useZoom } from '@/hooks/use-zoom'
 import { formatFileSize } from '@/lib/format'
 import { documentTypeLabel } from '../lib/vendor-meta'
 import type { DocumentRecord } from '../types'
@@ -31,16 +34,8 @@ interface DocumentViewerDialogProps {
  * the endpoint is authenticated and the browser cannot fetch it for itself —
  * the same path Gate Pass and Challan take to their stored scans.
  *
- * **The PDF frame is not sandboxed**, and that is deliberate rather than an
- * oversight. Chrome renders a PDF through its own viewer extension, which needs
- * scripting to start: under `sandbox=""` it refuses and shows "This page has
- * been blocked by Chrome" where the document should be. The combination that
- * would work — `allow-scripts` plus `allow-same-origin`, the latter because a
- * blob: URL cannot resolve without it — removes every protection a sandbox would
- * have given, so the attribute is theatre either way. What contains this frame
- * is the content: bytes this app fetched from its own authenticated API, typed
- * `application/pdf`, which the browser hands to the PDF viewer rather than
- * parsing as a document. The Challan module documents the same decision.
+ * A PDF is drawn with pdf.js (`PdfUrlView`) rather than in an iframe: a mobile
+ * browser has no PDF viewer to embed, so a frame is blank on a phone.
  */
 export function DocumentViewerDialog({
   document,
@@ -53,6 +48,7 @@ export function DocumentViewerDialog({
   onDownload,
 }: DocumentViewerDialogProps) {
   const t = useT()
+  const zoom = useZoom()
 
   if (!document) {
     return null
@@ -93,14 +89,9 @@ export function DocumentViewerDialog({
               <p className="text-sm text-muted-foreground">{error}</p>
             </div>
           ) : url && isPdf ? (
-            <iframe
-              src={url}
-              title={t('vendor.document.viewerTitle', {
-                type: documentTypeLabel(document.documentType, t),
-                owner: document.ownerLabel,
-              })}
-              className="h-[65svh] w-full border-0"
-            />
+            <div className="h-[65svh]">
+              <PdfUrlView url={url} title={document.documentType} controls={zoom} />
+            </div>
           ) : url ? (
             <div className="flex h-full max-h-[65svh] items-center justify-center overflow-auto p-3">
               <img
@@ -125,10 +116,13 @@ export function DocumentViewerDialog({
               : t('vendor.document.noFileAttached')}
           </p>
 
-          <Button variant="outline" size="sm" onClick={onDownload} disabled={!document.attachment}>
-            <Download data-icon="inline-start" aria-hidden />
-            {t('common.actions.download')}
-          </Button>
+          <div className="flex items-center justify-end gap-2">
+            {url && isPdf && <ZoomToolbar controls={zoom} />}
+            <Button variant="outline" size="sm" onClick={onDownload} disabled={!document.attachment}>
+              <Download data-icon="inline-start" aria-hidden />
+              {t('common.actions.download')}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

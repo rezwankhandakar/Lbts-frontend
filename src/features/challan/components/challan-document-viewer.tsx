@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { Download, FileWarning, Loader2, Maximize2, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { PdfUrlView } from '@/components/shared/pdf-url-view'
+import { ZoomToolbar } from '@/components/shared/zoom-toolbar'
+import { useZoom } from '@/hooks/use-zoom'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
@@ -19,12 +22,11 @@ interface ChallanDocumentViewerProps {
 /**
  * The stored challan document on screen.
  *
- * Always a PDF, so this is always the browser's own viewer in an iframe —
- * which brings its own paging and zoom, and reimplementing those would mean
- * shipping a second PDF renderer to render a document the browser already
- * renders. The workspace bundles pdf.js because choosing a page range needs
- * the app to know which page it is showing; reading a finished challan does
- * not, so this page does not pay for it.
+ * Always a PDF, and drawn with pdf.js rather than left to the browser's own
+ * viewer in an iframe. That was the arrangement until it met a phone: a mobile
+ * browser has no PDF viewer to embed, so the frame was blank there. pdf.js is
+ * loaded on demand by `PdfUrlView`, so the page still does not pay for it
+ * until a document is actually on screen.
  *
  * The URL is always an object URL: the endpoint is authenticated, so the bytes
  * cannot be an `src` the browser fetches for itself. Whoever owns the blob
@@ -43,6 +45,10 @@ export function ChallanDocumentViewer({
   const t = useT()
 
   const [fullscreen, setFullscreen] = useState(false)
+  const zoom = useZoom()
+  // Fullscreen starts from a clean fit rather than the panel's zoom.
+  const fullscreenZoom = useZoom()
+  const title = t('challan.details.documentAria')
 
   const body = (() => {
     if (isLoading) {
@@ -74,21 +80,7 @@ export function ChallanDocumentViewer({
       return null
     }
 
-    return (
-      // Deliberately not sandboxed. Chrome renders a PDF through its own
-      // viewer extension, which needs scripting to start: under `sandbox=""`
-      // it refuses and shows "This page has been blocked by Chrome" where the
-      // document should be. The combination that would work — allow-scripts
-      // plus allow-same-origin, the latter because a blob: URL cannot resolve
-      // without it — removes every protection a sandbox would have given, so
-      // the attribute is theatre either way.
-      //
-      // What actually contains this is the content itself: the blob is bytes
-      // this app fetched from its own authenticated API, typed
-      // application/pdf, so the browser hands it to the PDF viewer rather than
-      // parsing it as a document.
-      <iframe src={url} title={t('challan.details.documentAria')} className="size-full border-0 bg-white" />
-    )
+    return <PdfUrlView url={url} title={title} controls={zoom} />
   })()
 
   return (
@@ -106,6 +98,7 @@ export function ChallanDocumentViewer({
           </p>
 
           <div className="flex items-center gap-1">
+            <ZoomToolbar controls={zoom} disabled={!url} />
             <Button
               variant="ghost"
               size="icon-sm"
@@ -139,13 +132,22 @@ export function ChallanDocumentViewer({
         </div>
       </div>
 
-      <Dialog open={fullscreen} onOpenChange={setFullscreen}>
-        <DialogContent className="flex h-[92vh] w-[96vw] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none">
-          <DialogTitle className="sr-only">{t('challan.details.documentAria')}</DialogTitle>
-          <div className="min-h-0 flex-1 pt-8">
-            {url && (
-              <iframe src={url} title={t('challan.details.documentAria')} className="size-full border-0 bg-white" />
-            )}
+      <Dialog
+        open={fullscreen}
+        onOpenChange={(next) => {
+          setFullscreen(next)
+          if (!next) {
+            fullscreenZoom.reset()
+          }
+        }}
+      >
+        <DialogContent className="flex h-[92svh] w-[96vw] max-w-none flex-col gap-2 overflow-hidden p-3 sm:max-w-none">
+          <div className="flex items-center gap-2 pe-8">
+            <DialogTitle className="min-w-0 flex-1 truncate text-sm">{title}</DialogTitle>
+            <ZoomToolbar controls={fullscreenZoom} disabled={!url} />
+          </div>
+          <div className="min-h-0 flex-1 overflow-hidden rounded-lg border bg-muted/60">
+            {url && <PdfUrlView url={url} title={title} controls={fullscreenZoom} />}
           </div>
         </DialogContent>
       </Dialog>

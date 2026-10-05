@@ -2,6 +2,8 @@ import { useCallback, useMemo, useState } from 'react'
 import { FileWarning, Loader2, ScanLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { PdfUrlView } from '@/components/shared/pdf-url-view'
+import type { ZoomControls } from '@/hooks/use-zoom'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { isPdf as isPdfType } from '../lib/gate-pass-document'
@@ -60,14 +62,26 @@ function useViewerControls(): ViewerControls {
   )
 }
 
+/** The same zoom, in the shape the shared PDF renderer takes. */
+function pdfZoom(controls: ViewerControls): ZoomControls {
+  return {
+    zoom: controls.zoom,
+    zoomIn: controls.zoomIn,
+    zoomOut: controls.zoomOut,
+    reset: controls.fit,
+    canZoomIn: controls.zoom < ZOOM_STEPS[ZOOM_STEPS.length - 1],
+    canZoomOut: controls.zoom > ZOOM_STEPS[0],
+  }
+}
+
 /**
  * The scanned gate pass on screen.
  *
  * Two renderers, because the two formats behave completely differently. An
- * image is ours to zoom and rotate. A PDF goes to the browser's built-in
- * viewer in an iframe, which brings its own paging and zoom — reimplementing
- * those would mean shipping a PDF renderer to render a document the browser
- * already renders.
+ * image is ours to zoom and rotate. A PDF is drawn page by page with pdf.js
+ * (`PdfUrlView`, loaded on demand) — it used to go to the browser's built-in
+ * viewer in an iframe, and a mobile browser has none to embed, so a PDF scan
+ * was blank on a phone.
  *
  * The URL is always an object URL: the stored document comes from an
  * authenticated endpoint, and a freshly scanned one has not been uploaded yet.
@@ -133,20 +147,10 @@ export function GatePassDocumentViewer({
 
     if (isPdf) {
       return (
-        // Deliberately not sandboxed. Chrome renders a PDF through its own
-        // viewer extension, which needs scripting to start: under `sandbox=""`
-        // it refuses and shows "This page has been blocked by Chrome" where
-        // the scan should be. The combination that would work — allow-scripts
-        // plus allow-same-origin, the latter because a blob: URL cannot
-        // resolve without it — removes every protection a sandbox would have
-        // given, so the attribute is theatre either way. What contains this is
-        // the content: bytes this app fetched from its own authenticated API,
-        // typed application/pdf, which the browser hands to the PDF viewer
-        // rather than parsing as a document.
-        <iframe
-          src={url}
+        <PdfUrlView
+          url={url}
           title={t('gatePass.viewer.scannedTitle')}
-          className="size-full border-0 bg-white"
+          controls={pdfZoom(controls)}
         />
       )
     }
@@ -189,10 +193,10 @@ export function GatePassDocumentViewer({
 
           <div className="min-h-0 flex-1 pt-8">
             {url && isPdf && (
-              <iframe
-                src={url}
+              <PdfUrlView
+                url={url}
                 title={t('gatePass.viewer.scannedTitle')}
-                className="size-full border-0 bg-white"
+                controls={pdfZoom(fullscreenControls)}
               />
             )}
             {url && !isPdf && (
@@ -204,10 +208,10 @@ export function GatePassDocumentViewer({
             )}
           </div>
 
-          {url && !isPdf && (
+          {url && (
             <DocumentToolbar
               controls={fullscreenControls}
-              isPdf={false}
+              isPdf={isPdf}
               pageCount={pageCount}
               onFullscreen={() => setFullscreen(false)}
               onDownload={onDownload}

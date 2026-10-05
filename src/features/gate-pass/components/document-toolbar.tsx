@@ -27,7 +27,7 @@ export interface ViewerControls {
 
 interface DocumentToolbarProps {
   controls: ViewerControls
-  /** Image controls are meaningless over the browser's own PDF viewer. */
+  /** A PDF zooms but does not rotate, and says how many pages it has. */
   isPdf: boolean
   pageCount: number | null
   onFullscreen: () => void
@@ -68,11 +68,9 @@ function IconButton({
 /**
  * Everything that can be done to the document on screen.
  *
- * Zoom and rotation apply to an image only. A PDF is rendered by the browser's
- * own viewer, which owns its zoom, its rotation and its page navigation — and
- * cannot be driven from script. Offering buttons that would silently do
- * nothing would be worse than not offering them, so for a PDF the toolbar
- * shows the page count and gets out of the way.
+ * Zoom applies to both formats; rotation to an image only. A PDF is drawn by
+ * pdf.js at the size the zoom asks for, and shows its page count beside the
+ * zoom where the rotation buttons would be.
  */
 export function DocumentToolbar({
   controls,
@@ -89,6 +87,25 @@ export function DocumentToolbar({
 
   return (
     <div className="flex flex-wrap items-center gap-1 border-t bg-muted/30 px-2 py-1.5">
+      <IconButton
+        label={t('gatePass.viewer.zoomOut')}
+        icon={ZoomOut}
+        onClick={controls.zoomOut}
+        disabled={disabled}
+      />
+      <span className="w-12 text-center text-xs tabular-nums text-muted-foreground">
+        {formatPercent(Math.round(controls.zoom * 100))}
+      </span>
+      <IconButton
+        label={t('gatePass.viewer.zoomIn')}
+        icon={ZoomIn}
+        onClick={controls.zoomIn}
+        disabled={disabled}
+      />
+      <Button variant="ghost" size="sm" onClick={controls.fit} disabled={disabled}>
+        {t('gatePass.viewer.fit')}
+      </Button>
+
       {isPdf ? (
         <p className="px-2 text-xs text-muted-foreground">
           {pageCount && pageCount > 1
@@ -97,26 +114,9 @@ export function DocumentToolbar({
                 n: formatNumber(pageCount),
               })
             : t('gatePass.viewer.pdfDocument')}
-          <span className="hidden sm:inline">{t('gatePass.viewer.pdfHint')}</span>
         </p>
       ) : (
         <>
-          <IconButton
-            label={t('gatePass.viewer.zoomOut')}
-            icon={ZoomOut}
-            onClick={controls.zoomOut}
-            disabled={disabled}
-          />
-          <span className="w-12 text-center text-xs tabular-nums text-muted-foreground">
-            {formatPercent(Math.round(controls.zoom * 100))}
-          </span>
-          <IconButton
-            label={t('gatePass.viewer.zoomIn')}
-            icon={ZoomIn}
-            onClick={controls.zoomIn}
-            disabled={disabled}
-          />
-
           <span className="mx-1 h-4 w-px bg-border" aria-hidden />
 
           <IconButton
@@ -131,9 +131,6 @@ export function DocumentToolbar({
             onClick={controls.rotateRight}
             disabled={disabled}
           />
-          <Button variant="ghost" size="sm" onClick={controls.fit} disabled={disabled}>
-            {t('gatePass.viewer.fit')}
-          </Button>
         </>
       )}
 
