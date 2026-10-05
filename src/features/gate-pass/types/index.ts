@@ -191,7 +191,10 @@ export interface GatePassStats {
   submitted: number
   verified: number
   rejected: number
+  /** Gate passes whose trip date is today. */
   today: number
+  /** Pieces on the gate passes entered today, whatever date they carry. */
+  todayQty: number
 }
 
 export type StatusFilter = GatePassStatus | 'all'

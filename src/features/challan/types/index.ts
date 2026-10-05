@@ -357,6 +357,8 @@ export interface DuplicateChallanCandidate {
 export interface ChallanStats {
   total: number
   today: number
+  /** Pieces on the challans filed today. */
+  todayQty: number
   totalQty: number
   totalAmount: number
   batchesProcessing: number

@@ -146,8 +146,10 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
     panels.push({
       icon: ScanLine,
       label: t('dashboard.hero.gatePasses'),
-      value: gatePasses?.today,
-      note: gatePasses === undefined ? '' : t('dashboard.hero.datedToday'),
+      // Pieces, like the headline beside it — and on what was *entered* today
+      // rather than on what is dated today.
+      value: gatePasses?.todayQty,
+      note: gatePasses === undefined ? '' : t('dashboard.hero.piecesEnteredToday'),
       to: '/gate-pass',
     })
   }
@@ -155,8 +157,8 @@ export function DashboardHero({ dashboard, name }: { dashboard: DashboardData; n
     panels.push({
       icon: ReceiptText,
       label: t('dashboard.hero.challansFiled'),
-      value: challans?.today,
-      note: challans === undefined ? '' : t('dashboard.hero.outOfOfficePdfs'),
+      value: challans?.todayQty,
+      note: challans === undefined ? '' : t('dashboard.hero.piecesFiledToday'),
       to: '/challan',
     })
   }

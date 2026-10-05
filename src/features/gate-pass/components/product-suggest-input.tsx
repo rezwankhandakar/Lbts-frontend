@@ -97,27 +97,74 @@ export function ProductSuggestInput({
   const names = useMemo(() => namesQuery.data ?? [], [namesQuery.data])
 
   /**
-   * One unambiguous match fills an **empty** product box, and only an empty
-   * one.
+   * One unambiguous match fills the product box while the box is still the
+   * card's to fill: empty, or holding the very name this effect put there.
    *
-   * Filling a blank is help; overwriting something somebody typed is the
-   * system deciding it knows better — and on a form transcribed from paper the
-   * typed value is the one that came off the challan. The ref records which
-   * model was filled from, so clearing the box by hand is respected rather
-   * than immediately undone.
+   * Filling a blank is help, and overwriting something somebody typed is the
+   * system deciding it knows better — that rule stands. But a name the card
+   * supplied is not something somebody typed, and it was an answer about the
+   * model as it read at that moment: `25` is a microwave oven, and one more
+   * character makes it `25L`, an air cooler. Leaving the first answer in the
+   * box would file a line that reads as an ordinary record of a different
+   * product. So `autoFilled` remembers what was put in, and for as long as the
+   * box still says exactly that, it follows the model — replaced when the
+   * model names another product, taken back out when it no longer names one.
+   *
+   * The moment somebody types in the box or picks from the list it is theirs,
+   * and nothing here touches it again. `filledFrom` records which model an
+   * empty box was filled from, so clearing it by hand is respected rather than
+   * immediately undone.
+   *
+   * Nothing is decided mid-keystroke or mid-request: an answer still on its
+   * way is not "no match", and acting on it would blank the box between every
+   * two characters.
    */
   const filledFrom = useRef<string | null>(null)
+  const autoFilled = useRef<string | null>(null)
+
+  const modelAsked = debouncedModel.length >= MIN_MODEL_LENGTH
+  const settled =
+    model.trim() === debouncedModel &&
+    !matchesQuery.isFetching &&
+    (!modelAsked || matchesQuery.data !== undefined)
 
   useEffect(() => {
-    if (value.trim() !== '' || matches.length !== 1 || debouncedModel === '') {
+    const current = value.trim()
+    const ours = current !== '' && current === autoFilled.current
+
+    if (current !== '' && !ours) {
+      autoFilled.current = null
       return
     }
-    if (filledFrom.current === debouncedModel) {
+    if (!settled) {
+      return
+    }
+
+    const name = modelAsked && matches.length === 1 ? matches[0].productName : null
+
+    if (name === null) {
+      if (ours) {
+        autoFilled.current = null
+        onPick('')
+      }
+      return
+    }
+    if (current === name) {
+      return
+    }
+    if (!ours && filledFrom.current === debouncedModel) {
       return
     }
     filledFrom.current = debouncedModel
-    onPick(matches[0].productName)
-  }, [matches, debouncedModel, value, onPick])
+    autoFilled.current = name
+    onPick(name)
+  }, [matches, debouncedModel, modelAsked, settled, value, onPick])
+
+  /** A name taken from the list is the operator's choice, not the card's. */
+  const handlePick = (picked: string) => {
+    autoFilled.current = null
+    onPick(picked)
+  }
 
   /**
    * Deduplicated by product name: a model can appear on more than one row of
@@ -170,7 +217,7 @@ export function ProductSuggestInput({
       field="productName"
       registration={registration}
       value={value}
-      onPick={onPick}
+      onPick={handlePick}
       invalid={invalid}
       priorityOptions={priorityOptions}
       priorityLabel={t('productRate.fromCard')}

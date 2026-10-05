@@ -1,0 +1,9 @@
+# Query: Voucher / Re
+# ContextLines: 1
+
+1 result - 1 file
+
+LBTS-Frontend\src\features\accounts\components\entry-form.tsx:
+  119        <div className="grid gap-4 sm:grid-cols-[11rem_1fr]">
+  120:         <EntryField id="entry-reference" label="Refarence" optional>
+  121            <Input
