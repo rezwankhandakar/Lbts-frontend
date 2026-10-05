@@ -2636,7 +2636,7 @@ export const en = {
       correct: 'Correct',
       regenerates: 'Saving regenerates the document.',
       regeneratesNote:
-        'The back page is redrawn from what you save, and the stored PDF is replaced — the SL number, challan number and barcode stay the same. Any copy printed before now shows the old details, so reprint it if it is already in circulation. The page range ({range} of {file}) cannot be changed here — the source PDF was never stored.',
+        'The back page is redrawn from what you save, and the stored PDF is replaced — the SL number, challan number and barcode stay the same. Any copy printed before now shows the old details, so reprint it if it is already in circulation. A challan already on a trip is still corrected, and the trip follows — a renamed product is renamed there, a removed one comes off it, and a quantity cut below what went out is cut on the trip that carried it. The page range ({range} of {file}) cannot be changed here — the source PDF was never stored.',
       filedLine: 'SL {sl} · {customer} · filed {when}',
       filedLineBy: 'SL {sl} · {customer} · filed {when} by {name}',
       batchButton: 'Batch',

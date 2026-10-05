@@ -82,6 +82,7 @@ export function useSubmitChallan(): UseMutationResult<ChallanRecord, unknown, Su
  */
 export function useUpdateChallan(): UseMutationResult<ChallanRecord, ApiError, UpdateChallanArgs> {
   const invalidate = useInvalidateChallans()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: updateChallan,
@@ -90,6 +91,13 @@ export function useUpdateChallan(): UseMutationResult<ChallanRecord, ApiError, U
         description: t('challan.toasts.correctedNote', { challan: record.challanNumber }),
       })
       void invalidate()
+      /**
+       * A challan already on a trip takes that trip with it: the server
+       * rewrites the trip's copy of the lines to match the correction. The
+       * key is Delivery's root, spelled out rather than imported — Delivery
+       * composes this feature, and importing back would close the circle.
+       */
+      void queryClient.invalidateQueries({ queryKey: ['deliveries'] })
     },
     onError: reportChallanError,
   })

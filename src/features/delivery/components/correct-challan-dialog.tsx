@@ -39,11 +39,12 @@ interface CorrectChallanDialogProps {
  * form says so before anything is saved, because somebody holding a printed
  * copy needs to reprint it.
  *
- * Two refusals still come from the server and are reported as they arrive: a
- * correction may not say less went out than has already gone out on a lorry,
- * and a role that may not write challans may not write one from here either.
- * Neither is re-implemented in the browser — the one place that can answer
- * them is the one that reads every trip.
+ * A challan already on other trips is corrected all the same, and those trips
+ * follow it on the server. What still comes back as a refusal is reported as
+ * it arrives: a quantity cut that two lorries would have to share, a trip left
+ * carrying nothing of the challan, and a role that may not write challans.
+ * None is re-implemented in the browser — the one place that can answer them
+ * is the one that reads every trip.
  *
  * What it deliberately does not carry is the stored document beside the form.
  * The edit page shows it because a correction has to be checked against
