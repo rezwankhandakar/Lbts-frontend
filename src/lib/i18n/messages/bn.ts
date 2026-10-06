@@ -626,6 +626,10 @@ export const bn: Translation<typeof en> = {
 
     columnFilter: {
       selectAll: 'সব নির্বাচন করুন',
+      search: '{label} খুঁজুন',
+      searchPlaceholder: 'খুঁজুন…',
+      selectAllResults: 'সব ফলাফল নির্বাচন করুন',
+      noMatches: 'এই কলামে কিছু মেলেনি।',
       loadingValues: 'মানগুলো লোড হচ্ছে…',
       noValues: 'অন্য ফিল্টারগুলোর অধীনে কোনো মান নেই।',
       truncated: 'প্রথম {count}টি মান দেখানো হয়েছে। আগে অন্য একটি কলাম সংকুচিত করুন।',

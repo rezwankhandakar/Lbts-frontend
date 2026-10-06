@@ -680,6 +680,10 @@ export const en = {
 
     columnFilter: {
       selectAll: 'Select all',
+      search: 'Search {label}',
+      searchPlaceholder: 'Search…',
+      selectAllResults: 'Select all results',
+      noMatches: 'Nothing in this column matches.',
       loadingValues: 'Loading values…',
       noValues: 'No values under the other filters.',
       truncated: 'Only the first {count} values are listed. Narrow another column first.',
