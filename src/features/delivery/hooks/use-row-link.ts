@@ -18,12 +18,16 @@ const INTERACTIVE = 'a, button, input, select, textarea, label, [role="menuitem"
  *
  * The row itself stays a plain row: keyboard users already have the trip number
  * link, which is the one focusable way in.
+ *
+ * `state` rides along as router state — the list's filters, so the record can
+ * hand them back. A Ctrl/⌘ click opens a fresh tab, which has no history to
+ * carry it in, and that tab simply returns to an unfiltered list.
  */
 export function useRowLink() {
   const navigate = useNavigate()
 
   return useCallback(
-    (href: string) => (event: MouseEvent<HTMLElement>) => {
+    (href: string, state?: unknown) => (event: MouseEvent<HTMLElement>) => {
       const target = event.target as HTMLElement
 
       if (!event.currentTarget.contains(target) || target.closest(INTERACTIVE)) {
@@ -37,7 +41,7 @@ export function useRowLink() {
         return
       }
 
-      navigate(href)
+      navigate(href, { state })
     },
     [navigate],
   )

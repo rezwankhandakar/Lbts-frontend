@@ -14,7 +14,16 @@ import { countOf, useT } from '@/lib/i18n'
  * same reading order as the row, so somebody moving between a desk and a phone
  * sees the same record laid out differently.
  */
-export function TripCards({ records, actions }: { records: TripRecord[]; actions: TripActions }) {
+export function TripCards({
+  records,
+  actions,
+  listState,
+}: {
+  records: TripRecord[]
+  actions: TripActions
+  /** Router state handed to the trip a card opens — the list's filters. */
+  listState?: unknown
+}) {
   const t = useT()
 
   const openRow = useRowLink()
@@ -25,10 +34,10 @@ export function TripCards({ records, actions }: { records: TripRecord[]; actions
         <li
           key={trip.id}
           className="cursor-pointer p-4 transition-colors hover:bg-muted/40"
-          onClick={openRow(`/delivery/${trip.id}`)}
+          onClick={openRow(`/delivery/${trip.id}`, listState)}
         >
           <div className="flex items-start gap-3">
-            <Link to={`/delivery/${trip.id}`} className="min-w-0 flex-1 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <Link to={`/delivery/${trip.id}`} state={listState} className="min-w-0 flex-1 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <p className="font-mono text-sm font-semibold">
                 {shortTripNumber(trip.tripNumber)}
               </p>

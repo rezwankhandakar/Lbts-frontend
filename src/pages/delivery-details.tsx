@@ -1,37 +1,36 @@
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
 import { PageSkeleton } from '@/components/shared/page-skeleton'
-import { formatDay } from '@/features/vendor/lib/vendor-meta'
-import { TripStatusBadge } from '@/features/delivery/components/delivery-badges'
-import { ChallanQuantitySummary } from '@/features/delivery/components/challan-quantity-summary'
 import { DeleteTripDialog } from '@/features/delivery/components/delete-trip-dialog'
-import { DeliveryPageHeader } from '@/features/delivery/components/delivery-page-header'
-import { SummaryFigures } from '@/features/delivery/components/summary-figures'
-import { TripActionsBar } from '@/features/delivery/components/trip-actions-bar'
-import { TripBillCard } from '@/features/delivery/components/trip-bill-card'
+import { TripChallanGrid } from '@/features/delivery/components/trip-challan-grid'
+import { TripHero } from '@/features/delivery/components/trip-hero'
 import { TripLoadError } from '@/features/delivery/components/trip-load-error'
-import { TripManifest } from '@/features/delivery/components/trip-manifest'
-import { TripNotesCard } from '@/features/delivery/components/trip-notes-card'
-import { TripSidePanel } from '@/features/delivery/components/trip-side-panel'
 import { useBarcodeWedge } from '@/hooks/use-barcode-wedge'
 import { useTrip } from '@/features/delivery/hooks/use-deliveries'
 import { useSheetScan } from '@/features/delivery/hooks/use-sheet-scan'
 import { useTripActions } from '@/features/delivery/hooks/use-trip-actions'
-import { shortTripNumber } from '@/features/delivery/lib/delivery-meta'
+import { useTripListReturn } from '@/features/delivery/hooks/use-trip-list-return'
 import { useT } from '@/lib/i18n'
 
+/** How long a challan card stays ringed after its stop was pressed. */
+const HIGHLIGHT_MS = 1600
+
 /**
- * One trip: the manifest of what went, who ran it, and how each delivery on it
- * ended.
+ * One trip: who ran it, what it cost, what went and where — and, below, each
+ * challan on it and how its delivery ended.
  *
  * Everything on this page is the trip's own record — the copies taken when it
  * was confirmed — so it reads the same next year whatever has happened to the
  * vehicle, the driver or the challans since.
  *
- * What heads it is the **quantity**, by product. The three tiles that used to
- * sit here counted challans, pieces and changed lines: an operator at a
- * tailgate is counting refrigerators, and the only summary that helps is the
- * one written in the same units. What is left of the old figures is drawn only
- * when there is an exception to report.
+ * Two sections, top to bottom. The hero is the trip as a whole: its number and
+ * progress, the parties, the notes and the bill, the load by product, and a
+ * small card per stop with its address, floor, carrying and note. The grid is
+ * the challans themselves, two to a row, each finished on its own page. A stop
+ * pressed in the hero scrolls to its card and rings it for a moment, so the
+ * route and the paperwork can be read against each other.
  */
 export function DeliveryDetailsPage() {
   const t = useT()
@@ -40,9 +39,32 @@ export function DeliveryDetailsPage() {
   const navigate = useNavigate()
   const query = useTrip(id)
   const actions = useTripActions()
+  /**
+   * The list's filters, handed back on the way out: as they were by the back
+   * link and a delete, and narrowed to the bill backlog by a saved bill — the
+   * reader is working through the trips with no rent and wants the next one.
+   */
+  const listReturn = useTripListReturn()
   // A signed copy scanned here opens its delivery — this trip's, or another's.
   const receipt = useSheetScan({ trip: query.data })
   useBarcodeWedge((code) => void receipt.scan(code), query.isSuccess && !receipt.pending)
+
+  const [highlighted, setHighlighted] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (highlighted === null) {
+      return
+    }
+    const timer = window.setTimeout(() => setHighlighted(null), HIGHLIGHT_MS)
+    return () => window.clearTimeout(timer)
+  }, [highlighted])
+
+  function showChallan(challanId: string) {
+    document
+      .getElementById(`trip-challan-${challanId}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setHighlighted(challanId)
+  }
 
   if (query.isPending) {
     return <PageSkeleton />
@@ -53,70 +75,45 @@ export function DeliveryDetailsPage() {
   }
 
   const trip = query.data
-  const challans = trip.challans ?? []
-  const lines = challans.flatMap((challan) => challan.lines)
-  const returned = challans.flatMap((challan) => challan.returned)
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
-      <DeliveryPageHeader
-        title={
-          <span className="flex flex-wrap items-center gap-3">
-            <span className="font-mono">{shortTripNumber(trip.tripNumber)}</span>
-            <TripStatusBadge
-              value={trip.status}
-              progress={{ done: trip.completedChallans, total: trip.challanCount }}
-              className="text-[13px]"
-            />
-          </span>
-        }
-        description={t('delivery.trip.assignedTo', {
-          vendor: trip.vendor.name,
-          date: formatDay(trip.tripDate),
-          plate: trip.vehicle.registrationNo,
-          driver: trip.driver.name,
-        })}
-        back={{ to: '/delivery', label: t('delivery.deliveries') }}
-        actions={<TripActionsBar trip={trip} actions={actions} />}
-      />
+    /*
+     * The negative top margin takes back all but 4px of the padding `<main>`
+     * puts above every page (`p-4 md:p-6 lg:p-8` in `app-layout.tsx`), so the
+     * trip starts at the top of the screen — the head of this page is sized to
+     * fit a laptop, and the gap above it was a third of a card. Change one,
+     * change the other.
+     */
+    <div className="mx-auto -mt-3 w-full max-w-7xl md:-mt-5 lg:-mt-7">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="-ml-2 mb-1.5"
+        render={<Link to="/delivery" state={listReturn.backState} />}
+      >
+        <ArrowLeft data-icon="inline-start" aria-hidden />
+        {t('delivery.deliveries')}
+      </Button>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <section aria-label={t('delivery.manifestAria')} className="min-w-0 space-y-4">
-          <ChallanQuantitySummary lines={lines} returned={returned} />
+      <div className="space-y-6">
+        <TripHero
+          trip={trip}
+          actions={actions}
+          onStopSelect={showChallan}
+          onBillSaved={listReturn.afterBillSaved}
+        />
 
-          <SummaryFigures
-            className="sm:grid-cols-4"
-            summary={{
-              challans: trip.challanCount,
-              lines: lines.length,
-              qty: trip.totalQty,
-              changedLines: trip.changedLines,
-              editedChallans: challans.filter((challan) => challan.edited.length > 0).length,
-              splitChallans: challans.filter((challan) => challan.reserved.length > 0).length,
-              /**
-               * A saved trip has already made its corrections, so there is
-               * nothing pending to warn about — the manifest's own badges say
-               * what each line did.
-               */
-              correctedChallans: 0,
-              overages: [],
-            }}
-          />
-
-          <TripManifest
-            challans={challans}
-            completionHref={(challan) => `/delivery/${trip.id}/challans/${challan.challanId}`}
-          />
-        </section>
-
-        <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          <TripBillCard key={trip.id} trip={trip} canChange={actions.canChange(trip)} />
-          <TripNotesCard key={`notes-${trip.id}`} trip={trip} canChange={actions.canChange(trip)} />
-          <TripSidePanel trip={trip} />
-        </aside>
+        <TripChallanGrid
+          challans={trip.challans ?? []}
+          completionHref={(challan) => `/delivery/${trip.id}/challans/${challan.challanId}`}
+          highlightedId={highlighted}
+        />
       </div>
 
-      <DeleteTripDialog actions={actions} onDeleted={() => navigate('/delivery', { replace: true })} />
+      <DeleteTripDialog
+        actions={actions}
+        onDeleted={() => navigate('/delivery', { replace: true, state: listReturn.backState })}
+      />
     </div>
   )
 }

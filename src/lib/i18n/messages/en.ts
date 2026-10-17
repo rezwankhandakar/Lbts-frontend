@@ -590,6 +590,7 @@ export const en = {
     part: { one: 'part', other: 'parts' },
     piece: { one: 'piece', other: 'pieces' },
     pc: { one: 'pc', other: 'pcs' },
+    product: { one: 'product', other: 'products' },
     line: { one: 'line', other: 'lines' },
     field: { one: 'field', other: 'fields' },
     signedCopy: { one: 'signed copy', other: 'signed copies' },
@@ -3269,8 +3270,6 @@ export const en = {
       openTripsCount: '{trips} open',
       licenceExpiredNote:
         'The licence has expired. The trip can still be confirmed — check it before dispatch.',
-      licenceSuffix: ' · Licence {number}',
-      licenceExpires: ' (expires {when})',
       searchHint: 'Type the last digits on the plate — {digits} finds {plate}. Only vehicles that can take a trip are listed.',
       fillsIn: 'The vehicle’s vendor and its assigned driver fill in as soon as you choose it.',
       searchFailed: 'The vehicle search failed.',
@@ -3625,6 +3624,9 @@ export const en = {
 
     bill: {
       heading: 'Trip bill',
+      subheading: 'Trip rent and labour bill',
+      total: 'Total',
+      edit: 'Edit bill',
       notEntered: 'Not entered',
       tripRent: 'Trip rent (গাড়ি ভাড়া)',
       labourBill: 'Labour bill (লেবার বিল)',
@@ -3651,6 +3653,25 @@ export const en = {
       full: 'This trip has reached {max} notes. Remove one to add another.',
     },
 
+    /** The head of the trip page: who ran it, what it cost, what went and where. */
+    hero: {
+      progress: '{done} of {total} deliveries complete',
+      completedOn: 'Completed {when}',
+      notesWrite: 'No notes yet. Press to write one.',
+      openNotes: 'Open the trip notes',
+      returnedDelivered: '{returned} returned · {delivered} delivered',
+      stops: 'Delivery stops',
+      stopsHint: 'Where each challan went and how it was finished. Press one to jump to its card.',
+      extrasNone: 'No floor, carrying or note yet',
+      jumpTo: 'Go to {challan}',
+      challans: 'Challans',
+      challansHint: 'Every challan on the lorry — what went, and how its delivery ended.',
+      products: 'Products',
+      deliveredCount: '{n} delivered',
+      /** On a product row or a stop: how many of it came back off the lorry. */
+      returnedQty: 'Returned {n}',
+    },
+
     trip: {
       printManifest: 'Print manifest',
       lastSaved: 'Last saved {when}',
@@ -3671,11 +3692,7 @@ export const en = {
       loadFailed: 'Could not load this trip',
       deletedHint:
         'It may have been deleted before it left the gate, which releases every challan it carried.',
-      assignedTo: 'Assigned to {vendor} · {date} · {plate} driven by {driver}',
-      history: 'History',
-      notYet: 'Not yet',
       note: 'Note',
-      byAt: '{when} · {name}',
       forThisTripOnly: 'For this trip only',
     },
 

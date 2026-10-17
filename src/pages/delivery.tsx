@@ -13,6 +13,7 @@ import { useTripStats, useTrips } from '@/features/delivery/hooks/use-deliveries
 import { useSheetScan } from '@/features/delivery/hooks/use-sheet-scan'
 import { useTripActions } from '@/features/delivery/hooks/use-trip-actions'
 import { useTripListParams } from '@/features/delivery/hooks/use-trip-list-params'
+import { tripListState } from '@/features/delivery/hooks/use-trip-list-return'
 import { localToday } from '@/features/delivery/lib/delivery-meta'
 import { canWriteDeliveries } from '@/features/delivery/types'
 import type { TripListParams } from '@/features/delivery/types'
@@ -41,11 +42,13 @@ export function DeliveryPage() {
   const canWrite = canWriteDeliveries(role)
 
   /**
-   * The dashboard links here with the backlog it just counted, and this is how
-   * that filter survives the trip. Router state rather than the URL, because
-   * these filters have never been in the URL — carrying them is a convenience
-   * for one journey, not a promise that a link reproduces a view. It seeds the
-   * first render only, so Clear still clears to nothing.
+   * The dashboard links here with the backlog it just counted, and a trip this
+   * list opened links back with the filters it was opened from — after a saved
+   * bill, narrowed to the bill backlog (`useTripListReturn`). Router state
+   * rather than the URL, because these filters have never been in the URL —
+   * carrying them is a convenience for one journey, not a promise that a link
+   * reproduces a view. It seeds the first render only, so Clear still clears
+   * to nothing.
    */
   const { state } = useLocation()
   const seeded = (state as { tripFilters?: Partial<TripListParams> } | null)?.tripFilters
@@ -150,6 +153,7 @@ export function DeliveryPage() {
           actions={actions}
           onRetry={() => void query.refetch()}
           onReset={list.reset}
+          listState={tripListState(list.params)}
         />
 
         {meta && !query.isError && (

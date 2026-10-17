@@ -537,6 +537,7 @@ export const bn: Translation<typeof en> = {
     part: { one: 'ভাগ', other: 'ভাগ' },
     piece: { one: 'পিস', other: 'পিস' },
     pc: { one: 'পিস', other: 'পিস' },
+    product: { one: 'পণ্য', other: 'পণ্য' },
     line: { one: 'লাইন', other: 'লাইন' },
     field: { one: 'ঘর', other: 'ঘর' },
     signedCopy: { one: 'স্বাক্ষরিত কপি', other: 'স্বাক্ষরিত কপি' },
@@ -3092,8 +3093,6 @@ export const bn: Translation<typeof en> = {
       openTripsCount: '{trips} খোলা',
       licenceExpiredNote:
         'লাইসেন্সের মেয়াদ শেষ। ট্রিপটি তবুও নিশ্চিত করা যাবে — পাঠানোর আগে দেখে নিন।',
-      licenceSuffix: ' · লাইসেন্স {number}',
-      licenceExpires: ' (মেয়াদ শেষ {when})',
       searchHint:
         'নম্বরপ্লেটের শেষ অঙ্কগুলো লিখুন — {digits} লিখলে {plate} পাওয়া যায়। যে গাড়িগুলো ট্রিপ নিতে পারে কেবল সেগুলোই দেখানো হয়।',
       fillsIn: 'গাড়িটি বেছে নেওয়ামাত্রই এর ভেন্ডর ও নির্ধারিত চালক বসে যাবে।',
@@ -3449,6 +3448,9 @@ export const bn: Translation<typeof en> = {
 
     bill: {
       heading: 'ট্রিপের বিল',
+      subheading: 'গাড়ি ভাড়া ও লেবার বিল',
+      total: 'মোট',
+      edit: 'বিল সম্পাদনা',
       notEntered: 'লেখা হয়নি',
       tripRent: 'গাড়ি ভাড়া',
       labourBill: 'লেবার বিল',
@@ -3474,6 +3476,23 @@ export const bn: Translation<typeof en> = {
       full: 'এই ট্রিপে {max}টি নোট হয়ে গেছে। নতুন যোগ করতে একটি মুছুন।',
     },
 
+    hero: {
+      progress: '{total}টির মধ্যে {done}টি ডেলিভারি সম্পন্ন',
+      completedOn: 'সম্পন্ন {when}',
+      notesWrite: 'এখনও কোনো নোট নেই। লিখতে চাপুন।',
+      openNotes: 'ট্রিপের নোট খুলুন',
+      returnedDelivered: '{returned} ফেরত · {delivered} ডেলিভারি হয়েছে',
+      stops: 'ডেলিভারির গন্তব্য',
+      stopsHint: 'প্রতিটি চালান কোথায় গেছে এবং কীভাবে সম্পন্ন হয়েছে। চাপলে সেই চালানের কার্ডে চলে যাবে।',
+      extrasNone: 'তলা, বহন বা নোট এখনও লেখা হয়নি',
+      jumpTo: '{challan}-এ যান',
+      challans: 'চালান',
+      challansHint: 'লরির প্রতিটি চালান — কী গেছে, আর ডেলিভারি কীভাবে শেষ হয়েছে।',
+      products: 'পণ্য',
+      deliveredCount: '{n} ডেলিভারি হয়েছে',
+      returnedQty: 'ফেরত {n}',
+    },
+
     trip: {
       printManifest: 'ম্যানিফেস্ট প্রিন্ট করুন',
       lastSaved: 'সর্বশেষ সংরক্ষণ {when}',
@@ -3494,11 +3513,7 @@ export const bn: Translation<typeof en> = {
       loadFailed: 'এই ট্রিপটি লোড করা যায়নি',
       deletedHint:
         'গেট পেরোনোর আগেই এটি মুছে ফেলা হয়ে থাকতে পারে, যাতে এটি যত চালান বহন করছিল সবই মুক্ত হয়ে যায়।',
-      assignedTo: '{vendor}-এর নামে · {date} · {plate}, চালক {driver}',
-      history: 'ইতিহাস',
-      notYet: 'এখনও নয়',
       note: 'নোট',
-      byAt: '{when} · {name}',
       forThisTripOnly: 'শুধু এই ট্রিপের জন্য',
     },
 

@@ -220,6 +220,18 @@
   --tone-rose: oklch(0.49 0.19 22);
 
   /**
+   * Status bands. A surface that carries `primary-foreground` text — a
+   * challan card's header on the trip page — in the colour of where that
+   * delivery stands. The tones above cannot do this: they are lifted in dark
+   * mode to read as text, which is exactly what makes white text on them fail.
+   * Held at or below L 0.53 in both themes so 12px white text clears 4.5:1.
+   */
+  --band-emerald: oklch(0.5 0.115 163);
+  --band-amber: oklch(0.53 0.12 62);
+  --band-rose: oklch(0.5 0.17 18);
+  --band-orange: oklch(0.52 0.15 42);
+
+  /**
    * Chart series, for data marks only — never text, never status. Two
    * categorical slots, validated as a pair for colour-vision separation and
    * contrast on this surface. Accounts draws income in the first and cost in
@@ -287,6 +299,12 @@
   --tone-orange: oklch(0.81 0.13 47);
   --tone-rose: oklch(0.78 0.14 22);
 
+  /* Deeper rather than lifted: these carry white text, on a dark card. */
+  --band-emerald: oklch(0.46 0.1 163);
+  --band-amber: oklch(0.5 0.11 62);
+  --band-rose: oklch(0.47 0.15 18);
+  --band-orange: oklch(0.49 0.13 42);
+
   /* The same two hues stepped for the dark surface, validated as a pair there. */
   --viz-1: #3987e5;
   --viz-2: #d95926;
@@ -314,6 +332,10 @@
   --color-tone-amber: var(--tone-amber);
   --color-tone-orange: var(--tone-orange);
   --color-tone-rose: var(--tone-rose);
+  --color-band-emerald: var(--band-emerald);
+  --color-band-amber: var(--band-amber);
+  --color-band-rose: var(--band-rose);
+  --color-band-orange: var(--band-orange);
   --color-viz-1: var(--viz-1);
   --color-viz-2: var(--viz-2);
 }

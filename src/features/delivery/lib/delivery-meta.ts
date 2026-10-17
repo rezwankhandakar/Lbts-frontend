@@ -87,6 +87,12 @@ interface OutcomePresentation {
   icon: LucideIcon
   badge: string
   dot: string
+  /** A surface carrying `primary-foreground` text — a challan card's header. */
+  band: string
+  /** The same colour as text, for a light pill sitting on that band. */
+  bandText: string
+  /** A button in that colour, with its own hover — the variant's would turn it primary. */
+  bandButton: string
 }
 
 /**
@@ -102,11 +108,17 @@ export const DELIVERY_OUTCOME_META: Record<DeliveryOutcome, OutcomePresentation>
     icon: Truck,
     badge: 'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
     dot: 'bg-tone-amber',
+    band: 'bg-band-amber',
+    bandText: 'text-band-amber',
+    bandButton: 'bg-band-amber hover:bg-band-amber/85',
   },
   Complete: {
     icon: PackageCheck,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
+    band: 'bg-band-emerald',
+    bandText: 'text-band-emerald',
+    bandButton: 'bg-band-emerald hover:bg-band-emerald/85',
   },
 }
 
@@ -137,11 +149,17 @@ const COMPLETION_METHOD_META: Record<
     icon: Undo2,
     badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
     dot: 'bg-tone-rose',
+    band: 'bg-band-rose',
+    bandText: 'text-band-rose',
+    bandButton: 'bg-band-rose hover:bg-band-rose/85',
   },
   CopyMissing: {
     icon: FileQuestion,
     badge: 'border-tone-orange/25 bg-tone-orange/10 text-tone-orange',
     dot: 'bg-tone-orange',
+    band: 'bg-band-orange',
+    bandText: 'text-band-orange',
+    bandButton: 'bg-band-orange hover:bg-band-orange/85',
   },
 }
 

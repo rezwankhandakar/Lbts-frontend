@@ -20,6 +20,8 @@ interface TripDirectoryProps {
   actions: TripActions
   onRetry: () => void
   onReset: () => void
+  /** Router state for the trip a row opens, so it can hand the filters back. */
+  listState?: unknown
 }
 
 /**
@@ -38,6 +40,7 @@ export function TripDirectory({
   actions,
   onRetry,
   onReset,
+  listState,
 }: TripDirectoryProps) {
   const t = useT()
 
@@ -97,8 +100,8 @@ export function TripDirectory({
 
   return (
     <div className={cn('transition-opacity', isFetching && 'opacity-60')} aria-busy={isFetching}>
-      <TripTable records={records} actions={actions} />
-      <TripCards records={records} actions={actions} />
+      <TripTable records={records} actions={actions} listState={listState} />
+      <TripCards records={records} actions={actions} listState={listState} />
     </div>
   )
 }

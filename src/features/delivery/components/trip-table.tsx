@@ -37,7 +37,16 @@ function BillCell({ amount }: { amount: number | null }) {
  * The challans are counted rather than listed: the numbers are on the trip's
  * own page, and a truncated run of them in a cell was one nobody could read.
  */
-export function TripTable({ records, actions }: { records: TripRecord[]; actions: TripActions }) {
+export function TripTable({
+  records,
+  actions,
+  listState,
+}: {
+  records: TripRecord[]
+  actions: TripActions
+  /** Router state handed to the trip a row opens — the list's filters. */
+  listState?: unknown
+}) {
   const t = useT()
 
   const openRow = useRowLink()
@@ -66,11 +75,12 @@ export function TripTable({ records, actions }: { records: TripRecord[]; actions
             <TableRow
               key={trip.id}
               className="cursor-pointer"
-              onClick={openRow(`/delivery/${trip.id}`)}
+              onClick={openRow(`/delivery/${trip.id}`, listState)}
             >
               <TableCell className="pl-4">
                 <Link
                   to={`/delivery/${trip.id}`}
+                  state={listState}
                   className="font-mono text-[13px] font-semibold hover:underline"
                 >
                   {shortTripNumber(trip.tripNumber)}

@@ -1,6 +1,6 @@
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { completionMeta, lineChangeMeta, tripStatusMeta } from '../lib/delivery-meta'
+import { RETURN_META, completionMeta, lineChangeMeta, tripStatusMeta } from '../lib/delivery-meta'
 import { highlightPlate } from '../lib/plate'
 import type { CompletionMethod, LineChange } from '../types'
 import { formatNumber } from '@/lib/format'
@@ -127,6 +127,34 @@ export function LineChangeBadge({
     >
       {meta.label}
       {detail && <span className="font-medium opacity-80">· {detail}</span>}
+    </span>
+  )
+}
+
+/**
+ * How many of something came back off the lorry — on the product row it
+ * belongs to, and on the stop it was delivered to. One component for both, so
+ * the trip page cannot say "Returned 2" in two different colours.
+ */
+export function ReturnedQtyBadge({ qty, className }: { qty: number; className?: string }) {
+  const t = useT()
+
+  if (qty <= 0) {
+    return null
+  }
+
+  const Icon = RETURN_META.icon
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded-md border px-1.5 py-px text-[11px] font-semibold whitespace-nowrap',
+        RETURN_META.badge,
+        className,
+      )}
+    >
+      <Icon className="size-3" aria-hidden />
+      {t('delivery.hero.returnedQty', { n: formatNumber(qty) })}
     </span>
   )
 }
