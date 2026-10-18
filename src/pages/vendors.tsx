@@ -20,11 +20,9 @@ import { useT } from '@/lib/i18n'
 /**
  * Vendor Management: every vendor, and the size and health of each one's fleet.
  *
- * Reading it is open to everyone who reaches the operating modules; changing it
- * is Admin and Manager. A `Vendor` account technically reaches this route too
- * and sees exactly one row — their own — because the API scopes the list from
- * their profile. In practice they arrive at `/my-vendor` instead, which is the
- * same details page without a directory in front of it.
+ * Staff only. A `Vendor` account is sent to `/my-vendor` by `StaffVendorRoute`
+ * before this renders — a vendor sees their own trips and nothing else, and a
+ * directory of one row is not that.
  *
  * What the counts on each row are for: "how many vehicles does this vendor
  * have, how many are working, and is anything about to lapse" is the question

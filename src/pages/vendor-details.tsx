@@ -15,9 +15,10 @@ import { useT } from '@/lib/i18n'
  *
  * The route is `/vendors/:id`, and the id in it is a *subject* rather than
  * authority: the API checks it against the caller's own profile before
- * answering, so a Vendor account that types somebody else's id gets a 404 — not
- * because this page hid anything, but because the server never consulted the id
- * as a claim. That is why there is no guard here beyond the read roles.
+ * answering. A Vendor account never renders this page — `StaffVendorRoute`
+ * sends it to `/my-vendor`, where its trips are the whole of what it sees — but
+ * the API would answer a vendor's request for somebody else's id with a 404
+ * either way, because it never consults the id as a claim.
  */
 export function VendorDetailsPage() {
   const t = useT()
@@ -77,7 +78,6 @@ export function VendorDetailsPage() {
       <VendorWorkspace
         vendor={query.data}
         canManage={canManage}
-        showBackLink
         onDeleted={() => navigate('/vendors')}
       />
     </div>

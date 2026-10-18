@@ -239,8 +239,7 @@ function moduleCards(
             { label: t('dashboard.modules.vendor.vehicles'), value: n(s.vehicles) },
             { label: t('dashboard.modules.vendor.drivers'), value: n(s.drivers) },
             /*
-             * "In date" rather than "0", for the reason the vendor dashboard's
-             * fleet strip gives: a zero here reads as a count of documents
+             * "In date" rather than "0": a zero here reads as a count of documents
              * rather than a count of problems, which is precisely the wrong
              * thing to tell somebody whose papers are all filed and all valid.
              */

@@ -94,6 +94,7 @@ export const bn: Translation<typeof en> = {
       collapse: 'সংকুচিত করুন',
       goBack: 'ফিরে যান',
       goToDashboard: 'ড্যাশবোর্ডে যান',
+      goToMyVendor: 'আমার ভেন্ডরে যান',
       reload: 'পৃষ্ঠাটি আবার লোড করুন',
       dismiss: 'সরিয়ে দিন',
       markAllRead: 'সবগুলো পঠিত হিসেবে চিহ্নিত করুন',
@@ -190,9 +191,9 @@ export const bn: Translation<typeof en> = {
     },
 
     /**
-     * A figure short enough for a chart axis, at the local scale. Shared,
-     * because the Accounts trend chart and the vendor dashboard both draw one and
-     * a second copy is how one of them comes to read "1.5L" beside Bangla digits.
+     * A figure short enough for a chart axis, at the local scale. Shared rather
+     * than kept in Accounts, because a second copy is how one chart comes to
+     * read "1.5L" beside Bangla digits.
      */
     compact: {
       thousand: '{value} হাজার',
@@ -562,6 +563,7 @@ export const bn: Translation<typeof en> = {
       askAdmin: 'প্রবেশাধিকার পাওয়ার কথা মনে করলে একজন অ্যাডমিনকে জানান।',
       signedInAs: 'সাইন ইন করা আছে',
       backToDashboard: 'ড্যাশবোর্ডে ফিরে যান',
+      backToMyVendor: 'আমার ভেন্ডরে ফিরে যান',
 
       /**
        * One sentence per route boundary, naming the module and the accounts it
@@ -4500,11 +4502,11 @@ export const bn: Translation<typeof en> = {
       linkedVendor: 'যুক্ত ভেন্ডর',
       chooseVendor: 'একটি ভেন্ডর বেছে নিন',
       vendorScopeNote:
-        'এই অ্যাকাউন্টটি ওই ভেন্ডরের গাড়ি, চালক, অ্যাসাইনমেন্ট ও ডকুমেন্ট দেখতে পাবে — শুধু পড়ার জন্য, এবং অন্য কোনো ভেন্ডরের কিছুই নয়।',
+        'এই অ্যাকাউন্টটি ওই ভেন্ডরের ট্রিপগুলো দেখতে পাবে — শুধু পড়ার জন্য, এবং অন্য কোনো ভেন্ডরের কিছুই নয়।',
 
       changed: '{name} এখন {role}',
       changedLinked:
-        '{vendor} ({code})-এর সাথে সংযুক্ত। তাঁরা সেই ভেন্ডরের বহর দেখবেন, কেবল পড়ার জন্য।',
+        '{vendor} ({code})-এর সাথে সংযুক্ত। তাঁরা সেই ভেন্ডরের ট্রিপগুলো দেখবেন, কেবল পড়ার জন্য।',
       noVendors:
         'এখনও কোনো ভেন্ডর নেই। অ্যাকাউন্ট যুক্ত করার আগে ভেন্ডর পৃষ্ঠা থেকে একটি যোগ করুন।',
       summary: 'আপনি এই ব্যবহারকারীর ভূমিকা {from} থেকে {to} করছেন।',
@@ -5341,12 +5343,17 @@ export const bn: Translation<typeof en> = {
         'ভেন্ডর, গাড়ি, চালক এবং কাগজপত্রের হালনাগাদ এখান থেকে দেখা ও পরিচালনা করা হয়। প্রতিটি ভেন্ডরের নিজের বহর আছে, আর একজন চালককে কেবল সেই ভেন্ডরের নিজের গাড়িতেই বসানো যায়।',
       directoryAria: 'ভেন্ডর তালিকা',
       myTitle: 'আমার ভেন্ডর',
-      myDescription: 'আপনার ভেন্ডরের বহর, চালক, নিয়োগ এবং কাগজপত্র।',
+      myDescription: 'LBTS-এর জন্য আপনার গাড়ির চালানো প্রতিটি ট্রিপ, আর প্রতিটির হিসাব।',
       myLoadFailed: 'আপনার ভেন্ডর লোড করা যায়নি',
+      notLinkedBadge: 'এখনও সংযুক্ত নয়',
+      notLinkedTitle: 'এই অ্যাকাউন্টের সঙ্গে কোনো ভেন্ডর সংযুক্ত নেই',
+      notLinkedFootnote: 'অ্যাকাউন্টটি সংযুক্ত করাতে একজন প্রশাসকের সঙ্গে যোগাযোগ করুন।',
       notLinkedDescription:
         'একটি ভেন্ডর অ্যাকাউন্ট যে ভেন্ডরের হয়ে কথা বলে, তার সাথে আগে সংযুক্ত হতে হয় — তার আগে দেখানোর কিছু থাকে না। প্রশাসন পৃষ্ঠা থেকে একজন অ্যাডমিন সেটি করে দেন।',
       readOnlyNotice:
         'আপনি নিজের ভেন্ডর রেকর্ড দেখছেন। এখানে সবকিছু কেবল পড়ার জন্য — কোনো কিছু বদলাতে হলে এলবিটিএস অফিসে যোগাযোগ করুন।',
+      readOnlyChip: 'শুধু দেখার জন্য',
+      callAria: '{phone} নম্বরে কল করুন',
 
       notFound: 'ভেন্ডর পাওয়া যায়নি',
       notFoundHint: 'এটি সরিয়ে ফেলা হয়ে থাকতে পারে, বা এই অ্যাকাউন্ট এই ভেন্ডরটি খুলতে না-ও পারে।',
@@ -5755,8 +5762,20 @@ export const bn: Translation<typeof en> = {
       netAmount: 'নিট অঙ্ক',
       status: 'অবস্থা',
       notEntered: 'লেখা হয়নি',
-      overpaid: '{amount} বেশি পরিশোধ',
-      overpaidTitle: 'লেখা বিলের চেয়ে অগ্রিম ও পেমেন্ট বেশি',
+      due: 'বাকি',
+      paidAhead: 'আগেই পরিশোধ',
+      billFor: '{period}-এর বিল',
+      allMonths: 'সব মাস',
+      periodRange: '{from} – {to}',
+      withoutFullBill: '{trips}-এর পূর্ণ বিল নেই',
+      returned: '{count}টি ফেরত',
+      deliveredCount: '{count}টি ডেলিভারি হয়েছে',
+      cameBack: '{count}টি ফেরত এসেছে',
+      slNumber: 'SL {sl}',
+      place: 'থানা: {thana} · জেলা: {district}',
+      openAria: '{trip} খুলুন',
+      periodAria: 'সময়কাল',
+      statusAria: 'ট্রিপের অবস্থা',
       advancesAgainst: 'এই ট্রিপের বিপরীতে অগ্রিম',
       monthlyBillAria: 'মাসিক বিল',
       paid: 'পরিশোধিত',
@@ -5780,89 +5799,6 @@ export const bn: Translation<typeof en> = {
       rentTotal: 'ট্রিপ ভাড়া {amount}',
       labourTotal: 'লেবার বিল {amount}',
       tripFallback: 'ট্রিপ',
-    },
-
-    dashboard: {
-      title: 'ড্যাশবোর্ড',
-      description:
-        'LBTS-এর জন্য আপনার ট্রিপ — কী বেরিয়েছে, কী ফেরত এসেছে, কত বিল হয়েছে আর কত এখনও বাকি।',
-      notLinkedBadge: 'এখনও সংযুক্ত নয়',
-      notLinkedTitle: 'এই অ্যাকাউন্টের সঙ্গে কোনো ভেন্ডর সংযুক্ত নেই',
-      loadFailed: 'আপনার ড্যাশবোর্ড লোড করা যায়নি',
-      notLinkedFootnote: 'অ্যাকাউন্টটি সংযুক্ত করাতে একজন প্রশাসকের সঙ্গে যোগাযোগ করুন।',
-      needsAttention: 'নজর দেওয়া দরকার',
-      lastSixMonths: 'গত ছয় মাস',
-      lastSixHint:
-        'প্রতিটি মাসের ট্রিপে কত বিল হয়েছে। যে মাসে কোনো ট্রিপ নেই সেটি শূন্য, ফাঁক নয়।',
-      readOnly:
-        'এখানে যা আছে সবই আপনার নিজের ভেন্ডর রেকর্ড এবং কেবল পড়ার জন্য। ট্রিপ, বিল ও পেমেন্ট লেখে LBTS — কিছু সংশোধন করাতে অফিসে যোগাযোগ করুন।',
-      paidAhead: 'আগেই পরিশোধ',
-      billed: 'বিল হয়েছে',
-      advance: 'অগ্রিম',
-      paid: 'পরিশোধিত',
-      everyTripByMonth: 'প্রতিটি ট্রিপ, মাসে মাসে',
-      nothingOutThisMonth: 'এই মাসে এখনও কিছুই বেরোয়নি',
-      today: 'আজ',
-      noLorryYet: '{day} তারিখে এখনও কোনো লরি বেরোয়নি',
-      outOn: '{day} তারিখে বেরিয়েছে',
-      nothingBilledYet: 'এই সময়সীমায় এখনও কোনো বিল হয়নি',
-      chartCaption: 'মাস অনুযায়ী ট্রিপ, পিস ও বিল হওয়া অঙ্ক',
-      month: 'মাস',
-      trips: 'ট্রিপ',
-      pieces: 'পিস',
-      latestTrips: 'সাম্প্রতিক ট্রিপ',
-      latestTripsHint:
-        'LBTS-এর জন্য সবচেয়ে সাম্প্রতিক চালানগুলো। কোনোটি খুললে তার চালান ও হিসাব দেখা যাবে।',
-      allTrips: 'সব ট্রিপ',
-      noTripYet: 'LBTS-এর জন্য এখনও কোনো ট্রিপ চালানো হয়নি। চালানো হলে তা এখানে দেখা যাবে।',
-      nothingOutstanding: 'বাকি কিছু নেই',
-      nothingOutstandingHint:
-        'প্রতিটি সই করা কপি এসে গেছে, প্রতিটি ট্রিপের বিল আছে, আর ফাইলে থাকা প্রতিটি কাগজ মেয়াদের মধ্যে আছে।',
-      renewBeforeLapse:
-        'তারিখ পেরিয়ে গিয়ে গাড়ি বা ড্রাইভার অ্যাসাইন করার অযোগ্য হওয়ার আগেই নবায়ন করুন।',
-      deliveredThisMonth: 'এই মাসে ডেলিভারি',
-      nothingCarried: 'এখনও কিছুই বহন হয়নি',
-      backAtDepot: 'ডিপোতে ফেরত',
-      nothingCameBack: 'এই মাসে কিছুই ফেরত আসেনি',
-      awaitingCopy: 'সই করা কপির অপেক্ষায়',
-      everyCopyIn: 'প্রতিটি কপি এসে গেছে',
-      tripsCompleted: 'সম্পন্ন ট্রিপ',
-      noTripsThisMonth: 'এই মাসে এখনও কোনো ট্রিপ নেই',
-      documentsLapsing: 'মেয়াদ শেষ হতে থাকা কাগজ',
-      documents: 'কাগজপত্র',
-      inDate: 'মেয়াদের মধ্যে',
-      fleetAria: 'রেকর্ডে থাকা ফ্লিট',
-      deliveredNote: 'বহন করা {carried}-এর মধ্যে · {rate}',
-      returnedNote: 'এই মাসে ট্রিপ থেকে ফেরত আসা পিস',
-      awaitingNote: '{trips} জুড়ে',
-      awaitingNoteOldest: '{trips} জুড়ে · সবচেয়ে পুরোনো {day}',
-      completedNote: 'এই মাসের {trips}-এর মধ্যে',
-
-      copiesTitle: '{copies} এখনও ফেরত আসেনি',
-      copiesDetail:
-        '{trips}-এ। প্রতিটি গ্রহীতার সই করা চালান স্ক্যান হয়ে গেলেই একটি ট্রিপ বন্ধ হয়।',
-      copiesDetailOldest:
-        '{trips}-এ, সবচেয়ে পুরোনোটি চলেছিল {day}। প্রতিটি গ্রহীতার সই করা চালান স্ক্যান হয়ে গেলেই একটি ট্রিপ বন্ধ হয়।',
-      billsTitle: '{trips}-এর পূর্ণ বিল নেই',
-      billsDetail: {
-        one: 'এর বিপরীতে ভাড়া বা লেবার এখনও লেখা হয়নি, তাই {period}-এর মোট অঙ্ক প্রকৃত পাওনার চেয়ে কম দেখাচ্ছে।',
-        other: 'এগুলোর বিপরীতে ভাড়া বা লেবার এখনও লেখা হয়নি, তাই {period}-এর মোট অঙ্ক প্রকৃত পাওনার চেয়ে কম দেখাচ্ছে।',
-      },
-      expiredTitle: '{documents} মেয়াদোত্তীর্ণ',
-      expiredDetail:
-        'যে লরির কাগজের মেয়াদ শেষ, সেটিকে পাঠানো যায় না। নবায়ন করা সার্টিফিকেটটি LBTS-এ পাঠিয়ে ফাইল করিয়ে নিন।',
-      expiringTitle: '{documents}-এর মেয়াদ শেষ হচ্ছে',
-
-      due: 'বাকি',
-      settled: 'মিটে গেছে',
-      piecesCarried: '{pieces} বহন করা হয়েছে',
-      deliveredShare: 'যা বেরিয়েছিল তার {rate} ডেলিভারি হয়েই রয়ে গেছে',
-      billedPerMonth: 'মাসে বিল — ট্রিপ ভাড়া ও লেবার',
-      billedSeries: 'বিল',
-      /** An axis figure at the local scale: 12K, 1.5L, 2Cr. */
-      compactThousand: '{value} হাজার',
-      compactLakh: '{value} লক্ষ',
-      compactCrore: '{value} কোটি',
     },
 
     statusDialog: {

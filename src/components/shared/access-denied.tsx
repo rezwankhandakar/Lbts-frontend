@@ -1,5 +1,6 @@
 import { ArrowLeft, ShieldX } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { homePathFor } from '@/app/nav-config'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/use-auth-store'
 import { useT } from '@/lib/i18n'
@@ -34,6 +35,7 @@ export function AccessDenied({ areaKey, reasonKey }: AccessDeniedProps) {
   const t = useT()
   const profile = useAuthStore((state) => state.profile)
   const meta = profile ? roleMeta(profile.role, t) : null
+  const home = homePathFor(profile?.role ?? null)
 
   return (
     <div className="mx-auto flex min-h-[60vh] w-full max-w-lg flex-col items-center justify-center px-2 py-16 text-center">
@@ -57,9 +59,11 @@ export function AccessDenied({ areaKey, reasonKey }: AccessDeniedProps) {
         </p>
       )}
 
-      <Button variant="outline" className="mt-7" render={<Link to="/" />}>
+      <Button variant="outline" className="mt-7" render={<Link to={home} />}>
         <ArrowLeft data-icon="inline-start" aria-hidden />
-        {t('shared.accessDenied.backToDashboard')}
+        {home === '/'
+          ? t('shared.accessDenied.backToDashboard')
+          : t('shared.accessDenied.backToMyVendor')}
       </Button>
     </div>
   )

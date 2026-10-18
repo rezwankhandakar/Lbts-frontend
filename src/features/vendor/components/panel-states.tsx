@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useT } from '@/lib/i18n'
+import { cn } from '@/lib/utils'
 
 /**
  * The three states every list in this module can be in besides "rows".
@@ -131,11 +132,19 @@ export function PanelError({ title, message, onRetry, isRetrying }: PanelErrorPr
  * A tab's own frame: a raised panel on the content canvas, matching the three
  * surface levels the shell already uses.
  */
-export function Panel({ label, children }: { label: string; children: ReactNode }) {
+export function Panel({
+  label,
+  children,
+  className,
+}: {
+  label: string
+  children: ReactNode
+  className?: string
+}) {
   return (
     <section
       aria-label={label}
-      className="overflow-hidden rounded-xl border bg-card shadow-sm"
+      className={cn('overflow-hidden rounded-xl border bg-card shadow-sm', className)}
     >
       {children}
     </section>

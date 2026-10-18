@@ -7,7 +7,7 @@
  * `locales.ts` are import-free so `node --test` can load them, and a barrel that
  * pulled React into them would take that away.
  */
-export type { Locale, LocaleMeta } from '@/lib/i18n/locales'
+export type { Locale, LocaleAudience, LocaleMeta } from '@/lib/i18n/locales'
 export { LOCALES, LOCALE_ORDER, DEFAULT_LOCALE, LOCALE_STORAGE_KEY, isLocale, otherLocale } from '@/lib/i18n/locales'
 
 export type { InterpolationValues, PluralMessage, MessageTree } from '@/lib/i18n/translate'

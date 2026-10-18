@@ -17,6 +17,7 @@ import { GATE_PASS_READ_ROLES, GATE_PASS_WRITE_ROLES } from '@/features/gate-pas
 import { LOCATION_READ_ROLES } from '@/features/location/types'
 import { PRODUCT_RATE_READ_ROLES } from '@/features/product-rate/types'
 import { TRIP_DO_READ_ROLES } from '@/features/trip-do/types'
+import { StaffVendorRoute } from '@/features/vendor/components/staff-vendor-route'
 import { VENDOR_READ_ROLES } from '@/features/vendor/types'
 import { DashboardPage } from '@/pages/dashboard'
 
@@ -429,9 +430,11 @@ export function AppRouter() {
 
           {/* Vendors. Every role reaches this, `Vendor` included — what differs
               is scope, and scope is the server's decision from the account's own
-              profile rather than anything a route can express. `/my-vendor` is
-              the same workspace without an id, which is what makes it impossible
-              for a vendor account to point at another vendor's record. */}
+              profile rather than anything a route can express. A Vendor account
+              sees its trips and nothing else, on `/my-vendor`, which carries no
+              id and so cannot point at another vendor's record; the directory
+              and the six-tab workspace are staff pages, and a vendor who types
+              their URL is sent back there. */}
           <Route
             element={
               <RoleRoute
@@ -441,8 +444,10 @@ export function AppRouter() {
               />
             }
           >
-            <Route path="/vendors" element={<VendorsPage />} />
-            <Route path="/vendors/:id" element={<VendorDetailsPage />} />
+            <Route element={<StaffVendorRoute />}>
+              <Route path="/vendors" element={<VendorsPage />} />
+              <Route path="/vendors/:id" element={<VendorDetailsPage />} />
+            </Route>
             <Route path="/my-vendor" element={<MyVendorPage />} />
           </Route>
 

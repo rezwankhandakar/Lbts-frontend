@@ -9,18 +9,15 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  DeliveryOutcomeBadge,
-  TripStatusBadge,
-} from '@/features/delivery/components/delivery-badges'
+import { TripStatusBadge } from '@/features/delivery/components/delivery-badges'
+import { PlateBadge } from '@/features/delivery/components/trip-cells'
 import { shortTripNumber } from '@/features/delivery/lib/delivery-meta'
 import { useVendorTrip } from '../hooks/use-vendors'
-import { formatDay } from '../lib/vendor-meta'
-import type { VendorTripDetail } from '../types'
 import { InfoRow } from './form-parts'
 import { PanelError } from './panel-states'
+import { VendorTripChallans } from './vendor-trip-challans'
 import { VendorTripMoney } from './vendor-trip-money'
-import { countOf, useT } from '@/lib/i18n'
+import { countOf, useFormatters, useT } from '@/lib/i18n'
 
 interface VendorTripDetailSheetProps {
   vendorId: string
@@ -41,60 +38,13 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="space-y-2">
-      <h3 className="flex items-center gap-2 border-b pb-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-        <Icon className="size-3.5" aria-hidden />
+    <section className="space-y-2.5">
+      <h3 className="flex items-center gap-2 border-b pb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+        <Icon className="size-4" aria-hidden />
         {title}
       </h3>
       {children}
     </section>
-  )
-}
-
-function ChallanList({ challans }: { challans: VendorTripDetail['challans'] }) {
-  const t = useT()
-
-  return (
-    <ul className="divide-y">
-      {challans.map((challan) => (
-        <li key={challan.challanNumber} className="space-y-1.5 py-2.5">
-          <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
-            <div className="min-w-0">
-              <p className="font-mono text-[13px] font-semibold">{challan.challanNumber}</p>
-              <p className="text-xs text-muted-foreground">
-                SL {challan.slNumber} · Thana: {challan.thana || '—'} · District:{' '}
-                {challan.district || '—'}
-              </p>
-            </div>
-            <DeliveryOutcomeBadge
-              value={
-                challan.completionMethod ? t('vendor.trip.complete') : t('vendor.trip.pending')
-              }
-              method={challan.completionMethod}
-            />
-          </div>
-          <ul className="space-y-0.5 text-xs">
-            {challan.lines.map((line, index) => (
-              <li
-                key={`${line.productName}-${line.model}-${index}`}
-                className="flex justify-between gap-3"
-              >
-                <span className="min-w-0 wrap-break-word">
-                  {line.productName}
-                  {line.model && <span className="text-muted-foreground"> · {line.model}</span>}
-                </span>
-                <span className="shrink-0 tabular-nums">
-                  × {line.qty}
-                  {line.returnedQty > 0 && (
-                    <span className="text-tone-rose"> ({line.returnedQty} back)</span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </li>
-      ))}
-    </ul>
   )
 }
 
@@ -103,10 +53,10 @@ function ChallanList({ challans }: { challans: VendorTripDetail['challans'] }) {
  * opens in, so the trip list stays behind it.
  *
  * Read-only for every account. It carries what the vendor's own work was — the
- * lorry, the driver, each challan's district and thana, what went and what came
- * back — and what the trip was billed and advanced. A customer's name, address and
- * number are not in the response at all, which is what lets a Vendor account
- * open it.
+ * lorry, the driver, where each challan went (its delivery address, thana and
+ * district), what went and what came back — and what the trip was billed and
+ * advanced. A customer's name and the receiver's number are not in the response
+ * at all, which is what lets a Vendor account open it.
  */
 export function VendorTripDetailSheet({
   vendorId,
@@ -115,6 +65,7 @@ export function VendorTripDetailSheet({
   onClose,
 }: VendorTripDetailSheetProps) {
   const t = useT()
+  const format = useFormatters()
 
   const query = useVendorTrip(vendorId, tripId)
   const trip = query.data
@@ -122,13 +73,13 @@ export function VendorTripDetailSheet({
   return (
     <Sheet open={tripId !== null} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
-        <SheetHeader>
-          <SheetTitle className="font-mono">
+        <SheetHeader className="border-b pb-4">
+          <SheetTitle className="font-mono text-lg">
             {trip ? shortTripNumber(trip.tripNumber) : t('vendor.trip.tripFallback')}
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className="text-sm">
             {trip
-              ? `${formatDay(trip.tripDate)} · ${countOf(
+              ? `${format.calendarDay(trip.tripDate)} · ${countOf(
                   trip.challanCount,
                   'nouns.challan',
                   t,
@@ -174,20 +125,28 @@ export function VendorTripDetailSheet({
               <Section title={t('vendor.trip.tripSection')} icon={Truck}>
                 <dl className="divide-y">
                   <InfoRow label={t('vendor.trip.vehicle')}>
-                    <span className="font-mono">{trip.registrationNo}</span>
+                    <PlateBadge plate={trip.registrationNo} className="text-[13px]" />
                   </InfoRow>
                   <InfoRow label={t('vendor.trip.driver')}>
-                    {trip.driverName}
+                    <span className="text-sm">{trip.driverName}</span>
                     {trip.driverMobile && (
-                      <span className="block text-xs text-muted-foreground">
+                      <a
+                        href={`tel:${trip.driverMobile.replace(/\s/g, '')}`}
+                        className="block w-fit text-[13px] text-muted-foreground hover:text-foreground hover:underline"
+                      >
                         {trip.driverMobile}
-                      </span>
+                      </a>
                     )}
                   </InfoRow>
                   <InfoRow label={t('vendor.trip.pieces')}>
-                    {trip.deliveredQty} delivered
+                    <span className="text-sm">
+                      {t('vendor.trip.deliveredCount', { count: format.number(trip.deliveredQty) })}
+                    </span>
                     {trip.returnedQty > 0 && (
-                      <span className="text-tone-rose"> · {trip.returnedQty} came back</span>
+                      <span className="text-sm text-tone-rose">
+                        {' · '}
+                        {t('vendor.trip.cameBack', { count: format.number(trip.returnedQty) })}
+                      </span>
                     )}
                   </InfoRow>
                 </dl>
@@ -198,7 +157,7 @@ export function VendorTripDetailSheet({
               </Section>
 
               <Section title={t('vendor.trip.challansSection')} icon={FileText}>
-                <ChallanList challans={trip.challans} />
+                <VendorTripChallans challans={trip.challans} />
               </Section>
             </>
           )}

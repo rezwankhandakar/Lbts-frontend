@@ -293,14 +293,17 @@ export interface VendorTripMoneyEntry {
 }
 
 /**
- * One trip, as `GET /vendors/:id/trips/:tripId` returns it — still with no
- * customer, address or receiver, because a Vendor account reads this too.
+ * One trip, as `GET /vendors/:id/trips/:tripId` returns it. A Vendor account
+ * reads this too, so it carries where each challan went — the delivery address,
+ * thana and district — and never the customer's name or the receiver's number.
  */
 export interface VendorTripDetail extends VendorTripRecord {
   driverMobile: string
   challans: {
     challanNumber: string
     slNumber: number
+    /** The trip's own copy of the challan's delivery address. */
+    deliveryAddress: string
     district: string
     thana: string
     locationType: string | null
@@ -430,76 +433,6 @@ export interface VendorStats {
   expiringDocuments: number
 }
 
-// --- The vendor's own dashboard --------------------------------------------
-
-/**
- * One month of the trend, as `VendorMonthPoint` in
- * `delivery.vendor-dashboard.ts` returns it.
- *
- * No label: the month is a `{ year, month }` pair and the browser prints it
- * with `shortPeriodLabel`, which the Accounts charts already use. A label
- * chosen on the server would be a second place for a month's name to live, and
- * the one that could not be re-formatted for a narrow screen.
- */
-export interface VendorMonthPoint {
-  year: number
-  /** 1–12. */
-  month: number
-  trips: number
-  qty: number
-  /** Rent plus labour over the month's trips, a blank counting as nothing. */
-  bill: number
-}
-
-/** Mirrors `VendorTripFigures` in `delivery.vendor-dashboard.ts`. */
-export interface VendorTripFigures {
-  /** The day the figures were asked for — the viewer's own, not the server's. */
-  today: string
-  todayTrips: number
-  todayQty: number
-  month: {
-    trips: number
-    qty: number
-    delivered: number
-    returned: number
-    openTrips: number
-    completedTrips: number
-    /** Pieces delivered out of pieces carried, 0–100. */
-    deliveryRate: number
-  }
-  /** Trips still waiting for a signed copy, whatever month they ran in. */
-  backlog: {
-    trips: number
-    awaitingCopies: number
-    /** The day the oldest of them ran, or null when there are none. */
-    oldest: string | null
-  }
-  lifetime: {
-    trips: number
-    /** The day this vendor's first trip ran, or null before there is one. */
-    since: string | null
-  }
-  months: VendorMonthPoint[]
-}
-
-/**
- * Everything `GET /vendors/me/dashboard` answers with.
- *
- * One request rather than four, because this is the first screen a vendor
- * account sees and the instance behind it may have been asleep — see the
- * handler for why. The parts are the same services the Trips tab, the Vendor
- * Bills page and the vendor list already read, so nothing here can quote a
- * figure another page would disagree with.
- */
-export interface VendorDashboard {
-  vendor: VendorRecord
-  figures: VendorTripFigures
-  /** This month's bill: billed, advanced, paid and due. */
-  bill: VendorMonthlyBill
-  fleet: VendorStats
-  recentTrips: VendorTripRecord[]
-}
-
 // --- List parameters -------------------------------------------------------
 
 export interface PageMeta {
@@ -585,7 +518,8 @@ export interface VendorRemoval {
 }
 
 /**
- * The tabs on the details page, in the order they are drawn.
+ * The tabs on the details page, in the order they are drawn. Staff only — a
+ * Vendor account's `/my-vendor` is the Trips panel alone, with no tab bar.
  *
  * Every one of them is a **workspace**: something to look at and act on. There
  * was briefly an `activity` tab at the end, which was the exception — a reading

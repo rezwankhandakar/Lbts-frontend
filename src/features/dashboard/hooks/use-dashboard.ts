@@ -58,9 +58,9 @@ export function useDashboard(): DashboardData {
   const delivery = useTripStats(canDelivery)
   const vendor = useVendorStats(canVendor)
   /**
-   * `today` is the **viewer's** calendar day, as Delivery's stats and the
-   * vendor dashboard both take it: a trip date is a day, and the server's UTC
-   * midnight is six hours out of step with Dhaka's.
+   * `today` is the **viewer's** calendar day, as Delivery's stats take it: a
+   * trip date is a day, and the server's UTC midnight is six hours out of step
+   * with Dhaka's.
    */
   const accounts = useAccountsOverview(todayString(), canAccounts)
   const users = useAdminUserStats(isAdmin)

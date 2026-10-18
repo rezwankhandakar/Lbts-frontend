@@ -56,7 +56,18 @@ export const navSections: NavSection[] = [
   {
     labelKey: 'nav.sections.Main',
     items: [
-      { labelKey: 'nav.items.dashboard', path: '/', icon: LayoutDashboard, accent: 'indigo' },
+      /**
+       * Staff only. A `Vendor` account has no dashboard — the business asked
+       * for it off — and its home is My Vendor, its trips; `homePathFor` is
+       * where that is decided, and `/` sends a vendor there.
+       */
+      {
+        labelKey: 'nav.items.dashboard',
+        path: '/',
+        icon: LayoutDashboard,
+        accent: 'indigo',
+        roles: ['Admin', 'Manager', 'CEO', 'OpEx'],
+      },
       /**
        * Gate Pass is hidden from Vendor accounts: it is the transport
        * service's own operating record, not something an external supplier
@@ -251,6 +262,17 @@ export const navSections: NavSection[] = [
     ],
   },
 ]
+
+/**
+ * Where "home" is for a role: the dashboard for staff, and My Vendor for a
+ * `Vendor` account, which has no dashboard. `/` redirects a vendor here, and
+ * the buttons that send somebody home — the 404 page, the access denial — ask
+ * this rather than assuming `/`, so a vendor is never offered a "Back to
+ * dashboard" that lands somewhere else.
+ */
+export function homePathFor(role: UserRole | null): string {
+  return role === 'Vendor' ? '/my-vendor' : '/'
+}
 
 /** Flat view, for title lookup and anything that does not care about grouping. */
 export const navItems: NavItem[] = navSections.flatMap((section) => section.items)

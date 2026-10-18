@@ -14,7 +14,9 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { formatCalendarDay } from '@/lib/format'
+import { formatPeriod, monthName } from '@/lib/i18n'
 import type { TranslationKey, Translator } from '@/lib/i18n'
+import { billPeriodOf, isSingleMonth } from './bill-period'
 import type {
   AssignmentStatus,
   DocumentStatus,
@@ -252,6 +254,29 @@ export function ownershipMeta(value: string, t: Translator): StatusMeta {
  */
 export function formatDay(value: string | null | undefined): string {
   return formatCalendarDay(value)
+}
+
+/**
+ * The months a vendor's bill covers, named in the viewer's language — "October
+ * 2026", "August – October 2026", "All months". The arithmetic is
+ * `billPeriodOf`, which mirrors the server's; only the words are decided here.
+ */
+export function billPeriodLabel(from: string, to: string, today: string, t: Translator): string {
+  const period = billPeriodOf(from, to, today)
+
+  if (period.kind === 'all') {
+    return t('vendor.trip.allMonths')
+  }
+
+  const { first, last } = period
+  if (isSingleMonth(period)) {
+    return formatPeriod(first.month, first.year)
+  }
+
+  return t('vendor.trip.periodRange', {
+    from: first.year === last.year ? monthName(first.month) : formatPeriod(first.month, first.year),
+    to: formatPeriod(last.month, last.year),
+  })
 }
 
 /**

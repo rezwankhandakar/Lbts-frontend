@@ -10,13 +10,13 @@ import { DashboardHero } from './dashboard-hero'
 import { DashboardModules } from './dashboard-modules'
 
 /**
- * The money panel is lazy for the reason the vendor dashboard is.
+ * The money panel is lazy.
  *
  * This is the app's only eager route, so anything imported straight into it is
  * downloaded by **every** account on first load. The panel draws Accounts'
  * `TrendChart` and the taka vocabulary behind it, and it is rendered by three
- * roles out of five — an `OpEx` would have carried a column chart they can
- * never see. Imported eagerly it measured about 12 KB gzipped in the entry
+ * of the four roles that reach this page — an `OpEx` would have carried a
+ * column chart they can never see. Imported eagerly it measured about 12 KB gzipped in the entry
  * bundle, which is a real cost paid by the role that files the most gate
  * passes.
  *

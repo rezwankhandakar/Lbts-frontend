@@ -29,8 +29,6 @@ import { useFormatters, useT } from '@/lib/i18n'
 interface VendorHeaderProps {
   vendor: VendorRecord
   canManage: boolean
-  /** False on `/my-vendor`, where there is no directory to go back to. */
-  showBackLink: boolean
   isPhotoPending: boolean
   onEdit: () => void
   onChangeStatus: () => void
@@ -40,7 +38,8 @@ interface VendorHeaderProps {
 }
 
 /**
- * Who this vendor is, at the top of every tab.
+ * Who this vendor is, at the top of every tab — the staff view. A vendor's own
+ * page opens with `MyVendorHero` instead.
  *
  * Deliberately not a hero image or a gradient: this is an operations record, and
  * what somebody needs at a glance is the name, the code they will quote, whether
@@ -54,7 +53,6 @@ interface VendorHeaderProps {
 export function VendorHeader({
   vendor,
   canManage,
-  showBackLink,
   isPhotoPending,
   onEdit,
   onChangeStatus,
@@ -69,15 +67,13 @@ export function VendorHeader({
 
   return (
     <div className="mb-6">
-      {showBackLink && (
-        <Link
-          to="/vendors"
-          className="mb-3 inline-flex items-center gap-1 rounded-sm text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <ChevronLeft className="size-3.5" aria-hidden />
-          {t('vendor.allVendors')}
-        </Link>
-      )}
+      <Link
+        to="/vendors"
+        className="mb-3 inline-flex items-center gap-1 rounded-sm text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <ChevronLeft className="size-3.5" aria-hidden />
+        {t('vendor.allVendors')}
+      </Link>
 
       <div className="rounded-xl border bg-card p-4 shadow-sm sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

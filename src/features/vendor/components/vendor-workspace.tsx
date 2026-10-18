@@ -29,14 +29,17 @@ import { useT } from '@/lib/i18n'
 interface VendorWorkspaceProps {
   vendor: VendorRecord
   canManage: boolean
-  /** False on `/my-vendor`, where there is no directory to go back to. */
-  showBackLink: boolean
   /** Where to go once a vendor has been deleted. */
   onDeleted: () => void
 }
 
 /**
- * One vendor, across seven tabs.
+ * One vendor, across six tabs — the staff view.
+ *
+ * A Vendor account never sees this. `/my-vendor` composes the header and the
+ * Trips panel and nothing else, because trips are the whole of what the
+ * business wants a vendor to see; `StaffVendorRoute` sends a vendor who types
+ * `/vendors/<id>` there too, so the other five tabs cannot be reached by URL.
  *
  * The tab lives in the URL as `?tab=`, which is the one piece of list state in
  * this module that does. Filters stay in component state, as they do everywhere
@@ -52,12 +55,7 @@ interface VendorWorkspaceProps {
  * chosen. Both are carried in state rather than in the URL, because they are one
  * gesture rather than a destination.
  */
-export function VendorWorkspace({
-  vendor,
-  canManage,
-  showBackLink,
-  onDeleted,
-}: VendorWorkspaceProps) {
+export function VendorWorkspace({ vendor, canManage, onDeleted }: VendorWorkspaceProps) {
   const t = useT()
 
   const [searchParams, setSearchParams] = useSearchParams()
@@ -179,7 +177,6 @@ export function VendorWorkspace({
       <VendorHeader
         vendor={vendor}
         canManage={canManage}
-        showBackLink={showBackLink}
         isPhotoPending={photo.upload.isPending || photo.remove.isPending}
         onEdit={() => actions.openEdit(vendor)}
         onChangeStatus={() => actions.openStatus(vendor)}

@@ -30,6 +30,8 @@
       // Bangla page that boots announced as English is read aloud as
       // gibberish until React hydrates. Reads the key and envelope that
       // zustand/persist writes in src/lib/i18n/locale-store.ts - keep in sync.
+      // `state.locale` is already resolved for whoever signed in here last, so
+      // a vendor's own browser boots in Bangla without knowing why.
       ;(function () {
         try {
           var stored = localStorage.getItem('lbts-locale')

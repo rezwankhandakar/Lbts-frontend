@@ -66,6 +66,10 @@ export const LOCALES: Record<Locale, LocaleMeta> = {
 /** Iteration order for the switcher. English first, because the data is English. */
 export const LOCALE_ORDER: readonly Locale[] = ['en', 'bn']
 
+/**
+ * The fallback dictionary, and the office's own default. A vendor account opens
+ * in Bangla instead — see `AUDIENCE_DEFAULT_LOCALE`.
+ */
 export const DEFAULT_LOCALE: Locale = 'en'
 
 /**
@@ -82,4 +86,91 @@ export function isLocale(value: unknown): value is Locale {
 /** The other one. With two locales a toggle is a toggle rather than a menu. */
 export function otherLocale(locale: Locale): Locale {
   return locale === 'en' ? 'bn' : 'en'
+}
+
+/**
+ * Who is in front of the screen, as far as the language is concerned.
+ *
+ * Two audiences because the business asked for two defaults: the office works
+ * in English unless somebody switches, and a vendor account opens in Bangla.
+ * The audience is not a role — it is the one distinction between roles that
+ * decides a default, so a role added next year is staff unless it says
+ * otherwise.
+ */
+export type LocaleAudience = 'staff' | 'vendor'
+
+export const AUDIENCE_DEFAULT_LOCALE: Record<LocaleAudience, Locale> = {
+  staff: DEFAULT_LOCALE,
+  vendor: 'bn',
+}
+
+/** What each audience last chose on this browser. `null` is "never pressed the toggle". */
+export type LocaleChoices = Record<LocaleAudience, Locale | null>
+
+export interface StoredLocale {
+  /** What is on screen now — always `localeFor(audience, chosen)`. */
+  locale: Locale
+  /** Whoever signed in last on this browser; it outlives the sign-out. */
+  audience: LocaleAudience
+  chosen: LocaleChoices
+}
+
+export function isLocaleAudience(value: unknown): value is LocaleAudience {
+  return value === 'staff' || value === 'vendor'
+}
+
+/**
+ * The language an audience sees: what it chose here, or its default.
+ *
+ * Kept per audience rather than as one value for the browser, for the case that
+ * actually happens: an Admin who set this machine to English and then signs in
+ * as a vendor to check what a vendor sees is a vendor *seeing the default*, not
+ * a vendor who chose English. One shared value would have answered that with
+ * the Admin's choice.
+ */
+export function localeFor(audience: LocaleAudience, chosen: LocaleChoices): Locale {
+  return chosen[audience] ?? AUDIENCE_DEFAULT_LOCALE[audience]
+}
+
+/** `chosen` with one audience's choice replaced. */
+export function withChoice(
+  chosen: LocaleChoices,
+  audience: LocaleAudience,
+  locale: Locale,
+): LocaleChoices {
+  const next: LocaleChoices = { ...chosen }
+  next[audience] = locale
+  return next
+}
+
+/**
+ * Whatever `zustand/persist` handed back, reduced to a state that is always
+ * whole.
+ *
+ * Every field is checked rather than trusted — it is localStorage, and a
+ * hand-edited or half-written value must not leave the app in a locale with no
+ * dictionary. `locale` is then *derived* from the other two rather than read,
+ * so the three can never disagree about what is on screen.
+ *
+ * A value written before audiences existed is `{ locale }` and nothing else.
+ * The only thing that ever wrote it was the toggle, pressed by somebody in the
+ * office, so it is read as a **staff** choice — and a vendor signing in on that
+ * browser still gets the vendor default rather than inheriting it.
+ */
+export function readStoredLocale(persisted: unknown): StoredLocale {
+  const stored = isRecord(persisted) ? persisted : {}
+  const audience = isLocaleAudience(stored.audience) ? stored.audience : 'staff'
+
+  const chosen: LocaleChoices = isRecord(stored.chosen)
+    ? {
+        staff: isLocale(stored.chosen.staff) ? stored.chosen.staff : null,
+        vendor: isLocale(stored.chosen.vendor) ? stored.chosen.vendor : null,
+      }
+    : { staff: isLocale(stored.locale) ? stored.locale : null, vendor: null }
+
+  return { locale: localeFor(audience, chosen), audience, chosen }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }

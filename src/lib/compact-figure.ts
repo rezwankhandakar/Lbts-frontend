@@ -4,12 +4,12 @@ import type { Translator } from '@/lib/i18n'
 /**
  * A taka figure short enough for a chart axis: 12K, 1.5L, 2Cr — the local scale.
  *
- * Shared rather than copied, the rule CLAUDE.md sets for a helper a second
- * feature wants: the Accounts trend chart drew one and the vendor dashboard's
- * month chart drew a second, and a second copy of "when does a figure become
- * lakhs" is exactly the sort of thing that comes to disagree with the first —
- * one axis reading `1.5L` while the other reads `১.৫ লক্ষ`, on two charts of the
- * same money.
+ * In `lib/` rather than in Accounts, though the Accounts trend chart is its one
+ * caller today: it moved out when a second chart of money wanted it, and that
+ * chart has since gone. It stays put because the next one will want it too, and
+ * a second copy of "when does a figure become lakhs" is exactly the sort of
+ * thing that comes to disagree with the first — one axis reading `1.5L` while
+ * the other reads `১.৫ লক্ষ`, on two charts of the same money.
  *
  * The suffix is a **word**, not a symbol, which is why this takes a translator:
  * Bangla writes হাজার, লক্ষ and কোটি out, and a digit-shaped number beside a

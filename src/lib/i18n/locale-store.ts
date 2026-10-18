@@ -1,12 +1,24 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { DEFAULT_LOCALE, LOCALE_STORAGE_KEY, isLocale, otherLocale } from '@/lib/i18n/locales'
-import type { Locale } from '@/lib/i18n/locales'
+import {
+  LOCALE_STORAGE_KEY,
+  localeFor,
+  otherLocale,
+  readStoredLocale,
+  withChoice,
+} from '@/lib/i18n/locales'
+import type { Locale, LocaleAudience, StoredLocale } from '@/lib/i18n/locales'
 
-interface LocaleState {
-  locale: Locale
+interface LocaleState extends StoredLocale {
+  /** The toggle: shows `locale` and remembers it as this audience's choice. */
   setLocale: (locale: Locale) => void
   toggleLocale: () => void
+  /**
+   * Who has just signed in. Switches to that audience's choice, or to its
+   * default when it has never made one — which is how a vendor account opens in
+   * Bangla. Remembers nothing: nobody chose anything by signing in.
+   */
+  setAudience: (audience: LocaleAudience) => void
 }
 
 /**
@@ -46,26 +58,40 @@ export function applyLocale(locale: Locale): void {
  * would mean the screen changing language under whoever just walked up, and a
  * round trip to a sleeping Render instance before the first word could be
  * drawn.
+ *
+ * **The one thing an account does decide is the default.** A vendor account
+ * opens in Bangla and everybody else in English, so the choice is remembered
+ * per *audience* rather than once for the browser (`LocaleAudience`). The gate
+ * PC keeps working exactly as before — everyone at it is staff, so they share
+ * one choice — while a vendor signing in is not handed the office's English.
+ * The audience is persisted with the rest, so a vendor's own phone opens in
+ * Bangla from the first paint rather than after `/users/me` answers, which on a
+ * cold start is most of a minute.
  */
 export const useLocaleStore = create<LocaleState>()(
   persist(
     (set, get) => ({
-      locale: DEFAULT_LOCALE,
-      setLocale: (locale) => set({ locale }),
-      toggleLocale: () => set({ locale: otherLocale(get().locale) }),
+      ...readStoredLocale(undefined),
+      setLocale: (locale) =>
+        set({ locale, chosen: withChoice(get().chosen, get().audience, locale) }),
+      toggleLocale: () => get().setLocale(otherLocale(get().locale)),
+      setAudience: (audience) => {
+        if (audience === get().audience) {
+          return
+        }
+        set({ audience, locale: localeFor(audience, get().chosen) })
+      },
     }),
     {
       name: LOCALE_STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
+      partialize: ({ locale, audience, chosen }) => ({ locale, audience, chosen }),
       /**
-       * A hand-edited or half-written value must not leave the app in a locale
-       * that has no dictionary. Anything unrecognised falls back to English,
-       * which is also what the no-flash script in `index.html` does.
+       * Anything unrecognised falls back to the staff default, English, which is
+       * also what the no-flash script in `index.html` does. `readStoredLocale`
+       * owns the reading, including a value written before audiences existed.
        */
-      merge: (persisted, current) => {
-        const stored = (persisted as Partial<LocaleState> | undefined)?.locale
-        return { ...current, locale: isLocale(stored) ? stored : DEFAULT_LOCALE }
-      },
+      merge: (persisted, current) => ({ ...current, ...readStoredLocale(persisted) }),
     },
   ),
 )

@@ -1,27 +1,34 @@
 import { taka } from '@/features/delivery/lib/delivery-meta'
+import { vendorStatusMeta as billStatusMeta } from '@/features/accounts/lib/accounts-meta'
 import { formatDay } from '../lib/vendor-meta'
-import type { VendorTripDetail, VendorTripMoneyEntry } from '../types'
+import type { VendorMonthlyBill, VendorTripDetail, VendorTripMoneyEntry } from '../types'
 import { useT } from '@/lib/i18n'
+import { cn } from '@/lib/utils'
 
 /**
- * What is still owed, in words that do not need a sign read: an amount owed,
- * "Paid" at zero, and "Overpaid" when advances and payments ran past the bill.
+ * Where the month stands — no bill yet, unpaid, partly paid, paid, overpaid —
+ * in Accounts' own words and colours, so it says exactly what the Vendor Bills
+ * page says about the same month. Drawn for a card surface.
  */
-export function DueAmount({ value }: { value: number }) {
+export function BillStatusBadge({
+  status,
+  className,
+}: {
+  status: VendorMonthlyBill['status']
+  className?: string
+}) {
   const t = useT()
+  const meta = billStatusMeta(status, t)
 
-  if (value > 0) {
-    return <span className="font-semibold text-tone-rose">{taka(value)}</span>
-  }
-  if (value === 0) {
-    return <span className="font-semibold text-tone-emerald">{t('vendor.trip.paid')}</span>
-  }
   return (
     <span
-      className="font-semibold text-tone-amber"
-      title={t('vendor.trip.overpaidTitle')}
+      className={cn(
+        'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1',
+        meta.badge,
+        className,
+      )}
     >
-      {t('vendor.trip.overpaid', { amount: taka(-value) })}
+      {meta.label}
     </span>
   )
 }
@@ -36,9 +43,9 @@ function Figure({
   strong?: boolean
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 py-1.5">
-      <dt className="text-[13px] text-muted-foreground">{label}</dt>
-      <dd className={strong ? 'text-sm font-semibold tabular-nums' : 'text-[13px] tabular-nums'}>
+    <div className="flex items-baseline justify-between gap-3 py-2">
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className={strong ? 'text-base font-semibold tabular-nums' : 'text-sm tabular-nums'}>
         {children}
       </dd>
     </div>
@@ -55,16 +62,16 @@ function EntryList({
   empty: string
 }) {
   return (
-    <div className="space-y-1">
-      <p className="text-xs font-medium text-muted-foreground">{title}</p>
+    <div className="space-y-1.5">
+      <p className="text-[13px] font-medium text-muted-foreground">{title}</p>
       {entries.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{empty}</p>
+        <p className="text-sm text-muted-foreground">{empty}</p>
       ) : (
-        <ul className="divide-y rounded-lg border">
+        <ul className="divide-y rounded-xl border">
           {entries.map((entry) => (
             <li
               key={entry.entryNumber}
-              className="flex items-center justify-between gap-3 px-2.5 py-1.5 text-xs"
+              className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
             >
               <span className="min-w-0">
                 <span className="font-mono">{entry.entryNumber}</span>

@@ -90,6 +90,8 @@ export const en = {
       collapse: 'Collapse',
       goBack: 'Go back',
       goToDashboard: 'Go to dashboard',
+      /** The same button for a Vendor account, which has no dashboard. */
+      goToMyVendor: 'Go to My Vendor',
       reload: 'Reload the page',
       dismiss: 'Dismiss',
       markAllRead: 'Mark all as read',
@@ -200,9 +202,9 @@ export const en = {
     },
 
     /**
-     * A figure short enough for a chart axis, at the local scale. Shared,
-     * because the Accounts trend chart and the vendor dashboard both draw one and
-     * a second copy is how one of them comes to read "1.5L" beside Bangla digits.
+     * A figure short enough for a chart axis, at the local scale. Shared rather
+     * than kept in Accounts, because a second copy is how one chart comes to
+     * read "1.5L" beside Bangla digits.
      */
     compact: {
       thousand: '{value}K',
@@ -616,6 +618,7 @@ export const en = {
       askAdmin: 'Ask an Admin if you believe you should have access.',
       signedInAs: 'Signed in as',
       backToDashboard: 'Back to dashboard',
+      backToMyVendor: 'Back to My Vendor',
 
       /**
        * One sentence per route boundary, naming the module and the accounts it
@@ -4729,11 +4732,11 @@ export const en = {
       linkedVendor: 'Linked vendor',
       chooseVendor: 'Choose a vendor',
       vendorScopeNote:
-        "This account will see that vendor's fleet, drivers, assignments and documents — read-only, and nothing belonging to any other vendor.",
+        "This account will see that vendor's trips — read-only, and nothing belonging to any other vendor.",
 
       changed: '{name} is now {role}',
       changedLinked:
-        'Linked to {vendor} ({code}). They will see that vendor’s fleet, read-only.',
+        'Linked to {vendor} ({code}). They will see that vendor’s trips, read-only.',
       noVendors: 'No vendors exist yet. Add one on the Vendors page before linking an account to it.',
       summary: "You're changing this user's role from {from} to {to}.",
       adminWarning:
@@ -5605,12 +5608,17 @@ export const en = {
         'Manage vendors, vehicles, drivers and operational compliance. Each vendor owns its own fleet, and a driver is only ever assigned to a vehicle belonging to the same vendor.',
       directoryAria: 'Vendor directory',
       myTitle: 'My Vendor',
-      myDescription: 'Your vendor’s fleet, drivers, assignments and compliance documents.',
+      myDescription: 'Every trip your vehicles ran for LBTS, and what each one came to.',
       myLoadFailed: 'Could not load your vendor',
+      notLinkedBadge: 'Not linked yet',
+      notLinkedTitle: 'No vendor is linked to this account',
+      notLinkedFootnote: 'Contact an administrator to have your account linked.',
       notLinkedDescription:
         'A vendor account has to be linked to the vendor it speaks for before there is anything to show. An administrator does that from the Administration page.',
       readOnlyNotice:
         'You are viewing your vendor record. Everything here is read-only — contact LBTS to have anything changed.',
+      readOnlyChip: 'Read-only',
+      callAria: 'Call {phone}',
 
       notFound: 'Vendor not found',
       notFoundHint: 'It may have been removed, or it may not be a vendor this account can open.',
@@ -6017,8 +6025,21 @@ export const en = {
       netAmount: 'Net amount',
       status: 'Status',
       notEntered: 'Not entered',
-      overpaid: 'Overpaid {amount}',
-      overpaidTitle: 'Advances and payments are more than the bill entered',
+      due: 'Due',
+      paidAhead: 'Paid ahead',
+      billFor: 'Bill for {period}',
+      allMonths: 'All months',
+      /** Two ends of a billing span: "August – October 2026". */
+      periodRange: '{from} – {to}',
+      withoutFullBill: '{trips} without a full bill',
+      returned: '{count} back',
+      deliveredCount: '{count} delivered',
+      cameBack: '{count} came back',
+      slNumber: 'SL {sl}',
+      place: 'Thana: {thana} · District: {district}',
+      openAria: 'Open {trip}',
+      periodAria: 'Period',
+      statusAria: 'Trip status',
       advancesAgainst: 'Advances against this trip',
       monthlyBillAria: 'Monthly bill',
       paid: 'Paid',
@@ -6042,89 +6063,6 @@ export const en = {
       rentTotal: 'Trip rent {amount}',
       labourTotal: 'Labour bill {amount}',
       tripFallback: 'Trip',
-    },
-
-    dashboard: {
-      title: 'Dashboard',
-      description:
-        'Your trips for LBTS — what went out, what came back, what it was billed and what is still due.',
-      notLinkedBadge: 'Not linked yet',
-      notLinkedTitle: 'No vendor is linked to this account',
-      loadFailed: 'Could not load your dashboard',
-      notLinkedFootnote: 'Contact an administrator to have your account linked.',
-      needsAttention: 'Needs attention',
-      lastSixMonths: 'Last six months',
-      lastSixHint:
-        'What the trips in each month were billed. A month with no trips is a zero, not a gap.',
-      readOnly:
-        'Everything here is your own vendor record and is read-only. Trips, bills and payments are entered by LBTS — contact the office to have anything corrected.',
-      paidAhead: 'Paid ahead',
-      billed: 'Billed',
-      advance: 'Advance',
-      paid: 'Paid',
-      everyTripByMonth: 'Every trip, month by month',
-      nothingOutThisMonth: 'Nothing has gone out this month yet',
-      today: 'Today',
-      noLorryYet: 'No lorry out yet on {day}',
-      outOn: 'Out on {day}',
-      nothingBilledYet: 'Nothing billed in this window yet',
-      chartCaption: 'Trips, pieces and amount billed by month',
-      month: 'Month',
-      trips: 'Trips',
-      pieces: 'Pieces',
-      latestTrips: 'Latest trips',
-      latestTripsHint: 'The most recent runs for LBTS. Open one to see its challans and its money.',
-      allTrips: 'All trips',
-      noTripYet: 'No trip has been run for LBTS yet. When one is, it appears here.',
-      nothingOutstanding: 'Nothing outstanding',
-      nothingOutstandingHint:
-        'Every signed copy is in, every trip carries its bill, and every document on file is in date.',
-      renewBeforeLapse:
-        'Renew before the date passes and the vehicle or driver stops being assignable.',
-      deliveredThisMonth: 'Delivered this month',
-      nothingCarried: 'Nothing carried yet',
-      backAtDepot: 'Back at depot',
-      nothingCameBack: 'Nothing came back this month',
-      awaitingCopy: 'Awaiting signed copy',
-      everyCopyIn: 'Every copy is in',
-      tripsCompleted: 'Trips completed',
-      noTripsThisMonth: 'No trips this month yet',
-      documentsLapsing: 'Documents lapsing',
-      documents: 'Documents',
-      inDate: 'In date',
-      fleetAria: 'Fleet on record',
-      /** The tile notes, each a whole sentence: the count leads in Bangla. */
-      deliveredNote: 'of {carried} carried · {rate}',
-      returnedNote: 'pieces returned off a trip this month',
-      awaitingNote: 'across {trips}',
-      awaitingNoteOldest: 'across {trips} · oldest {day}',
-      completedNote: 'of {trips} this month',
-
-      copiesTitle: '{copies} still to come back',
-      copiesDetail:
-        'On {trips}. A trip closes when every receiver’s signed challan is scanned in.',
-      copiesDetailOldest:
-        'On {trips}, the oldest run on {day}. A trip closes when every receiver’s signed challan is scanned in.',
-      billsTitle: '{trips} without a full bill',
-      billsDetail: {
-        one: 'Rent or labour has not been entered against it yet, so {period}’s total is lower than what is actually owed.',
-        other: 'Rent or labour has not been entered against them yet, so {period}’s total is lower than what is actually owed.',
-      },
-      expiredTitle: '{documents} expired',
-      expiredDetail:
-        'A lorry whose papers have lapsed cannot be sent out. Send the renewed certificate to LBTS to have it filed.',
-      expiringTitle: '{documents} expiring soon',
-
-      due: 'Due',
-      settled: 'Settled',
-      piecesCarried: '{pieces} carried',
-      deliveredShare: '{rate} of what went out stayed delivered',
-      billedPerMonth: 'Billed per month — trip rent and labour',
-      billedSeries: 'Billed',
-      /** An axis figure at the local scale: 12K, 1.5L, 2Cr. */
-      compactThousand: '{value}K',
-      compactLakh: '{value}L',
-      compactCrore: '{value}Cr',
     },
 
     statusDialog: {

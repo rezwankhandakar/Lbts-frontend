@@ -27,10 +27,9 @@ import type { DashboardData } from '../types'
  * three counts beside it sit as the detail rather than as equals.
  *
  * A quiet morning reads as a quiet morning rather than as a fault. Zero here
- * is information — the hero is a *reading* of the day, which is the rule the
- * vendor dashboard's tiles follow and the opposite of the one its attention
- * rows follow: an absent figure would say "no information" where a zero says
- * "nothing yet".
+ * is information — the hero is a *reading* of the day, the opposite of the rule
+ * the attention list follows: an absent figure would say "no information" where
+ * a zero says "nothing yet".
  *
  * A surface that is dark in **both** themes — the auth panel's gradient, as
  * the vendor hero and the Accounts balance card use — so it reads as the
