@@ -115,7 +115,8 @@ export function DeliveryExtrasSection({ trip, challan, canWrite }: DeliveryExtra
                 {floor.trim() === ''
                   ? t('delivery.extras.floorBlank')
                   : floorLabel(Number.parseInt(floor, 10), t)}
-                {' · '}0 is the ground floor.
+                {' · '}
+                {t('delivery.extras.groundIsZero')}
               </p>
             </div>
 
@@ -138,7 +139,7 @@ export function DeliveryExtrasSection({ trip, challan, canWrite }: DeliveryExtra
           </div>
 
           {canWrite && (
-            <Button type="button" disabled={!dirty || save.isPending} onClick={onSave}>
+            <Button type="button" className="w-full sm:w-auto" disabled={!dirty || save.isPending} onClick={onSave}>
               {save.isPending ? (
                 <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
               ) : (

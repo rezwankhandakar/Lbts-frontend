@@ -35,7 +35,7 @@ export function OverageDialog({ overages, isPending, onCancel, onConfirm }: Over
 
   return (
     <AlertDialog open={overages !== null} onOpenChange={(open) => !open && !isPending && onCancel()}>
-      <AlertDialogContent className="sm:max-w-lg">
+      <AlertDialogContent className="max-h-[calc(100svh-2rem)] overflow-y-auto sm:max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle>{t('delivery.overage.title')}</AlertDialogTitle>
           <AlertDialogDescription>

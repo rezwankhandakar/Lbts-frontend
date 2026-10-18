@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Loader2, ScanBarcode } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { isChallanCode, isTripCode } from '@/lib/barcode-wedge'
 import { useT } from '@/lib/i18n'
+import { cn } from '@/lib/utils'
 
 interface ReceiptScanBarProps {
   onScan: (code: string) => void
@@ -23,22 +23,26 @@ interface ReceiptScanBarProps {
  *
  * The scanner needs nothing here at all — `useBarcodeWedge` listens page-wide
  * whenever no field has focus and no dialog is open, so an operator working
- * through a stack of signed sheets just scans. What this bar is for is the two
- * cases a wedge cannot cover: a barcode too creased or too faint to read, and a
- * workstation with no scanner attached, where the number is typed off the sheet
- * instead.
+ * through a stack of signed sheets just scans. What this panel is for is the
+ * two cases a wedge cannot cover: a barcode too creased or too faint to read,
+ * and a workstation with no scanner attached, where the number is typed off
+ * the sheet instead. The dot says which state the listener is in — lit while
+ * a scan will be heard, dim while something else has the keyboard — and the
+ * sentence saying so is the label's tooltip, because the band it sits on is
+ * kept to two short rows.
  *
- * So the box is deliberately not the main event. It says what is already
- * happening — the scanner is being listened for — and takes a typed number when
- * the scanner cannot.
+ * Drawn on the deliveries page's brand band. The box itself is the page's own
+ * background rather than glass, because a number is typed into it and has to
+ * read as text in either theme.
  */
 export function ReceiptScanBar({ onScan, pending, listening }: ReceiptScanBarProps) {
   const t = useT()
 
   const [typed, setTyped] = useState('')
+  const code = typed.trim()
+  const valid = isChallanCode(code) || isTripCode(code)
 
   const submit = () => {
-    const code = typed.trim()
     if (!code) {
       return
     }
@@ -46,29 +50,34 @@ export function ReceiptScanBar({ onScan, pending, listening }: ReceiptScanBarPro
     setTyped('')
   }
 
+  const status = listening ? t('delivery.receipt.listening') : t('delivery.receipt.paused')
+
   return (
-    <div className="mb-6 flex flex-col gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm sm:flex-row sm:items-center">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+    <div className="flex min-w-0 flex-col justify-center gap-1.5 rounded-xl bg-primary-foreground/10 px-3 py-2 ring-1 ring-primary-foreground/15">
+      <p className="flex min-w-0 items-center gap-1.5 text-xs font-semibold" title={status}>
         {pending ? (
-          <Loader2 className="size-4 animate-spin" aria-hidden />
+          <Loader2 className="size-3.5 shrink-0 animate-spin" aria-hidden />
         ) : (
-          <ScanBarcode className="size-4" aria-hidden />
+          <ScanBarcode className="size-3.5 shrink-0" aria-hidden />
         )}
-      </span>
+        <span className="truncate">{t('delivery.receipt.prompt')}</span>
+        <span
+          className={cn(
+            'ms-auto size-2 shrink-0 rounded-full',
+            listening ? 'animate-pulse bg-success' : 'bg-primary-foreground/40',
+          )}
+          aria-hidden
+        />
+        <span className="sr-only" aria-live="polite">
+          {status}
+        </span>
+      </p>
 
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{t('delivery.receipt.prompt')}</p>
-        <p className="text-xs text-muted-foreground">
-          {listening
-            ? t('delivery.receipt.listening')
-            : t('delivery.receipt.paused')}
-        </p>
-      </div>
-
-      <div className="flex shrink-0 gap-2">
+      <div className="flex gap-2">
         <Input
-          className="h-9 w-48 font-mono text-[13px]"
+          className="h-8 min-w-0 flex-1 border-transparent bg-background font-mono text-foreground md:text-[13px] dark:bg-background"
           placeholder={t('delivery.receipt.placeholder')}
+          aria-label={t('delivery.receipt.prompt')}
           value={typed}
           disabled={pending}
           onChange={(event) => setTyped(event.target.value)}
@@ -79,14 +88,14 @@ export function ReceiptScanBar({ onScan, pending, listening }: ReceiptScanBarPro
             }
           }}
         />
-        <Button
-          variant="outline"
-          className="h-9"
-          disabled={pending || !(isChallanCode(typed.trim()) || isTripCode(typed.trim()))}
+        <button
+          type="button"
+          disabled={pending || !valid}
           onClick={submit}
+          className="inline-flex h-8 shrink-0 items-center rounded-lg bg-primary-foreground px-3.5 text-[13px] font-semibold text-primary transition outline-none hover:bg-primary-foreground/90 focus-visible:ring-3 focus-visible:ring-primary-foreground/60 disabled:pointer-events-none disabled:opacity-50"
         >
           {t('common.actions.open')}
-        </Button>
+        </button>
       </div>
     </div>
   )

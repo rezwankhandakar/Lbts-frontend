@@ -3101,8 +3101,6 @@ export const en = {
    */
   delivery: {
     title: 'Delivery',
-    pageDescription:
-      'Every trip: which vehicle and driver, which vendor it was assigned to, and exactly which challans — and how much of each — went out on it.',
     tripsAria: 'Trips',
     newDelivery: 'New delivery',
     backToList: 'Back to deliveries',
@@ -3221,9 +3219,6 @@ export const en = {
     addedWith: 'Added {challan}',
     driverWith: 'Driver {name}',
     noChallanMatches: 'No challan matches {query}.',
-    tripRentWith: 'Trip rent {amount}',
-    labourBillWith: 'Labour bill {amount}',
-    totalWith: 'Total {amount}',
 
     /**
      * "3rd floor".
@@ -3324,6 +3319,7 @@ export const en = {
       addedNote: 'They are driving this trip. The vehicle’s assigned driver is unchanged.',
       photoFailed: '{name} was added, but the photo did not upload',
       droveInPlace: 'Drove in place of {name}, the vehicle’s assigned driver.',
+      staysAssigned: '{name} stays the vehicle’s assigned driver. This changes who drives this trip only.',
     },
 
     vendor: {
@@ -3530,6 +3526,7 @@ export const en = {
       radioAria: 'What happened to the goods',
       allDelivered: 'All delivered',
       allDeliveredHint: 'Nothing came back',
+      someCameBackTitle: 'Some came back',
       someCameBackHint: 'Choose what returned',
       fullReturn: 'Full challan returned',
       fullReturnHint: 'One click · no copy needed',
@@ -3552,6 +3549,7 @@ export const en = {
       optional: 'Optional',
       floorLabel: 'Carried up to which floor',
       floorBlank: 'Blank if it never went up.',
+      groundIsZero: '0 is the ground floor.',
       noteLabel: 'Delivery note',
       carrying: 'Carrying',
       carryingTotal: 'Carrying total',
@@ -3574,6 +3572,7 @@ export const en = {
       viewerTitle: 'Signed copy · {challan}',
       filedOn: ' · filed {when}',
       fallbackName: 'Signed copy',
+      openPreview: 'Open the signed copy',
       replace: 'Replace',
       removeAria: 'Remove the signed copy',
       scanNew: 'Scan the new copy',
@@ -3632,8 +3631,6 @@ export const en = {
       labourBill: 'Labour bill (লেবার বিল)',
       tripRentShort: 'Trip rent',
       labourBillShort: 'Labour bill',
-      rent: 'Rent',
-      labour: 'Labour',
       save: 'Save bill',
       saved: 'Trip bill saved',
     },
@@ -3660,10 +3657,7 @@ export const en = {
       notesWrite: 'No notes yet. Press to write one.',
       openNotes: 'Open the trip notes',
       returnedDelivered: '{returned} returned · {delivered} delivered',
-      stops: 'Delivery stops',
-      stopsHint: 'Where each challan went and how it was finished. Press one to jump to its card.',
       extrasNone: 'No floor, carrying or note yet',
-      jumpTo: 'Go to {challan}',
       challans: 'Challans',
       challansHint: 'Every challan on the lorry — what went, and how its delivery ended.',
       products: 'Products',
@@ -3706,6 +3700,8 @@ export const en = {
       createFirst: 'Create the first delivery',
       figuresFailed: 'The delivery figures could not be loaded.',
       tripsToday: 'Trips today',
+      /** Under a row's challan count: how many lines this trip changed from the paper. */
+      linesChanged: { one: '{n} line changed', other: '{n} lines changed' },
       summaryFiltered: '{trips} match these filters · {challans} · {pieces}',
       summaryTotal: '{trips} · {challans} · {pieces}',
     },

@@ -24,7 +24,16 @@ import { useT } from '@/lib/i18n'
  * delivery now is the receiver's signed copy being scanned in, which happens
  * on the trip's own page, one challan at a time.
  */
-export function TripRowMenu({ trip, actions }: { trip: TripRecord; actions: TripActions }) {
+export function TripRowMenu({
+  trip,
+  actions,
+  listState,
+}: {
+  trip: TripRecord
+  actions: TripActions
+  /** The list's filters, handed to the trip Open takes the reader to. */
+  listState?: unknown
+}) {
   const t = useT()
 
   const canChange = actions.canChange(trip)
@@ -44,13 +53,13 @@ export function TripRowMenu({ trip, actions }: { trip: TripRecord; actions: Trip
         }
       />
       <DropdownMenuContent align="end" className="w-52">
-        <DropdownMenuItem onClick={() => actions.open(trip)}>
+        <DropdownMenuItem onClick={() => actions.open(trip, listState)}>
           <Eye aria-hidden />
           {t('common.actions.open')}
         </DropdownMenuItem>
 
         {trip.status === 'Open' && (
-          <DropdownMenuItem onClick={() => actions.open(trip)}>
+          <DropdownMenuItem onClick={() => actions.open(trip, listState)}>
             <PackageCheck aria-hidden />
             {t('delivery.trip.fileSignedCopy')}
           </DropdownMenuItem>

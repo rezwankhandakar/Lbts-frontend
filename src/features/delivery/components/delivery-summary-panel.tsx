@@ -129,7 +129,7 @@ export function DeliverySummaryPanel({ workspace, onConfirm }: DeliverySummaryPa
         {!editing && vehicle && (
           <p className="text-center text-[11px] text-muted-foreground">
             {t('delivery.summary.numberedOn')}{' '}
-            <span className="font-mono">{vehicle.vendor.vendorCode}-TRIP-…</span>
+            <span className="font-mono">TRIP-…</span>
           </p>
         )}
       </div>

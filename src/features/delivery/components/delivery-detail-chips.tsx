@@ -17,9 +17,9 @@ const CHIP = 'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 tex
  * into whatever badge row they are placed in; nothing is drawn when nothing was
  * recorded.
  *
- * `compact` is for a small card — a stop at the head of a trip — where a
- * charge's description would push the chip past the card's edge: the
- * description moves into the tooltip and the chips may wrap.
+ * `compact` is for a card sized to fit two rows on a laptop — a challan on the
+ * trip page — where a charge's description would push the chip past the
+ * card's edge: the description moves into the tooltip and the chips may wrap.
  */
 export function DeliveryDetailChips({
   challan,

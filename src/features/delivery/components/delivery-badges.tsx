@@ -132,9 +132,9 @@ export function LineChangeBadge({
 }
 
 /**
- * How many of something came back off the lorry — on the product row it
- * belongs to, and on the stop it was delivered to. One component for both, so
- * the trip page cannot say "Returned 2" in two different colours.
+ * How many of something came back off the lorry, on the product row it belongs
+ * to — "2 came back" on a challan of two models is a question, "Returned 2"
+ * against one of them is the answer.
  */
 export function ReturnedQtyBadge({ qty, className }: { qty: number; className?: string }) {
   const t = useT()

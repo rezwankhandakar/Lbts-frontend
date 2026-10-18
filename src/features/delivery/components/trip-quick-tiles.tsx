@@ -141,7 +141,7 @@ function Amount({
 
   return (
     <span
-      className={cn('block min-w-0 flex-1 border-l px-3 py-2', leading && 'border-l-0 sm:border-l')}
+      className={cn('block min-w-0 flex-1 border-l px-2.5 py-2 sm:px-3', leading && 'border-l-0 sm:border-l')}
       title={value === null ? undefined : takaInBanglaWords(value)}
     >
       <span className="block truncate text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">

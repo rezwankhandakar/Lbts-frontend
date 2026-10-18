@@ -25,7 +25,8 @@ export function useTripActions() {
 
   return {
     canChange: (trip: TripRecord) => canChangeTrip(role, currentUserId, trip),
-    open: (trip: TripRecord) => navigate(`/delivery/${trip.id}`),
+    /** `state` is the list's filters, when a list opens it, so the trip can hand them back. */
+    open: (trip: TripRecord, state?: unknown) => navigate(`/delivery/${trip.id}`, { state }),
     edit: (trip: TripRecord) => navigate(`/delivery/${trip.id}/edit`),
     askDelete: (trip: TripRecord) => setDeleting(trip),
     deleting,

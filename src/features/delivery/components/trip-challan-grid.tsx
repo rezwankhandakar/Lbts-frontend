@@ -7,8 +7,6 @@ interface TripChallanGridProps {
   challans: TripChallanRecord[]
   /** Where one challan's delivery page lives, when the viewer may open it. */
   completionHref?: (challan: TripChallanRecord) => string
-  /** The challan whose stop was just pressed, drawn ringed for a moment. */
-  highlightedId?: string | null
 }
 
 /**
@@ -21,7 +19,7 @@ interface TripChallanGridProps {
  * carrying and the signed copy — because a trip does not end all at once.
  * Three challans on one lorry are three deliveries, signed for at three doors.
  */
-export function TripChallanGrid({ challans, completionHref, highlightedId = null }: TripChallanGridProps) {
+export function TripChallanGrid({ challans, completionHref }: TripChallanGridProps) {
   const t = useT()
   const format = useFormatters()
 
@@ -45,7 +43,6 @@ export function TripChallanGrid({ challans, completionHref, highlightedId = null
               challan={challan}
               position={index + 1}
               completionHref={completionHref?.(challan)}
-              highlighted={highlightedId === challan.challanId}
             />
           </li>
         ))}

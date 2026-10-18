@@ -5,8 +5,8 @@ import type { TripVendorRef } from '../types'
 import { useT } from '@/lib/i18n'
 
 /**
- * Who runs the vehicle — and so who this trip is assigned to and numbered
- * under. Read off the vehicle and never chosen: the server does the same, and a
+ * Who runs the vehicle — and so who this trip is assigned to and billed to.
+ * Read off the vehicle and never chosen: the server does the same, and a
  * trip's vendor is not a field anybody can set.
  */
 export function TripVendorCard({ vendor }: { vendor: TripVendorRef }) {
@@ -44,7 +44,9 @@ export function TripVendorCard({ vendor }: { vendor: TripVendorRef }) {
         </div>
         <div className="flex items-center justify-between gap-2">
           <dt className="text-muted-foreground">{t('delivery.vendor.tripNumber')}</dt>
-          <dd className="font-mono text-muted-foreground">{vendor.vendorCode}-TRIP-…</dd>
+          {/* One running serial for the whole operation, not the vendor's own
+              count — see `formatTripNumber`. */}
+          <dd className="font-mono text-muted-foreground">TRIP-…</dd>
         </div>
       </dl>
     </div>

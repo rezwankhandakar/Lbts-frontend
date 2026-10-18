@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -14,23 +13,18 @@ import { useTripActions } from '@/features/delivery/hooks/use-trip-actions'
 import { useTripListReturn } from '@/features/delivery/hooks/use-trip-list-return'
 import { useT } from '@/lib/i18n'
 
-/** How long a challan card stays ringed after its stop was pressed. */
-const HIGHLIGHT_MS = 1600
-
 /**
- * One trip: who ran it, what it cost, what went and where — and, below, each
- * challan on it and how its delivery ended.
+ * One trip: who ran it, what it cost and what went — and, below, each challan
+ * on it, where it was delivered and how its delivery ended.
  *
  * Everything on this page is the trip's own record — the copies taken when it
  * was confirmed — so it reads the same next year whatever has happened to the
  * vehicle, the driver or the challans since.
  *
  * Two sections, top to bottom. The hero is the trip as a whole: its number and
- * progress, the parties, the notes and the bill, the load by product, and a
- * small card per stop with its address, floor, carrying and note. The grid is
- * the challans themselves, two to a row, each finished on its own page. A stop
- * pressed in the hero scrolls to its card and rings it for a moment, so the
- * route and the paperwork can be read against each other.
+ * progress, the parties, the notes and the bill, and the load by product. The
+ * grid is the challans themselves, two to a row, each carrying its address,
+ * returns, floor, carrying and note, and each finished on its own page.
  */
 export function DeliveryDetailsPage() {
   const t = useT()
@@ -48,23 +42,6 @@ export function DeliveryDetailsPage() {
   // A signed copy scanned here opens its delivery — this trip's, or another's.
   const receipt = useSheetScan({ trip: query.data })
   useBarcodeWedge((code) => void receipt.scan(code), query.isSuccess && !receipt.pending)
-
-  const [highlighted, setHighlighted] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (highlighted === null) {
-      return
-    }
-    const timer = window.setTimeout(() => setHighlighted(null), HIGHLIGHT_MS)
-    return () => window.clearTimeout(timer)
-  }, [highlighted])
-
-  function showChallan(challanId: string) {
-    document
-      .getElementById(`trip-challan-${challanId}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    setHighlighted(challanId)
-  }
 
   if (query.isPending) {
     return <PageSkeleton />
@@ -96,17 +73,11 @@ export function DeliveryDetailsPage() {
       </Button>
 
       <div className="space-y-6">
-        <TripHero
-          trip={trip}
-          actions={actions}
-          onStopSelect={showChallan}
-          onBillSaved={listReturn.afterBillSaved}
-        />
+        <TripHero trip={trip} actions={actions} onBillSaved={listReturn.afterBillSaved} />
 
         <TripChallanGrid
           challans={trip.challans ?? []}
           completionHref={(challan) => `/delivery/${trip.id}/challans/${challan.challanId}`}
-          highlightedId={highlighted}
         />
       </div>
 

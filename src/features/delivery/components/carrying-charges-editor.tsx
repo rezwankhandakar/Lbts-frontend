@@ -100,7 +100,7 @@ export function CarryingChargesEditor({
                   </Label>
                   <Input
                     id={`carry-what-${index}`}
-                    className="h-8 text-[13px]"
+                    className="h-8 md:text-[13px]"
                     placeholder={carryingKindMeta(entry.kind, t).hint}
                     maxLength={200}
                     value={entry.description}
@@ -115,7 +115,7 @@ export function CarryingChargesEditor({
                   </Label>
                   <Input
                     id={`carry-amount-${index}`}
-                    className="h-8 text-[13px] tabular-nums"
+                    className="h-8 tabular-nums md:text-[13px]"
                     inputMode="numeric"
                     value={entry.amount === 0 ? '' : String(entry.amount)}
                     placeholder="0"

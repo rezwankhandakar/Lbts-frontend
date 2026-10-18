@@ -1,8 +1,5 @@
-import { CircleDashed, ListFilter, Search, Truck, Users, X } from 'lucide-react'
+import { ArrowRight, CalendarRange, ListFilter, Search, Store, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useT } from '@/lib/i18n'
-import type { TranslationKey } from '@/lib/i18n'
-import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -13,237 +10,134 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useVendorOptions } from '@/features/vendor/hooks/use-vendors'
-import { tripStatusMeta, localToday, monthRange, taka } from '../lib/delivery-meta'
+import { useT } from '@/lib/i18n'
+import { tripStatusMeta } from '../lib/delivery-meta'
 import { TRIP_STATUSES } from '../types'
-import type { TripBillFilter, TripFilterPatch, TripListParams, TripStatusFilter } from '../types'
+import type { TripFilterPatch, TripListParams, TripStatusFilter } from '../types'
 
 interface TripFiltersProps {
   params: TripListParams
   onChange: (patch: TripFilterPatch) => void
   onReset: () => void
   isFiltered: boolean
-  summary?: string
-  /**
-   * Rent and labour across every trip the filters match, not just this page,
-   * and how many of those trips have each one still blank.
-   */
-  totals?: { rent: number; labour: number; blankRent: number; blankLabour: number }
 }
 
-const TRIGGER = 'h-8 w-full sm:w-[11rem]'
+const TRIGGER = 'h-9 w-full text-[13px] sm:w-[11.5rem]'
+
+/** A date box inside the range control: the control draws the border, not the box. */
+const DAY =
+  'h-8 w-full min-w-0 border-0 bg-transparent px-1.5 shadow-none md:text-[13px] focus-visible:ring-0 sm:w-[8.75rem] dark:bg-transparent'
 
 /**
- * The date ranges somebody actually asks about. Last month is the whole closed
- * calendar month, because that is what a vendor's bill is run over. Computed
- * on every render rather than once, so a page left open past midnight moves.
- */
-const DATE_CHIPS: { labelKey: TranslationKey; range: () => { from: string; to: string } }[] = [
-  { labelKey: 'time.anyDate', range: () => ({ from: '', to: '' }) },
-  { labelKey: 'time.today', range: () => ({ from: localToday(), to: localToday() }) },
-  { labelKey: 'time.thisMonth', range: () => monthRange(0) },
-  { labelKey: 'time.lastMonth', range: () => monthRange(-1) },
-]
-
-/**
- * The trip bill backlog. Pressing one lists only the trips still missing that
- * amount; pressing it again lets go. Counts answer the other filters, so
- * "Last month" plus "No trip rent" is the list of trips a month-end bill is
- * still waiting on.
- */
-const BILL_CHIPS: { value: Exclude<TripBillFilter, 'all'>; labelKey: TranslationKey }[] = [
-  { value: 'no-rent', labelKey: 'delivery.filters.noRent' },
-  { value: 'no-labour', labelKey: 'delivery.filters.noLabour' },
-]
-
-/**
- * The trips toolbar.
+ * The trips toolbar: one row of controls at the size they are read at.
  *
  * The search covers what somebody has in hand: a trip number off a manifest,
  * the last digits of a plate, a driver, a vendor, or any challan on the trip
  * by number or customer. The vendor filter is the one a month-end bill is run
  * over, which is why it sits on the toolbar rather than behind a disclosure.
+ *
+ * The two dates are **one control** — a range is one question, and two loose
+ * boxes with an English "to" between them were two questions and a word that
+ * did not translate. The quick ranges and the bill backlog sit on the row
+ * beneath (`TripFilterChips`).
  */
-export function TripFilters({ params, onChange, onReset, isFiltered, summary, totals }: TripFiltersProps) {
+export function TripFilters({ params, onChange, onReset, isFiltered }: TripFiltersProps) {
   const t = useT()
 
   const vendors = useVendorOptions()
 
   return (
-    <div className="border-b">
-      <div className="flex flex-col gap-3 p-3 sm:p-4">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-          <div className="relative flex-1 xl:max-w-sm">
-            <Search
-              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden
-            />
-            <Input
-              type="search"
-              value={params.search}
-              onChange={(event) => onChange({ search: event.target.value })}
-              placeholder={t('delivery.filters.searchPlaceholder')}
-              aria-label={t('delivery.filters.searchAria')}
-              className="pl-8.5"
-            />
-          </div>
+    <div className="flex flex-col gap-2.5 lg:flex-row lg:flex-wrap lg:items-center">
+      <div className="relative min-w-0 flex-1 lg:min-w-64">
+        <Search
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden
+        />
+        <Input
+          type="search"
+          value={params.search}
+          onChange={(event) => onChange({ search: event.target.value })}
+          placeholder={t('delivery.filters.searchPlaceholder')}
+          aria-label={t('delivery.filters.searchAria')}
+          className="h-9 pl-9 md:text-[13px]"
+        />
+      </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-            <Select
-              value={params.status}
-              onValueChange={(value) => onChange({ status: value as TripStatusFilter })}
-            >
-              <SelectTrigger className={TRIGGER} aria-label={t('delivery.filters.statusAria')}>
-                <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
-                <SelectValue>
-                  {(value) =>
-                    value && value !== 'all' ? tripStatusMeta(String(value), t).label : t('delivery.filters.anyStatus')
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">{t('delivery.filters.anyStatus')}</SelectItem>
-                  {TRIP_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {tripStatusMeta(status, t).label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <Select value={params.status} onValueChange={(value) => onChange({ status: value as TripStatusFilter })}>
+          <SelectTrigger className={TRIGGER} aria-label={t('delivery.filters.statusAria')}>
+            <ListFilter className="size-3.5 text-muted-foreground" aria-hidden />
+            <SelectValue>
+              {(value) =>
+                value && value !== 'all' ? tripStatusMeta(String(value), t).label : t('delivery.filters.anyStatus')
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="all">{t('delivery.filters.anyStatus')}</SelectItem>
+              {TRIP_STATUSES.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {tripStatusMeta(status, t).label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
 
-            <Select
-              value={params.vendorId || 'all'}
-              onValueChange={(value) => onChange({ vendorId: value === 'all' ? '' : String(value) })}
-            >
-              <SelectTrigger className={TRIGGER} aria-label={t('delivery.filters.vendorAria')}>
-                <SelectValue>
-                  {(value) =>
-                    value && value !== 'all'
-                      ? (vendors.data?.find((vendor) => vendor.id === value)?.name ?? t('common.labels.vendor'))
-                      : t('delivery.filters.everyVendor')
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">{t('delivery.filters.everyVendor')}</SelectItem>
-                  {(vendors.data ?? []).map((vendor) => (
-                    <SelectItem key={vendor.id} value={vendor.id}>
-                      {vendor.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+        <Select
+          value={params.vendorId || 'all'}
+          onValueChange={(value) => onChange({ vendorId: value === 'all' ? '' : String(value) })}
+        >
+          <SelectTrigger className={TRIGGER} aria-label={t('delivery.filters.vendorAria')}>
+            <Store className="size-3.5 text-muted-foreground" aria-hidden />
+            <SelectValue>
+              {(value) =>
+                value && value !== 'all'
+                  ? (vendors.data?.find((vendor) => vendor.id === value)?.name ?? t('common.labels.vendor'))
+                  : t('delivery.filters.everyVendor')
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="all">{t('delivery.filters.everyVendor')}</SelectItem>
+              {(vendors.data ?? []).map((vendor) => (
+                <SelectItem key={vendor.id} value={vendor.id}>
+                  {vendor.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
 
-            <div className="flex items-center gap-2">
-              <Input
-                type="date"
-                value={params.from}
-                max={params.to || undefined}
-                onChange={(event) => onChange({ from: event.target.value })}
-                aria-label={t('delivery.filters.fromAria')}
-                className="h-8 w-full sm:w-[9.5rem]"
-              />
-              <span className="text-xs text-muted-foreground">to</span>
-              <Input
-                type="date"
-                value={params.to}
-                min={params.from || undefined}
-                onChange={(event) => onChange({ to: event.target.value })}
-                aria-label={t('delivery.filters.untilAria')}
-                className="h-8 w-full sm:w-[9.5rem]"
-              />
-            </div>
-
-            {isFiltered && (
-              <Button variant="ghost" size="sm" onClick={onReset}>
-                <X data-icon="inline-start" aria-hidden />
-                {t('common.actions.clear')}
-              </Button>
-            )}
-          </div>
+        <div className="flex h-9 items-center gap-1 rounded-lg border border-input bg-background px-2 transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30">
+          <CalendarRange className="hidden size-4 shrink-0 text-muted-foreground sm:block" aria-hidden />
+          <Input
+            type="date"
+            value={params.from}
+            max={params.to || undefined}
+            onChange={(event) => onChange({ from: event.target.value })}
+            aria-label={t('delivery.filters.fromAria')}
+            className={DAY}
+          />
+          <ArrowRight className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+          <Input
+            type="date"
+            value={params.to}
+            min={params.from || undefined}
+            onChange={(event) => onChange({ to: event.target.value })}
+            aria-label={t('delivery.filters.untilAria')}
+            className={DAY}
+          />
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          {DATE_CHIPS.map((chip) => {
-            const range = chip.range()
-            const active = params.from === range.from && params.to === range.to
-
-            return (
-              <button
-                key={chip.labelKey}
-                type="button"
-                aria-pressed={active}
-                onClick={() => onChange(range)}
-                className={cn(
-                  'rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors',
-                  active
-                    ? 'border-primary/40 bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
-                )}
-              >
-                {t(chip.labelKey)}
-              </button>
-            )
-          })}
-
-          {totals && (
-            <>
-              <span className="mx-1 h-4 w-px bg-border" aria-hidden />
-              {BILL_CHIPS.map((chip) => {
-                const count = chip.value === 'no-rent' ? totals.blankRent : totals.blankLabour
-                const active = params.bill === chip.value
-
-                // A backlog chip with nothing behind it is not drawn — unless it
-                // is the filter in force, or clearing the last one would remove
-                // the only thing saying why the list is empty.
-                if (count === 0 && !active) {
-                  return null
-                }
-
-                return (
-                  <button
-                    key={chip.value}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() => onChange({ bill: active ? 'all' : chip.value })}
-                    className={cn(
-                      'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors',
-                      active
-                        ? 'border-tone-rose/40 bg-tone-rose/15 text-tone-rose'
-                        : 'border-tone-rose/25 text-tone-rose hover:bg-tone-rose/10',
-                    )}
-                  >
-                    <CircleDashed className="size-3" aria-hidden />
-                    {t(chip.labelKey)}
-                    <span className="rounded-full bg-tone-rose/15 px-1.5 font-bold tabular-nums">{count}</span>
-                  </button>
-                )
-              })}
-            </>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          {summary && <p className="text-xs text-muted-foreground">{summary}</p>}
-          {totals && (
-            <>
-              <span className="inline-flex items-center gap-1 rounded-full border border-tone-amber/25 bg-tone-amber/10 px-2 py-0.5 text-[11px] font-medium text-tone-amber">
-                <Truck className="size-3" aria-hidden />
-                {t('delivery.tripRentWith', { amount: taka(totals.rent) })}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-tone-violet/25 bg-tone-violet/10 px-2 py-0.5 text-[11px] font-medium text-tone-violet">
-                <Users className="size-3" aria-hidden />
-                {t('delivery.labourBillWith', { amount: taka(totals.labour) })}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-tone-emerald/25 bg-tone-emerald/10 px-2 py-0.5 text-[11px] font-medium text-tone-emerald">
-                {t('delivery.totalWith', { amount: taka(totals.rent + totals.labour) })}
-              </span>
-            </>
-          )}
-        </div>
+        {isFiltered && (
+          <Button variant="ghost" className="h-9 text-[13px] text-muted-foreground" onClick={onReset}>
+            <X data-icon="inline-start" aria-hidden />
+            {t('common.actions.clear')}
+          </Button>
+        )}
       </div>
     </div>
   )

@@ -104,8 +104,7 @@ export function TripDriverCard({
 
       {isOverride && (
         <p className="mt-2 rounded-lg bg-muted/60 px-2.5 py-1.5 text-[11px] leading-snug text-muted-foreground">
-          {assigned?.name} stays the vehicle&apos;s assigned driver. This changes who drives this
-          trip only.
+          {t('delivery.driver.staysAssigned', { name: assigned?.name ?? '' })}
         </p>
       )}
 

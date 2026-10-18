@@ -41,7 +41,7 @@ export function TripBillDialog({ trip, open, onOpenChange, onSaved }: TripBillDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[calc(100svh-2rem)] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2.5">
             <span className="flex size-9 items-center justify-center rounded-xl bg-tone-amber/10 text-tone-amber ring-1 ring-tone-amber/20">

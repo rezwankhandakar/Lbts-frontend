@@ -58,7 +58,7 @@ export function ConfirmTripDialog({ workspace, open, onOpenChange, onConfirm }: 
 
   return (
     <Dialog open={open} onOpenChange={(next) => !isSaving && onOpenChange(next)}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[calc(100svh-2rem)] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {editing

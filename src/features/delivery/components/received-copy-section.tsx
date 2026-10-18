@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileQuestion, PackageCheck, Paperclip, Trash2, Undo2 } from 'lucide-react'
+import { FileQuestion, PackageCheck, Undo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   useClearCopyMissing,
@@ -8,12 +8,12 @@ import {
   useUploadReceivedCopy,
 } from '../hooks/use-deliveries'
 import { useReceivedCopy } from '../hooks/use-received-copy'
-import { formatBytes } from '@/lib/document-file-rules'
 import type { TripChallanRecord, TripRecord } from '../types'
 import { CopyMissingForm } from './copy-missing-form'
 import { QuickCopyScan } from './quick-copy-scan'
+import { ReceivedCopyFiled } from './received-copy-filed'
 import { ReceivedCopyViewer } from './received-copy-viewer'
-import { countOf, useT } from '@/lib/i18n'
+import { useT } from '@/lib/i18n'
 
 interface ReceivedCopySectionProps {
   trip: TripRecord
@@ -24,7 +24,8 @@ interface ReceivedCopySectionProps {
 /**
  * The receiver's signed copy, in whichever of four states the delivery is in:
  * filed, not needed because everything came back, declared lost, or still
- * waiting — where the scan button is the first thing on offer.
+ * waiting — where the scan button is the first thing on offer. A filed copy
+ * carries a small preview of the sheet, not only its file name.
  */
 export function ReceivedCopySection({ trip, challan, canWrite }: ReceivedCopySectionProps) {
   const t = useT()
@@ -53,6 +54,13 @@ export function ReceivedCopySection({ trip, challan, canWrite }: ReceivedCopySec
     <QuickCopyScan uploading={upload.isPending} disabled={busy} scanLabel={label} onFile={fileIt} />
   )
 
+  const openViewer = () => {
+    if (copy) {
+      setViewing(true)
+      void copyFile.open(copy)
+    }
+  }
+
   return (
     <section className="space-y-3 rounded-xl border bg-card p-4">
       <h2 className="flex items-center gap-2 text-sm font-semibold tracking-tight">
@@ -62,58 +70,15 @@ export function ReceivedCopySection({ trip, challan, canWrite }: ReceivedCopySec
 
       {copy ? (
         <>
-          <div className="flex items-center gap-2.5 rounded-lg border border-tone-emerald/25 bg-tone-emerald/5 px-3 py-2.5">
-            <Paperclip className="size-4 shrink-0 text-tone-emerald" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-medium">{copy.originalName || t('delivery.copy.fallbackName')}</p>
-              <p className="text-xs text-muted-foreground">
-                {formatBytes(copy.size)}
-                {copy.pageCount
-                  ? t('delivery.copy.pagesSuffix', {
-                      pages: countOf(copy.pageCount, 'nouns.page', t),
-                    })
-                  : ''}
-                {challan.completedBy
-                  ? t('delivery.copy.filedBy', { name: challan.completedBy.name })
-                  : ''}
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setViewing(true)
-                void copyFile.open(copy)
-              }}
-            >
-              {t('common.actions.view')}
-            </Button>
-            {canWrite && (
-              <>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={busy}
-                  onClick={() => setReplacing((current) => !current)}
-                >
-                  {t('delivery.copy.replace')}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-destructive"
-                  aria-label={t('delivery.copy.removeAria')}
-                  disabled={busy}
-                  onClick={() => remove.mutate(target)}
-                >
-                  <Trash2 aria-hidden />
-                </Button>
-              </>
-            )}
-          </div>
+          <ReceivedCopyFiled
+            copy={copy}
+            challan={challan}
+            canWrite={canWrite}
+            busy={busy}
+            onView={openViewer}
+            onToggleReplace={() => setReplacing((current) => !current)}
+            onRemove={() => remove.mutate(target)}
+          />
           {canWrite && replacing && scan(t('delivery.copy.scanNew'))}
         </>
       ) : challan.completionMethod === 'Returned' ? (

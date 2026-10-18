@@ -24,7 +24,9 @@ const OPTIONS: ChoiceOption[] = [
   },
   {
     value: 'partial',
-    labelKey: 'delivery.completion.someCameBack',
+    // The tile's own title — `someCameBack` is the sentence with the figures in
+    // it, and drawn here without them it read "{back} of {total} came back".
+    labelKey: 'delivery.completion.someCameBackTitle',
     hintKey: 'delivery.completion.someCameBackHint',
     icon: Undo2,
     selected: 'border-tone-amber/40 bg-tone-amber/10 text-tone-amber',
