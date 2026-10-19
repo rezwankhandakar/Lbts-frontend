@@ -108,9 +108,12 @@ export async function linkTripDoRow({ rowId, ...body }: LinkRowArgs): Promise<Tr
 }
 
 export interface BulkLinkArgs {
+  /** Filled in this order when `qty` is short of what they carry. */
   rowIds: string[]
   gatePassId: string
   lineKey?: string
+  /** Fewer pieces than the rows carry: the row they run out on is split. */
+  qty?: number
 }
 
 export async function bulkLinkTripDoRows(args: BulkLinkArgs): Promise<TripDoLinkResult> {

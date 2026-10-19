@@ -64,6 +64,88 @@ export function defaultLinkQty(rowQty: number, remaining: number): number {
   return Math.max(0, Math.min(rowQty, remaining))
 }
 
+/**
+ * How a bulk link of `qty` pieces falls across ticked rows, in the order given:
+ * each row is taken whole while the pieces last, the row they run out on is
+ * split, and any after it are left as they were. Mirrors `planBulkLink` in the
+ * backend's `trip-do.ledger.ts`, which is what actually decides — change one,
+ * change both.
+ */
+export function bulkLinkShares(rowQtys: readonly number[], qty: number): number[] {
+  let left = Math.max(0, qty)
+  return rowQtys.map((rowQty) => {
+    const take = Math.max(0, Math.min(rowQty, left))
+    left -= take
+    return take
+  })
+}
+
+/** What a bulk link leaves behind, for the sentence under the stepper. */
+export interface BulkLinkPreview<T> {
+  /** The row the pieces ran out on, and how many of it wait for another Trip DO. */
+  split: { part: T; remainder: number } | null
+  /** Ticked rows after that one, which the link does not touch at all. */
+  untouchedRows: number
+}
+
+export function bulkLinkPreview<T extends { qty: number }>(
+  parts: readonly T[],
+  qty: number,
+): BulkLinkPreview<T> {
+  const shares = bulkLinkShares(
+    parts.map((part) => part.qty),
+    qty,
+  )
+  const splitAt = parts.findIndex((part, index) => shares[index] > 0 && shares[index] < part.qty)
+
+  return {
+    split: splitAt >= 0 ? { part: parts[splitAt], remainder: parts[splitAt].qty - shares[splitAt] } : null,
+    untouchedRows: shares.filter((share) => share === 0).length,
+  }
+}
+
+/** A ticked row's present link, for working out the room it would give back. */
+export interface TickedLink {
+  gatePassId: string
+  lineKey: string
+  qty: number
+}
+
+/** What `withTickedRoom` reads off a gate pass option. */
+export interface RoomOption {
+  id: string
+  lineKey: string
+  qty: number
+  allocatedQty: number
+  remainingQty: number
+  countsTowardQty: boolean
+}
+
+/**
+ * A gate pass option as it stands for a set of ticked rows.
+ *
+ * The picker is asked about one row and counts only that one as its own, so
+ * any *other* ticked order row already on the same line is reported as taken —
+ * yet it moves with the rest, and the server gives its pieces back before it
+ * checks. Without this a line the ticked rows already fill reads as full and
+ * cannot be chosen, and one partly filled caps the stepper below what the
+ * server accepts and proposes a split nobody needs. A return or re-sent row's
+ * option is the whole line already, so it is returned as it is.
+ */
+export function withTickedRoom<T extends RoomOption>(option: T, others: readonly TickedLink[]): T {
+  if (!option.countsTowardQty) {
+    return option
+  }
+  const own = others
+    .filter((link) => link.gatePassId === option.id && link.lineKey === option.lineKey)
+    .reduce((sum, link) => sum + link.qty, 0)
+  if (own === 0) {
+    return option
+  }
+  const allocatedQty = Math.max(0, option.allocatedQty - own)
+  return { ...option, allocatedQty, remainingQty: Math.max(0, option.qty - allocatedQty) }
+}
+
 /** What a link of `linkQty` does to a row of `rowQty`. */
 export function linkOutcome(
   rowQty: number,

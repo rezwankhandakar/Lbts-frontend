@@ -2,10 +2,13 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
   MAX_SPLIT_PARTS,
+  bulkLinkPreview,
+  bulkLinkShares,
   defaultLinkQty,
   evenParts,
   linkOutcome,
   splitProblem,
+  withTickedRoom,
 } from './split-parts.ts'
 
 describe('dividing a Trip DO row', () => {
@@ -62,5 +65,66 @@ describe('dividing a Trip DO row', () => {
   it('says what a link leaves behind on a row of its own', () => {
     assert.deepEqual(linkOutcome(5, 3), { linked: 3, remainder: 2 })
     assert.deepEqual(linkOutcome(5, 9), { linked: 5, remainder: 0 })
+  })
+})
+
+describe('a bulk link of fewer pieces than were ticked', () => {
+  const rows = [
+    { sl: 10111, qty: 10 },
+    { sl: 10112, qty: 10 },
+    { sl: 10115, qty: 6 },
+  ]
+
+  it('fills the rows in order and splits the one the pieces run out on', () => {
+    assert.deepEqual(bulkLinkShares([10, 10, 6], 25), [10, 10, 5])
+    assert.deepEqual(bulkLinkShares([10, 10, 6], 26), [10, 10, 6])
+    assert.deepEqual(bulkLinkShares([10, 10, 6], 12), [10, 2, 0])
+  })
+
+  it('names the row that is split and how much of it waits', () => {
+    assert.deepEqual(bulkLinkPreview(rows, 25), {
+      split: { part: rows[2], remainder: 1 },
+      untouchedRows: 0,
+    })
+  })
+
+  it('counts the rows the link never reaches, and splits nothing on an exact fill', () => {
+    assert.deepEqual(bulkLinkPreview(rows, 10), { split: null, untouchedRows: 2 })
+    assert.deepEqual(bulkLinkPreview(rows, 26), { split: null, untouchedRows: 0 })
+  })
+})
+
+describe('the room a gate pass line has for ticked rows', () => {
+  const option = {
+    id: 'gp1',
+    lineKey: 'WFA2A3GDELXX',
+    qty: 25,
+    allocatedQty: 10,
+    remainingQty: 15,
+    countsTowardQty: true,
+  }
+
+  it('gives back the pieces of other ticked rows already on that line', () => {
+    const room = withTickedRoom(option, [{ gatePassId: 'gp1', lineKey: 'WFA2A3GDELXX', qty: 10 }])
+    assert.equal(room.remainingQty, 25)
+    assert.equal(room.allocatedQty, 0)
+  })
+
+  it('opens a line the ticked rows themselves fill', () => {
+    const full = { ...option, allocatedQty: 25, remainingQty: 0 }
+    assert.equal(withTickedRoom(full, [{ gatePassId: 'gp1', lineKey: 'WFA2A3GDELXX', qty: 4 }]).remainingQty, 4)
+  })
+
+  it('ignores ticked rows on another gate pass or another line', () => {
+    const room = withTickedRoom(option, [
+      { gatePassId: 'gp2', lineKey: 'WFA2A3GDELXX', qty: 10 },
+      { gatePassId: 'gp1', lineKey: 'WFA2B4', qty: 4 },
+    ])
+    assert.equal(room, option)
+  })
+
+  it('leaves a return or re-sent row’s whole-line room alone', () => {
+    const whole = { ...option, remainingQty: 25, countsTowardQty: false }
+    assert.equal(withTickedRoom(whole, [{ gatePassId: 'gp1', lineKey: 'WFA2A3GDELXX', qty: 10 }]), whole)
   })
 })

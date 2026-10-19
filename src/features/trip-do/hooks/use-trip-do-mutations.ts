@@ -26,8 +26,12 @@ function useInvalidateTripDo() {
   return () => queryClient.invalidateQueries({ queryKey: tripDoKeys.all })
 }
 
-/** "CSD CSD-04 · Unit WFR", and what a split left behind. */
-function linkDescription(result: TripDoLinkResult): string {
+/**
+ * "CSD CSD-04 · Unit WFR", and what a split left behind. A bulk link's
+ * remainder may also be whole ticked rows the pieces never reached, so it says
+ * where the pieces are going rather than that they sit on one row.
+ */
+function linkDescription(result: TripDoLinkResult, many = false): string {
   const parts = [
     t('tripDo.remove.linkDetail', {
       csd: result.csd || BLANK,
@@ -37,7 +41,9 @@ function linkDescription(result: TripDoLinkResult): string {
   ]
   if (result.remainderQty > 0) {
     parts.push(
-      t('tripDo.remove.linkRemainder', { remainder: countOf(result.remainderQty, 'nouns.pc', t) }),
+      t(many ? 'tripDo.remove.linkRemainderMany' : 'tripDo.remove.linkRemainder', {
+        remainder: countOf(result.remainderQty, 'nouns.pc', t),
+      }),
     )
   }
   return parts.join(' · ')
@@ -76,7 +82,7 @@ export function useBulkLinkTripDo(): UseMutationResult<TripDoLinkResult, ApiErro
         {
           description: t('tripDo.remove.linkedManyNote', {
             pieces: countOf(result.qty, 'nouns.piece', t),
-            detail: linkDescription(result),
+            detail: linkDescription(result, true),
           }),
         },
       )

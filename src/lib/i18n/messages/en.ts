@@ -4394,6 +4394,11 @@ export const en = {
       /** The two clauses under the quantity stepper, each a whole sentence. */
       onTripDo: '{linked} on Trip DO {tripDo}',
       remainderStays: '{remainder} stay on a new row, waiting for a Trip DO',
+      remainderOfRow: '{remainder} of SL {sl} stay on a new row, waiting for a Trip DO',
+      rowsUntouched: '{rows} left as they are',
+      fewerSplitsRow: 'Fewer than {qty} splits the row; the rest waits for another Trip DO.',
+      fewerSplitsRows:
+        'Fewer than {qty} fills the rows oldest challan first and splits the one they run out on; the rest waits for another Trip DO.',
       rowsLabel: '{rows}',
       notOnChallan: '{qty} not on a challan',
       lineLinked: '{linked} of {total} pcs linked to challans',
@@ -4467,6 +4472,7 @@ export const en = {
       linkedManyNote: '{pieces} · {detail}',
       linkDetail: 'CSD {csd} · Unit {unit} · {gatePass}',
       linkRemainder: '{remainder} left on a row of their own',
+      linkRemainderMany: '{remainder} left for another Trip DO',
       splitDone: 'Row split into {parts}',
       rateTiered: '{rest} / {first} (first {count})',
       mergedBack: 'Parts merged back into {qty}',

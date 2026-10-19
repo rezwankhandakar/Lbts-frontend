@@ -2,6 +2,7 @@ import type { LocationType } from '@/features/location/types'
 import type { Rate } from '@/features/product-rate/types'
 import type { ColumnFilterValue, ColumnValuesResult } from '@/lib/column-filters'
 import type { UserRole } from '@/lib/roles'
+import type { TickedLink } from '../lib/split-parts'
 
 /**
  * The Trip DO sheet as the client sees it. Mirrors
@@ -49,6 +50,7 @@ export function canWriteTripDo(role: UserRole | null): boolean {
 }
 
 export { MAX_SPLIT_PARTS } from '../lib/split-parts'
+export type { TickedLink } from '../lib/split-parts'
 
 export interface ActorRef {
   id: string
@@ -249,9 +251,12 @@ export interface TripDoLinkResult {
 
 /**
  * What the Trip DO picker is setting: one row, or several ticked rows of one
- * model. A bulk target links every row whole and cannot split.
+ * model. Either can take fewer pieces than it carries — one row is split, and
+ * ticked rows are filled in `rowIds` order with the row the pieces run out on
+ * split (`bulkLinkShares`).
  */
 export interface LinkTarget {
+  /** In the order a bulk link fills them: oldest challan first. */
   rowIds: string[]
   /** The row the gate pass options are asked for. */
   anchorRowId: string
@@ -262,4 +267,8 @@ export interface LinkTarget {
   label: string
   currentGatePassId: string | null
   canSplit: boolean
+  /** A bulk target's rows in fill order, to say which one a short link splits. Empty for one row. */
+  parts: { slNumber: number; qty: number }[]
+  /** Other ticked order rows' present links, which give their room back — `withTickedRoom`. */
+  otherLinks: TickedLink[]
 }

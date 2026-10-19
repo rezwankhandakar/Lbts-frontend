@@ -40,19 +40,17 @@ export function useTripDoActions(onBulkLinked: () => void) {
     }
     const close = () => setLinkTarget(null)
     const { id: gatePassId, lineKey } = option
+    const short = qty < target.qty ? qty : undefined
 
     if (target.rowIds.length > 1) {
       bulk.mutate(
-        { rowIds: target.rowIds, gatePassId, lineKey },
+        { rowIds: target.rowIds, gatePassId, lineKey, qty: short },
         { onSuccess: () => (close(), onBulkLinked()) },
       )
       return
     }
 
-    link.mutate(
-      { rowId: target.anchorRowId, gatePassId, lineKey, qty: qty < target.qty ? qty : undefined },
-      { onSuccess: close },
-    )
+    link.mutate({ rowId: target.anchorRowId, gatePassId, lineKey, qty: short }, { onSuccess: close })
   }
 
   const confirmSplit = (parts: number[]) => {

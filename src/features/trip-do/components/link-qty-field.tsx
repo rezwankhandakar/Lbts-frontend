@@ -1,10 +1,10 @@
 import { Minus, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { linkOutcome } from '../lib/split-parts'
+import { bulkLinkPreview, linkOutcome } from '../lib/split-parts'
 import { SentenceWith } from '@/components/shared/sentence-with'
 import { formatNumber } from '@/lib/format'
-import { useT } from '@/lib/i18n'
+import { countOf, useT } from '@/lib/i18n'
 
 interface LinkQtyFieldProps {
   qty: number
@@ -13,21 +13,29 @@ interface LinkQtyFieldProps {
   /** What the chosen gate pass still has room for. */
   room: number
   tripDo: string
+  /** Ticked rows in fill order; empty for one row. */
+  parts: readonly { slNumber: number; qty: number }[]
 }
 
 /**
- * How many of the row came out on the chosen Trip DO.
+ * How many of the row — or of the ticked rows — came out on the chosen Trip DO.
  *
  * Fewer than the row is the split, and the bar underneath shows it before it
  * happens: the green part is linked, the amber part becomes a row of its own
  * waiting for another Trip DO. Five on the challan and three on this gate pass
- * is one press of "Max".
+ * is one press of "Max". Ticked rows are filled oldest challan first, and the
+ * sentence names the one the pieces run out on, since that is the row that
+ * will be split.
  */
-export function LinkQtyField({ qty, onChange, rowQty, room, tripDo }: LinkQtyFieldProps) {
+export function LinkQtyField({ qty, onChange, rowQty, room, tripDo, parts }: LinkQtyFieldProps) {
   const t = useT()
 
   const max = Math.max(1, Math.min(rowQty, room))
   const { linked, remainder } = linkOutcome(rowQty, qty)
+  const bulk = parts.length > 1 ? bulkLinkPreview(parts, qty) : null
+  const amber = (value: number) => (
+    <span className="font-semibold text-tone-amber tabular-nums">{formatNumber(value)}</span>
+  )
 
   return (
     <div className="rounded-xl border bg-muted/25 p-3.5">
@@ -35,7 +43,9 @@ export function LinkQtyField({ qty, onChange, rowQty, room, tripDo }: LinkQtyFie
         <div className="min-w-0">
           <p className="text-[13px] font-medium">{t('tripDo.assign.howMany')}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Fewer than {rowQty} splits the row; the rest waits for another Trip DO.
+            {t(bulk ? 'tripDo.assign.fewerSplitsRows' : 'tripDo.assign.fewerSplitsRow', {
+              qty: formatNumber(rowQty),
+            })}
           </p>
         </div>
 
@@ -105,17 +115,31 @@ export function LinkQtyField({ qty, onChange, rowQty, room, tripDo }: LinkQtyFie
             tripDo: <span className="font-mono text-foreground">{tripDo}</span>,
           }}
         />
-        {remainder > 0 && (
+        {remainder > 0 && !bulk && (
+          <>
+            {' · '}
+            <SentenceWith text={t('tripDo.assign.remainderStays')} placeholder="{remainder}">
+              {amber(remainder)}
+            </SentenceWith>
+          </>
+        )}
+        {bulk?.split && (
           <>
             {' · '}
             <SentenceWith
-              text={t('tripDo.assign.remainderStays')}
-              placeholder="{remainder}"
-            >
-              <span className="font-semibold text-tone-amber tabular-nums">
-                {formatNumber(remainder)}
-              </span>
-            </SentenceWith>
+              text={t('tripDo.assign.remainderOfRow')}
+              parts={{
+                remainder: amber(bulk.split.remainder),
+                // An identifier, drawn as the sheet's SL column draws it.
+                sl: <span className="font-mono text-foreground">{bulk.split.part.slNumber}</span>,
+              }}
+            />
+          </>
+        )}
+        {bulk && bulk.untouchedRows > 0 && (
+          <>
+            {' · '}
+            {t('tripDo.assign.rowsUntouched', { rows: countOf(bulk.untouchedRows, 'nouns.row', t) })}
           </>
         )}
       </p>

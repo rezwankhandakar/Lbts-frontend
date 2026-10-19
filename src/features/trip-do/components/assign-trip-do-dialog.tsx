@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useGatePassOptions } from '../hooks/use-trip-do'
-import { defaultLinkQty } from '../lib/split-parts'
+import { defaultLinkQty, withTickedRoom } from '../lib/split-parts'
 import type { GatePassOption, LinkTarget } from '../types'
 import { GatePassOptionList } from './gate-pass-option-list'
 import { LinkQtyField } from './link-qty-field'
@@ -108,12 +108,15 @@ function AssignTripDoBody({
   const settled = useDebouncedValue(query.trim(), 250)
 
   const options = useGatePassOptions(target.anchorRowId, settled)
-  const list = options.data ?? []
+  // Asked about the anchor row alone, so other ticked rows are given back.
+  const list = (options.data ?? []).map((option) => withTickedRoom(option, target.otherLinks))
   // Until somebody chooses, the line the row is already linked to is chosen.
   const chosen =
     list.find((option) => (chosenKey === null ? option.isCurrent : option.optionKey === chosenKey)) ?? null
   const blocked = blockedReason(target, chosen, qty, t)
 
+  // Twenty-six ticked against room for twenty-five opens on twenty-five: the
+  // split the operator would otherwise have made by hand first.
   const choose = (option: GatePassOption) => {
     setChosenKey(option.optionKey)
     setQty(target.canSplit ? Math.max(1, defaultLinkQty(target.qty, option.remainingQty)) : target.qty)
@@ -186,6 +189,7 @@ function AssignTripDoBody({
           rowQty={target.qty}
           room={chosen.remainingQty}
           tripDo={chosen.tripDo}
+          parts={target.parts}
         />
       )}
 

@@ -4190,6 +4190,11 @@ export const bn: Translation<typeof en> = {
       /** The two clauses under the quantity stepper, each a whole sentence. */
       onTripDo: 'ট্রিপ ডিও {tripDo}-তে {linked}',
       remainderStays: '{remainder} একটি নতুন সারিতে থেকে যাবে, ট্রিপ ডিও-র অপেক্ষায়',
+      remainderOfRow: 'SL {sl}-এর {remainder} একটি নতুন সারিতে থেকে যাবে, ট্রিপ ডিও-র অপেক্ষায়',
+      rowsUntouched: '{rows} যেমন ছিল তেমনই থাকবে',
+      fewerSplitsRow: '{qty}-এর কম দিলে সারিটি ভাগ হবে; বাকিগুলো অন্য ট্রিপ ডিও-র অপেক্ষায় থাকবে।',
+      fewerSplitsRows:
+        '{qty}-এর কম দিলে সবচেয়ে পুরোনো চালান থেকে সারিগুলো ভরা হবে, আর যে সারিতে গিয়ে শেষ হবে সেটি ভাগ হবে; বাকিগুলো অন্য ট্রিপ ডিও-র অপেক্ষায় থাকবে।',
       rowsLabel: '{rows}',
       notOnChallan: '{qty} কোনো চালানে নেই',
       lineLinked: '{total} পিসের মধ্যে {linked} চালানে যুক্ত',
@@ -4263,6 +4268,7 @@ export const bn: Translation<typeof en> = {
       linkedManyNote: '{pieces} · {detail}',
       linkDetail: 'সিএসডি {csd} · ইউনিট {unit} · {gatePass}',
       linkRemainder: '{remainder} নিজের একটি সারিতে রয়ে গেছে',
+      linkRemainderMany: '{remainder} অন্য ট্রিপ ডিও-র জন্য রয়ে গেছে',
       splitDone: 'সারিটি {parts}-এ ভাগ করা হয়েছে',
       rateTiered: '{rest} / {first} (প্রথম {count})',
       mergedBack: 'অংশগুলো মিলে আবার {qty} হয়েছে',
