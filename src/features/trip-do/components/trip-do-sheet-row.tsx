@@ -31,6 +31,16 @@ interface TripDoSheetRowProps extends RowActions {
 const CELL = 'border-r border-b border-border/50 px-2.5 py-2 align-middle whitespace-nowrap'
 
 /**
+ * The Customer column freezes beside the SL, so the columns after it scroll
+ * under it rather than it scrolling under the SL. It stops at
+ * `--customer-left`, the width of everything pinned before it, which the sheet
+ * measures. From `md` only: on a phone the tick box, the SL and a customer
+ * name would fill the screen with nothing left to scroll.
+ */
+export const CUSTOMER_PIN =
+  'md:sticky md:left-(--customer-left) md:shadow-[10px_0_14px_-14px_var(--foreground)]'
+
+/**
  * Pinned cells inherit the row's background rather than setting their own, so
  * a band, a hover and a tick all reach them — and every background here is
  * opaque, because a see-through pinned cell shows the columns scrolling under
@@ -104,7 +114,7 @@ export function TripDoSheetRow({
       <td className={CELL}>
         <RowStatusBadge status={row.deliveryStatus} />
       </td>
-      <td className={CELL}>
+      <td className={cn(CELL, CUSTOMER_PIN, 'bg-inherit md:z-10')}>
         <TextCell value={row.customerName} width="max-w-[13rem]" strong />
       </td>
       <td className={CELL}>

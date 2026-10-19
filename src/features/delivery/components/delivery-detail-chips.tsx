@@ -17,9 +17,13 @@ const CHIP = 'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 tex
  * into whatever badge row they are placed in; nothing is drawn when nothing was
  * recorded.
  *
+ * A charge's description is always drawn on its chip: it is what somebody typed
+ * to say what the money paid for, and a tooltip is a place a phone never shows.
+ *
  * `compact` is for a card sized to fit two rows on a laptop — a challan on the
- * trip page — where a charge's description would push the chip past the
- * card's edge: the description moves into the tooltip and the chips may wrap.
+ * trip page — where a long description would push the chip past the card's
+ * edge: the chips may wrap, and a described chip wraps its text inside the card
+ * rather than running off it.
  */
 export function DeliveryDetailChips({
   challan,
@@ -49,12 +53,16 @@ export function DeliveryDetailChips({
         return (
           <span
             key={index}
-            className={`${chip} border-tone-amber/25 bg-tone-amber/10 text-tone-amber`}
-            title={compact ? described : meta.hint}
+            className={cn(
+              chip,
+              'border-tone-amber/25 bg-tone-amber/10 text-tone-amber',
+              compact && entry.description && 'max-w-full rounded-lg',
+            )}
+            title={meta.hint}
           >
             <Icon className="size-3 shrink-0" aria-hidden />
-            {compact ? meta.label : described}
-            <span className="font-bold tabular-nums">{taka(entry.amount)}</span>
+            <span className={cn(compact && 'min-w-0 wrap-break-word')}>{described}</span>
+            <span className="shrink-0 font-bold whitespace-nowrap tabular-nums">{taka(entry.amount)}</span>
           </span>
         )
       })}

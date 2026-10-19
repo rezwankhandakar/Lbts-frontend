@@ -14,16 +14,19 @@ import type { UserRole } from '@/lib/roles'
  */
 
 export {
+  PENDING_LABOUR_TAB,
   cellText,
   groupLineIds,
   groupTotalsOf,
   isUnpricedLabourLine,
   labourBillYearOptions,
+  labourTabOfSection,
+  labourTabsOf,
   lineTotal,
   parseCellInput,
   shortLabourBillNumber,
 } from '../lib/labour-bill-math'
-export type { CellParse, CellValue, GroupTotals } from '../lib/labour-bill-math'
+export type { CellParse, CellValue, GroupTotals, LabourTab } from '../lib/labour-bill-math'
 
 export const LABOUR_BILL_STATUSES = ['Draft', 'Finalized'] as const
 export type LabourBillStatus = (typeof LABOUR_BILL_STATUSES)[number]
@@ -150,24 +153,29 @@ export interface LabourBillLineRecord {
 }
 
 /**
- * One CSD's worth of the month: its own SL series, its own total, and its own
+ * One unit's CSD for the month: its own SL series, its own total, and its own
  * worksheet in the export. The pending section is the same shape, holding the
  * rows nothing has matched to a gate pass yet.
  */
 export interface LabourCsdGroupRecord {
+  /** WFR, WAC — the tab the section sits on. Blank on the pending section. */
+  unit: string
+  /** The unit as the server compares it; what a tab is told apart by. */
+  unitKey: string
   csd: string
+  /** The unit and CSD as one key (`WFR.CSD02`), and `''` for the pending section. */
   key: string
-  /** The CSD, or "Trip DO pending". */
+  /** "WFR · CSD-02", or "Trip DO pending". */
   label: string
   isPending: boolean
-  /** What this CSD's own bill comes to. */
+  /** What this section's own bill comes to. */
   totals: GroupTotals
   lines: LabourBillLineRecord[]
 }
 
 export interface LabourBillDetail {
   bill: LabourBillRecord
-  /** The month split by CSD, in CSD order with pending last. */
+  /** The month split by unit and CSD, in that order with pending last. */
   groups: LabourCsdGroupRecord[]
   /** Rows whose sheet row has changed, and rows whose sheet row is gone. */
   drift: { changed: number; missing: number }
@@ -184,8 +192,12 @@ export interface LabourScanResult {
   customerName: string
   added: string[]
   skipped: string[]
-  /** The CSDs this scan filed rows under, so the toast can say where they went. */
-  csds: string[]
+  /**
+   * The section keys this scan filed new rows under, in the sheet's order and
+   * `''` for the pending section — so the toast can say where they went and the
+   * page can open the unit's tab they landed on.
+   */
+  sections: string[]
   /** Models with no Trip DO yet, which land in the pending section and wait there. */
   withoutTripDo: string[]
   detail: LabourBillDetail

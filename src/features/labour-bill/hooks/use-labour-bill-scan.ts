@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { normalizeScan } from '@/lib/barcode-wedge'
 import { scanTone } from '@/lib/scan-feedback'
+import { labourTabOfSection } from '../lib/labour-bill-math'
 import { useScanOntoLabourBill } from './use-labour-bill-mutations'
 
 /**
@@ -16,8 +17,16 @@ import { useScanOntoLabourBill } from './use-labour-bill-mutations'
  * is looking at the paper rather than the screen, and a handheld scanner's own
  * beep only says a barcode was *read* — not that it was a challan, and not that
  * it was not already on the sheet.
+ *
+ * `onLanded` is handed the unit tab the new rows were filed on, so the page can
+ * open it: a WFR challan scanned while the WAC tab is showing would otherwise be
+ * added somewhere off screen. Where one challan lands on two units, the first
+ * in the sheet's own order is opened and the toast names both.
  */
-export function useLabourBillScan(billId: string): {
+export function useLabourBillScan(
+  billId: string,
+  onLanded?: (tab: string) => void,
+): {
   scan: (raw: string) => void
   pending: boolean
 } {
@@ -34,15 +43,25 @@ export function useLabourBillScan(billId: string): {
       mutate(
         { id: billId, code },
         {
-          // A challan already on the sheet is the ordinary outcome of scanning a
-          // stack twice, so it gets the "not that" tone rather than the "added"
-          // one — the same distinction the cart makes.
-          onSuccess: (result) => scanTone(result.added.length > 0 ? 'ok' : 'warn'),
+          onSuccess: (result) => {
+            // A challan already on the sheet is the ordinary outcome of scanning
+            // a stack twice, so it gets the "not that" tone rather than the
+            // "added" one — the same distinction the cart makes.
+            scanTone(result.added.length > 0 ? 'ok' : 'warn')
+
+            const [first] = result.sections
+            if (result.added.length > 0 && first !== undefined) {
+              const tab = labourTabOfSection(result.detail.groups, first)
+              if (tab !== null) {
+                onLanded?.(tab)
+              }
+            }
+          },
           onError: () => scanTone('warn'),
         },
       )
     },
-    [billId, isPending, mutate],
+    [billId, isPending, mutate, onLanded],
   )
 
   return { scan, pending: isPending }

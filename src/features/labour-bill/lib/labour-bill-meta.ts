@@ -60,6 +60,14 @@ export function shortMonth(month: number): string {
   return shortMonthName(month)
 }
 
+/** The panel the unit tabs control; one id, because only one tab's sheet is ever drawn. */
+export const LABOUR_TAB_PANEL_ID = 'labour-bill-tab-panel'
+
+/** The element id of one unit tab, which its panel is labelled by. */
+export function labourTabElementId(tab: { id: string }): string {
+  return `labour-bill-tab-${tab.id || 'none'}`
+}
+
 /**
  * "3 rows · 2 challans", the line a card and a toast both want.
  *

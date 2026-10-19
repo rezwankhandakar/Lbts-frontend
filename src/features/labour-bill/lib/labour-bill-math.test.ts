@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
+  PENDING_LABOUR_TAB,
   cellText,
   groupLineIds,
   groupTotalsOf,
   isUnpricedLabourLine,
   labourBillYearOptions,
+  labourTabOfSection,
+  labourTabsOf,
   lineTotal,
   parseCellInput,
   shortLabourBillNumber,
@@ -138,6 +141,66 @@ describe('groupTotalsOf', () => {
       totalAmount: 0,
       unpricedLines: 0,
     })
+  })
+})
+
+describe('labourTabsOf', () => {
+  const section = (unit: string, csd: string) => ({
+    key: csd ? `${unit}.${csd}` : '',
+    unit,
+    unitKey: unit,
+    isPending: csd === '',
+  })
+
+  // The request this exists for: a WFR challan and a WAC challan scanned one
+  // after the other land on two different tabs, never in one list.
+  it('puts each unit on a tab of its own, with its CSD sections inside it', () => {
+    const tabs = labourTabsOf([
+      section('WAC', 'CSD04'),
+      section('WFR', 'CSD02'),
+      section('WFR', 'CSD04'),
+    ])
+
+    assert.deepEqual(
+      tabs.map((tab) => [tab.id, tab.unit, tab.groups.map((group) => group.key)]),
+      [
+        ['WAC', 'WAC', ['WAC.CSD04']],
+        ['WFR', 'WFR', ['WFR.CSD02', 'WFR.CSD04']],
+      ],
+    )
+  })
+
+  it('gives the rows with no Trip DO a tab of their own, last', () => {
+    const tabs = labourTabsOf([section('WFR', 'CSD02'), section('', '')])
+    assert.deepEqual(
+      tabs.map((tab) => [tab.id, tab.isPending]),
+      [
+        ['WFR', false],
+        [PENDING_LABOUR_TAB, true],
+      ],
+    )
+  })
+
+  it('is empty for an empty sheet', () => {
+    assert.deepEqual(labourTabsOf([]), [])
+  })
+})
+
+describe('labourTabOfSection', () => {
+  const groups = [
+    { key: 'WAC.CSD04', unit: 'WAC', unitKey: 'WAC', isPending: false },
+    { key: 'WFR.CSD04', unit: 'WFR', unitKey: 'WFR', isPending: false },
+    { key: '', unit: '', unitKey: '', isPending: true },
+  ]
+
+  it('finds the tab a scanned row landed on from its section key', () => {
+    assert.equal(labourTabOfSection(groups, 'WFR.CSD04'), 'WFR')
+    assert.equal(labourTabOfSection(groups, 'WAC.CSD04'), 'WAC')
+    assert.equal(labourTabOfSection(groups, ''), PENDING_LABOUR_TAB)
+  })
+
+  it('is null for a section the sheet does not carry', () => {
+    assert.equal(labourTabOfSection(groups, 'NVH.CSD01'), null)
   })
 })
 

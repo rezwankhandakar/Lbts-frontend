@@ -17,14 +17,21 @@ import { useLabourBill } from './use-labour-bills'
 
 /**
  * Everything the labour bill page does, so the page itself reads as a layout:
- * the query, the scanner, the cell writes, which dialog is open, and the
- * confirmations behind each.
+ * the query, the scanner, the cell writes, which unit's tab is showing, which
+ * dialog is open, and the confirmations behind each.
  */
 export function useLabourBillPage(id: string) {
   const navigate = useNavigate()
   const query = useLabourBill(id)
   const exporter = useLabourBillExport()
-  const scanner = useLabourBillScan(id)
+
+  /**
+   * The unit tab on screen. Null until somebody picks one or a scan opens one,
+   * which the sheet reads as "the first tab". A scan sets it to wherever its
+   * rows landed, so a WFR challan opens the WFR tab and a WAC one the WAC tab.
+   */
+  const [tab, setTab] = useState<string | null>(null)
+  const scanner = useLabourBillScan(id, setTab)
 
   const [dialog, setDialog] = useState<LabourBillDialog>(null)
   const [removing, setRemoving] = useState<LabourRemoveTarget | null>(null)
@@ -45,6 +52,8 @@ export function useLabourBillPage(id: string) {
 
   return {
     query,
+    tab,
+    setTab,
     dialog,
     openDialog: setDialog,
     closeDialog,

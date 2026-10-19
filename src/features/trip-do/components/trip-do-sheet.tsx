@@ -1,12 +1,13 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
+import { usePinnedWidth } from '../hooks/use-pinned-width'
 import type { RowSelection } from '../hooks/use-row-selection'
 import { COLUMNS } from '../lib/trip-do-columns'
 import type { TripDoColumnId, TripDoFilterPatch, TripDoListParams, TripDoRowRecord } from '../types'
 import { ColumnFilterMenu } from './trip-do-column-filter'
-import { TripDoSheetRow } from './trip-do-sheet-row'
+import { CUSTOMER_PIN, TripDoSheetRow } from './trip-do-sheet-row'
 import type { RowActions } from './trip-do-sheet-row'
 
 export interface TripDoSheetProps extends RowActions {
@@ -21,7 +22,9 @@ export interface TripDoSheetProps extends RowActions {
 
 /**
  * The SL is pinned left and the Trip DO pinned right, because those are the
- * two a person matches by eye while scrolling across twenty columns in between.
+ * two a person matches by eye while scrolling across twenty columns in between
+ * — and the Customer freezes beside the SL, because a row read far to the right
+ * is a row somebody needs to know whose delivery it is.
  */
 const HEAD =
   'sticky top-0 z-20 h-9 border-r border-b border-border/60 bg-muted px-2.5 text-left align-middle text-[11px] font-semibold tracking-wide whitespace-nowrap text-muted-foreground uppercase'
@@ -57,6 +60,7 @@ export function TripDoSheet({
   ...actions
 }: TripDoSheetProps) {
   const t = useT()
+  const { tickRef, slRef, width: pinnedWidth } = usePinnedWidth(canWrite)
 
   const bands = bandsFor(rows)
   // A billed row cannot be given another Trip DO, so it is never ticked for one.
@@ -73,12 +77,15 @@ export function TripDoSheet({
   )
 
   return (
-    <div className="relative max-h-[calc(100dvh-15rem)] min-h-[20rem] overflow-auto overscroll-x-contain">
+    <div
+      className="relative max-h-[calc(100dvh-15rem)] min-h-[20rem] overflow-auto overscroll-x-contain"
+      style={{ '--customer-left': `${pinnedWidth}px` } as CSSProperties}
+    >
       <table className="w-max min-w-full border-separate border-spacing-0 text-[12.5px]">
         <thead>
           <tr>
             {canWrite && (
-              <th className={cn(HEAD, 'left-0 z-30 w-9 px-0 text-center')}>
+              <th ref={tickRef} className={cn(HEAD, 'left-0 z-30 w-9 px-0 text-center')}>
                 <Checkbox
                   checked={allTicked}
                   indeterminate={ticked > 0 && !allTicked}
@@ -88,9 +95,14 @@ export function TripDoSheet({
                 />
               </th>
             )}
-            <th className={cn(HEAD, 'z-30 pr-1', canWrite ? 'left-9' : 'left-0')}>{heading('sl', t('tripDo.sheet.sl'))}</th>
+            <th ref={slRef} className={cn(HEAD, 'z-30 pr-1', canWrite ? 'left-9' : 'left-0')}>
+              {heading('sl', t('tripDo.sheet.sl'))}
+            </th>
             {COLUMNS.map((column) => (
-              <th key={column.id} className={cn(HEAD, 'pr-1', column.className)}>
+              <th
+                key={column.id}
+                className={cn(HEAD, 'pr-1', column.className, column.id === 'customer' && cn(CUSTOMER_PIN, 'md:z-30'))}
+              >
                 {heading(column.id, t(column.labelKey), column.className)}
               </th>
             ))}

@@ -2039,9 +2039,9 @@ export const en = {
   labourBill: {
     title: 'Walton Labour Bill',
     pageDescription:
-      'One bill per CSD per month. Open a slot, scan the challans in, and type what the handling cost against each model — van, pulling and labour on one side, the floor it went up to on the other. It charges nothing the Excel bill charges, and marks nothing on the Trip DO sheet.',
+      'One bill per unit and CSD per month. Open a slot, scan the challans in, and type what the handling cost against each model — van, pulling and labour on one side, the floor it went up to on the other. It charges nothing the Excel bill charges, and marks nothing on the Trip DO sheet.',
     listDescription:
-      "A labour bill is one CSD's month of handling charges: open a slot, scan the challans in, and type what the van, the pulling and the stairs cost against each model. A month of deliveries is as many bills as there were CSDs in it. It charges nothing the Excel bill charges — that one carries the rate card's transport, this one the labour beside it.",
+      "A labour bill is a month of handling charges: open a slot, scan the challans in, and type what the van, the pulling and the stairs cost against each model. Each unit — WFR, WAC — gets its own tab, and each of its CSDs its own section. It charges nothing the Excel bill charges — that one carries the rate card's transport, this one the labour beside it.",
     listAria: 'Labour bills',
     sheetAria: 'Labour bill sheet',
     sheetHeading: 'Labour bill sheet',
@@ -2087,8 +2087,16 @@ export const en = {
       floorNo: 'Floor No.',
       floorAmount: 'Amount',
       total: 'Total Amount',
-      /** The foot of one CSD's section: "WFR total". */
+      /** The foot of one section: "WFR · CSD-02 total". */
       sectionTotal: '{section} total',
+    },
+
+    /** The unit tabs over the sheet: WFR on one, WAC on another. */
+    tabs: {
+      aria: 'Units on this labour bill',
+      /** A section whose gate pass named no unit, which the schema no longer allows. */
+      noUnit: 'No unit',
+      title: '{rows} · {challans} · {amount}',
     },
 
     fields: {
@@ -2187,7 +2195,7 @@ export const en = {
       noMatchesHint: 'No labour bill matches the current search, status, CSD, month or year.',
       openFirst: 'Open the first labour bill',
       emptyHint:
-        'Choose the month, then scan the challans in. Every model becomes its own row, and the sheet files each one under its own CSD by itself.',
+        'Choose the month, then scan the challans in. Every model becomes its own row, and the sheet files each one on its own unit’s tab, under its own CSD, by itself.',
     },
 
     details: {
@@ -2196,13 +2204,13 @@ export const en = {
       noRows: 'Nothing on this labour bill yet',
       noRowsHint: 'Nobody has scanned a challan onto this labour bill yet.',
       scanHint:
-        'Scan a challan’s barcode — anywhere on this page, no need to click first. Every model on it becomes its own row, and the sheet files each one under its own CSD by itself.',
+        'Scan a challan’s barcode — anywhere on this page, no need to click first. Every model on it becomes its own row, and the sheet files each one on its own unit’s tab — WFR on one, WAC on another — under its own CSD.',
       scanAnywhere:
-        'Scan anywhere on this page — no need to click first. Every model on the challan becomes its own row, and each files itself under its own CSD.',
+        'Scan anywhere on this page — no need to click first. Every model on the challan becomes its own row, and each files itself on its unit’s tab, under its own CSD.',
       sheetHint:
-        'Exactly what the Excel file carries — a section per CSD, one SL per challan, one row per model. The tinted cells are yours to type; Enter saves, Escape puts it back.',
+        'Exactly what the Excel file carries — a tab per unit, a section per CSD, one SL per challan, one row per model. The tinted cells are yours to type; Enter saves, Escape puts it back.',
       sheetHintReadOnly:
-        'Exactly what the Excel file carries — a section per CSD, one SL per challan, one row per model.',
+        'Exactly what the Excel file carries — a tab per unit, a section per CSD, one SL per challan, one row per model.',
       driftTitle: 'The Trip DO sheet has moved since these rows were scanned in',
       driftChanged: { one: '{n} row has changed', other: '{n} rows have changed' },
       driftMissing: {
@@ -2214,7 +2222,7 @@ export const en = {
       driftSentence: '{summary}. {hint}',
       scanTitle: 'Scan a challan to add its models',
       driftHint:
-        'Refresh to re-read the sheet — every amount you have typed is kept, rows that are gone are taken off, and a row that has just learned its CSD moves into that section. A labour bill cannot be finalized until it matches.',
+        'Refresh to re-read the sheet — every amount you have typed is kept, rows that are gone are taken off, and a row that has just learned its unit and CSD moves onto that tab and into that section. A labour bill cannot be finalized until it matches.',
       finalizedHint:
         'This bill is finalized, so it keeps what it charged. Reopen it to bring it up to date.',
       refreshing: 'Refreshing…',
@@ -2228,9 +2236,9 @@ export const en = {
       changedAria: 'Changed on the Trip DO sheet since it was scanned in — Refresh to re-read it',
       /** The pending section: rows whose gate pass nobody has matched yet. */
       pendingHint:
-        'These rows have no Trip DO yet, so nothing says which CSD they belong to. Set it on the Trip DO sheet and each one moves into its own section by itself — the amounts typed here come with it.',
+        'These rows have no Trip DO yet, so nothing says which unit or CSD they belong to. Set it on the Trip DO sheet and each one moves onto its unit’s tab by itself — the amounts typed here come with it.',
       pendingHintShort:
-        'No Trip DO yet, so nothing says which CSD these belong to. Set it on the Trip DO sheet and each one moves into its own section by itself — with the amounts typed here.',
+        'No Trip DO yet, so nothing says which unit or CSD these belong to. Set it on the Trip DO sheet and each one moves onto its unit’s tab by itself — with the amounts typed here.',
       /** Who opened the bill, and who signed it off or reopened it. */
       opened: 'Opened {when}',
       openedBy: 'Opened {when} by {name}',
@@ -2361,7 +2369,7 @@ export const en = {
       alreadyOn: '{challan} is already on {bill}',
       added: { one: '{challan}: {n} row added', other: '{challan}: {n} rows added' },
       skipped: { one: '{n} already on the sheet', other: '{n} already on the sheet' },
-      filedUnder: 'filed under {csds}',
+      filedUnder: 'filed under {sections}',
       waiting: '{models} waiting for a Trip DO',
     },
   },

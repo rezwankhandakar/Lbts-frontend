@@ -1,12 +1,11 @@
 import { useParams } from 'react-router-dom'
 import { LabourBillFormDialog } from '@/features/labour-bill/components/labour-bill-form-dialog'
 import { LabourBillHero } from '@/features/labour-bill/components/labour-bill-hero'
-import { LabourBillSheet } from '@/features/labour-bill/components/labour-bill-sheet'
 import { LabourDriftBanner } from '@/features/labour-bill/components/labour-drift-banner'
 import { LabourScanBar } from '@/features/labour-bill/components/labour-scan-bar'
+import { LabourSheetPanel } from '@/features/labour-bill/components/labour-sheet-panel'
 import { LabourSignedCopyProvider } from '@/features/labour-bill/components/labour-signed-copies-provider'
 import { SignedCopiesDialog } from '@/features/labour-bill/components/signed-copies-dialog'
-import { LabourSheetCards } from '@/features/labour-bill/components/labour-sheet-cards'
 import {
   DeleteLabourBillDialog,
   FinalizeLabourBillDialog,
@@ -14,7 +13,6 @@ import {
   ReopenLabourBillDialog,
 } from '@/features/labour-bill/components/labour-bill-confirm-dialogs'
 import {
-  EmptyLabourSheet,
   LabourBillDetailsError,
   LabourBillDetailsSkeleton,
 } from '@/features/labour-bill/components/labour-bill-details-states'
@@ -22,8 +20,6 @@ import { useLabourBillPage } from '@/features/labour-bill/hooks/use-labour-bill-
 import { canReviewLabourBill, canWriteLabourBill } from '@/features/labour-bill/types'
 import { useBarcodeWedge } from '@/hooks/use-barcode-wedge'
 import { useCurrentRole } from '@/hooks/use-current-role'
-import { formatNumber } from '@/lib/format'
-import { useT } from '@/lib/i18n'
 
 /**
  * One labour bill: its month, its figures, and the sheet itself — laid out
@@ -35,8 +31,6 @@ import { useT } from '@/lib/i18n'
  * read-only rather than merely discouraged.
  */
 export function LabourBillDetailsPage() {
-  const t = useT()
-
   const { id = '' } = useParams()
   const role = useCurrentRole()
   const canWrite = canWriteLabourBill(role)
@@ -70,7 +64,6 @@ export function LabourBillDetailsPage() {
   }
 
   const { bill, groups, drift, pendingLines } = query.data
-  const lineCount = groups.reduce((sum, group) => sum + group.lines.length, 0)
   const closeUnlessPending = (pending: boolean) => () => !pending && page.closeDialog()
 
   return (
@@ -97,58 +90,15 @@ export function LabourBillDetailsPage() {
           onRefresh={page.refresh}
         />
 
-        <section
-          aria-label={t('labourBill.sheetAria')}
-          className="overflow-hidden rounded-xl border bg-card shadow-sm"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
-            <div>
-              <h2 className="text-sm font-semibold">{t('labourBill.sheetHeading')}</h2>
-              <p className="text-xs text-pretty text-muted-foreground">
-                {canEdit
-                  ? t('labourBill.details.sheetHint')
-                  : t('labourBill.details.sheetHintReadOnly')}
-              </p>
-            </div>
-            {lineCount > 0 && (
-              <p className="text-xs text-muted-foreground tabular-nums">
-                {t('labourBill.stats.sheetSummary', {
-                  rows: t('labourBill.stats.rowCount', {
-                    count: lineCount,
-                    n: formatNumber(lineCount),
-                  }),
-                  challans: t('labourBill.stats.challanCount', {
-                    count: bill.challanCount,
-                    n: formatNumber(bill.challanCount),
-                  }),
-                  sections: t('labourBill.stats.sectionCount', {
-                    count: groups.length,
-                    n: formatNumber(groups.length),
-                  }),
-                })}
-              </p>
-            )}
-          </div>
-
-          {lineCount === 0 ? (
-            <EmptyLabourSheet canScan={canEdit} />
-          ) : (
-            <>
-              <LabourBillSheet
-                groups={groups}
-                canEdit={canEdit}
-                onSave={page.saveCell}
-                onRemove={page.askRemove}
-              />
-              <LabourSheetCards
-                groups={groups}
-                canEdit={canEdit}
-                onSave={page.saveCell}
-                onRemove={page.askRemove}
-              />
-            </>
-          )}
-        </section>
+        <LabourSheetPanel
+          bill={bill}
+          groups={groups}
+          canEdit={canEdit}
+          tab={page.tab}
+          onTabChange={page.setTab}
+          onSave={page.saveCell}
+          onRemove={page.askRemove}
+        />
 
         <LabourBillFormDialog
           open={page.dialog === 'edit'}

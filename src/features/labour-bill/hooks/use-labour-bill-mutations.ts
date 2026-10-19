@@ -147,11 +147,16 @@ export function useScanOntoLabourBill(): UseMutationResult<
           }),
         )
       }
-      // Where the rows went, and what is still waiting. A challan routinely
-      // goes out on more than one gate pass, so landing in two sections is
-      // ordinary and worth saying rather than worth warning about.
-      if (result.csds.length > 0) {
-        notes.push(t('labourBill.scan.filedUnder', { csds: result.csds.join(', ') }))
+      // Where the rows went — "WFR · CSD-02" — and what is still waiting. A
+      // challan routinely goes out on more than one gate pass, so landing in
+      // two sections, or on two units' tabs, is ordinary and worth saying
+      // rather than worth warning about. The pending section is left to the
+      // line below, which names the models in it.
+      const filed = result.sections
+        .filter((key) => key !== '')
+        .map((key) => result.detail.groups.find((group) => group.key === key)?.label ?? key)
+      if (filed.length > 0) {
+        notes.push(t('labourBill.scan.filedUnder', { sections: filed.join(', ') }))
       }
       if (result.withoutTripDo.length > 0) {
         notes.push(t('labourBill.scan.waiting', { models: result.withoutTripDo.join(', ') }))
@@ -195,8 +200,8 @@ function applyPatch(line: LabourBillLineRecord, patch: LabourBillLinePatch): Lab
 }
 
 /**
- * Rewrites one row inside whichever CSD section holds it, and re-totals that
- * section.
+ * Rewrites one row inside whichever unit-and-CSD section holds it, and
+ * re-totals that section.
  *
  * The section's foot has to move with the cell — a typed amount whose section
  * total lagged a round trip behind would read as a figure that had not been

@@ -19,8 +19,8 @@ interface LabourSheetCardsProps {
 }
 
 /**
- * The sheet on a phone: one heading per CSD, one card per challan under it, one
- * block per model inside that.
+ * The sheet on a phone, for one unit's tab: one heading per CSD, one card per
+ * challan under it, one block per model inside that.
  *
  * Not a scrollable copy of the table. Thirteen columns cannot be typed into at
  * 360px, and the three cells that matter here are exactly the ones a sideways

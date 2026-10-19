@@ -145,6 +145,75 @@ export function groupLineIds<T extends PlacedLine>(lines: readonly T[]): Map<str
   return groups
 }
 
+/**
+ * The tab the rows nobody has matched to a gate pass sit on. Lower case, so it
+ * can never be a unit: the server's keys are upper-case letters and digits.
+ */
+export const PENDING_LABOUR_TAB = 'pending'
+
+/** What a section has to say about itself for the sheet to put it on a tab. */
+export interface TabbableSection {
+  key: string
+  unit: string
+  unitKey: string
+  isPending: boolean
+}
+
+/**
+ * One tab of the sheet: a unit — WFR, WAC — and every CSD section of it, or the
+ * rows still waiting for a Trip DO.
+ */
+export interface LabourTab<G> {
+  id: string
+  /** The unit as the gate passes write it; blank on the pending tab. */
+  unit: string
+  isPending: boolean
+  groups: G[]
+}
+
+function tabIdOf(group: TabbableSection): string {
+  return group.isPending ? PENDING_LABOUR_TAB : group.unitKey
+}
+
+/**
+ * **The sheet as tabs, one per unit.** A WFR challan and a WAC challan are
+ * billed to two different units, so each unit is its own tab and its CSD
+ * sections sit inside it; the rows with no Trip DO yet — which therefore have
+ * no unit — get a tab of their own.
+ *
+ * Built off the sections the server already arranged rather than off the rows,
+ * so a tab can never hold a section the server split differently. The server's
+ * order is kept, which is units alphabetically with pending last.
+ */
+export function labourTabsOf<G extends TabbableSection>(groups: readonly G[]): LabourTab<G>[] {
+  const tabs = new Map<string, LabourTab<G>>()
+
+  for (const group of groups) {
+    const id = tabIdOf(group)
+    let tab = tabs.get(id)
+    if (!tab) {
+      tab = { id, unit: group.isPending ? '' : group.unit, isPending: group.isPending, groups: [] }
+      tabs.set(id, tab)
+    }
+    tab.groups.push(group)
+  }
+
+  return [...tabs.values()]
+}
+
+/**
+ * The tab a section key sits on, read off the sheet the server just returned —
+ * which is how a scan opens the tab its rows landed on. Null when no section
+ * carries that key.
+ */
+export function labourTabOfSection(
+  groups: readonly TabbableSection[],
+  sectionKey: string,
+): string | null {
+  const group = groups.find((candidate) => candidate.key === sectionKey)
+  return group ? tabIdOf(group) : null
+}
+
 /** The years a slot offers, oldest first: two back, this one and next — and `current` if it is none of those. */
 export function labourBillYearOptions(current: number, now: Date = new Date()): number[] {
   const year = now.getFullYear()

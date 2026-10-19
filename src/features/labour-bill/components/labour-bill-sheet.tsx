@@ -46,12 +46,12 @@ const FOOT = cn(
 /**
  * The labour bill as the Excel file lays it out — the preview is the file.
  *
- * **One table, one section per CSD.** Each section carries a banner naming the
- * CSD, its own SL series starting at 1 and its own total row, because each CSD
- * is a bill the office sends separately — and each becomes its own worksheet on
- * download. They sit in one scrolling table rather than in separate panels so
- * the columns line up down the whole month, which is what makes a sheet
- * checkable.
+ * **One table per unit tab, one section per CSD inside it.** Each section
+ * carries a banner naming the unit and the CSD, its own SL series starting at 1
+ * and its own total row, because each unit's CSD is a bill the office sends
+ * separately — and each becomes its own worksheet on download. A unit's
+ * sections sit in one scrolling table rather than in separate panels so the
+ * columns line up down the whole month, which is what makes a sheet checkable.
  *
  * The header is **two rows deep**, because Floor is one column of two cells and
  * that is how the office writes it: flattening it into "Floor No." beside
