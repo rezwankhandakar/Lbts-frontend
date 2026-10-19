@@ -3657,6 +3657,12 @@ export const bn: Translation<typeof en> = {
       pcs: 'পিস',
       deliveredHint: '{scope} মোট {total} পিসের {percent}',
       notDeliveredHint: '{percent} এখনও ডেলিভারি বাকি, অথবা এখনও কোনো চালানে নেই',
+      sent: 'পাঠানো সংখ্যা',
+      sentHint: '{percent} গেট পার হয়েছে, স্বাক্ষরিত কপি এখনও ফেরেনি',
+      returned: 'ফেরত আসা সংখ্যা',
+      returnedHint: '{percent} ডিপোতে ফেরত, আবার পাঠানো হয়নি',
+      filterByCard: 'শুধু এই কার্ডে গোনা লাইনগুলো দেখান',
+      clearCard: 'এই কার্ডে গোনা লাইনগুলো দেখানো হচ্ছে — সব লাইন দেখতে আবার চাপুন',
       scopeFiltered: 'এই ফিল্টারে মেলা গেট পাসগুলোতে',
       scopeAll: 'প্রতিটি গেট পাসে',
 
@@ -4115,6 +4121,11 @@ export const bn: Translation<typeof en> = {
       Resent: { label: 'পুনরায় পাঠানো', description: 'যে পিসগুলো ফেরত এসেছিল এবং এই ট্রিপ আবার নিয়ে গেছে।' },
     },
 
+    reused: {
+      all: 'এই পিসগুলো অন্য চালান থেকে ফেরত এসেছিল এবং একই ট্রিপ DO-তে এই চালানে আবার গেছে।',
+      some: 'এর মধ্যে {qty} পিস অন্য চালান থেকে ফেরত এসেছিল এবং একই ট্রিপ DO-তে এই চালানে আবার গেছে।',
+    },
+
     filters: {
       kindAll: 'সব সারি',
       kindOrder: 'অর্ডারের সারি',
@@ -4165,7 +4176,7 @@ export const bn: Translation<typeof en> = {
       setWith: 'ট্রিপ DO {tripDo} বসান',
       noOffer: 'দেওয়ার মতো কোনো গেট পাস নেই',
       gatePassesAria: 'গেট পাস',
-      returnsNote: 'ফেরত ও পুনরায় পাঠানো পিস গেট পাসের সংখ্যা কমায় না',
+      returnsNote: 'ফেরত আসা পিস গেট পাসে আবার খালি হয়, তাই অন্য চালানে সেগুলোর ট্রিপ ডিও সেট করা যায়',
       howMany: 'এই ট্রিপ DO-তে কতগুলো বেরিয়েছে?',
       oneFewer: 'একটি কম',
       oneMore: 'একটি বেশি',

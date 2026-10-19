@@ -6,7 +6,7 @@ import { rateDescription, rateLabel } from '@/features/product-rate/lib/rate-for
 import { formatDate, formatTaka } from '@/lib/format'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { KIND_META } from '../lib/trip-do-meta'
+import { KIND_META, rowKind } from '../lib/trip-do-meta'
 import type { TripDoRowRecord } from '../types'
 import { KindTag, RowStatusBadge } from './trip-do-badges'
 import { Dash, LocationCell, QtyCell, TextCell, TripNumbersCell } from './trip-do-cells'
@@ -62,7 +62,8 @@ export function TripDoSheetRow({
 }: TripDoSheetRowProps) {
   const t = useT()
 
-  const kind = KIND_META[row.kind]
+  // An order row on pieces another challan sent back is drawn Re-sent.
+  const kind = KIND_META[rowKind(row)]
   const link = row.link
 
   return (
@@ -99,7 +100,7 @@ export function TripDoSheetRow({
             >
               {row.slNumber}
             </Link>
-            <KindTag kind={row.kind} />
+            <KindTag row={row} />
           </span>
           <span className="font-mono text-[10.5px] text-muted-foreground">
             {shortChallanNumber(row.challanNumber)}

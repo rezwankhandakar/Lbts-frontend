@@ -45,9 +45,12 @@ function fillOrder(a: TripDoRowRecord, b: TripDoRowRecord): number {
   return a.slNumber - b.slNumber || a.splitIndex - b.splitIndex
 }
 
-/** An order row's present link, as `withTickedRoom` reads it. */
+/**
+ * An order or re-sent row's present link, as `withTickedRoom` reads it. A
+ * return takes no room, so it has none to give back.
+ */
 function tickedLink(row: TripDoRowRecord): TickedLink | null {
-  if (row.kind !== 'Order' || !row.link) {
+  if (row.kind === 'Return' || !row.link) {
     return null
   }
   return { gatePassId: row.link.gatePassId, lineKey: modelKey(row.link.model), qty: row.qty }

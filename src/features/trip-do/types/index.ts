@@ -98,6 +98,11 @@ export interface TripDoRowRecord {
   bill: { billId: string; billNumber: string } | null
   partCount: number
   splitIndex: number
+  /**
+   * Order rows: pieces that came back off another challan and went out again
+   * on this one — tagged Re-sent. Zero for every other row.
+   */
+  fromReturnQty: number
 }
 
 /** How well a gate pass line agrees with a row — `trip-do.matching.ts`. */
@@ -123,7 +128,10 @@ export interface GatePassOption {
   model: string
   qty: number
   allocatedQty: number
-  /** For a return or re-sent row, the whole line — those do not use it up. */
+  /**
+   * Free to link, counting pieces a linked return gave back. For a return row,
+   * the whole line — a return takes no room.
+   */
   remainingQty: number
   countsTowardQty: boolean
   modelMatch: MatchLevel
@@ -145,6 +153,8 @@ export interface GatePassLinkedRow {
   qty: number
   deliveryStatus: RowDeliveryStatus
   tripNumbers: string[]
+  /** See `TripDoRowRecord.fromReturnQty`. */
+  fromReturnQty: number
 }
 
 export interface GatePassProductLine {

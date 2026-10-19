@@ -125,12 +125,15 @@ export interface RoomOption {
  * A gate pass option as it stands for a set of ticked rows.
  *
  * The picker is asked about one row and counts only that one as its own, so
- * any *other* ticked order row already on the same line is reported as taken —
- * yet it moves with the rest, and the server gives its pieces back before it
- * checks. Without this a line the ticked rows already fill reads as full and
- * cannot be chosen, and one partly filled caps the stepper below what the
- * server accepts and proposes a split nobody needs. A return or re-sent row's
- * option is the whole line already, so it is returned as it is.
+ * any *other* ticked order or re-sent row already on the same line is reported
+ * as taken — yet it moves with the rest, and the server gives its pieces back
+ * before it checks. Without this a line the ticked rows already fill reads as
+ * full and cannot be chosen, and one partly filled caps the stepper below what
+ * the server accepts and proposes a split nobody needs. A return row's option
+ * is the whole line already — a return takes no room — so it is returned as it
+ * is. This is the plain sum; the server's per-challan arithmetic
+ * (`lineHeldQty`) is what decides, and refuses with the count where the two
+ * part company.
  */
 export function withTickedRoom<T extends RoomOption>(option: T, others: readonly TickedLink[]): T {
   if (!option.countsTowardQty) {

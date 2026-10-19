@@ -68,7 +68,7 @@ export function GatePassProductLineCard({ line }: { line: GatePassProductLine })
               >
                 SL {row.slNumber}
               </Link>
-              <KindTag kind={row.kind} />
+              <KindTag row={row} />
               {/* Its own row on a phone, for the reason the product name
                   above takes one: squeezed between an SL, a tag, a trip
                   number, a quantity and a badge it truncated to nothing. */}

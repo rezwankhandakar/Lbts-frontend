@@ -91,6 +91,8 @@ export function GatePassPage() {
         meta={meta}
         isLoading={query.isPending}
         isFiltered={list.isFiltered}
+        active={list.params.pieces}
+        onSelect={(pieces) => list.applyFilters({ pieces })}
       />
 
       <GatePassStats

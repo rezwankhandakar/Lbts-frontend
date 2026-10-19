@@ -1,8 +1,8 @@
+import { formatNumber } from '@/lib/format'
 import { useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { gatePassProductStatusMeta, kindMeta, rowStatusMeta } from '../lib/trip-do-meta'
-import type { ToneMeta } from '../lib/trip-do-meta'
-import type { TripDoRowKind } from '../types'
+import { gatePassProductStatusMeta, kindMeta, rowKind, rowStatusMeta } from '../lib/trip-do-meta'
+import type { KindedRow, ToneMeta } from '../lib/trip-do-meta'
 
 const PILL =
   'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap'
@@ -35,15 +35,21 @@ export function ProductStatusBadge({ status, className }: { status: string; clas
   return <ToneBadge meta={gatePassProductStatusMeta(status, t)} className={className} />
 }
 
-/** "Return" or "Re-sent" beside the SL. An order row needs no tag. */
-export function KindTag({ kind, className }: { kind: TripDoRowKind; className?: string }) {
+/**
+ * "Return" or "Re-sent" beside the SL. An order row needs no tag — unless it
+ * went out on pieces another challan sent back, when it is tagged Re-sent with
+ * how many, if that is not all of it (`rowKind`).
+ */
+export function KindTag({ row, className }: { row: KindedRow; className?: string }) {
   const t = useT()
 
-  const meta = kindMeta(kind, t)
+  const fromReturn = row.kind === 'Order' ? (row.fromReturnQty ?? 0) : 0
+  const meta = kindMeta(rowKind(row), t)
   if (!meta.icon) {
     return null
   }
   const Icon = meta.icon
+  const partial = fromReturn > 0 && fromReturn < row.qty
 
   return (
     <span
@@ -52,10 +58,17 @@ export function KindTag({ kind, className }: { kind: TripDoRowKind; className?: 
         meta.tag,
         className,
       )}
-      title={meta.description}
+      title={
+        fromReturn === 0
+          ? meta.description
+          : partial
+            ? t('tripDo.reused.some', { qty: formatNumber(fromReturn) })
+            : t('tripDo.reused.all')
+      }
     >
       <Icon className="size-3" aria-hidden />
       {meta.label}
+      {partial && <span className="tabular-nums">{formatNumber(fromReturn)}</span>}
     </span>
   )
 }

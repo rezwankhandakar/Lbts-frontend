@@ -10,6 +10,7 @@ const INITIAL_PARAMS: GatePassListParams = {
   limit: PAGE_SIZE,
   search: '',
   columns: {},
+  pieces: 'all',
   referenceType: 'all',
   bill: 'all',
   reference: '',
@@ -94,6 +95,7 @@ export function useGatePassListParams(
   const isFiltered =
     params.search !== '' ||
     Object.keys(params.columns).length > 0 ||
+    params.pieces !== 'all' ||
     params.referenceType !== 'all' ||
     params.bill !== 'all' ||
     params.reference !== '' ||

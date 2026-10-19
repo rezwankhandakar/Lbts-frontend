@@ -2,7 +2,13 @@ import { gatePassProductStatusMeta } from '@/features/trip-do/lib/trip-do-meta'
 import type { TranslationKey, Translator } from '@/lib/i18n'
 import { sameFilterValue } from '@/lib/column-filters'
 import type { ColumnFilterValue } from '@/lib/column-filters'
-import type { GatePassColumnFilters, GatePassColumnId, GatePassListRecord } from '../types'
+import type {
+  GatePassColumnFilters,
+  GatePassColumnId,
+  GatePassListParams,
+  GatePassListRecord,
+  PieceFilter,
+} from '../types'
 import { formatTripDate, gatePassStatusMeta } from './gate-pass-meta'
 
 /**
@@ -82,4 +88,39 @@ export function lineMatchesColumns(
     const ticked = columns[column]
     return !ticked || ticked.length === 0 || ticked.some((entry) => sameFilterValue(entry, value))
   })
+}
+
+/**
+ * Whether one line holds pieces in a pressed delivery card's bucket, so the
+ * sheet under a card shows the lines that card counted. `lineHasPieces` in
+ * `gate-pass.columns.ts` is the same rule.
+ */
+export function lineHasPieces(record: GatePassListRecord, index: number, filter: PieceFilter): boolean {
+  const qty = record.items[index]?.qty ?? 0
+  const line = record.lineDelivery[index]
+  const delivered = Math.min(qty, line?.deliveredQty ?? 0)
+  switch (filter) {
+    case 'delivered':
+      return delivered > 0
+    case 'notDelivered':
+      return delivered < qty
+    case 'sent':
+      return (line?.sentQty ?? 0) > 0
+    case 'returned':
+      return (line?.returnedQty ?? 0) > 0
+    default:
+      return true
+  }
+}
+
+/** Every line filter the sheet applies: the column dropdowns and the delivery card. */
+export function lineIsShown(
+  record: GatePassListRecord,
+  index: number,
+  filters: Pick<GatePassListParams, 'columns' | 'pieces'>,
+): boolean {
+  return (
+    lineMatchesColumns(record, index, filters.columns) &&
+    lineHasPieces(record, index, filters.pieces)
+  )
 }

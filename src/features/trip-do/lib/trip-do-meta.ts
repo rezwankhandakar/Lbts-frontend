@@ -186,6 +186,24 @@ export function kindMeta(value: string, t: Translator): KindMeta {
   }
 }
 
+/** What `rowKind` reads off a row. */
+export interface KindedRow {
+  kind: TripDoRowKind
+  qty: number
+  /** Pieces another challan sent back, which went out again on this order row. */
+  fromReturnQty?: number
+}
+
+/**
+ * The kind a row is **drawn** as. An order row that went out on pieces another
+ * challan sent back is still that challan's order — its kind does not change —
+ * but it is drawn Re-sent, because to anybody holding the gate pass that is
+ * what those goods were.
+ */
+export function rowKind(row: KindedRow): TripDoRowKind {
+  return row.kind === 'Order' && (row.fromReturnQty ?? 0) > 0 ? 'Resent' : row.kind
+}
+
 export const KIND_FILTER_KEYS: Record<'all' | TripDoRowKind, TranslationKey> = {
   all: 'tripDo.filters.kindAll',
   Order: 'tripDo.filters.kindOrder',

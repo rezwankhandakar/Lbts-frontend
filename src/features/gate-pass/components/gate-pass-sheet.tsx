@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useT } from '@/lib/i18n'
 import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
-import { GATE_PASS_COLUMNS, lineMatchesColumns } from '../lib/gate-pass-columns'
+import { GATE_PASS_COLUMNS, lineIsShown } from '../lib/gate-pass-columns'
 import type { FilterPatch, GatePassColumnId, GatePassListParams, GatePassListRecord } from '../types'
 import type { GatePassActions } from './gate-pass-action-menu'
 import { GatePassColumnFilter } from './gate-pass-column-filter'
@@ -30,13 +30,14 @@ export interface SheetLine {
 
 /**
  * One row per product line, in each gate pass's own line order — only the
- * lines the product, model, quantity and delivery filters keep.
+ * lines the product, model, quantity and delivery filters and the pressed
+ * delivery card keep.
  */
 function linesOf(records: readonly GatePassListRecord[], filters: GatePassListParams): SheetLine[] {
   return records.flatMap((record, position) =>
     record.items
       .map((_, index) => index)
-      .filter((index) => lineMatchesColumns(record, index, filters.columns))
+      .filter((index) => lineIsShown(record, index, filters))
       .map((index) => ({ record, index, banded: position % 2 === 1 })),
   )
 }

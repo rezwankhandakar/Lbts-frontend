@@ -3845,6 +3845,12 @@ export const en = {
       pcs: 'pcs',
       deliveredHint: '{percent} of {total} pcs {scope}',
       notDeliveredHint: '{percent} still to deliver, or not on a challan yet',
+      sent: 'Sent Qty',
+      sentHint: '{percent} out of the gate, signed copy not back yet',
+      returned: 'Returned Qty',
+      returnedHint: '{percent} back at the depot, not out again',
+      filterByCard: 'Show only the lines this card counts',
+      clearCard: 'Showing the lines this card counts — press again to show every line',
       scopeFiltered: 'on the gate passes these filters match',
       scopeAll: 'on every gate pass',
 
@@ -4319,6 +4325,12 @@ export const en = {
       Resent: { label: 'Re-sent', description: 'Pieces that had come back and this trip took out again.' },
     },
 
+    /** An order row that went out on pieces another challan sent back. */
+    reused: {
+      all: 'These pieces came back off another challan and went out again on this one, on the same Trip DO.',
+      some: '{qty} of these pieces came back off another challan and went out again on this one, on the same Trip DO.',
+    },
+
     filters: {
       kindAll: 'Every row',
       kindOrder: 'Order rows',
@@ -4369,7 +4381,8 @@ export const en = {
       setWith: 'Set Trip DO {tripDo}',
       noOffer: 'No gate pass to offer',
       gatePassesAria: 'Gate passes',
-      returnsNote: 'Returned and re-sent pieces do not use up the gate pass',
+      returnsNote:
+        'A return gives its pieces back to the gate pass, so another challan can be linked to them',
       howMany: 'How many came out on this Trip DO?',
       oneFewer: 'One fewer',
       oneMore: 'One more',

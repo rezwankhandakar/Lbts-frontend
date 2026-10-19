@@ -130,7 +130,7 @@ export function BillSheetRow({ line, groupLineIds, banded, canRemove, onRemove }
       </td>
       <td className={cn(CELL, 'min-w-[9rem] text-muted-foreground')}>{line.capacity || <Dash />}</td>
       <td className={cn(CELL, 'whitespace-nowrap')}>
-        {line.kind === 'Order' ? <span className="sr-only">{t('bill.details.none')}</span> : <KindTag kind={line.kind} />}
+        {line.kind === 'Order' ? <span className="sr-only">{t('bill.details.none')}</span> : <KindTag row={line} />}
       </td>
 
       {canRemove && (

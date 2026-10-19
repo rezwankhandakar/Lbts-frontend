@@ -57,7 +57,7 @@ export function CandidateRowItem({ row, billId, addable, blockedByUnit, selected
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
           <span className="truncate font-medium">{row.customerName || '—'}</span>
-          <KindTag kind={row.kind} />
+          <KindTag row={row} />
         </span>
         <span className="mt-0.5 block truncate text-[11.5px] text-muted-foreground">
           SL {row.challanSlNumber} ·{' '}

@@ -219,11 +219,19 @@ export type GatePassColumnId = (typeof GATE_PASS_COLUMN_IDS)[number]
 /** Ticked values by column. A column absent here is not filtered. */
 export type GatePassColumnFilters = Partial<Record<GatePassColumnId, ColumnFilterValue[]>>
 
+/**
+ * A delivery card pressed: the lines holding pieces in that bucket. Mirrors
+ * `GATE_PASS_PIECE_FILTERS` in `gate-pass.columns.ts`.
+ */
+export const PIECE_FILTERS = ['all', 'delivered', 'notDelivered', 'sent', 'returned'] as const
+export type PieceFilter = (typeof PIECE_FILTERS)[number]
+
 export interface GatePassListParams {
   page: number
   limit: number
   search: string
   columns: GatePassColumnFilters
+  pieces: PieceFilter
   referenceType: ReferenceTypeFilter
   bill: BillingFilter
   reference: string
@@ -254,6 +262,9 @@ export interface PageMeta {
   /** Pieces on the matching gate passes that challans say were delivered, and the rest. */
   deliveredQty: number
   notDeliveredQty: number
+  /** Of the rest: out of the gate with no signed copy yet, and back at the depot. */
+  sentQty: number
+  returnedQty: number
 }
 
 /**
@@ -263,7 +274,12 @@ export interface PageMeta {
  */
 export interface GatePassLineDelivery {
   linkedQty: number
+  /** Not capped at the line — two lines of one model share it. */
   deliveredQty: number
+  /** Out of the gate with no signed copy yet. */
+  sentQty: number
+  /** Back at the depot and not out again. */
+  returnedQty: number
   status: string
 }
 

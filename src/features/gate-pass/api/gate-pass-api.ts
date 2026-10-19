@@ -40,6 +40,7 @@ export function filterParams(params: GatePassListParams): Record<string, string>
     ...(params.search ? { search: params.search } : {}),
     // One JSON parameter: a ticked value is a string, a number or a blank.
     ...(Object.keys(params.columns).length > 0 ? { columns: JSON.stringify(params.columns) } : {}),
+    ...(params.pieces !== 'all' ? { pieces: params.pieces } : {}),
     ...(params.referenceType !== 'all' ? { referenceType: params.referenceType } : {}),
     ...(params.bill !== 'all' ? { bill: params.bill } : {}),
     ...(params.reference ? { reference: params.reference } : {}),
