@@ -62,9 +62,12 @@ export interface ChallanActions {
 export function ChallanActionMenu({
   record,
   actions,
+  triggerClassName = 'text-muted-foreground hover:text-foreground',
 }: {
   record: ChallanRecord
   actions: ChallanActions
+  /** The trigger's colours — a record card draws it on its coloured header band. */
+  triggerClassName?: string
 }) {
   const t = useT()
 
@@ -78,7 +81,7 @@ export function ChallanActionMenu({
             variant="ghost"
             size="icon-sm"
             aria-label={t('challan.menu.aria', { challan: record.challanNumber })}
-            className="text-muted-foreground hover:text-foreground"
+            className={triggerClassName}
           />
         }
       >

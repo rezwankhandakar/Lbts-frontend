@@ -1,6 +1,6 @@
 import { Printer, PrinterCheck, Repeat, Undo2 } from 'lucide-react'
 import { BillingFlag } from '@/features/bill/components/bill-badges'
-import { formatNumber } from '@/lib/format'
+import { BLANK, formatAmount, formatNumber } from '@/lib/format'
 import { countOf, useFormatters, useT } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
@@ -13,6 +13,49 @@ import { atDepotQty, dispatchMetaFor } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
 
 const FLAG = 'inline-flex items-center gap-1 text-[11px] font-medium whitespace-nowrap'
+
+/**
+ * What a challan comes to. A charge that does not cover every line is marked,
+ * because a partial total looks exactly like a complete one; a challan nothing
+ * could price reads as a dash rather than a zero it was never charged.
+ */
+export function ChallanAmount({
+  record,
+  className,
+}: {
+  record: Pick<ChallanRecord, 'totalAmount' | 'unpricedItems' | 'items'>
+  className?: string
+}) {
+  const t = useT()
+
+  return (
+    <span
+      className={cn('text-sm font-semibold tabular-nums', className)}
+      title={
+        record.unpricedItems > 0
+          ? t('challan.goods.unpricedTitle', {
+              unpriced: formatNumber(record.unpricedItems),
+              total: formatNumber(record.items.length),
+            })
+          : undefined
+      }
+    >
+      {record.totalAmount === null ? (
+        <span className="text-muted-foreground">{BLANK}</span>
+      ) : (
+        <>
+          <span className="mr-0.5 text-xs font-normal text-muted-foreground">৳</span>
+          {formatAmount(record.totalAmount)}
+          {record.unpricedItems > 0 && (
+            <span className="ml-0.5 text-tone-amber" aria-hidden>
+              *
+            </span>
+          )}
+        </>
+      )}
+    </span>
+  )
+}
 
 /**
  * How much of a challan has left the gate, as a hairline and a count.

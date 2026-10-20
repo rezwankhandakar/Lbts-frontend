@@ -2545,6 +2545,8 @@ export const en = {
       challanAria: 'Challan {challan}',
       /** Labelled halves: a blank thana and a blank district are different gaps. */
       thanaDistrict: 'Thana: {thana} · District: {district}',
+      products: 'Products',
+      openChallan: 'Open challan',
       unpricedNote:
         '{n} of these challans carry a line that is not on the rate card, so this total does not include them.',
     },

@@ -1,11 +1,15 @@
-import { MapPin, Phone } from 'lucide-react'
-import { BLANK, formatAmount, formatNumber } from '@/lib/format'
+import type { MouseEvent, ReactNode } from 'react'
+import { ArrowRight, Download, FileText, MapPin, Phone, Printer } from 'lucide-react'
+import { SentenceWith } from '@/components/shared/sentence-with'
+import { Button } from '@/components/ui/button'
+import { BLANK } from '@/lib/format'
+import { useFormatters, useT } from '@/lib/i18n'
+import { cn } from '@/lib/utils'
+import { dispatchMetaFor } from '../lib/challan-meta'
 import type { ChallanRecord } from '../types'
-import { ChallanActionMenu } from './challan-action-menu'
 import type { ChallanActions } from './challan-action-menu'
-import { ChallanRecordFlags, DeliveryProgressBar, ReturnFlags } from './challan-card-cells'
-import { ChallanStatusBadge, DispatchBadge } from './challan-status-badge'
-import { countOf, useFormatters, useT } from '@/lib/i18n'
+import { ChallanAmount, ChallanRecordFlags, DeliveryProgressBar, ReturnFlags } from './challan-card-cells'
+import { ChallanCardHeader } from './challan-card-header'
 
 interface ChallanCardProps {
   record: ChallanRecord
@@ -13,28 +17,37 @@ interface ChallanCardProps {
   onOpen: (record: ChallanRecord) => void
 }
 
+/** Keeps a click on a control from also opening the record under it. */
+function stop(event: MouseEvent) {
+  event.stopPropagation()
+}
+
+/** A place name in the address line, bold so it is read rather than skimmed. */
+function Place({ children }: { children: ReactNode }) {
+  return <span className="font-semibold text-foreground">{children}</span>
+}
+
 /**
- * One challan, as a card rather than a row.
+ * One challan, as a card rather than a row — drawn the way the trip page draws
+ * a challan on a lorry (`TripChallanCard`), because an operator meets the same
+ * challan on both screens and it should look like the same thing on each.
  *
- * Four flat sections in the order the paper is read: which challan, who and
- * where, the goods, and what it comes to. Deliberately the same shape the
- * Delivery module's `cart-challan-card.tsx` and `completion-challan-card.tsx`
- * use for the same subject — an operator meets a challan on three screens, and
- * it should look like the same thing on all of them.
+ * Top to bottom in the order the paper is read: the coloured band (which
+ * challan, where its goods are, who it is for, how many pieces), where it is
+ * going and who takes it, every product line, what it comes to and the quiet
+ * facts beside it, and the way through to the record. The goods are a divided
+ * list rather than a table inside the card — a panel inside a panel says
+ * nothing a hairline does not.
  *
- * Flat is the point. The goods were a bordered table inside the card, which is
- * a panel inside a panel: two extra borders, a repeated column header and a
- * tint, to say what a divided list says on its own. Capacity went with it —
- * the rate card's band is not what somebody checking a delivery reads.
- *
- * The whole card opens the record on click; the challan number carries the
- * button that makes that reachable by keyboard, and the action menu stops the
- * click from reaching the card underneath it.
+ * The whole card opens the record on click; the challan number in the band is
+ * the keyboard path to the same thing, and every control below stops its click
+ * from reaching the card underneath it.
  */
 export function ChallanCard({ record, actions, onOpen }: ChallanCardProps) {
   const t = useT()
   const format = useFormatters()
 
+  const dispatch = dispatchMetaFor(record, t)
   const district = record.resolvedLocation?.district || record.district
   const thana = record.resolvedLocation?.thana || record.thana
 
@@ -42,120 +55,93 @@ export function ChallanCard({ record, actions, onOpen }: ChallanCardProps) {
     <li
       onClick={() => onOpen(record)}
       aria-label={t('challan.list.challanAria', { challan: record.challanNumber })}
-      className="flex h-full cursor-pointer flex-col rounded-xl border bg-card shadow-xs transition-shadow focus-within:ring-2 focus-within:ring-ring/50 hover:shadow-sm"
+      className="flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-shadow duration-300 focus-within:ring-2 focus-within:ring-ring/50 hover:shadow-md"
     >
-      <header className="flex items-start gap-3 border-b px-4 py-3">
+      <ChallanCardHeader record={record} actions={actions} onOpen={onOpen} />
+
+      <div className="flex items-start gap-2 px-3.5 pt-2.5">
+        <MapPin className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation()
-                onOpen(record)
-              }}
-              className="font-mono text-sm font-bold tracking-tight outline-none hover:underline focus-visible:underline"
-            >
-              {record.challanNumber}
-            </button>
-            <span className="text-[11px] text-muted-foreground tabular-nums">
-              {t('challan.pages.slWith', { sl: formatNumber(record.slNumber) })}
-            </span>
-            <span className="text-[11px] text-muted-foreground">
-              {format.date(record.submittedAt)}
-            </span>
-          </div>
-
-          <p className="mt-1 text-sm font-semibold wrap-break-word">{record.customerName}</p>
-
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <ChallanStatusBadge status={record.status} />
-            <DispatchBadge record={record} />
-          </div>
-        </div>
-
-        <div className="flex shrink-0 items-start gap-1">
-          <p className="mt-0.5 text-sm font-semibold tabular-nums">
-            {countOf(record.totalQty, 'nouns.pc', t)}
-          </p>
-          <div onClick={(event) => event.stopPropagation()}>
-            <ChallanActionMenu record={record} actions={actions} />
-          </div>
-        </div>
-      </header>
-
-      <div className="space-y-1 px-4 pt-3 text-xs text-muted-foreground">
-        <p className="flex items-start gap-1.5">
-          <MapPin className="mt-px size-3.5 shrink-0" aria-hidden />
-          <span className="min-w-0 wrap-break-word">
+          <p className="line-clamp-2 text-[13px] leading-snug wrap-break-word" title={record.deliveryAddress}>
             {record.deliveryAddress || BLANK}
-            {/* Labelled halves rather than one joined string: a blank thana and
-                a blank district are different gaps, and the card is where
-                somebody notices which one is missing. */}
-            <span className="block">
-              {t('challan.list.thanaDistrict', {
-                thana: thana || BLANK,
-                district: district || BLANK,
-              })}
+          </p>
+          {/* Labelled halves rather than one joined string: a blank thana and a
+              blank district are different gaps, and the card is where somebody
+              notices which one is missing. */}
+          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] text-muted-foreground">
+            <span>
+              <SentenceWith
+                text={t('challan.list.thanaDistrict')}
+                parts={{
+                  thana: <Place>{thana || BLANK}</Place>,
+                  district: <Place>{district || BLANK}</Place>,
+                }}
+              />
             </span>
-          </span>
-        </p>
-        <p className="flex items-center gap-1.5">
-          <Phone className="size-3.5 shrink-0" aria-hidden />
-          <span className="font-medium text-foreground tabular-nums">
-            {record.receiverMobile || BLANK}
-          </span>
-        </p>
+            {record.receiverMobile && (
+              <a
+                href={`tel:${record.receiverMobile}`}
+                onClick={stop}
+                className="inline-flex items-center gap-1 font-semibold text-foreground tabular-nums hover:underline"
+              >
+                <Phone className="size-3.5 text-primary" aria-hidden />
+                {record.receiverMobile}
+              </a>
+            )}
+          </p>
+        </div>
       </div>
 
       {/* Every line, not the first and a count: a challan routinely carries the
           indoor and outdoor halves of an air conditioner, and "+1 more" is
           exactly what somebody checking a load needs to read. */}
-      <ul className="mt-1 divide-y px-4">
+      <ul aria-label={t('challan.list.products')} className="mx-3.5 mt-2 divide-y border-y">
         {record.items.map((item, index) => (
-          <li key={`${item.model}-${index}`} className="flex items-center gap-3 py-2">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium wrap-break-word">{item.productName}</p>
-              <p className="font-mono text-xs wrap-break-word text-muted-foreground">
-                {item.model || '—'}
-              </p>
+          <li key={`${item.model}-${index}`} className="flex flex-wrap items-center gap-x-2 gap-y-1.5 py-1.5">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5">
+              <span className="text-[13px] font-semibold">{item.productName}</span>
+              {item.model && (
+                <span className="rounded bg-muted px-1.5 py-px text-[12.5px] font-medium text-foreground/80 wrap-break-word">
+                  {item.model}
+                </span>
+              )}
             </div>
-            <span className="shrink-0 text-sm font-semibold tabular-nums">× {item.qty}</span>
+            <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-[13px] font-bold tabular-nums">
+              × {format.number(item.qty)}
+            </span>
           </li>
         ))}
       </ul>
 
-      <footer className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t bg-muted/20 px-4 py-2.5">
-        {/* A charge that does not cover every line is marked: a partial total
-            looks exactly like a complete one. */}
-        <span
-          className="text-sm font-semibold tabular-nums"
-          title={
-            record.unpricedItems > 0
-              ? t('challan.goods.unpricedTitle', {
-                  unpriced: formatNumber(record.unpricedItems),
-                  total: formatNumber(record.items.length),
-                })
-              : undefined
-          }
-        >
-          {record.totalAmount === null ? (
-            <span className="text-muted-foreground">—</span>
-          ) : (
-            <>
-              <span className="mr-0.5 text-xs font-normal text-muted-foreground">৳</span>
-              {formatAmount(record.totalAmount)}
-              {record.unpricedItems > 0 && (
-                <span className="ml-0.5 text-tone-amber" aria-hidden>
-                  *
-                </span>
-              )}
-            </>
-          )}
-        </span>
-
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3.5 py-2">
+        <ChallanAmount record={record} />
         <DeliveryProgressBar record={record} />
         <ReturnFlags record={record} />
-        <ChallanRecordFlags record={record} className="ml-auto justify-end" />
+        <ChallanRecordFlags record={record} className="ms-auto justify-end" />
+      </div>
+
+      <footer
+        onClick={stop}
+        className="mt-auto flex cursor-default flex-wrap items-center gap-1.5 border-t bg-muted/30 px-3.5 py-2"
+      >
+        <Button type="button" variant="outline" size="sm" onClick={() => actions.onDownload(record)}>
+          <Download data-icon="inline-start" aria-hidden />
+          {t('challan.menu.downloadPdf')}
+        </Button>
+        <Button type="button" variant="outline" size="sm" onClick={() => actions.onPrint(record)}>
+          <Printer data-icon="inline-start" aria-hidden />
+          {t('challan.menu.printChallan')}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          className={cn('w-full text-primary-foreground sm:ms-auto sm:w-auto', dispatch.bandButton)}
+          onClick={() => onOpen(record)}
+        >
+          <FileText data-icon="inline-start" aria-hidden />
+          {t('challan.list.openChallan')}
+          <ArrowRight data-icon="inline-end" aria-hidden />
+        </Button>
       </footer>
     </li>
   )

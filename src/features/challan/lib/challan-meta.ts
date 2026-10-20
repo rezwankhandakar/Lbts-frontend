@@ -69,40 +69,71 @@ export const CHALLAN_STATUS_META: Record<ChallanStatus, StatusPresentation> = {
 }
 
 /**
+ * A dispatch state also colours a whole surface: the header band of a record
+ * card, which carries `primary-foreground` text in both themes — the trip
+ * page's challan card does the same with a delivery's outcome.
+ */
+interface DispatchPresentation extends StatusPresentation {
+  /** A surface carrying `primary-foreground` text — a record card's header. */
+  band: string
+  /** The same colour as text, for a light pill sitting on that band. */
+  bandText: string
+  /** A button in that colour, with its own hover — the variant's would turn it primary. */
+  bandButton: string
+}
+
+export interface DispatchStatusMeta extends DispatchPresentation {
+  label: string
+  description: string
+}
+
+/**
  * How much of a challan has left the gate.
  *
  * Drawn in **every** state, unlike a backlog chip: this is a status badge on a
  * row, and an absent one would read as "no information" rather than "nothing
  * has gone". The same rule the Location module's status badge follows.
  */
-export const DISPATCH_META: Record<DispatchStatus, StatusPresentation> = {
+export const DISPATCH_META: Record<DispatchStatus, DispatchPresentation> = {
   Pending: {
     icon: PackageX,
     badge: 'border-border bg-muted text-muted-foreground',
     dot: 'bg-muted-foreground',
     chip: 'bg-muted text-muted-foreground ring-border',
+    band: 'bg-band-slate',
+    bandText: 'text-band-slate',
+    bandButton: 'bg-band-slate hover:bg-band-slate/85',
   },
   Partial: {
     icon: PackageOpen,
     badge: 'border-tone-cyan/25 bg-tone-cyan/10 text-tone-cyan',
     dot: 'bg-tone-cyan',
     chip: 'bg-tone-cyan/10 text-tone-cyan ring-tone-cyan/20',
+    band: 'bg-band-cyan',
+    bandText: 'text-band-cyan',
+    bandButton: 'bg-band-cyan hover:bg-band-cyan/85',
   },
   Dispatched: {
     icon: Truck,
     badge: 'border-tone-indigo/25 bg-tone-indigo/10 text-tone-indigo',
     dot: 'bg-tone-indigo',
     chip: 'bg-tone-indigo/10 text-tone-indigo ring-tone-indigo/20',
+    band: 'bg-band-indigo',
+    bandText: 'text-band-indigo',
+    bandButton: 'bg-band-indigo hover:bg-band-indigo/85',
   },
   Delivered: {
     icon: PackageCheck,
     badge: 'border-tone-emerald/25 bg-tone-emerald/10 text-tone-emerald',
     dot: 'bg-tone-emerald',
     chip: 'bg-tone-emerald/10 text-tone-emerald ring-tone-emerald/20',
+    band: 'bg-band-emerald',
+    bandText: 'text-band-emerald',
+    bandButton: 'bg-band-emerald hover:bg-band-emerald/85',
   },
 }
 
-export function dispatchMeta(value: string, t: Translator): ChallanStatusMeta {
+export function dispatchMeta(value: string, t: Translator): DispatchStatusMeta {
   const status: DispatchStatus = value in DISPATCH_META ? (value as DispatchStatus) : 'Pending'
 
   return {
@@ -117,11 +148,14 @@ export function dispatchMeta(value: string, t: Translator): ChallanStatusMeta {
  * stored status stays `Pending` — it is still waiting for a lorry, and the
  * filters say so — and only the word on the badge says why.
  */
-const RETURNED_DISPATCH_META: StatusPresentation = {
+const RETURNED_DISPATCH_META: DispatchPresentation = {
   icon: Undo2,
   badge: 'border-tone-rose/25 bg-tone-rose/10 text-tone-rose',
   dot: 'bg-tone-rose',
   chip: 'bg-tone-rose/10 text-tone-rose ring-tone-rose/20',
+  band: 'bg-band-rose',
+  bandText: 'text-band-rose',
+  bandButton: 'bg-band-rose hover:bg-band-rose/85',
 }
 
 /** Pieces that came back and have not gone out again. */
@@ -136,7 +170,7 @@ export function dispatchMetaFor(
     resentQty?: number
   },
   t: Translator,
-): ChallanStatusMeta {
+): DispatchStatusMeta {
   if (record.dispatchStatus === 'Pending' && atDepotQty(record) > 0) {
     return {
       ...RETURNED_DISPATCH_META,

@@ -16,32 +16,36 @@ export function ChallanDirectorySkeleton({ rows = 4 }: { rows?: number }) {
     <div className="grid gap-3 bg-muted/30 p-3 lg:grid-cols-2" aria-busy="true" aria-live="polite">
       <span className="sr-only">{t('challan.list.loading')}</span>
       {Array.from({ length: rows }, (_, index) => (
-        <div key={index} className="rounded-xl border bg-card shadow-xs">
-          <div className="flex items-start gap-3 border-b px-4 py-3">
+        <div key={index} className="overflow-hidden rounded-xl border bg-card shadow-sm">
+          <div className="flex items-center gap-3 bg-muted px-3.5 py-2.5">
+            <Skeleton className="size-9 shrink-0 rounded-full bg-background/70" />
             <div className="min-w-0 flex-1 space-y-2">
-              <Skeleton className="h-3.5 w-48 max-w-full" />
-              <Skeleton className="h-3.5 w-36 max-w-full" />
-              <Skeleton className="h-5 w-24 rounded-full" />
+              <Skeleton className="h-3.5 w-56 max-w-full bg-background/70" />
+              <Skeleton className="h-4 w-40 max-w-full bg-background/70" />
             </div>
-            <Skeleton className="h-3.5 w-12 shrink-0" />
+            <Skeleton className="h-8 w-10 shrink-0 bg-background/70" />
           </div>
 
-          <div className="space-y-2 px-4 pt-3">
+          <div className="space-y-2 px-3.5 pt-3">
             <Skeleton className="h-3 w-full max-w-[18rem]" />
-            <Skeleton className="h-3 w-28" />
+            <Skeleton className="h-3 w-44" />
           </div>
 
-          <div className="flex items-center gap-3 px-4 py-2.5">
-            <div className="min-w-0 flex-1 space-y-2">
-              <Skeleton className="h-3.5 w-32" />
-              <Skeleton className="h-3 w-24" />
-            </div>
-            <Skeleton className="h-3.5 w-8 shrink-0" />
+          <div className="mx-3.5 mt-2 flex items-center gap-3 border-y py-2">
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="h-3.5 w-36" />
+            <Skeleton className="ml-auto h-5 w-9 shrink-0" />
           </div>
 
-          <div className="flex items-center gap-3 border-t bg-muted/20 px-4 py-2.5">
+          <div className="flex items-center gap-3 px-3.5 py-2">
             <Skeleton className="h-4 w-16" />
             <Skeleton className="ml-auto h-3 w-40" />
+          </div>
+
+          <div className="flex items-center gap-1.5 border-t bg-muted/30 px-3.5 py-2">
+            <Skeleton className="h-7 w-28" />
+            <Skeleton className="h-7 w-28" />
+            <Skeleton className="ml-auto h-7 w-32" />
           </div>
         </div>
       ))}

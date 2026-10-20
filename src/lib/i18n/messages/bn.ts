@@ -2388,6 +2388,8 @@ export const bn: Translation<typeof en> = {
         'কর্পোরেট অফিস থেকে আসা চালান PDF-টি খুলুন, প্রতিটি চালান চিহ্নিত করুন, এবং একটি একটি করে জমা দিন।',
       challanAria: 'চালান {challan}',
       thanaDistrict: 'থানা: {thana} · জেলা: {district}',
+      products: 'পণ্য',
+      openChallan: 'চালান খুলুন',
       unpricedNote:
         'এর মধ্যে {n}টি চালানে এমন একটি লাইন আছে যা রেট কার্ডে নেই, তাই এই মোট অঙ্কে সেগুলো ধরা হয়নি।',
     },
