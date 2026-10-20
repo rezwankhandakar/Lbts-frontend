@@ -20,6 +20,13 @@ import type { TripRecord } from '../types'
  * whose number changed next month still shows the number they had on this
  * run. Both numbers are `tel:` links because the page is read on a phone as
  * often as at a desk; the vendor links through to the fleet.
+ *
+ * Below `sm` the chips are cut down so the band stays short on a phone: the
+ * label goes (the icon already says which chip is which, and a screen reader
+ * still hears it), the padding tightens, and a phone number becomes a round
+ * tap-to-call button — on a phone, calling is what the number is there for.
+ * With labels and numbers on, the four chips took a line each and the band
+ * filled the screen before the first challan.
  */
 export function TripHeroFacts({ trip }: { trip: TripRecord }) {
   const t = useT()
@@ -80,28 +87,35 @@ function Fact({
   return (
     <div
       className={cn(
-        'flex max-w-full min-w-0 items-center gap-2 rounded-lg bg-primary-foreground/10 px-2.5 py-1.5 text-[13px] ring-1 ring-primary-foreground/15',
+        'flex max-w-full min-w-0 items-center gap-1.5 rounded-lg bg-primary-foreground/10 px-2 py-1 text-[13px] ring-1 ring-primary-foreground/15 sm:gap-2 sm:px-2.5 sm:py-1.5',
         title && 'cursor-help',
       )}
       title={title}
     >
       <Icon className="size-3.5 shrink-0 opacity-80" aria-hidden />
-      <span className="text-[10px] font-semibold tracking-[0.12em] text-primary-foreground/70 uppercase">
+      <span className="sr-only text-[10px] font-semibold tracking-[0.12em] text-primary-foreground/70 uppercase sm:not-sr-only">
         {label}
       </span>
-      <span className="flex min-w-0 flex-wrap items-center gap-x-2">{children}</span>
+      <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 sm:gap-x-2">{children}</span>
     </div>
   )
 }
 
+/**
+ * Below `sm` a 24px round button whose hit area is widened to 36px by an
+ * invisible overlay — the Delivery module's smallest control — so the chip
+ * stays short and the number is still one tap from a call. The number stays
+ * in the link as screen-reader text, so it remains the link's name.
+ */
 function Tel({ value }: { value: string }) {
   return value ? (
     <a
       href={`tel:${value}`}
-      className="inline-flex items-center gap-1 text-xs text-primary-foreground/85 tabular-nums hover:text-primary-foreground hover:underline"
+      title={value}
+      className="relative inline-flex size-6 items-center justify-center gap-1 rounded-full bg-primary-foreground/15 text-xs text-primary-foreground/85 tabular-nums after:absolute after:-inset-1.5 hover:text-primary-foreground hover:underline sm:size-auto sm:rounded-none sm:bg-transparent sm:after:hidden"
     >
       <Phone className="size-3" aria-hidden />
-      {value}
+      <span className="sr-only sm:not-sr-only">{value}</span>
     </a>
   ) : null
 }

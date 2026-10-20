@@ -48,21 +48,24 @@ export function TripProductChips({ challans }: { challans: TripChallanRecord[] }
     return null
   }
 
+  // A grid rather than a wrapping row: in a wrapping row the chip list is
+  // handed whatever the heading leaves on its line, which on a phone is next
+  // to nothing — every name truncated away and the counts stacked on top of
+  // each other. Below `sm` the heading and the total share the first line and
+  // the chips take the whole second one; from `sm` the three sit side by side.
   return (
     <section
       aria-label={t('delivery.dispatch.challanQuantityAria')}
-      className="flex flex-wrap items-center gap-x-3 gap-y-2"
+      className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
     >
-      <div className="flex items-center gap-2">
-        <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/20">
           <Boxes className="size-4" aria-hidden />
         </span>
-        <h2 className="text-sm font-semibold tracking-tight whitespace-nowrap">
-          {t('delivery.dispatch.productSummary')}
-        </h2>
+        <h2 className="truncate text-sm font-semibold tracking-tight">{t('delivery.dispatch.productSummary')}</h2>
       </div>
 
-      <ul className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+      <ul className="col-span-2 flex min-w-0 flex-wrap items-center gap-1.5 sm:col-span-1">
         {tally.rows.map((row) => (
           <li
             key={row.productName}
@@ -89,7 +92,7 @@ export function TripProductChips({ challans }: { challans: TripChallanRecord[] }
         ))}
       </ul>
 
-      <p className="flex shrink-0 flex-wrap items-baseline gap-x-2 text-xs text-muted-foreground">
+      <p className="col-start-2 row-start-1 flex flex-wrap items-baseline justify-end gap-x-2 text-xs text-muted-foreground sm:col-start-3">
         <span>{countOf(tally.products, 'nouns.product', t)}</span>
         {returnedQty > 0 && (
           <span>
